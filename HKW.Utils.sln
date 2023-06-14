@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33627.172
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HKW.Utils", "HKW.Utils\HKW.Utils.csproj", "{26456B89-4D5F-48DE-8A31-703ECCCC0A4B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HKW.Utils.Tests", "HKW.Utils.Tests\HKW.Utils.Tests.csproj", "{25CCAEB7-4FD7-4BBD-AC05-D9263BAA182D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{26456B89-4D5F-48DE-8A31-703ECCCC0A4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26456B89-4D5F-48DE-8A31-703ECCCC0A4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26456B89-4D5F-48DE-8A31-703ECCCC0A4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26456B89-4D5F-48DE-8A31-703ECCCC0A4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25CCAEB7-4FD7-4BBD-AC05-D9263BAA182D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25CCAEB7-4FD7-4BBD-AC05-D9263BAA182D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25CCAEB7-4FD7-4BBD-AC05-D9263BAA182D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25CCAEB7-4FD7-4BBD-AC05-D9263BAA182D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {95FCA9EB-4A46-4E77-AC96-E3CAB3714619}
+	EndGlobalSection
+EndGlobal
