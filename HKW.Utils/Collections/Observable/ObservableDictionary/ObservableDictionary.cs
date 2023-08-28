@@ -28,7 +28,7 @@ public class ObservableDictionary<TKey, TValue> : IObservableDictionary<TKey, TV
     /// </summary>
     private readonly Dictionary<TKey, TValue> r_dictionary;
 
-    #region crot
+    #region Ctor
     /// <inheritdoc/>
     public ObservableDictionary()
     {
@@ -117,7 +117,7 @@ public class ObservableDictionary<TKey, TValue> : IObservableDictionary<TKey, TV
         OnCountPropertyChanged();
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc cref="Dictionary{TKey, TValue}.TryAdd(TKey, TValue)" />
     public bool TryAdd(TKey key, TValue value)
     {
         var entry = new KeyValuePair<TKey, TValue>(key, value);
@@ -127,20 +127,6 @@ public class ObservableDictionary<TKey, TValue> : IObservableDictionary<TKey, TV
         if (result)
         {
             OnDictionaryAdded(entry);
-            OnCountPropertyChanged();
-        }
-        return result;
-    }
-
-    /// <inheritdoc/>
-    public bool TryAdd(KeyValuePair<TKey, TValue> item)
-    {
-        if (OnDictionaryAdding(item))
-            return false;
-        var result = r_dictionary.TryAdd(item.Key, item.Value);
-        if (result)
-        {
-            OnDictionaryAdded(item);
             OnCountPropertyChanged();
         }
         return result;

@@ -14,10 +14,10 @@ public static partial class HKWExtensions
     /// <para>为 <c>Count != 0</c> 语法糖</para>
     /// </summary>
     /// <typeparam name="T">类型</typeparam>
-    /// <param name="values">集合</param>
+    /// <param name="collection">集合</param>
     /// <returns>含有值为 <see langword="true"/> 否则为 <see langword="false"/></returns>
-    public static bool HasValue<T>(this ICollection<T> values)
+    public static bool HasValue<T>(this ICollection<T> collection)
     {
-        return values.Count != 0;
+        return collection.Count != 0;
     }
 }

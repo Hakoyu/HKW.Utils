@@ -30,7 +30,7 @@ public class NotifyDictionaryChangedEventArgs<TKey, TValue> : EventArgs
     /// </summary>
     public KeyValuePair<TKey, TValue>? OldEntry { get; }
 
-    #region crot
+    #region Ctor
     /// <inheritdoc/>
     /// <summary>仅用于 <see cref="NotifyDictionaryChangeAction.Clear"/></summary>
     /// <param name="changeAction">改变方案</param>

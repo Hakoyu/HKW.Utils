@@ -22,6 +22,8 @@ internal class Program
 {
     private static void Main(string[] args)
     {
+#if DEBUG
+        Stack<string> stack = new();
         //Dictionary<int, List<int>> sr_dic =
         //    new()
         //    {
@@ -36,7 +38,6 @@ internal class Program
         //        [8] = new() { 8 },
         //        [9] = new() { 9 },
         //    };
-#if DEBUG
         //ObservableCollection<int> ints = new();
         //ints.CollectionChanged += (s, e) =>
         //{
@@ -78,6 +79,6 @@ internal class Program
 
 #endif
 }
-#if DEBUG
 
+#if DEBUG
 #endif

@@ -23,7 +23,7 @@ public class ObservableList<T> : IObservableList<T>
     /// </summary>
     private readonly List<T> r_list;
 
-    #region crot
+    #region Ctor
 
     /// <inheritdoc/>
     public ObservableList()

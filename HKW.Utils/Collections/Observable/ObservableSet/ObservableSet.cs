@@ -22,7 +22,7 @@ public class ObservableSet<T> : IObservableSet<T>
     /// </summary>
     private readonly HashSet<T> r_set;
 
-    #region crot
+    #region Ctor
     /// <inheritdoc/>
     public ObservableSet()
     {
