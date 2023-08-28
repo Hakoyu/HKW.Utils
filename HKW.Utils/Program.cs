@@ -23,7 +23,8 @@ internal class Program
     private static void Main(string[] args)
     {
 #if DEBUG
-        Stack<string> stack = new();
+        var list = new List<int>() { 1, 2, 3, };
+        var i = list.GetValueOrDefault(0);
         //Dictionary<int, List<int>> sr_dic =
         //    new()
         //    {
