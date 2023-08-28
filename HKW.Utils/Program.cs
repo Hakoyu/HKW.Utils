@@ -14,6 +14,8 @@ using System.Linq;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.CollectionUtils;
+using HKW.HKWUtils.Utils;
+using System.Threading;
 #endif
 
 namespace HKW;
@@ -23,8 +25,27 @@ internal class Program
     private static void Main(string[] args)
     {
 #if DEBUG
-        var list = new List<int>() { 1, 2, 3, };
-        var i = list.GetValueOrDefault(0);
+        var timer = new CountdownTimer(new TimeSpan(0, 0, 1));
+        timer.TimeUp += () =>
+        {
+            Console.WriteLine("Time up");
+        };
+        timer.TimeStop += () =>
+        {
+            Console.WriteLine("Time stop");
+        };
+        timer.Start();
+        Thread.Sleep(2000);
+        timer.Start(1000);
+        timer.Stop();
+        timer.Start(1000);
+        timer.Stop();
+        timer.Start(1000);
+        timer.Stop();
+        timer.Start(2000);
+        //Thread.Sleep(1000);
+        //timer.Start(1);
+        Thread.Sleep(10000);
         //Dictionary<int, List<int>> sr_dic =
         //    new()
         //    {
