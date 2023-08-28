@@ -17,8 +17,6 @@ public class CountdownTimer
     /// </summary>
     public TimeSpan Duration { get; set; } = TimeSpan.Zero;
 
-    private CancellationTokenSource _cts = new();
-
     /// <summary>
     /// 已停止
     /// </summary>
@@ -28,6 +26,18 @@ public class CountdownTimer
     /// 正在运行
     /// </summary>
     public bool IsRunning { get; private set; } = false;
+
+    /// <summary>
+    /// 已结束
+    /// </summary>
+    public bool IsEnd { get; private set; } = false;
+
+    /// <summary>
+    ///自动重置
+    /// </summary>
+    public bool AutoReset { get; set; } = false;
+
+    private CancellationTokenSource _cts = new();
 
     /// <inheritdoc/>
     public CountdownTimer() { }
@@ -85,7 +95,7 @@ public class CountdownTimer
     /// <returns></returns>
     private async Task Countdown(TimeSpan duration)
     {
-        if (IsRunning)
+        if (IsRunning || IsEnd)
             return;
         IsRunning = true;
         IsStop = false;
@@ -97,9 +107,19 @@ public class CountdownTimer
         finally
         {
             if (IsStop is false)
+            {
                 TimeUp?.Invoke();
-            IsRunning = false;
-            _cts = new();
+            }
+            if (AutoReset)
+            {
+                Reset();
+            }
+            else
+            {
+                IsEnd = true;
+                IsRunning = false;
+                _cts = new();
+            }
         }
     }
 
@@ -114,6 +134,17 @@ public class CountdownTimer
             _cts.Cancel();
             TimeStop?.Invoke();
         }
+    }
+
+    /// <summary>
+    /// 重置
+    /// </summary>
+    public void Reset()
+    {
+        IsEnd = false;
+        IsStop = false;
+        IsRunning = false;
+        _cts = new();
     }
 
     /// <summary>

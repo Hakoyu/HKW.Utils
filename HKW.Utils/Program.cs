@@ -26,6 +26,7 @@ internal class Program
     {
 #if DEBUG
         var timer = new CountdownTimer(new TimeSpan(0, 0, 1));
+        timer.AutoReset = true;
         timer.TimeUp += () =>
         {
             Console.WriteLine("Time up");
