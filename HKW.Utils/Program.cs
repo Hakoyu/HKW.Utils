@@ -25,24 +25,24 @@ internal class Program
     private static void Main(string[] args)
     {
 #if DEBUG
-        var timer = new CountdownTimer(new TimeSpan(0, 0, 1));
+        var timer = new CountdownTimer();
         timer.AutoReset = true;
         timer.TimeUp += () =>
         {
             Console.WriteLine("Time up");
         };
-        timer.TimeStop += () =>
+        timer.TimeCancel += () =>
         {
             Console.WriteLine("Time stop");
         };
         timer.Start();
         Thread.Sleep(2000);
         timer.Start(1000);
-        timer.Stop();
+        timer.Cancel();
         timer.Start(1000);
-        timer.Stop();
+        timer.Cancel();
         timer.Start(1000);
-        timer.Stop();
+        timer.Cancel();
         timer.Start(2000);
         //Thread.Sleep(1000);
         //timer.Start(1);

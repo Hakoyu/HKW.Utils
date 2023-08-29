@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -15,27 +16,32 @@ public class CountdownTimer
     /// <summary>
     /// 倒计时
     /// </summary>
-    public TimeSpan Duration { get; set; } = TimeSpan.Zero;
+    [DefaultValue(typeof(TimeSpan), nameof(TimeSpan.Zero))]
+    public TimeSpan Duration { get; set; }
 
     /// <summary>
     /// 已停止
     /// </summary>
-    public bool IsStop { get; private set; } = false;
+    [DefaultValue(false)]
+    public bool IsCancel { get; private set; }
 
     /// <summary>
     /// 正在运行
     /// </summary>
-    public bool IsRunning { get; private set; } = false;
+    [DefaultValue(false)]
+    public bool IsRunning { get; private set; }
 
     /// <summary>
-    /// 已结束
+    /// 已完成
     /// </summary>
-    public bool IsEnd { get; private set; } = false;
+    [DefaultValue(false)]
+    public bool IsCompleted { get; private set; }
 
     /// <summary>
     ///自动重置
     /// </summary>
-    public bool AutoReset { get; set; } = false;
+    [DefaultValue(false)]
+    public bool AutoReset { get; set; }
 
     private CancellationTokenSource _cts = new();
 
@@ -95,10 +101,10 @@ public class CountdownTimer
     /// <returns></returns>
     private async Task Countdown(TimeSpan duration)
     {
-        if (IsRunning || IsEnd)
+        if (IsRunning || IsCompleted)
             return;
         IsRunning = true;
-        IsStop = false;
+        IsCancel = false;
         try
         {
             await Task.Delay(duration, _cts.Token);
@@ -106,7 +112,7 @@ public class CountdownTimer
         catch { }
         finally
         {
-            if (IsStop is false)
+            if (IsCancel is false)
             {
                 TimeUp?.Invoke();
             }
@@ -116,7 +122,7 @@ public class CountdownTimer
             }
             else
             {
-                IsEnd = true;
+                IsCompleted = true;
                 IsRunning = false;
                 _cts = new();
             }
@@ -124,46 +130,53 @@ public class CountdownTimer
     }
 
     /// <summary>
-    /// 停止计时器
+    /// 取消倒计时
     /// </summary>
-    public void Stop()
+    public void Cancel()
     {
         if (IsRunning)
         {
-            IsStop = true;
+            IsCancel = true;
             _cts.Cancel();
-            TimeStop?.Invoke();
+            TimeCancel?.Invoke();
         }
     }
+
+    // TODO: 倒计时中止
+    //public void Stop()
+    //{
+    //    return;
+    //}
+
+    // TODO: 倒计时继续
+    //public void Continue()
+    //{
+    //    return;
+    //}
 
     /// <summary>
     /// 重置
     /// </summary>
     public void Reset()
     {
-        IsEnd = false;
-        IsStop = false;
+        IsCompleted = false;
+        IsCancel = false;
         IsRunning = false;
         _cts = new();
     }
 
     /// <summary>
-    /// 时间结束事件
+    /// 倒计时结束事件
     /// </summary>
-    public event TimeUpHandler? TimeUp;
+    public event CountdownHandler? TimeUp;
 
     /// <summary>
-    /// 时间停止事件
+    /// 倒计时取消事件
     /// </summary>
-    public event TimeStopHandler? TimeStop;
+    public event CountdownHandler? TimeCancel;
 
     /// <summary>
-    /// 时间结束
+    /// 倒计时委托
     /// </summary>
-    public delegate void TimeUpHandler();
-
-    /// <summary>
-    /// 时间停止
-    /// </summary>
-    public delegate void TimeStopHandler();
+    public delegate void CountdownHandler();
 }
