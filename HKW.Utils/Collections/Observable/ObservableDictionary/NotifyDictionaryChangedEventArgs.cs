@@ -12,18 +12,19 @@ namespace HKW.HKWUtils.Collections;
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
-[DebuggerDisplay("Action = {ChangeAction}")]
+[DebuggerDisplay("DictionaryChanged, ChangeMode = {ChangeMode}")]
 public class NotifyDictionaryChangedEventArgs<TKey, TValue> : EventArgs
+    where TKey : notnull
 {
     /// <summary>
-    /// 改变方案
+    /// 改变模式
     /// </summary>
-    public NotifyDictionaryChangeAction Action { get; }
+    public DictionaryChangeMode ChangeMode { get; }
 
     /// <summary>
-    /// 改变的条目
+    /// 新条目
     /// </summary>
-    public KeyValuePair<TKey, TValue>? Entry { get; }
+    public KeyValuePair<TKey, TValue>? NewEntry { get; }
 
     /// <summary>
     /// 旧条目
@@ -32,56 +33,45 @@ public class NotifyDictionaryChangedEventArgs<TKey, TValue> : EventArgs
 
     #region Ctor
     /// <inheritdoc/>
-    /// <summary>仅用于 <see cref="NotifyDictionaryChangeAction.Clear"/></summary>
-    /// <param name="changeAction">改变方案</param>
-    /// <exception cref="ArgumentException"><paramref name="changeAction"/> 不是 <see cref="NotifyDictionaryChangeAction.Clear"/></exception>
-    public NotifyDictionaryChangedEventArgs(NotifyDictionaryChangeAction changeAction)
+    /// <summary>仅用于: <see cref="DictionaryChangeMode.Clear"/></summary>
+    /// <param name="changeMode">改变方案</param>
+    public NotifyDictionaryChangedEventArgs(DictionaryChangeMode changeMode)
     {
-        if (changeAction is not NotifyDictionaryChangeAction.Clear)
-            throw new ArgumentException(
-                string.Format(
-                    ExceptionsMessage.Format_CanOnlyBeUsedFor,
-                    NotifyDictionaryChangeAction.Clear
-                ),
-                nameof(changeAction)
-            );
-        Action = changeAction;
+        ChangeMode = changeMode;
     }
 
     /// <inheritdoc/>
-    /// <param name="changeAction">改变方案</param>
+    /// <summary>仅用于:
+    /// <see cref="DictionaryChangeMode.Add"/>
+    /// <see cref="DictionaryChangeMode.Remove"/>
+    /// </summary>
+    /// <param name="changeMode">改变方案</param>
     /// <param name="entry">改变的条目</param>
     public NotifyDictionaryChangedEventArgs(
-        NotifyDictionaryChangeAction changeAction,
+        DictionaryChangeMode changeMode,
         KeyValuePair<TKey, TValue> entry
     )
     {
-        Action = changeAction;
-        Entry = entry;
+        ChangeMode = changeMode;
+        if (ChangeMode is DictionaryChangeMode.Add)
+            NewEntry = entry;
+        else
+            OldEntry = entry;
     }
 
     /// <inheritdoc/>
-    /// <summary>仅用于 <see cref="ObservableDictionary{TKey, TValue}.this[TKey]"/></summary>
-    /// <param name="changeAction">改变方案</param>
-    /// <param name="entry">新条目</param>
+    /// <summary>仅用于 <see cref="DictionaryChangeMode.ValueChange"/></summary>
+    /// <param name="changeMode">改变方案</param>
+    /// <param name="newEntry">新条目</param>
     /// <param name="oldEntry">旧条目</param>
-    /// <exception cref="ArgumentException"><paramref name="changeAction"/> 不是 <see cref="NotifyDictionaryChangeAction.ValueChange"/></exception>
     public NotifyDictionaryChangedEventArgs(
-        NotifyDictionaryChangeAction changeAction,
-        KeyValuePair<TKey, TValue> entry,
+        DictionaryChangeMode changeMode,
+        KeyValuePair<TKey, TValue> newEntry,
         KeyValuePair<TKey, TValue> oldEntry
     )
     {
-        if (changeAction is not NotifyDictionaryChangeAction.ValueChange)
-            throw new ArgumentException(
-                string.Format(
-                    ExceptionsMessage.Format_CanOnlyBeUsedFor,
-                    NotifyDictionaryChangeAction.ValueChange
-                ),
-                nameof(changeAction)
-            );
-        Action = changeAction;
-        Entry = entry;
+        ChangeMode = changeMode;
+        NewEntry = newEntry;
         OldEntry = oldEntry;
     }
     #endregion

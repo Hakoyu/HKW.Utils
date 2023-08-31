@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -11,84 +12,71 @@ namespace HKW.HKWUtils.Collections;
 /// 通知列表已改变事件参数
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
-[DebuggerDisplay("Action = {ChangeAction}, Index = {Index}")]
+[DebuggerDisplay("ChangeMode = {ChangeMode}, Index = {Index}")]
 public class NotifyListChangedEventArgs<T> : EventArgs
 {
     /// <summary>
-    /// 改变方案
+    /// 改变模式
     /// </summary>
-    public NotifyListChangeAction Action { get; }
+    public ListChangeMode ChangeMode { get; }
 
     /// <summary>
-    /// 项
+    /// 新项目
     /// </summary>
-    public T Item { get; } = default!;
+    public T? NewItem { get; }
 
     /// <summary>
-    /// 旧项
+    /// 旧项目
     /// </summary>
-    public T OldItem { get; } = default!;
+    public T? OldItem { get; }
 
     /// <summary>
     /// 索引
     /// </summary>
+    [DefaultValue(-1)]
     public int Index { get; } = -1;
 
     /// <inheritdoc/>
-    /// <summary>仅用于 <see cref="ObservableList{T}.Clear"/></summary>
-    /// <param name="changeAction">改变方案</param>
-    /// <exception cref="ArgumentException"><paramref name="changeAction"/> 不是 <see cref="NotifyListChangeAction.Clear"/></exception>
-    public NotifyListChangedEventArgs(NotifyListChangeAction changeAction)
+    /// <summary>仅用于: <see cref="ListChangeMode.Clear"/></summary>
+    /// <param name="changeMode">改变方案</param>
+    /// <exception cref="ArgumentException"><paramref name="changeMode"/> 不是 <see cref="ListChangeMode.Clear"/></exception>
+    public NotifyListChangedEventArgs(ListChangeMode changeMode)
     {
-        if (changeAction is not NotifyListChangeAction.Clear)
-            throw new ArgumentException(
-                string.Format(
-                    ExceptionsMessage.Format_CanOnlyBeUsedFor,
-                    NotifyListChangeAction.Clear
-                ),
-                nameof(changeAction)
-            );
-        Action = changeAction;
+        ChangeMode = changeMode;
     }
 
     /// <inheritdoc/>
-    /// <param name="changeAction">改变方案</param>
-    /// <param name="item">改变的条目</param>
+    /// <summary>仅用于:
+    /// <see cref="ListChangeMode.Add"/>
+    /// <see cref="ListChangeMode.Remove"/>
+    /// </summary>
+    /// <param name="changeMode">改变方案</param>
+    /// <param name="item">项目</param>
     /// <param name="index">索引</param>
-    public NotifyListChangedEventArgs(NotifyListChangeAction changeAction, T item, int index)
+    public NotifyListChangedEventArgs(ListChangeMode changeMode, T item, int index)
     {
-        Action = changeAction;
-        Item = item;
+        if (changeMode is ListChangeMode.Add)
+            NewItem = item;
+        else
+            OldItem = item;
+        ChangeMode = changeMode;
         Index = index;
     }
 
     /// <inheritdoc/>
     /// <summary>
-    /// 仅使用于 <see cref="ObservableList{T}.this[int]"/>
+    /// 仅用于: <see cref="ListChangeMode.ValueChange"/>
     /// </summary>
-    /// <param name="changeAction">改变方案</param>
-    /// <param name="oldItem">改变的条目</param>
-    /// <param name="newItem">新值</param>
+    /// <param name="changeMode">改变方案</param>
+    /// <param name="newItem">新项目</param>
+    /// <param name="oldItem">旧项目</param>
     /// <param name="index">索引</param>
-    /// <exception cref="ArgumentException"><paramref name="changeAction"/> 不是 <see cref="NotifyListChangeAction.ValueChange"/></exception>
-    public NotifyListChangedEventArgs(
-        NotifyListChangeAction changeAction,
-        T oldItem,
-        T newItem,
-        int index
-    )
+    /// <exception cref="ArgumentException"><paramref name="changeMode"/> 不是 <see cref="ListChangeMode.ValueChange"/></exception>
+    public NotifyListChangedEventArgs(ListChangeMode changeMode, T newItem, T oldItem, int index)
     {
-        if (changeAction is not NotifyListChangeAction.ValueChange)
-            throw new ArgumentException(
-                string.Format(
-                    ExceptionsMessage.Format_CanOnlyBeUsedFor,
-                    NotifyListChangeAction.ValueChange
-                ),
-                nameof(changeAction)
-            );
-        Action = changeAction;
+        ChangeMode = changeMode;
+        NewItem = newItem;
         OldItem = oldItem;
-        Item = newItem;
         Index = index;
     }
 }

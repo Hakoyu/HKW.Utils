@@ -19,4 +19,9 @@ public interface IObservableSet<T>
         INotifySetChanged<T>,
         INotifyCollectionChanged,
         INotifyPropertyChanged
-    where T : notnull { }
+{
+    /// <summary>
+    /// 比较器
+    /// </summary>
+    public IEqualityComparer<T>? Comparer { get; }
+}

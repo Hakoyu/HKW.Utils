@@ -25,20 +25,23 @@ internal class Program
 
     private static void Main(string[] args)
     {
-        var timer = new TimerTrigger();
-        timer.TimedTrigger += (s, e) =>
-        {
-            Console.WriteLine(
-                $"\nTrigger {s.CurrentState.Counter} {stopWatch.ElapsedMilliseconds:f4}ms"
-            );
-            if (s.CurrentState.Counter >= 10)
-                e.Cancel = true;
-        };
-        stopWatch.Start();
-        timer.Start(1000, 100);
-        Task.Delay(5000).Wait();
-        stopWatch.Stop();
-        Console.WriteLine($"\nEnd  {stopWatch.ElapsedMilliseconds:f4}ms");
+        HashSet<int> set1 = Enumerable.Range(0, 1000).ToHashSet();
+        ObservableSet<int> set2 = new(set1);
+        return;
+        //var timer = new TimerTrigger();
+        //timer.TimedTrigger += (s, e) =>
+        //{
+        //    Console.WriteLine(
+        //        $"\nTrigger {s.CurrentState.Counter} {stopWatch.ElapsedMilliseconds:f4}ms"
+        //    );
+        //    if (s.CurrentState.Counter >= 10)
+        //        e.Cancel = true;
+        //};
+        //stopWatch.Start();
+        //timer.Start(1000, 100);
+        //Task.Delay(5000).Wait();
+        //stopWatch.Stop();
+        //Console.WriteLine($"\nEnd  {stopWatch.ElapsedMilliseconds:f4}ms");
 
         //var timer = new CountdownTimer();
         //timer.AutoReset = true;

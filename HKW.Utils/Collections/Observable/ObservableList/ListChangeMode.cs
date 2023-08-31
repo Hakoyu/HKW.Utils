@@ -9,7 +9,7 @@ namespace HKW.HKWUtils.Collections;
 /// <summary>
 /// 列表改变方案
 /// </summary>
-public enum NotifyListChangeAction
+public enum ListChangeMode
 {
     /// <summary>
     /// 添加

@@ -1,8 +1,10 @@
-﻿using System;
+﻿using HKW.HKWUtils.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -15,5 +17,5 @@ public interface INotifyListChanged<T>
     /// <summary>
     /// 列表已改变事件
     /// </summary>
-    public event NotifyListChangedEventHandler<T>? ListChanged;
+    public event XEventHandler<IObservableList<T>, NotifyListChangedEventArgs<T>>? ListChanged;
 }

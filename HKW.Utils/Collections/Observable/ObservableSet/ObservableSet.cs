@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HKW.HKWUtils.Events;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -14,13 +15,18 @@ namespace HKW.HKWUtils.Collections;
 /// 可观察集合
 /// </summary>
 [DebuggerDisplay("Count = {Count}")]
+[DebuggerTypeProxy(typeof(ObservableSet<>.DebugView))]
 public class ObservableSet<T> : IObservableSet<T>
     where T : notnull
 {
     /// <summary>
     /// 源集合
     /// </summary>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly HashSet<T> r_set;
+
+    /// <inheritdoc/>
+    public IEqualityComparer<T>? Comparer => r_set.Comparer;
 
     #region Ctor
     /// <inheritdoc/>
@@ -72,6 +78,7 @@ public class ObservableSet<T> : IObservableSet<T>
     public int Count => ((ICollection<T>)r_set).Count;
 
     /// <inheritdoc/>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public bool IsReadOnly => ((ICollection<T>)r_set).IsReadOnly;
 
     #region Change
@@ -246,7 +253,7 @@ public class ObservableSet<T> : IObservableSet<T>
     private bool OnSetAdding(T item)
     {
         if (SetChanging is not null)
-            return OnSetChanging(new(NotifySetChangeAction.Add, item));
+            return OnSetChanging(new(SetChangeMode.Add, item));
         return false;
     }
 
@@ -258,7 +265,7 @@ public class ObservableSet<T> : IObservableSet<T>
     private bool OnSetRemoving(T item)
     {
         if (SetChanging is not null)
-            return OnSetChanging(new(NotifySetChangeAction.Remove, item));
+            return OnSetChanging(new(SetChangeMode.Remove, item));
         return false;
     }
 
@@ -269,7 +276,7 @@ public class ObservableSet<T> : IObservableSet<T>
     private bool OnSetClearing()
     {
         if (SetChanging is not null)
-            return OnSetChanging(new(NotifySetChangeAction.Clear));
+            return OnSetChanging(new(SetChangeMode.Clear));
         return false;
     }
 
@@ -280,7 +287,7 @@ public class ObservableSet<T> : IObservableSet<T>
     private bool OnSetIntersecting(IEnumerable<T> collection)
     {
         if (SetChanging is not null)
-            return OnSetChanging(new(NotifySetChangeAction.Intersect, collection));
+            return OnSetChanging(new(SetChangeMode.Intersect, collection));
         return false;
     }
 
@@ -291,7 +298,7 @@ public class ObservableSet<T> : IObservableSet<T>
     private bool OnSetExcepting(IEnumerable<T> collection)
     {
         if (SetChanging is not null)
-            return OnSetChanging(new(NotifySetChangeAction.Except, collection));
+            return OnSetChanging(new(SetChangeMode.Except, collection));
         return false;
     }
 
@@ -302,7 +309,7 @@ public class ObservableSet<T> : IObservableSet<T>
     private bool OnSetSymmetricExcepting(IEnumerable<T> collection)
     {
         if (SetChanging is not null)
-            return OnSetChanging(new(NotifySetChangeAction.SymmetricExcept, collection));
+            return OnSetChanging(new(SetChangeMode.SymmetricExcept, collection));
         return false;
     }
 
@@ -313,12 +320,12 @@ public class ObservableSet<T> : IObservableSet<T>
     private bool OnSetUnioning(IEnumerable<T> collection)
     {
         if (SetChanging is not null)
-            return OnSetChanging(new(NotifySetChangeAction.Union, collection));
+            return OnSetChanging(new(SetChangeMode.Union, collection));
         return false;
     }
 
     /// <summary>
-    /// 集合改变时
+    /// 集合改变前
     /// </summary>
     /// <param name="args">参数</param>
     protected virtual bool OnSetChanging(NotifySetChangingEventArgs<T> args)
@@ -328,7 +335,7 @@ public class ObservableSet<T> : IObservableSet<T>
     }
 
     /// <inheritdoc/>
-    public event NotifySetChangingEventHandler<T>? SetChanging;
+    public event XCancelEventHandler<IObservableSet<T>, NotifySetChangingEventArgs<T>>? SetChanging;
     #endregion
     #region SetChanged
     /// <summary>
@@ -338,7 +345,7 @@ public class ObservableSet<T> : IObservableSet<T>
     private void OnSetAdded(T item)
     {
         if (SetChanged is not null)
-            OnSetChanged(new(NotifySetChangeAction.Add, item));
+            OnSetChanged(new(SetChangeMode.Add, item));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item));
     }
@@ -350,7 +357,7 @@ public class ObservableSet<T> : IObservableSet<T>
     private void OnSetRemoved(T item)
     {
         if (SetChanged is not null)
-            OnSetChanged(new(NotifySetChangeAction.Remove, item));
+            OnSetChanged(new(SetChangeMode.Remove, item));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, item));
     }
@@ -361,7 +368,7 @@ public class ObservableSet<T> : IObservableSet<T>
     private void OnSetCleared()
     {
         if (SetChanged is not null)
-            OnSetChanged(new(NotifySetChangeAction.Clear));
+            OnSetChanged(new(SetChangeMode.Clear));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Reset));
     }
@@ -372,7 +379,7 @@ public class ObservableSet<T> : IObservableSet<T>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
     private void OnSetIntersected(IEnumerable<T> collection)
     {
-        OnSetChanged(new(NotifySetChangeAction.Intersect, collection));
+        OnSetChanged(new(SetChangeMode.Intersect, collection));
     }
 
     /// <summary>
@@ -381,7 +388,7 @@ public class ObservableSet<T> : IObservableSet<T>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
     private void OnSetExcepted(IEnumerable<T> collection)
     {
-        OnSetChanged(new(NotifySetChangeAction.Except, collection));
+        OnSetChanged(new(SetChangeMode.Except, collection));
     }
 
     /// <summary>
@@ -390,7 +397,7 @@ public class ObservableSet<T> : IObservableSet<T>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
     private void OnSetSymmetricExcepted(IEnumerable<T> collection)
     {
-        OnSetChanged(new(NotifySetChangeAction.SymmetricExcept, collection));
+        OnSetChanged(new(SetChangeMode.SymmetricExcept, collection));
     }
 
     /// <summary>
@@ -399,11 +406,11 @@ public class ObservableSet<T> : IObservableSet<T>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
     private void OnSetUnioned(IEnumerable<T> collection)
     {
-        OnSetChanged(new(NotifySetChangeAction.Union, collection));
+        OnSetChanged(new(SetChangeMode.Union, collection));
     }
 
     /// <summary>
-    /// 集合已改变时
+    /// 集合已改变前
     /// </summary>
     /// <param name="args">参数</param>
     protected virtual void OnSetChanged(NotifySetChangedEventArgs<T> args)
@@ -412,11 +419,11 @@ public class ObservableSet<T> : IObservableSet<T>
     }
 
     /// <inheritdoc/>
-    public event NotifySetChangedEventHandler<T>? SetChanged;
+    public event XEventHandler<IObservableSet<T>, NotifySetChangedEventArgs<T>>? SetChanged;
     #endregion
     #region PropertyChanged
     /// <summary>
-    /// 数量已改变时
+    /// 数量已改变前
     /// </summary>
     private void OnCountPropertyChanged()
     {
@@ -425,7 +432,7 @@ public class ObservableSet<T> : IObservableSet<T>
     }
 
     /// <summary>
-    /// 属性已改变时
+    /// 属性已改变前
     /// </summary>
     /// <param name="name">参数</param>
     protected virtual void OnPropertyChanged(string name)
@@ -439,7 +446,7 @@ public class ObservableSet<T> : IObservableSet<T>
     #region CollectionChanged
 
     /// <summary>
-    /// 集合已改变时
+    /// 集合已改变前
     /// </summary>
     /// <param name="args">参数</param>
     protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
@@ -450,4 +457,19 @@ public class ObservableSet<T> : IObservableSet<T>
     /// <inheritdoc/>
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
     #endregion
+
+    internal class DebugView
+    {
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public T[] Array
+        {
+            get => r_set.ToArray();
+        }
+        private readonly ISet<T> r_set;
+
+        public DebugView(ISet<T> set)
+        {
+            r_set = set;
+        }
+    }
 }

@@ -9,22 +9,18 @@ using System.Threading.Tasks;
 namespace HKW.HKWUtils.Collections;
 
 /// <summary>
-/// 通知字典改变时事件参数
+/// 通知字典改变前事件参数
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
-[DebuggerDisplay("Action = {ChangeAction}")]
+[DebuggerDisplay("DictionaryChanging, ChangeMode = {ChangeMode}")]
 public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
+    where TKey : notnull
 {
     /// <summary>
-    /// 改变方案
+    /// 改变模式
     /// </summary>
-    public NotifyDictionaryChangeAction Action { get; }
-
-    /// <summary>
-    /// 改变的条目
-    /// </summary>
-    public KeyValuePair<TKey, TValue>? Entry { get; }
+    public DictionaryChangeMode ChangeMode { get; }
 
     /// <summary>
     /// 新条目
@@ -32,61 +28,52 @@ public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
     public KeyValuePair<TKey, TValue>? NewEntry { get; }
 
     /// <summary>
-    /// 取消
+    /// 旧条目
     /// </summary>
-    public new bool Cancel { get; set; } = false;
+    public KeyValuePair<TKey, TValue>? OldEntry { get; }
 
     /// <inheritdoc/>
-    /// <summary>仅用于 <see cref="ObservableDictionary{TKey, TValue}.Clear"/></summary>
-    /// <param name="changeAction">改变方案</param>
-    /// <exception cref="ArgumentException"><paramref name="changeAction"/> 不是 <see cref="NotifyDictionaryChangeAction.Clear"/></exception>
-    public NotifyDictionaryChangingEventArgs(NotifyDictionaryChangeAction changeAction)
+    /// <summary>仅用于: <see cref="DictionaryChangeMode.Clear"/></summary>
+    /// <param name="changeMode">改变方案</param>
+    /// <exception cref="ArgumentException"><paramref name="changeMode"/> 不是 <see cref="DictionaryChangeMode.Clear"/></exception>
+    public NotifyDictionaryChangingEventArgs(DictionaryChangeMode changeMode)
     {
-        if (changeAction is not NotifyDictionaryChangeAction.Clear)
-            throw new ArgumentException(
-                string.Format(
-                    ExceptionsMessage.Format_CanOnlyBeUsedFor,
-                    NotifyDictionaryChangeAction.Clear
-                ),
-                nameof(changeAction)
-            );
-        Action = changeAction;
+        ChangeMode = changeMode;
     }
 
     /// <inheritdoc/>
-    /// <param name="changeAction">改变方案</param>
-    /// <param name="keyValuePair">改变的条目</param>
+    /// <summary>仅用于:
+    /// <see cref="DictionaryChangeMode.Add"/>
+    /// <see cref="DictionaryChangeMode.Remove"/>
+    /// </summary>
+    /// <param name="changeMode">改变方案</param>
+    /// <param name="entry">改变的条目</param>
     public NotifyDictionaryChangingEventArgs(
-        NotifyDictionaryChangeAction changeAction,
-        KeyValuePair<TKey, TValue> keyValuePair
+        DictionaryChangeMode changeMode,
+        KeyValuePair<TKey, TValue> entry
     )
     {
-        Action = changeAction;
-        Entry = keyValuePair;
+        ChangeMode = changeMode;
+        if (ChangeMode is DictionaryChangeMode.Add)
+            NewEntry = entry;
+        else
+            OldEntry = entry;
     }
 
     /// <inheritdoc/>
-    /// <summary>仅用于 <see cref="ObservableDictionary{TKey, TValue}.this[TKey]"/></summary>
-    /// <param name="changeAction">改变方案</param>
-    /// <param name="entry">旧条目</param>
+    /// <summary>仅用于: <see cref="DictionaryChangeMode.ValueChange"/></summary>
+    /// <param name="changeMode">改变方案</param>
     /// <param name="newEntry">新条目</param>
-    /// <exception cref="ArgumentException"><paramref name="changeAction"/> 不是 <see cref="NotifyDictionaryChangeAction.ValueChange"/></exception>
+    /// <param name="oldEntry">旧条目</param>
+    /// <exception cref="ArgumentException"><paramref name="changeMode"/> 不是 <see cref="DictionaryChangeMode.ValueChange"/></exception>
     public NotifyDictionaryChangingEventArgs(
-        NotifyDictionaryChangeAction changeAction,
-        KeyValuePair<TKey, TValue> entry,
-        KeyValuePair<TKey, TValue> newEntry
+        DictionaryChangeMode changeMode,
+        KeyValuePair<TKey, TValue> newEntry,
+        KeyValuePair<TKey, TValue> oldEntry
     )
     {
-        if (changeAction is not NotifyDictionaryChangeAction.ValueChange)
-            throw new ArgumentException(
-                string.Format(
-                    ExceptionsMessage.Format_CanOnlyBeUsedFor,
-                    NotifyDictionaryChangeAction.ValueChange
-                ),
-                nameof(changeAction)
-            );
-        Action = changeAction;
-        Entry = entry;
+        ChangeMode = changeMode;
         NewEntry = newEntry;
+        OldEntry = oldEntry;
     }
 }

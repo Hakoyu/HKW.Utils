@@ -20,10 +20,10 @@ public class ObservableDictionaryTT
         observableDictionary.DictionaryChanging += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifyDictionaryChangeAction.Add);
-            Assert.AreEqual(e.Entry?.Key, 10);
-            Assert.AreEqual(e.Entry?.Value, 10);
-            Assert.IsNull(e.NewEntry);
+            Assert.AreEqual(e.ChangeMode, DictionaryChangeMode.Add);
+            Assert.AreEqual(e.NewEntry?.Key, 10);
+            Assert.AreEqual(e.NewEntry?.Value, 10);
+            Assert.IsNull(e.OldEntry);
             e.Cancel = true;
         };
         observableDictionary.Add(10, 10);
@@ -41,9 +41,9 @@ public class ObservableDictionaryTT
         observableDictionary.DictionaryChanged += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifyDictionaryChangeAction.Add);
-            Assert.AreEqual(e.Entry?.Key, 10);
-            Assert.AreEqual(e.Entry?.Value, 10);
+            Assert.AreEqual(e.ChangeMode, DictionaryChangeMode.Add);
+            Assert.AreEqual(e.NewEntry?.Key, 10);
+            Assert.AreEqual(e.NewEntry?.Value, 10);
             Assert.IsNull(e.OldEntry);
         };
         observableDictionary.Add(10, 10);
@@ -61,9 +61,9 @@ public class ObservableDictionaryTT
         observableDictionary.DictionaryChanging += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifyDictionaryChangeAction.Remove);
-            Assert.AreEqual(e.Entry?.Key, 0);
-            Assert.AreEqual(e.Entry?.Value, 0);
+            Assert.AreEqual(e.ChangeMode, DictionaryChangeMode.Remove);
+            Assert.AreEqual(e.OldEntry?.Key, 0);
+            Assert.AreEqual(e.OldEntry?.Value, 0);
             Assert.IsNull(e.NewEntry);
             e.Cancel = true;
         };
@@ -82,10 +82,10 @@ public class ObservableDictionaryTT
         observableDictionary.DictionaryChanged += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifyDictionaryChangeAction.Remove);
-            Assert.AreEqual(e.Entry?.Key, 0);
-            Assert.AreEqual(e.Entry?.Value, 0);
-            Assert.IsNull(e.OldEntry);
+            Assert.AreEqual(e.ChangeMode, DictionaryChangeMode.Remove);
+            Assert.AreEqual(e.OldEntry?.Key, 0);
+            Assert.AreEqual(e.OldEntry?.Value, 0);
+            Assert.IsNull(e.NewEntry);
         };
         observableDictionary.Remove(0);
         Assert.AreEqual(observableDictionary.Count, 9);
@@ -102,8 +102,8 @@ public class ObservableDictionaryTT
         observableDictionary.DictionaryChanging += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifyDictionaryChangeAction.Clear);
-            Assert.IsNull(e.Entry);
+            Assert.AreEqual(e.ChangeMode, DictionaryChangeMode.Clear);
+            Assert.IsNull(e.OldEntry);
             Assert.IsNull(e.NewEntry);
             e.Cancel = true;
         };
@@ -122,8 +122,8 @@ public class ObservableDictionaryTT
         observableDictionary.DictionaryChanged += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifyDictionaryChangeAction.Clear);
-            Assert.IsNull(e.Entry);
+            Assert.AreEqual(e.ChangeMode, DictionaryChangeMode.Clear);
+            Assert.IsNull(e.NewEntry);
             Assert.IsNull(e.OldEntry);
         };
         observableDictionary.Clear();
@@ -141,11 +141,11 @@ public class ObservableDictionaryTT
         observableDictionary.DictionaryChanging += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifyDictionaryChangeAction.ValueChange);
-            Assert.AreEqual(e.Entry?.Key, 0);
-            Assert.AreEqual(e.Entry?.Value, 0);
+            Assert.AreEqual(e.ChangeMode, DictionaryChangeMode.ValueChange);
             Assert.AreEqual(e.NewEntry?.Key, 0);
             Assert.AreEqual(e.NewEntry?.Value, 10);
+            Assert.AreEqual(e.OldEntry?.Key, 0);
+            Assert.AreEqual(e.OldEntry?.Value, 0);
             e.Cancel = true;
         };
         observableDictionary[0] = 10;
@@ -164,9 +164,9 @@ public class ObservableDictionaryTT
         observableDictionary.DictionaryChanged += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifyDictionaryChangeAction.ValueChange);
-            Assert.AreEqual(e.Entry?.Key, 0);
-            Assert.AreEqual(e.Entry?.Value, 10);
+            Assert.AreEqual(e.ChangeMode, DictionaryChangeMode.ValueChange);
+            Assert.AreEqual(e.NewEntry?.Key, 0);
+            Assert.AreEqual(e.NewEntry?.Value, 10);
             Assert.AreEqual(e.OldEntry?.Key, 0);
             Assert.AreEqual(e.OldEntry?.Value, 0);
         };

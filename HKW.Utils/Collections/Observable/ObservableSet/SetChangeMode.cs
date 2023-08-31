@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace HKW.HKWUtils.Collections;
 
 /// <summary>
-/// 字典改变方案
+/// 集合改变方案
 /// </summary>
-public enum NotifyDictionaryChangeAction
+public enum SetChangeMode
 {
     /// <summary>
     /// 添加
@@ -27,7 +27,22 @@ public enum NotifyDictionaryChangeAction
     Clear,
 
     /// <summary>
-    /// 修改值
+    /// 相交
     /// </summary>
-    ValueChange,
+    Intersect,
+
+    /// <summary>
+    /// 除外
+    /// </summary>
+    Except,
+
+    /// <summary>
+    /// 对称除外
+    /// </summary>
+    SymmetricExcept,
+
+    /// <summary>
+    /// 合并
+    /// </summary>
+    Union,
 }

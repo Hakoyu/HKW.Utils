@@ -21,4 +21,9 @@ public interface IObservableDictionary<TKey, TValue>
         INotifyCollectionChanged,
         INotifyPropertyChanged
     where TKey : notnull
-    where TValue : notnull { }
+{
+    /// <summary>
+    /// 比较器
+    /// </summary>
+    public IEqualityComparer<TKey>? Comparer { get; }
+}

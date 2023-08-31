@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HKW.HKWUtils.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,5 +16,5 @@ public interface INotifySetChanged<T>
     /// <summary>
     /// 列表已改变事件
     /// </summary>
-    public event NotifySetChangedEventHandler<T>? SetChanged;
+    public event XEventHandler<IObservableSet<T>, NotifySetChangedEventArgs<T>>? SetChanged;
 }

@@ -20,5 +20,4 @@ public interface IObservableList<T>
         INotifyListChanging<T>,
         INotifyListChanged<T>,
         INotifyCollectionChanged,
-        INotifyPropertyChanged
-    where T : notnull { }
+        INotifyPropertyChanged { }

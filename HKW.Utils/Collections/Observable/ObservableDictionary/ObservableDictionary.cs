@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HKW.HKWUtils.Events;
 using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Collections;
@@ -19,14 +20,18 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
+[DebuggerTypeProxy(typeof(ObservableDictionary<,>.DebugView))]
 public class ObservableDictionary<TKey, TValue> : IObservableDictionary<TKey, TValue>
     where TKey : notnull
-    where TValue : notnull
 {
     /// <summary>
     /// 原始字典
     /// </summary>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Dictionary<TKey, TValue> r_dictionary;
+
+    /// <inheritdoc/>
+    public IEqualityComparer<TKey>? Comparer => r_dictionary.Comparer;
 
     #region Ctor
     /// <inheritdoc/>
@@ -36,10 +41,10 @@ public class ObservableDictionary<TKey, TValue> : IObservableDictionary<TKey, TV
     }
 
     /// <inheritdoc/>
-    /// <param name="dictionary">原始字典</param>
-    public ObservableDictionary(IDictionary<TKey, TValue> dictionary)
+    /// <param name="collection">原始字典</param>
+    public ObservableDictionary(IEnumerable<KeyValuePair<TKey, TValue>> collection)
     {
-        r_dictionary = new(dictionary);
+        r_dictionary = new(collection);
     }
 
     /// <inheritdoc/>
@@ -50,14 +55,14 @@ public class ObservableDictionary<TKey, TValue> : IObservableDictionary<TKey, TV
     }
 
     /// <inheritdoc/>
-    /// <param name="dictionary">原始字典</param>
+    /// <param name="collection">键值对集合</param>
     /// <param name="comparer">比较器</param>
     public ObservableDictionary(
-        IDictionary<TKey, TValue> dictionary,
+        IEnumerable<KeyValuePair<TKey, TValue>> collection,
         IEqualityComparer<TKey> comparer
     )
     {
-        r_dictionary = new(dictionary, comparer);
+        r_dictionary = new(collection, comparer);
     }
     #endregion
     #region IDictionary
@@ -72,10 +77,13 @@ public class ObservableDictionary<TKey, TValue> : IObservableDictionary<TKey, TV
     public int Count => r_dictionary.Count;
 
     /// <inheritdoc/>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public bool IsReadOnly => ((ICollection<KeyValuePair<TKey, TValue>>)r_dictionary).IsReadOnly;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => r_dictionary.Keys;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => r_dictionary.Values;
 
     #region Change
@@ -87,7 +95,7 @@ public class ObservableDictionary<TKey, TValue> : IObservableDictionary<TKey, TV
         {
             var oldValue = r_dictionary[key];
             if (
-                oldValue.Equals(value)
+                oldValue?.Equals(value) is true
                 || OnDictionaryValueChanging(r_dictionary.GetEntry(key), value)
             )
                 return;
@@ -213,98 +221,99 @@ public class ObservableDictionary<TKey, TValue> : IObservableDictionary<TKey, TV
     #endregion
     #region DictionaryChanging
     /// <summary>
-    /// 字典添加条目时
+    /// 字典添加条目前
     /// </summary>
     /// <param name="item">条目</param>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
     private bool OnDictionaryAdding(KeyValuePair<TKey, TValue> item)
     {
         if (DictionaryChanging is not null)
-            return OnDictionaryChanging(new(NotifyDictionaryChangeAction.Add, item));
+            return OnDictionaryChanging(new(DictionaryChangeMode.Add, item));
         return false;
     }
 
     /// <summary>
-    /// 字典删除条目时
+    /// 字典删除条目前
     /// </summary>
     /// <param name="item">条目</param>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
     private bool OnDictionaryRemoving(KeyValuePair<TKey, TValue> item)
     {
         if (DictionaryChanging is not null)
-            return OnDictionaryChanging(new(NotifyDictionaryChangeAction.Remove, item));
+            return OnDictionaryChanging(new(DictionaryChangeMode.Remove, item));
         return false;
     }
 
     /// <summary>
-    /// 字典条目值改变时
+    /// 字典改变条目值前
     /// </summary>
-    /// <param name="entry">旧条目</param>
+    /// <param name="entry">条目</param>
     /// <param name="newValue">新值</param>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
     private bool OnDictionaryValueChanging(KeyValuePair<TKey, TValue> entry, TValue newValue)
     {
         if (DictionaryChanging is not null)
             return OnDictionaryChanging(
-                new(NotifyDictionaryChangeAction.ValueChange, entry, new(entry.Key, newValue))
+                new(DictionaryChangeMode.ValueChange, new(entry.Key, newValue), entry)
             );
         return false;
     }
 
     /// <summary>
-    /// 字典清理时
+    /// 字典清理前
     /// </summary>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
     private bool OnDictionaryClearing()
     {
         if (DictionaryChanging is not null)
-            return OnDictionaryChanging(new(NotifyDictionaryChangeAction.Clear));
+            return OnDictionaryChanging(new(DictionaryChangeMode.Clear));
         return false;
     }
 
     /// <summary>
-    /// 字典改变时
+    /// 字典改变前
     /// </summary>
-    /// <param name="args">参数</param>
+    /// <param name="arg">参数</param>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
-    protected virtual bool OnDictionaryChanging(
-        NotifyDictionaryChangingEventArgs<TKey, TValue> args
-    )
+    protected virtual bool OnDictionaryChanging(NotifyDictionaryChangingEventArgs<TKey, TValue> arg)
     {
-        DictionaryChanging?.Invoke(this, args);
-        return args.Cancel;
+        DictionaryChanging?.Invoke(this, arg);
+        return arg.Cancel;
     }
 
     /// <inheritdoc/>
-    public event NotifyDictionaryChangingEventHandler<TKey, TValue>? DictionaryChanging;
+    public event XCancelEventHandler<
+        IObservableDictionary<TKey, TValue>,
+        NotifyDictionaryChangingEventArgs<TKey, TValue>
+    >? DictionaryChanging;
     #endregion
     #region DictionaryChanged
     /// <summary>
-    /// 字典已添加条目时
+    /// 字典添加条目后
     /// </summary>
     /// <param name="item">条目</param>
     private void OnDictionaryAdded(KeyValuePair<TKey, TValue> item)
     {
         if (DictionaryChanged is not null)
-            OnDictionaryChanged(new(NotifyDictionaryChangeAction.Add, item));
+            OnDictionaryChanged(new(DictionaryChangeMode.Add, item));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item));
     }
 
     /// <summary>
-    /// 字典已删除条目时
+    /// 字典删除条目后
     /// </summary>
     /// <param name="item">条目</param>
     private void OnDictionaryRemoved(KeyValuePair<TKey, TValue> item)
     {
         if (DictionaryChanged is not null)
-            OnDictionaryChanged(new(NotifyDictionaryChangeAction.Remove, item));
+            OnDictionaryChanged(new(DictionaryChangeMode.Remove, item));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, item));
     }
 
     /// <summary>
-    /// 字典条目值已改变时
+    /// 字典条目值改变后
     /// </summary>
     /// <param name="entry">新条目</param>
     /// <param name="oldValue">旧值</param>
@@ -312,7 +321,7 @@ public class ObservableDictionary<TKey, TValue> : IObservableDictionary<TKey, TV
     {
         var oldEntry = new KeyValuePair<TKey, TValue>(entry.Key, oldValue);
         if (DictionaryChanged is not null)
-            OnDictionaryChanged(new(NotifyDictionaryChangeAction.ValueChange, entry, oldEntry));
+            OnDictionaryChanged(new(DictionaryChangeMode.ValueChange, entry, oldEntry));
         if (CollectionChanged is not null)
             OnCollectionChanged(
                 new(
@@ -324,18 +333,18 @@ public class ObservableDictionary<TKey, TValue> : IObservableDictionary<TKey, TV
     }
 
     /// <summary>
-    /// 字典已清理时
+    /// 字典清理后
     /// </summary>
     private void OnDictionaryCleared()
     {
         if (DictionaryChanged is not null)
-            OnDictionaryChanged(new(NotifyDictionaryChangeAction.Clear));
+            OnDictionaryChanged(new(DictionaryChangeMode.Clear));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Reset));
     }
 
     /// <summary>
-    /// 字典已改变时
+    /// 字典改变后
     /// </summary>
     /// <param name="args">参数</param>
     protected virtual void OnDictionaryChanged(NotifyDictionaryChangedEventArgs<TKey, TValue> args)
@@ -344,14 +353,17 @@ public class ObservableDictionary<TKey, TValue> : IObservableDictionary<TKey, TV
     }
 
     /// <inheritdoc/>
-    public event NotifyDictionaryChangedEventHandler<TKey, TValue>? DictionaryChanged;
+    public event XEventHandler<
+        IObservableDictionary<TKey, TValue>,
+        NotifyDictionaryChangedEventArgs<TKey, TValue>
+    >? DictionaryChanged;
 
     #endregion
 
     #region PropertyChanged
 
     /// <summary>
-    /// 数量已改变时
+    /// 数量改变后
     /// </summary>
     private void OnCountPropertyChanged()
     {
@@ -360,7 +372,7 @@ public class ObservableDictionary<TKey, TValue> : IObservableDictionary<TKey, TV
     }
 
     /// <summary>
-    /// 属性已改变时
+    /// 属性改变后
     /// </summary>
     /// <param name="name">参数</param>
     protected virtual void OnPropertyChanged(string name)
@@ -376,7 +388,7 @@ public class ObservableDictionary<TKey, TValue> : IObservableDictionary<TKey, TV
     #region
 
     /// <summary>
-    /// 列表已改变时
+    /// 集合改变后
     /// </summary>
     /// <param name="args">参数</param>
     protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
@@ -387,4 +399,19 @@ public class ObservableDictionary<TKey, TValue> : IObservableDictionary<TKey, TV
     /// <inheritdoc/>
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
     #endregion
+
+    internal class DebugView
+    {
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public KeyValuePair<TKey, TValue>[] Entries
+        {
+            get => r_dictionary.ToArray();
+        }
+        private readonly IDictionary<TKey, TValue> r_dictionary;
+
+        public DebugView(IDictionary<TKey, TValue> dictionary)
+        {
+            r_dictionary = dictionary;
+        }
+    }
 }

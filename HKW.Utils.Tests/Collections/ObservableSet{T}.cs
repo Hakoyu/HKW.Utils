@@ -18,7 +18,7 @@ public class ObservableSetT
         observableSet.SetChanging += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifySetChangeAction.Add);
+            Assert.AreEqual(e.ChangeMode, SetChangeMode.Add);
             Assert.IsNull(e.Items);
             Assert.AreEqual(e.Item, 10);
             e.Cancel = true;
@@ -36,7 +36,7 @@ public class ObservableSetT
         observableSet.SetChanged += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifySetChangeAction.Add);
+            Assert.AreEqual(e.ChangeMode, SetChangeMode.Add);
             Assert.IsNull(e.Items);
             Assert.AreEqual(e.Item, 10);
         };
@@ -53,7 +53,7 @@ public class ObservableSetT
         observableSet.SetChanging += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifySetChangeAction.Remove);
+            Assert.AreEqual(e.ChangeMode, SetChangeMode.Remove);
             Assert.IsNull(e.Items);
             Assert.AreEqual(e.Item, 0);
             e.Cancel = true;
@@ -71,7 +71,7 @@ public class ObservableSetT
         observableSet.SetChanged += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifySetChangeAction.Remove);
+            Assert.AreEqual(e.ChangeMode, SetChangeMode.Remove);
             Assert.IsNull(e.Items);
             Assert.AreEqual(e.Item, 0);
         };
@@ -88,7 +88,7 @@ public class ObservableSetT
         observableSet.SetChanging += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifySetChangeAction.Clear);
+            Assert.AreEqual(e.ChangeMode, SetChangeMode.Clear);
             Assert.IsNull(e.Items);
             Assert.IsTrue(e.Item == default);
             e.Cancel = true;
@@ -106,7 +106,7 @@ public class ObservableSetT
         observableSet.SetChanged += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifySetChangeAction.Clear);
+            Assert.AreEqual(e.ChangeMode, SetChangeMode.Clear);
             Assert.IsNull(e.Items);
             Assert.IsTrue(e.Item == default);
         };
@@ -124,7 +124,7 @@ public class ObservableSetT
         observableSet.SetChanged += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifySetChangeAction.Intersect);
+            Assert.AreEqual(e.ChangeMode, SetChangeMode.Intersect);
             Assert.AreEqual(e.Items, ints);
             Assert.IsTrue(e.Item == default);
         };
@@ -142,7 +142,7 @@ public class ObservableSetT
         observableSet.SetChanged += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifySetChangeAction.Except);
+            Assert.AreEqual(e.ChangeMode, SetChangeMode.Except);
             Assert.AreEqual(e.Items, ints);
             Assert.IsTrue(e.Item == default);
         };
@@ -160,7 +160,7 @@ public class ObservableSetT
         observableSet.SetChanged += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifySetChangeAction.SymmetricExcept);
+            Assert.AreEqual(e.ChangeMode, SetChangeMode.SymmetricExcept);
             Assert.AreEqual(e.Items, ints);
             Assert.IsTrue(e.Item == default);
         };
@@ -178,7 +178,7 @@ public class ObservableSetT
         observableSet.SetChanged += (s, e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.Action, NotifySetChangeAction.Union);
+            Assert.AreEqual(e.ChangeMode, SetChangeMode.Union);
             Assert.AreEqual(e.Items, ints);
             Assert.IsTrue(e.Item == default);
         };
