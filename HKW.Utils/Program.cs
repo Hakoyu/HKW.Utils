@@ -1,5 +1,4 @@
-﻿#if DEBUG
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Buffers;
 using System.Collections;
@@ -16,37 +15,53 @@ using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.CollectionUtils;
 using HKW.HKWUtils.Utils;
 using System.Threading;
-#endif
+using System.Threading.Tasks;
 
 namespace HKW;
 
 internal class Program
 {
+    private static System.Diagnostics.Stopwatch stopWatch = new();
+
     private static void Main(string[] args)
     {
-#if DEBUG
-        var timer = new CountdownTimer();
-        timer.AutoReset = true;
-        timer.TimeUp += () =>
+        var timer = new TimerTrigger();
+        timer.TimedTrigger += (s, e) =>
         {
-            Console.WriteLine("Time up");
+            Console.WriteLine(
+                $"\nTrigger {s.CurrentState.Counter} {stopWatch.ElapsedMilliseconds:f4}ms"
+            );
+            if (s.CurrentState.Counter >= 10)
+                e.Cancel = true;
         };
-        timer.TimeCancel += () =>
-        {
-            Console.WriteLine("Time stop");
-        };
-        timer.Start();
-        Thread.Sleep(2000);
-        timer.Start(1000);
-        timer.Cancel();
-        timer.Start(1000);
-        timer.Cancel();
-        timer.Start(1000);
-        timer.Cancel();
-        timer.Start(2000);
-        //Thread.Sleep(1000);
-        //timer.Start(1);
-        Thread.Sleep(10000);
+        stopWatch.Start();
+        timer.Start(1000, 100);
+        Task.Delay(5000).Wait();
+        stopWatch.Stop();
+        Console.WriteLine($"\nEnd  {stopWatch.ElapsedMilliseconds:f4}ms");
+
+        //var timer = new CountdownTimer();
+        //timer.AutoReset = true;
+        //timer.TimeUp += () =>
+        //{
+        //    Console.WriteLine("Time up");
+        //};
+        //timer.TimeCancel += () =>
+        //{
+        //    Console.WriteLine("Time stop");
+        //};
+        //timer.Start();
+        //Thread.Sleep(2000);
+        //timer.Start(1000);
+        //timer.Cancel();
+        //timer.Start(1000);
+        //timer.Cancel();
+        //timer.Start(1000);
+        //timer.Cancel();
+        //timer.Start(2000);
+        ////Thread.Sleep(1000);
+        ////timer.Start(1);
+        //Thread.Sleep(10000);
         //Dictionary<int, List<int>> sr_dic =
         //    new()
         //    {
@@ -95,7 +110,6 @@ internal class Program
         //set.UnionWith(new int[] { 4, 5, 6 });
         //var set = new ObservableSet<int>();
         //var readOnlySet = set.AsReadOnly();
-#endif
     }
 
 #if DEBUG
