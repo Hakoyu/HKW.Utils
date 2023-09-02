@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace HKW.HKWUtils.Collections;
+﻿namespace HKW.HKWUtils.Collections;
 
 /// <summary>
-/// 集合改变方案
+/// 集合改变行动
 /// </summary>
-public enum SetChangeMode
+public enum SetChangeAction
 {
     /// <summary>
     /// 添加
@@ -27,22 +21,23 @@ public enum SetChangeMode
     Clear,
 
     /// <summary>
-    /// 相交
+    /// 集合交集
     /// </summary>
     Intersect,
 
     /// <summary>
-    /// 除外
+    /// 集合排除
     /// </summary>
     Except,
 
     /// <summary>
-    /// 对称除外
+    /// 集合相同排除 (合并后排除共有元素)
+    /// <para>等同于 <c>set.Union(other).Except(set.Intersect(other))</c></para>
     /// </summary>
     SymmetricExcept,
 
     /// <summary>
-    /// 合并
+    /// 集合合并
     /// </summary>
     Union,
 }

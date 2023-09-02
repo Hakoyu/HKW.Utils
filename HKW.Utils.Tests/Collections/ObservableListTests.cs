@@ -1,25 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Intrinsics;
-using System.Text;
-using System.Threading.Tasks;
-using HKW.HKWUtils.Collections;
+﻿using HKW.HKWUtils.Collections;
 
-namespace HKWTests.CollectionsTests;
+namespace HKWTests.Collections;
 
 [TestClass]
-public class ObservableListT
+public class ObservableListTests
 {
     [TestMethod]
     public void Adding()
     {
         var triggered = false;
         var observableList = new ObservableList<int>(Enumerable.Range(1, 10));
-        observableList.ListChanging += (s, e) =>
+        observableList.ListChanging += (e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, ListChangeMode.Add);
+            Assert.AreEqual(e.Action, ListChangeAction.Add);
             Assert.AreEqual(e.NewItem, 10);
             Assert.AreEqual(e.OldItem, default);
             Assert.AreEqual(e.Index, 10);
@@ -35,10 +29,10 @@ public class ObservableListT
     {
         var triggered = false;
         var observableList = new ObservableList<int>(Enumerable.Range(1, 10));
-        observableList.ListChanged += (s, e) =>
+        observableList.ListChanged += (e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, ListChangeMode.Add);
+            Assert.AreEqual(e.Action, ListChangeAction.Add);
             Assert.AreEqual(e.NewItem, 10);
             Assert.AreEqual(e.OldItem, default);
             Assert.AreEqual(e.Index, 10);
@@ -53,10 +47,10 @@ public class ObservableListT
     {
         var triggered = false;
         var observableList = new ObservableList<int>(Enumerable.Range(1, 10));
-        observableList.ListChanging += (s, e) =>
+        observableList.ListChanging += (e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, ListChangeMode.Add);
+            Assert.AreEqual(e.Action, ListChangeAction.Add);
             Assert.AreEqual(e.NewItem, 10);
             Assert.AreEqual(e.OldItem, default);
             Assert.AreEqual(e.Index, 5);
@@ -72,10 +66,10 @@ public class ObservableListT
     {
         var triggered = false;
         var observableList = new ObservableList<int>(Enumerable.Range(1, 10));
-        observableList.ListChanged += (s, e) =>
+        observableList.ListChanged += (e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, ListChangeMode.Add);
+            Assert.AreEqual(e.Action, ListChangeAction.Add);
             Assert.AreEqual(e.NewItem, 10);
             Assert.AreEqual(e.OldItem, default);
             Assert.AreEqual(e.Index, 5);
@@ -90,10 +84,10 @@ public class ObservableListT
     {
         var triggered = false;
         var observableList = new ObservableList<int>(Enumerable.Range(1, 10));
-        observableList.ListChanging += (s, e) =>
+        observableList.ListChanging += (e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, ListChangeMode.Remove);
+            Assert.AreEqual(e.Action, ListChangeAction.Remove);
             Assert.AreEqual(e.NewItem, default);
             Assert.AreEqual(e.OldItem, 1);
             Assert.AreEqual(e.Index, 0);
@@ -109,10 +103,10 @@ public class ObservableListT
     {
         var triggered = false;
         var observableList = new ObservableList<int>(Enumerable.Range(1, 10));
-        observableList.ListChanged += (s, e) =>
+        observableList.ListChanged += (e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, ListChangeMode.Remove);
+            Assert.AreEqual(e.Action, ListChangeAction.Remove);
             Assert.AreEqual(e.NewItem, default);
             Assert.AreEqual(e.OldItem, 1);
             Assert.AreEqual(e.Index, 0);
@@ -127,10 +121,10 @@ public class ObservableListT
     {
         var triggered = false;
         var observableList = new ObservableList<int>(Enumerable.Range(1, 10));
-        observableList.ListChanging += (s, e) =>
+        observableList.ListChanging += (e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, ListChangeMode.Clear);
+            Assert.AreEqual(e.Action, ListChangeAction.Clear);
             Assert.AreEqual(e.NewItem, default);
             Assert.AreEqual(e.OldItem, default);
             Assert.AreEqual(e.Index, -1);
@@ -146,10 +140,10 @@ public class ObservableListT
     {
         var triggered = false;
         var observableList = new ObservableList<int>(Enumerable.Range(1, 10));
-        observableList.ListChanged += (s, e) =>
+        observableList.ListChanged += (e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, ListChangeMode.Clear);
+            Assert.AreEqual(e.Action, ListChangeAction.Clear);
             Assert.AreEqual(e.NewItem, default);
             Assert.AreEqual(e.OldItem, default);
             Assert.AreEqual(e.Index, -1);
@@ -164,10 +158,10 @@ public class ObservableListT
     {
         var triggered = false;
         var observableList = new ObservableList<int>(Enumerable.Range(1, 10));
-        observableList.ListChanging += (s, e) =>
+        observableList.ListChanging += (e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, ListChangeMode.ValueChange);
+            Assert.AreEqual(e.Action, ListChangeAction.ValueChange);
             Assert.AreEqual(e.NewItem, 10);
             Assert.AreEqual(e.OldItem, 1);
             Assert.AreEqual(e.Index, 0);
@@ -184,10 +178,10 @@ public class ObservableListT
     {
         var triggered = false;
         var observableList = new ObservableList<int>(Enumerable.Range(1, 10));
-        observableList.ListChanged += (s, e) =>
+        observableList.ListChanged += (e) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, ListChangeMode.ValueChange);
+            Assert.AreEqual(e.Action, ListChangeAction.ValueChange);
             Assert.AreEqual(e.NewItem, 10);
             Assert.AreEqual(e.OldItem, 1);
             Assert.AreEqual(e.Index, 0);

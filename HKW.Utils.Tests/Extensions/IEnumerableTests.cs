@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using HKW.HKWUtils.Extensions;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HKW.HKWUtils.Extensions;
 
-namespace HKWTests.ExtensionsTests;
+namespace HKWTests.Extensions;
 
 [TestClass]
-public class IEnumerableT
+public class IEnumerableTests
 {
     [TestMethod]
     public void EqualOnComparer()

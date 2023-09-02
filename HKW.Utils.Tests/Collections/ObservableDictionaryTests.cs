@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HKW.HKWUtils.Collections;
+﻿using HKW.HKWUtils.Collections;
 
-namespace HKWTests.CollectionsTests;
+namespace HKWTests.Collections;
 
 [TestClass]
-public class ObservableDictionaryTT
+public class ObservableDictionaryTests
 {
     [TestMethod]
     public void Adding()
@@ -17,14 +12,14 @@ public class ObservableDictionaryTT
         var observableDictionary = new ObservableDictionary<int, int>(
             Enumerable.Range(0, 10).ToDictionary(i => i, i => i)
         );
-        observableDictionary.DictionaryChanging += (s, e) =>
+        observableDictionary.DictionaryChanging += (a) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, DictionaryChangeMode.Add);
-            Assert.AreEqual(e.NewEntry?.Key, 10);
-            Assert.AreEqual(e.NewEntry?.Value, 10);
-            Assert.IsNull(e.OldEntry);
-            e.Cancel = true;
+            Assert.AreEqual(a.Action, DictionaryChangeAction.Add);
+            Assert.AreEqual(a.NewEntry?.Key, 10);
+            Assert.AreEqual(a.NewEntry?.Value, 10);
+            Assert.IsNull(a.OldEntry);
+            a.Cancel = true;
         };
         observableDictionary.Add(10, 10);
         Assert.AreEqual(observableDictionary.Count, 10);
@@ -38,13 +33,13 @@ public class ObservableDictionaryTT
         var observableDictionary = new ObservableDictionary<int, int>(
             Enumerable.Range(0, 10).ToDictionary(i => i, i => i)
         );
-        observableDictionary.DictionaryChanged += (s, e) =>
+        observableDictionary.DictionaryChanged += (a) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, DictionaryChangeMode.Add);
-            Assert.AreEqual(e.NewEntry?.Key, 10);
-            Assert.AreEqual(e.NewEntry?.Value, 10);
-            Assert.IsNull(e.OldEntry);
+            Assert.AreEqual(a.Action, DictionaryChangeAction.Add);
+            Assert.AreEqual(a.NewEntry?.Key, 10);
+            Assert.AreEqual(a.NewEntry?.Value, 10);
+            Assert.IsNull(a.OldEntry);
         };
         observableDictionary.Add(10, 10);
         Assert.AreEqual(observableDictionary.Count, 11);
@@ -58,14 +53,14 @@ public class ObservableDictionaryTT
         var observableDictionary = new ObservableDictionary<int, int>(
             Enumerable.Range(0, 10).ToDictionary(i => i, i => i)
         );
-        observableDictionary.DictionaryChanging += (s, e) =>
+        observableDictionary.DictionaryChanging += (a) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, DictionaryChangeMode.Remove);
-            Assert.AreEqual(e.OldEntry?.Key, 0);
-            Assert.AreEqual(e.OldEntry?.Value, 0);
-            Assert.IsNull(e.NewEntry);
-            e.Cancel = true;
+            Assert.AreEqual(a.Action, DictionaryChangeAction.Remove);
+            Assert.AreEqual(a.OldEntry?.Key, 0);
+            Assert.AreEqual(a.OldEntry?.Value, 0);
+            Assert.IsNull(a.NewEntry);
+            a.Cancel = true;
         };
         observableDictionary.Remove(0);
         Assert.AreEqual(observableDictionary.Count, 10);
@@ -79,13 +74,13 @@ public class ObservableDictionaryTT
         var observableDictionary = new ObservableDictionary<int, int>(
             Enumerable.Range(0, 10).ToDictionary(i => i, i => i)
         );
-        observableDictionary.DictionaryChanged += (s, e) =>
+        observableDictionary.DictionaryChanged += (a) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, DictionaryChangeMode.Remove);
-            Assert.AreEqual(e.OldEntry?.Key, 0);
-            Assert.AreEqual(e.OldEntry?.Value, 0);
-            Assert.IsNull(e.NewEntry);
+            Assert.AreEqual(a.Action, DictionaryChangeAction.Remove);
+            Assert.AreEqual(a.OldEntry?.Key, 0);
+            Assert.AreEqual(a.OldEntry?.Value, 0);
+            Assert.IsNull(a.NewEntry);
         };
         observableDictionary.Remove(0);
         Assert.AreEqual(observableDictionary.Count, 9);
@@ -99,13 +94,13 @@ public class ObservableDictionaryTT
         var observableDictionary = new ObservableDictionary<int, int>(
             Enumerable.Range(0, 10).ToDictionary(i => i, i => i)
         );
-        observableDictionary.DictionaryChanging += (s, e) =>
+        observableDictionary.DictionaryChanging += (a) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, DictionaryChangeMode.Clear);
-            Assert.IsNull(e.OldEntry);
-            Assert.IsNull(e.NewEntry);
-            e.Cancel = true;
+            Assert.AreEqual(a.Action, DictionaryChangeAction.Clear);
+            Assert.IsNull(a.OldEntry);
+            Assert.IsNull(a.NewEntry);
+            a.Cancel = true;
         };
         observableDictionary.Clear();
         Assert.AreEqual(observableDictionary.Count, 10);
@@ -119,12 +114,12 @@ public class ObservableDictionaryTT
         var observableDictionary = new ObservableDictionary<int, int>(
             Enumerable.Range(0, 10).ToDictionary(i => i, i => i)
         );
-        observableDictionary.DictionaryChanged += (s, e) =>
+        observableDictionary.DictionaryChanged += (a) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, DictionaryChangeMode.Clear);
-            Assert.IsNull(e.NewEntry);
-            Assert.IsNull(e.OldEntry);
+            Assert.AreEqual(a.Action, DictionaryChangeAction.Clear);
+            Assert.IsNull(a.NewEntry);
+            Assert.IsNull(a.OldEntry);
         };
         observableDictionary.Clear();
         Assert.AreEqual(observableDictionary.Count, 0);
@@ -138,15 +133,15 @@ public class ObservableDictionaryTT
         var observableDictionary = new ObservableDictionary<int, int>(
             Enumerable.Range(0, 10).ToDictionary(i => i, i => i)
         );
-        observableDictionary.DictionaryChanging += (s, e) =>
+        observableDictionary.DictionaryChanging += (a) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, DictionaryChangeMode.ValueChange);
-            Assert.AreEqual(e.NewEntry?.Key, 0);
-            Assert.AreEqual(e.NewEntry?.Value, 10);
-            Assert.AreEqual(e.OldEntry?.Key, 0);
-            Assert.AreEqual(e.OldEntry?.Value, 0);
-            e.Cancel = true;
+            Assert.AreEqual(a.Action, DictionaryChangeAction.ValueChange);
+            Assert.AreEqual(a.NewEntry?.Key, 0);
+            Assert.AreEqual(a.NewEntry?.Value, 10);
+            Assert.AreEqual(a.OldEntry?.Key, 0);
+            Assert.AreEqual(a.OldEntry?.Value, 0);
+            a.Cancel = true;
         };
         observableDictionary[0] = 10;
         Assert.AreEqual(observableDictionary.Count, 10);
@@ -161,14 +156,14 @@ public class ObservableDictionaryTT
         var observableDictionary = new ObservableDictionary<int, int>(
             Enumerable.Range(0, 10).ToDictionary(i => i, i => i)
         );
-        observableDictionary.DictionaryChanged += (s, e) =>
+        observableDictionary.DictionaryChanged += (a) =>
         {
             triggered = true;
-            Assert.AreEqual(e.ChangeMode, DictionaryChangeMode.ValueChange);
-            Assert.AreEqual(e.NewEntry?.Key, 0);
-            Assert.AreEqual(e.NewEntry?.Value, 10);
-            Assert.AreEqual(e.OldEntry?.Key, 0);
-            Assert.AreEqual(e.OldEntry?.Value, 0);
+            Assert.AreEqual(a.Action, DictionaryChangeAction.ValueChange);
+            Assert.AreEqual(a.NewEntry?.Key, 0);
+            Assert.AreEqual(a.NewEntry?.Value, 10);
+            Assert.AreEqual(a.OldEntry?.Key, 0);
+            Assert.AreEqual(a.OldEntry?.Value, 0);
         };
         observableDictionary[0] = 10;
         Assert.AreEqual(observableDictionary.Count, 10);
@@ -250,5 +245,25 @@ public class ObservableDictionaryTT
         observableDictionary.Clear();
         Assert.AreEqual(observableDictionary.Count, 0);
         Assert.IsTrue(triggered);
+    }
+
+    [TestMethod]
+    public void ObservableKeysAndValues()
+    {
+        var observableDictionary = new ObservableDictionary<int, int>(
+            Enumerable.Range(0, 10).ToDictionary(i => i, i => i)
+        );
+        Assert.AreEqual(observableDictionary.ObservableKeys.Count, 0);
+        Assert.AreEqual(observableDictionary.ObservableValues.Count, 0);
+
+        observableDictionary.ObservableKeysAndValues = true;
+        Assert.IsTrue(observableDictionary.Keys.SequenceEqual(observableDictionary.ObservableKeys));
+        Assert.IsTrue(
+            observableDictionary.Values.SequenceEqual(observableDictionary.ObservableValues)
+        );
+
+        observableDictionary.ObservableKeysAndValues = false;
+        Assert.AreEqual(observableDictionary.ObservableKeys.Count, 0);
+        Assert.AreEqual(observableDictionary.ObservableValues.Count, 0);
     }
 }

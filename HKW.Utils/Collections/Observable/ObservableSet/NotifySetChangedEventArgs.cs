@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -11,60 +6,109 @@ namespace HKW.HKWUtils.Collections;
 /// 通知集合已改变事件参数
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
-[DebuggerDisplay("ChangeMode = {ChangeMode}")]
+[DebuggerDisplay("SetChanged, Action = {Action}")]
 public class NotifySetChangedEventArgs<T> : EventArgs
 {
     /// <summary>
-    /// 改变方案
+    /// 改变行动
     /// </summary>
-    public SetChangeMode ChangeMode { get; }
+    public SetChangeAction Action { get; }
 
     /// <summary>
-    /// 项目
+    /// 新项目
+    /// <para>
+    /// 仅用于:
+    /// <see cref="SetChangeAction.Add"/>
+    /// </para>
     /// </summary>
-    public T? Item { get; } = default;
+    public T? NewItem { get; }
+
+    /// <summary>
+    /// 旧项目
+    /// <para>
+    /// 仅用于:
+    /// <see cref="SetChangeAction.Remove"/>
+    /// </para>
+    /// </summary>
+    public T? OldItem { get; }
 
     /// <summary>
     /// 集合操作项
     /// <para>
     /// 仅用于:
-    /// <see cref="SetChangeMode.Intersect"/>,
-    /// <see cref="SetChangeMode.Except"/>,
-    /// <see cref="SetChangeMode.SymmetricExcept"/>,
-    /// <see cref="SetChangeMode.Union"/>
+    /// <see cref="SetChangeAction.Intersect"/>
+    /// <see cref="SetChangeAction.Except"/>
+    /// <see cref="SetChangeAction.SymmetricExcept"/>
+    /// <see cref="SetChangeAction.Union"/>
     /// </para>
     /// </summary>
-    public IEnumerable<T>? Items { get; } = default;
+    public IEnumerable<T>? OtherItems { get; }
+
+    /// <summary>
+    /// 集合修改新增的项目 要启用 <see cref="IObservableSet{T}.NotifySetModifies"/>
+    /// <para>
+    /// 仅用于:
+    /// <see cref="SetChangeAction.Intersect"/>
+    /// <see cref="SetChangeAction.Except"/>
+    /// <see cref="SetChangeAction.SymmetricExcept"/>
+    /// <see cref="SetChangeAction.Union"/>
+    /// </para>
+    /// </summary>
+    public IList<T>? NewItems { get; }
+
+    /// <summary>
+    /// 集合修改删除的项目 要启用 <see cref="IObservableSet{T}.NotifySetModifies"/>
+    /// <para>
+    /// 仅用于:
+    /// <see cref="SetChangeAction.Intersect"/>
+    /// <see cref="SetChangeAction.Except"/>
+    /// <see cref="SetChangeAction.SymmetricExcept"/>
+    /// <see cref="SetChangeAction.Union"/>
+    /// </para>
+    /// </summary>
+    public IList<T>? OldItems { get; }
 
     /// <inheritdoc/>
-    /// <summary>仅用于: <see cref="SetChangeMode.Clear"/></summary>
-    /// <param name="changeMode">改变方案</param>
-    public NotifySetChangedEventArgs(SetChangeMode changeMode)
+    /// <summary>仅用于: <see cref="SetChangeAction.Clear"/></summary>
+    /// <param name="action">改变行动</param>
+    public NotifySetChangedEventArgs(SetChangeAction action)
     {
-        ChangeMode = changeMode;
+        Action = action;
     }
 
     /// <inheritdoc/>
-    /// <param name="changeAction">改变方案</param>
+    /// <param name="action">改变行动</param>
     /// <param name="item">项目</param>
-    public NotifySetChangedEventArgs(SetChangeMode changeAction, T item)
+    public NotifySetChangedEventArgs(SetChangeAction action, T item)
     {
-        ChangeMode = changeAction;
-        Item = item;
+        if (action is SetChangeAction.Add)
+            NewItem = item;
+        else
+            OldItem = item;
+        Action = action;
     }
 
     /// <inheritdoc/>
     /// <summary>仅用于:
-    /// <see cref="SetChangeMode.Intersect"/>,
-    /// <see cref="SetChangeMode.Except"/>,
-    /// <see cref="SetChangeMode.SymmetricExcept"/>,
-    /// <see cref="SetChangeMode.Union"/>
+    /// <see cref="SetChangeAction.Intersect"/>
+    /// <see cref="SetChangeAction.Except"/>
+    /// <see cref="SetChangeAction.SymmetricExcept"/>
+    /// <see cref="SetChangeAction.Union"/>
     /// </summary>
-    /// <param name="changeMode">改变方案</param>
-    /// <param name="collection">集合</param>
-    public NotifySetChangedEventArgs(SetChangeMode changeMode, IEnumerable<T> collection)
+    /// <param name="action">改变行动</param>
+    /// <param name="other">集合</param>
+    /// <param name="newItems">新项目</param>
+    /// <param name="oldItems">旧项目</param>
+    public NotifySetChangedEventArgs(
+        SetChangeAction action,
+        IEnumerable<T> other,
+        IList<T>? newItems,
+        IList<T>? oldItems
+    )
     {
-        ChangeMode = changeMode;
-        Items = collection;
+        Action = action;
+        OtherItems = other;
+        NewItems = newItems;
+        OldItems = oldItems;
     }
 }

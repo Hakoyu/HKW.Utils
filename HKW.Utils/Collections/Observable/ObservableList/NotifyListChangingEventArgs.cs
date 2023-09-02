@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -12,13 +7,13 @@ namespace HKW.HKWUtils.Collections;
 /// 通知列表改变前事件参数
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
-[DebuggerDisplay("ChangeMode = {ChangeMode}, Index = {Index}")]
+[DebuggerDisplay("ListChanging, Action = {Action}, Index = {Index}")]
 public class NotifyListChangingEventArgs<T> : CancelEventArgs
 {
     /// <summary>
-    /// 改变模式
+    /// 改变行动
     /// </summary>
-    public ListChangeMode ChangeMode { get; }
+    public ListChangeAction Action { get; }
 
     /// <summary>
     /// 新项目
@@ -37,44 +32,42 @@ public class NotifyListChangingEventArgs<T> : CancelEventArgs
     public int Index { get; } = -1;
 
     /// <inheritdoc/>
-    /// <summary>仅用于: <see cref="ListChangeMode.Clear"/></summary>
-    /// <param name="changeMode">改变方案</param>
-    /// <exception cref="ArgumentException"><paramref name="changeMode"/> 不是 <see cref="ListChangeMode.Clear"/></exception>
-    public NotifyListChangingEventArgs(ListChangeMode changeMode)
+    /// <summary>仅用于: <see cref="ListChangeAction.Clear"/></summary>
+    /// <param name="action">改变行动</param>
+    public NotifyListChangingEventArgs(ListChangeAction action)
     {
-        ChangeMode = changeMode;
+        Action = action;
     }
 
     /// <inheritdoc/>
     /// <summary>仅用于:
-    /// <see cref="ListChangeMode.Add"/>
-    /// <see cref="ListChangeMode.Remove"/>
+    /// <see cref="ListChangeAction.Add"/>
+    /// <see cref="ListChangeAction.Remove"/>
     /// </summary>
-    /// <param name="changeMode">改变方案</param>
+    /// <param name="action">改变行动</param>
     /// <param name="item">项目</param>
     /// <param name="index">索引</param>
-    public NotifyListChangingEventArgs(ListChangeMode changeMode, T item, int index)
+    public NotifyListChangingEventArgs(ListChangeAction action, T item, int index)
     {
-        if (changeMode is ListChangeMode.Add)
+        if (action is ListChangeAction.Add)
             NewItem = item;
         else
             OldItem = item;
-        ChangeMode = changeMode;
+        Action = action;
         Index = index;
     }
 
     /// <inheritdoc/>
     /// <summary>
-    /// 仅用于: <see cref="ListChangeMode.ValueChange"/>
+    /// 仅用于: <see cref="ListChangeAction.ValueChange"/>
     /// </summary>
-    /// <param name="changeMode">改变方案</param>
+    /// <param name="action">改变行动</param>
     /// <param name="newItem">新项目</param>
     /// <param name="oldItem">旧项目</param>
     /// <param name="index">索引</param>
-    /// <exception cref="ArgumentException"><paramref name="changeMode"/> 不是 <see cref="ListChangeMode.ValueChange"/></exception>
-    public NotifyListChangingEventArgs(ListChangeMode changeMode, T newItem, T oldItem, int index)
+    public NotifyListChangingEventArgs(ListChangeAction action, T newItem, T oldItem, int index)
     {
-        ChangeMode = changeMode;
+        Action = action;
         NewItem = newItem;
         OldItem = oldItem;
         Index = index;

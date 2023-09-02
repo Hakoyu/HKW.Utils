@@ -1,13 +1,9 @@
-﻿using HKW.HKWUtils.Events;
-using System;
+﻿using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Events;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -16,8 +12,8 @@ namespace HKW.HKWUtils.Collections;
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ObservableList<>.DebugView))]
-public class ObservableList<T> : IObservableList<T>
+[DebuggerTypeProxy(typeof(CollectionDebugView))]
+public class ObservableList<T> : IObservableList<T>, IObservableList, IReadOnlyObservableList<T>
 {
     /// <summary>
     /// 原始列表
@@ -46,9 +42,10 @@ public class ObservableList<T> : IObservableList<T>
         r_list = new(collection);
     }
 
-    #endregion
+    #endregion Ctor
 
     #region IListT
+
     /// <inheritdoc/>
     public int Count => r_list.Count;
 
@@ -130,7 +127,9 @@ public class ObservableList<T> : IObservableList<T>
         if (oldCount != Count)
             OnCountPropertyChanged();
     }
-    #endregion
+
+    #endregion Change
+
     /// <inheritdoc/>
     public bool Contains(T item)
     {
@@ -160,8 +159,11 @@ public class ObservableList<T> : IObservableList<T>
     {
         return ((IEnumerable)r_list).GetEnumerator();
     }
-    #endregion
+
+    #endregion IListT
+
     #region IList
+
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     bool IList.IsFixedSize => ((IList)r_list).IsFixedSize;
 
@@ -222,8 +224,90 @@ public class ObservableList<T> : IObservableList<T>
     {
         r_list.CopyTo((T[])array, index);
     }
-    #endregion
+
+    #endregion IList
+
+    #region IObservableList
+
+    event XCancelEventHandler<NotifyListChangingEventArgs<object>>? INotifyListChanging.ListChanging
+    {
+        add
+        {
+            ListChanging += (v) =>
+            {
+                INotifyListChangingAction(v, value);
+            };
+        }
+        remove
+        {
+            ListChanging -= (v) =>
+            {
+                INotifyListChangingAction(v, value);
+            };
+        }
+    }
+
+    event XEventHandler<NotifyListChangedEventArgs<object>>? INotifyListChanged.ListChanged
+    {
+        add
+        {
+            ListChanged += (v) =>
+            {
+                INotifyListChangedAction(v, value);
+            };
+        }
+        remove
+        {
+            ListChanged -= (v) =>
+            {
+                INotifyListChangedAction(v, value);
+            };
+        }
+    }
+
+    private static void INotifyListChangingAction(
+        NotifyListChangingEventArgs<T> args,
+        XCancelEventHandler<NotifyListChangingEventArgs<object>>? nonGenericEvent
+    )
+    {
+        if (nonGenericEvent is null)
+            return;
+        NotifyListChangingEventArgs<object> newArgs;
+        if (args.Action is ListChangeAction.Clear)
+            newArgs = new(args.Action);
+        else if (args.Action is ListChangeAction.Add)
+            newArgs = new(args.Action, args.NewItem!, args.Index);
+        else if (args.Action is ListChangeAction.Remove)
+            newArgs = new(args.Action, args.OldItem!, args.Index);
+        else
+            newArgs = new(args.Action, args.NewItem!, args.OldItem!, args.Index);
+        nonGenericEvent?.Invoke(newArgs);
+        args.Cancel = newArgs.Cancel;
+    }
+
+    private static void INotifyListChangedAction(
+        NotifyListChangedEventArgs<T> args,
+        XEventHandler<NotifyListChangedEventArgs<object>>? nonGenericEvent
+    )
+    {
+        if (nonGenericEvent is null)
+            return;
+        NotifyListChangedEventArgs<object> newArgs;
+        if (args.Action is ListChangeAction.Clear)
+            newArgs = new(args.Action);
+        else if (args.Action is ListChangeAction.Add)
+            newArgs = new(args.Action, args.NewItem!, args.Index);
+        else if (args.Action is ListChangeAction.Remove)
+            newArgs = new(args.Action, args.OldItem!, args.Index);
+        else
+            newArgs = new(args.Action, args.NewItem!, args.OldItem!, args.Index);
+        nonGenericEvent?.Invoke(newArgs);
+    }
+
+    #endregion IObservableList
+
     #region ListChanging
+
     /// <summary>
     /// 列表添加项目前
     /// </summary>
@@ -232,9 +316,7 @@ public class ObservableList<T> : IObservableList<T>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
     private bool OnListAdding(T item, int? index = null)
     {
-        if (ListChanging is not null)
-            return OnListChanging(new(ListChangeMode.Add, item, index ?? Count));
-        return false;
+        return OnListChanging(new(ListChangeAction.Add, item, index ?? Count));
     }
 
     /// <summary>
@@ -245,9 +327,7 @@ public class ObservableList<T> : IObservableList<T>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
     private bool OnListRemoving(T item, int? index = null)
     {
-        if (ListChanging is not null)
-            return OnListChanging(new(ListChangeMode.Remove, item, index ?? Count - 1));
-        return false;
+        return OnListChanging(new(ListChangeAction.Remove, item, index ?? Count - 1));
     }
 
     /// <summary>
@@ -256,9 +336,7 @@ public class ObservableList<T> : IObservableList<T>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
     private bool OnListClearing()
     {
-        if (ListChanging is not null)
-            return OnListChanging(new(ListChangeMode.Clear));
-        return false;
+        return OnListChanging(new(ListChangeAction.Clear));
     }
 
     /// <summary>
@@ -270,27 +348,24 @@ public class ObservableList<T> : IObservableList<T>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
     private bool OnListValueChanging(T newValue, T oldValue, int index)
     {
-        if (ListChanging is not null)
-            return OnListChanging(new(ListChangeMode.ValueChange, newValue, oldValue, index));
-        return false;
+        return OnListChanging(new(ListChangeAction.ValueChange, newValue, oldValue, index));
     }
 
     /// <summary>
     /// 列表改变前
     /// </summary>
-    /// <param name="arg">参数</param>
-    protected virtual bool OnListChanging(NotifyListChangingEventArgs<T> arg)
+    /// <param name="args">参数</param>
+    protected virtual bool OnListChanging(NotifyListChangingEventArgs<T> args)
     {
-        ListChanging?.Invoke(this, arg);
-        return arg.Cancel;
+        ListChanging?.Invoke(args);
+        return args.Cancel;
     }
 
     /// <inheritdoc/>
-    public event XCancelEventHandler<
-        IObservableList<T>,
-        NotifyListChangingEventArgs<T>
-    >? ListChanging;
-    #endregion
+    public event XCancelEventHandler<NotifyListChangingEventArgs<T>>? ListChanging;
+
+    #endregion ListChanging
+
     #region ListChanged
 
     /// <summary>
@@ -301,10 +376,8 @@ public class ObservableList<T> : IObservableList<T>
     private void OnListAdded(T item, int? index = null)
     {
         var currentIndex = index ?? Count - 1;
-        if (ListChanged is not null)
-            OnListChanged(new(ListChangeMode.Add, item, currentIndex));
-        if (CollectionChanged is not null)
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item, index: currentIndex));
+        OnListChanged(new(ListChangeAction.Add, item, currentIndex));
+        OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item, index: currentIndex));
     }
 
     /// <summary>
@@ -315,12 +388,8 @@ public class ObservableList<T> : IObservableList<T>
     private void OnListRemoved(T item, int? index = null)
     {
         var currentIndex = index ?? Count;
-        if (ListChanged is not null)
-            OnListChanged(new(ListChangeMode.Remove, item, currentIndex));
-        if (CollectionChanged is not null)
-            OnCollectionChanged(
-                new(NotifyCollectionChangedAction.Remove, item, index: currentIndex)
-            );
+        OnListChanged(new(ListChangeAction.Remove, item, currentIndex));
+        OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, item, index: currentIndex));
     }
 
     /// <summary>
@@ -328,10 +397,8 @@ public class ObservableList<T> : IObservableList<T>
     /// </summary>
     private void OnListCleared()
     {
-        if (ListChanged is not null)
-            OnListChanged(new(ListChangeMode.Clear));
-        if (CollectionChanged is not null)
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Reset));
+        OnListChanged(new(ListChangeAction.Clear));
+        OnCollectionChanged(new(NotifyCollectionChangedAction.Reset));
     }
 
     /// <summary>
@@ -342,12 +409,8 @@ public class ObservableList<T> : IObservableList<T>
     /// <param name="index"></param>
     private void OnListValueChanged(T newValue, T oldValue, int index)
     {
-        if (ListChanged is not null)
-            OnListChanged(new(ListChangeMode.ValueChange, newValue, oldValue, index));
-        if (CollectionChanged is not null)
-            OnCollectionChanged(
-                new(NotifyCollectionChangedAction.Replace, newValue, oldValue, index)
-            );
+        OnListChanged(new(ListChangeAction.ValueChange, newValue, oldValue, index));
+        OnCollectionChanged(new(NotifyCollectionChangedAction.Replace, newValue, oldValue, index));
     }
 
     /// <summary>
@@ -356,12 +419,14 @@ public class ObservableList<T> : IObservableList<T>
     /// <param name="args">参数</param>
     protected virtual void OnListChanged(NotifyListChangedEventArgs<T> args)
     {
-        ListChanged?.Invoke(this, args);
+        ListChanged?.Invoke(args);
     }
 
     /// <inheritdoc/>
-    public event XEventHandler<IObservableList<T>, NotifyListChangedEventArgs<T>>? ListChanged;
-    #endregion
+    public event XEventHandler<NotifyListChangedEventArgs<T>>? ListChanged;
+
+    #endregion ListChanged
+
     #region PropertyChanged
 
     /// <summary>
@@ -369,8 +434,7 @@ public class ObservableList<T> : IObservableList<T>
     /// </summary>
     private void OnCountPropertyChanged()
     {
-        if (PropertyChanged is not null)
-            OnPropertyChanged(nameof(Count));
+        OnPropertyChanged(nameof(Count));
     }
 
     /// <summary>
@@ -379,12 +443,14 @@ public class ObservableList<T> : IObservableList<T>
     /// <param name="name">参数</param>
     protected virtual void OnPropertyChanged(string name)
     {
-        PropertyChanged?.Invoke(this, new(name));
+        PropertyChanged?.Invoke(null, new(name));
     }
 
     /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged;
-    #endregion
+
+    #endregion PropertyChanged
+
     #region CollectionChanged
 
     /// <summary>
@@ -393,25 +459,11 @@ public class ObservableList<T> : IObservableList<T>
     /// <param name="args">参数</param>
     protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
     {
-        CollectionChanged?.Invoke(this, args);
+        CollectionChanged?.Invoke(null, args);
     }
 
     /// <inheritdoc/>
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
-    #endregion
 
-    internal class DebugView
-    {
-        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public T[] Array
-        {
-            get => r_list.ToArray();
-        }
-        private readonly IList<T> r_list;
-
-        public DebugView(IList<T> list)
-        {
-            r_list = list;
-        }
-    }
+    #endregion CollectionChanged
 }

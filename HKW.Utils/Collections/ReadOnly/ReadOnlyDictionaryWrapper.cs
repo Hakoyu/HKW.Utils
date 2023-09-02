@@ -1,13 +1,7 @@
-﻿using System;
+﻿using HKW.HKWUtils.Extensions;
 using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using HKW.HKWUtils.Extensions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -41,6 +35,7 @@ public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
     }
 
     #region IDictionary
+
     /// <inheritdoc/>
     public int Count => r_iDictionary.Count;
 
@@ -123,5 +118,6 @@ public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
             (ICollection<KeyValuePair<TKey, TReadOnlyValue>>)
                 r_iDictionary.ToDictionary(kv => kv.Key, kv => (TReadOnlyValue)kv.Value)
         ).CopyTo(array, arrayIndex);
-    #endregion
+
+    #endregion IDictionary
 }

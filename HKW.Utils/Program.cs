@@ -1,21 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Buffers;
-using System.Collections;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Runtime.InteropServices;
-using System.Runtime.Remoting;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Linq;
-using HKW.HKWUtils.Extensions;
-using HKW.HKWUtils.Collections;
-using HKW.HKWUtils.CollectionUtils;
-using HKW.HKWUtils.Utils;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using HKW.HKWUtils.Collections;
+using HKW.HKWUtils.Timers;
 
 namespace HKW;
 
@@ -25,46 +9,104 @@ internal class Program
 
     private static void Main(string[] args)
     {
-        HashSet<int> set1 = Enumerable.Range(0, 1000).ToHashSet();
-        ObservableSet<int> set2 = new(set1);
-        return;
-        //var timer = new TimerTrigger();
-        //timer.TimedTrigger += (s, e) =>
+        //IObservableDictionary dictionary = _dict;
+        //INotifyDictionaryChanging notify = dictionary;
+        //notify.DictionaryChanging += (v) =>
         //{
+        //    Console.WriteLine(v.Action);
+        //};
+        //notify.DictionaryChanging += (v) =>
+        //{
+        //    Console.WriteLine(v.OldEntry);
+        //};
+        //notify.DictionaryChanging += (v) =>
+        //{
+        //    Console.WriteLine(v.NewEntry);
+        //};
+        //_dict.Add("1", "111");
+        //Console.WriteLine(_dict.Keys is ICollection);
+
+        //HashSet<int> set2 = Enumerable.Range(5, 10).ToHashSet();
+        //Console.WriteLine(string.Join(" ", set1));
+        //Console.WriteLine(string.Join(" ", set2));
+        //Console.WriteLine();
+        //var a = set1.Intersect(set2);
+        //var b = set1.Except(set2);
+        //var c = set1.Union(set2).Except(set1.Intersect(set2));
+        //Console.WriteLine(string.Join(" ", a));
+        //Console.WriteLine(string.Join(" ", b));
+        //Console.WriteLine(string.Join(" ", c));
+        //set1.SymmetricExceptWith(set2);
+        //Console.WriteLine(string.Join(" ", set1));
+
+        //ObservableSet<int> set1 =
+        //    new(Enumerable.Range(0, 10).ToHashSet()) { NotifySetModifies = true };
+        //HashSet<int> set2 = Enumerable.Range(5, 10).ToHashSet();
+        //set1.SetChanging += (s, e) =>
+        //{
+        //    return;
+        //};
+        //set1.SetChanged += (s, e) =>
+        //{
+        //    return;
+        //};
+        //var newCount = 0;
+        //var oldCount = 0;
+        //set1.CollectionChanged += (s, e) =>
+        //{
+        //    if (e.Action == NotifyCollectionChangedAction.Add)
+        //        newCount++;
+        //    if (e.Action == NotifyCollectionChangedAction.Remove)
+        //        oldCount++;
+        //};
+        //set1.SymmetricExceptWith(set2);
+        //Console.WriteLine($"{newCount}, {oldCount}");
+        //return;
+        //ObservableCollection<int> ints = new(Enumerable.Range(0, 10));
+        //ints.CollectionChanged += (s, e) =>
+        //{
+        //    return;
+        //};
+        //ints.RemoveAt(0);
+        //var timer = new TimerTrigger();
+        //var lastTime = 0.0;
+        //timer.TimedTrigger += (v) =>
+        //{
+        //    var temp = v.Elapsed.TotalMilliseconds - lastTime;
         //    Console.WriteLine(
-        //        $"\nTrigger {s.CurrentState.Counter} {stopWatch.ElapsedMilliseconds:f4}ms"
+        //        $"Trigger {v.State.Counter} {v.Elapsed.TotalMilliseconds:f4}ms {temp:f4}ms"
         //    );
-        //    if (s.CurrentState.Counter >= 10)
-        //        e.Cancel = true;
+        //    lastTime += temp;
+        //    if (v.State.Counter == 100)
+        //        v.Stop();
         //};
         //stopWatch.Start();
-        //timer.Start(1000, 100);
+        //timer.Start(1000, 30);
         //Task.Delay(5000).Wait();
         //stopWatch.Stop();
         //Console.WriteLine($"\nEnd  {stopWatch.ElapsedMilliseconds:f4}ms");
 
         //var timer = new CountdownTimer();
         //timer.AutoReset = true;
-        //timer.TimeUp += () =>
+        //timer.Completed += () =>
         //{
         //    Console.WriteLine("Time up");
         //};
-        //timer.TimeCancel += () =>
+        //timer.Stopped += () =>
         //{
         //    Console.WriteLine("Time stop");
         //};
-        //timer.Start();
-        //Thread.Sleep(2000);
         //timer.Start(1000);
-        //timer.Cancel();
+        //Task.Delay(2000).Wait();
+        //Console.WriteLine($"{timer.Elapsed.TotalMilliseconds:f4}ms");
         //timer.Start(1000);
-        //timer.Cancel();
-        //timer.Start(1000);
-        //timer.Cancel();
-        //timer.Start(2000);
-        ////Thread.Sleep(1000);
-        ////timer.Start(1);
-        //Thread.Sleep(10000);
+        //Console.WriteLine($"{timer.Elapsed.TotalMilliseconds:f4}ms");
+        //timer.Stop();
+        //Task.Delay(1000).Wait();
+        //Console.WriteLine($"{timer.Elapsed.TotalMilliseconds:f4}ms");
+        //timer.Continue();
+        //Task.Delay(2000).Wait();
+        //Console.WriteLine($"{timer.Elapsed.TotalMilliseconds:f4}ms");
         //Dictionary<int, List<int>> sr_dic =
         //    new()
         //    {

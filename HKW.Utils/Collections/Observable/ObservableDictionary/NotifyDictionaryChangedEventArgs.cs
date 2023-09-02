@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -12,14 +7,14 @@ namespace HKW.HKWUtils.Collections;
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
-[DebuggerDisplay("DictionaryChanged, ChangeMode = {ChangeMode}")]
+[DebuggerDisplay("DictionaryChanged, Action = {Action}")]
 public class NotifyDictionaryChangedEventArgs<TKey, TValue> : EventArgs
     where TKey : notnull
 {
     /// <summary>
-    /// 改变模式
+    /// 改变行动
     /// </summary>
-    public DictionaryChangeMode ChangeMode { get; }
+    public DictionaryChangeAction Action { get; }
 
     /// <summary>
     /// 新条目
@@ -32,47 +27,49 @@ public class NotifyDictionaryChangedEventArgs<TKey, TValue> : EventArgs
     public KeyValuePair<TKey, TValue>? OldEntry { get; }
 
     #region Ctor
+
     /// <inheritdoc/>
-    /// <summary>仅用于: <see cref="DictionaryChangeMode.Clear"/></summary>
-    /// <param name="changeMode">改变方案</param>
-    public NotifyDictionaryChangedEventArgs(DictionaryChangeMode changeMode)
+    /// <summary>仅用于: <see cref="DictionaryChangeAction.Clear"/></summary>
+    /// <param name="action">改变行动</param>
+    public NotifyDictionaryChangedEventArgs(DictionaryChangeAction action)
     {
-        ChangeMode = changeMode;
+        Action = action;
     }
 
     /// <inheritdoc/>
     /// <summary>仅用于:
-    /// <see cref="DictionaryChangeMode.Add"/>
-    /// <see cref="DictionaryChangeMode.Remove"/>
+    /// <see cref="DictionaryChangeAction.Add"/>
+    /// <see cref="DictionaryChangeAction.Remove"/>
     /// </summary>
-    /// <param name="changeMode">改变方案</param>
+    /// <param name="action">改变行动</param>
     /// <param name="entry">改变的条目</param>
     public NotifyDictionaryChangedEventArgs(
-        DictionaryChangeMode changeMode,
+        DictionaryChangeAction action,
         KeyValuePair<TKey, TValue> entry
     )
     {
-        ChangeMode = changeMode;
-        if (ChangeMode is DictionaryChangeMode.Add)
+        Action = action;
+        if (Action is DictionaryChangeAction.Add)
             NewEntry = entry;
         else
             OldEntry = entry;
     }
 
     /// <inheritdoc/>
-    /// <summary>仅用于 <see cref="DictionaryChangeMode.ValueChange"/></summary>
-    /// <param name="changeMode">改变方案</param>
+    /// <summary>仅用于 <see cref="DictionaryChangeAction.ValueChange"/></summary>
+    /// <param name="action">改变行动</param>
     /// <param name="newEntry">新条目</param>
     /// <param name="oldEntry">旧条目</param>
     public NotifyDictionaryChangedEventArgs(
-        DictionaryChangeMode changeMode,
+        DictionaryChangeAction action,
         KeyValuePair<TKey, TValue> newEntry,
         KeyValuePair<TKey, TValue> oldEntry
     )
     {
-        ChangeMode = changeMode;
+        Action = action;
         NewEntry = newEntry;
         OldEntry = oldEntry;
     }
-    #endregion
+
+    #endregion Ctor
 }

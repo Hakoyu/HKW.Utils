@@ -1,21 +1,14 @@
 ﻿using HKW.HKWUtils.Events;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace HKW.HKWUtils.Collections;
 
 /// <summary>
-/// 通知列表已改变接口
+/// 非通用通知列表改变后接口
 /// </summary>
-/// <typeparam name="T">类型</typeparam>
-public interface INotifyListChanged<T>
+public interface INotifyListChanged
 {
     /// <summary>
-    /// 列表已改变事件
+    /// 列表改变后事件
     /// </summary>
-    public event XEventHandler<IObservableList<T>, NotifyListChangedEventArgs<T>>? ListChanged;
+    public event XEventHandler<NotifyListChangedEventArgs<object>>? ListChanged;
 }

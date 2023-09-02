@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HKW.HKWUtils.Extensions;
+﻿using HKW.HKWUtils.Extensions;
 
-namespace HKWTests.ExtensionsTests;
+namespace HKWTests.Extensions;
 
 [TestClass]
-public class ISetT
+public class ISetTests
 {
     [TestMethod]
     public void AsReadOnly()

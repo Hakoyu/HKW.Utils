@@ -1,11 +1,9 @@
-using System.Collections.Generic;
-using System.Linq;
 using HKW.HKWUtils.Extensions;
 
-namespace HKWTests.ExtensionsTests;
+namespace HKWTests.Extensions;
 
 [TestClass]
-public class ICollectionT
+public class ICollectionTests
 {
     [TestMethod]
     public void HasValue_True()

@@ -1,13 +1,9 @@
-﻿using HKW.HKWUtils.Events;
-using System;
+﻿using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Events;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -15,9 +11,8 @@ namespace HKW.HKWUtils.Collections;
 /// 可观察集合
 /// </summary>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ObservableSet<>.DebugView))]
-public class ObservableSet<T> : IObservableSet<T>
-    where T : notnull
+[DebuggerTypeProxy(typeof(CollectionDebugView))]
+public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
 {
     /// <summary>
     /// 源集合
@@ -28,7 +23,11 @@ public class ObservableSet<T> : IObservableSet<T>
     /// <inheritdoc/>
     public IEqualityComparer<T>? Comparer => r_set.Comparer;
 
+    /// <inheritdoc/>
+    public bool NotifySetModifies { get; set; }
+
     #region Ctor
+
     /// <inheritdoc/>
     public ObservableSet()
     {
@@ -71,9 +70,11 @@ public class ObservableSet<T> : IObservableSet<T>
     {
         r_set = new(capacity, comparer);
     }
-    #endregion
+
+    #endregion Ctor
 
     #region ISet
+
     /// <inheritdoc/>
     public int Count => ((ICollection<T>)r_set).Count;
 
@@ -82,6 +83,7 @@ public class ObservableSet<T> : IObservableSet<T>
     public bool IsReadOnly => ((ICollection<T>)r_set).IsReadOnly;
 
     #region Change
+
     /// <inheritdoc/>
     public bool Add(T item)
     {
@@ -123,53 +125,76 @@ public class ObservableSet<T> : IObservableSet<T>
     }
 
     /// <inheritdoc/>
-    /// <summary>注意: 此方法不触发 <see cref="INotifyCollectionChanged"/></summary>
+    /// <summary>注意: 此方法必须启用 <see cref="NotifySetModifies"/> 才能触发 <see cref="CollectionChanged"/> </summary>
     public void IntersectWith(IEnumerable<T> other)
     {
+        List<T>? oldItems = null;
+        if (NotifySetModifies)
+        {
+            oldItems = r_set.Except(other).ToList();
+        }
         var oldCount = Count;
-        if (OnSetIntersecting(other))
+        if (OnSetIntersecting(other, null, oldItems))
             return;
         ((ISet<T>)r_set).IntersectWith(other);
-        OnSetIntersected(other);
+        OnSetIntersected(other, null, oldItems);
         if (oldCount != Count)
             OnCountPropertyChanged();
     }
 
     /// <inheritdoc/>
-    /// <summary>注意: 此方法不触发 <see cref="INotifyCollectionChanged"/></summary>
+    /// <summary>注意: 此方法必须启用 <see cref="NotifySetModifies"/> 才能触发 <see cref="CollectionChanged"/> </summary>
     public void ExceptWith(IEnumerable<T> other)
     {
+        List<T>? oldItems = null;
+        if (NotifySetModifies)
+        {
+            oldItems = r_set.Intersect(other).ToList();
+        }
         var oldCount = Count;
-        if (OnSetExcepting(other))
+        if (OnSetExcepting(other, null, oldItems))
             return;
         ((ISet<T>)r_set).ExceptWith(other);
-        OnSetExcepted(other);
+        OnSetExcepted(other, null, oldItems);
         if (oldCount != Count)
             OnCountPropertyChanged();
     }
 
     /// <inheritdoc/>
-    /// <summary>注意: 此方法不触发 <see cref="INotifyCollectionChanged"/></summary>
+    /// <summary>注意: 此方法必须启用 <see cref="NotifySetModifies"/> 才能触发 <see cref="CollectionChanged"/> </summary>
     public void SymmetricExceptWith(IEnumerable<T> other)
     {
+        List<T>? newItems = null;
+        List<T>? oldItems = null;
+        if (NotifySetModifies)
+        {
+            oldItems = other.Intersect(r_set).ToList();
+            var result = r_set.Union(other).Except(oldItems);
+            newItems = result.Except(r_set).ToList();
+        }
         var oldCount = Count;
-        if (OnSetSymmetricExcepting(other))
+        if (OnSetSymmetricExcepting(other, newItems, oldItems))
             return;
         ((ISet<T>)r_set).SymmetricExceptWith(other);
-        OnSetSymmetricExcepted(other);
+        OnSetSymmetricExcepted(other, newItems, oldItems);
         if (oldCount != Count)
             OnCountPropertyChanged();
     }
 
     /// <inheritdoc/>
-    /// <summary>注意: 此方法不触发 <see cref="INotifyCollectionChanged"/></summary>
+    /// <summary>注意: 此方法必须启用 <see cref="NotifySetModifies"/> 才能触发 <see cref="CollectionChanged"/> </summary>
     public void UnionWith(IEnumerable<T> other)
     {
+        List<T>? newItems = null;
+        if (NotifySetModifies)
+        {
+            newItems = other.Except(r_set).ToList();
+        }
         var oldCount = Count;
-        if (OnSetUnioning(other))
+        if (OnSetUnioning(other, newItems, null))
             return;
         ((ISet<T>)r_set).UnionWith(other);
-        OnSetUnioned(other);
+        OnSetUnioned(other, newItems, null);
         if (oldCount != Count)
             OnCountPropertyChanged();
     }
@@ -183,7 +208,9 @@ public class ObservableSet<T> : IObservableSet<T>
         OnSetAdded(item);
         OnCountPropertyChanged();
     }
-    #endregion
+
+    #endregion Change
+
     /// <inheritdoc/>
     public bool Contains(T item)
     {
@@ -243,85 +270,90 @@ public class ObservableSet<T> : IObservableSet<T>
     {
         return ((IEnumerable)r_set).GetEnumerator();
     }
-    #endregion
+
+    #endregion ISet
+
     #region SetChanging
+
     /// <summary>
-    /// 集合添加条目时
+    /// 集合添加项目前
     /// </summary>
     /// <param name="item">条目</param>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
     private bool OnSetAdding(T item)
     {
-        if (SetChanging is not null)
-            return OnSetChanging(new(SetChangeMode.Add, item));
-        return false;
+        return OnSetChanging(new(SetChangeAction.Add, item));
     }
 
     /// <summary>
-    /// 集合删除条目时
+    /// 集合删除项目前
     /// </summary>
     /// <param name="item">条目</param>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
     private bool OnSetRemoving(T item)
     {
-        if (SetChanging is not null)
-            return OnSetChanging(new(SetChangeMode.Remove, item));
-        return false;
+        return OnSetChanging(new(SetChangeAction.Remove, item));
     }
 
     /// <summary>
-    /// 集合清理时
+    /// 集合清理前
     /// </summary>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
     private bool OnSetClearing()
     {
-        if (SetChanging is not null)
-            return OnSetChanging(new(SetChangeMode.Clear));
-        return false;
+        return OnSetChanging(new(SetChangeAction.Clear));
     }
 
     /// <summary>
-    /// 集合相交
+    /// 集合相交前
     /// </summary>
+    /// <param name="other">其它集合</param>
+    /// <param name="newItems">新项目</param>
+    /// <param name="oldTiems">旧项目</param>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
-    private bool OnSetIntersecting(IEnumerable<T> collection)
+    private bool OnSetIntersecting(IEnumerable<T> other, IList<T>? newItems, IList<T>? oldTiems)
     {
-        if (SetChanging is not null)
-            return OnSetChanging(new(SetChangeMode.Intersect, collection));
-        return false;
+        return OnSetChanging(new(SetChangeAction.Intersect, other, newItems, oldTiems));
     }
 
     /// <summary>
-    /// 集合除外
+    /// 集合排除前
     /// </summary>
+    /// <param name="other">其它集合</param>
+    /// <param name="newItems">新项目</param>
+    /// <param name="oldTiems">旧项目</param>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
-    private bool OnSetExcepting(IEnumerable<T> collection)
+    private bool OnSetExcepting(IEnumerable<T> other, IList<T>? newItems, IList<T>? oldTiems)
     {
-        if (SetChanging is not null)
-            return OnSetChanging(new(SetChangeMode.Except, collection));
-        return false;
+        return OnSetChanging(new(SetChangeAction.Except, other, newItems, oldTiems));
     }
 
     /// <summary>
-    /// 集合对称除外
+    /// 集合相同排除前
     /// </summary>
+    /// <param name="other">其它集合</param>
+    /// <param name="newItems">新项目</param>
+    /// <param name="oldTiems">旧项目</param>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
-    private bool OnSetSymmetricExcepting(IEnumerable<T> collection)
+    private bool OnSetSymmetricExcepting(
+        IEnumerable<T> other,
+        IList<T>? newItems,
+        IList<T>? oldTiems
+    )
     {
-        if (SetChanging is not null)
-            return OnSetChanging(new(SetChangeMode.SymmetricExcept, collection));
-        return false;
+        return OnSetChanging(new(SetChangeAction.SymmetricExcept, other, newItems, oldTiems));
     }
 
     /// <summary>
-    /// 集合合并
+    /// 集合合并前
     /// </summary>
+    /// <param name="other">其它集合</param>
+    /// <param name="newItems">新项目</param>
+    /// <param name="oldTiems">旧项目</param>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
-    private bool OnSetUnioning(IEnumerable<T> collection)
+    private bool OnSetUnioning(IEnumerable<T> other, IList<T>? newItems, IList<T>? oldTiems)
     {
-        if (SetChanging is not null)
-            return OnSetChanging(new(SetChangeMode.Union, collection));
-        return false;
+        return OnSetChanging(new(SetChangeAction.Union, other, newItems, oldTiems));
     }
 
     /// <summary>
@@ -330,105 +362,138 @@ public class ObservableSet<T> : IObservableSet<T>
     /// <param name="args">参数</param>
     protected virtual bool OnSetChanging(NotifySetChangingEventArgs<T> args)
     {
-        SetChanging?.Invoke(this, args);
+        SetChanging?.Invoke(args);
         return args.Cancel;
     }
 
     /// <inheritdoc/>
-    public event XCancelEventHandler<IObservableSet<T>, NotifySetChangingEventArgs<T>>? SetChanging;
-    #endregion
+    public event XCancelEventHandler<NotifySetChangingEventArgs<T>>? SetChanging;
+
+    #endregion SetChanging
+
     #region SetChanged
+
     /// <summary>
-    /// 集合已添加条目时
+    /// 集合添加条目后
     /// </summary>
     /// <param name="item">条目</param>
     private void OnSetAdded(T item)
     {
-        if (SetChanged is not null)
-            OnSetChanged(new(SetChangeMode.Add, item));
-        if (CollectionChanged is not null)
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item));
+        OnSetChanged(new(SetChangeAction.Add, item));
+        OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item));
     }
 
     /// <summary>
-    /// 集合已删除条目时
+    /// 集合删除项目后
     /// </summary>
     /// <param name="item">条目</param>
     private void OnSetRemoved(T item)
     {
-        if (SetChanged is not null)
-            OnSetChanged(new(SetChangeMode.Remove, item));
-        if (CollectionChanged is not null)
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, item));
+        OnSetChanged(new(SetChangeAction.Remove, item));
+        OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, item));
     }
 
     /// <summary>
-    /// 集合已清理时
+    /// 集合清理后
     /// </summary>
     private void OnSetCleared()
     {
-        if (SetChanged is not null)
-            OnSetChanged(new(SetChangeMode.Clear));
-        if (CollectionChanged is not null)
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Reset));
+        OnSetChanged(new(SetChangeAction.Clear));
+        OnCollectionChanged(new(NotifyCollectionChangedAction.Reset));
     }
 
     /// <summary>
-    /// 集合相交
+    /// 集合相交后
     /// </summary>
+    /// <param name="other">其它集合</param>
+    /// <param name="newItems">新项目</param>
+    /// <param name="oldTiems">旧项目</param>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
-    private void OnSetIntersected(IEnumerable<T> collection)
+    private void OnSetIntersected(IEnumerable<T> other, IList<T>? newItems, IList<T>? oldTiems)
     {
-        OnSetChanged(new(SetChangeMode.Intersect, collection));
+        OnSetChanged(new(SetChangeAction.Intersect, other, newItems, oldTiems));
+        OnSetModifies(newItems, oldTiems);
     }
 
     /// <summary>
-    /// 集合除外
+    /// 集合排除后
     /// </summary>
+    /// <param name="other">其它集合</param>
+    /// <param name="newItems">新项目</param>
+    /// <param name="oldTiems">旧项目</param>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
-    private void OnSetExcepted(IEnumerable<T> collection)
+    private void OnSetExcepted(IEnumerable<T> other, IList<T>? newItems, IList<T>? oldTiems)
     {
-        OnSetChanged(new(SetChangeMode.Except, collection));
+        OnSetChanged(new(SetChangeAction.Except, other, newItems, oldTiems));
+        OnSetModifies(newItems, oldTiems);
     }
 
     /// <summary>
-    /// 集合对称除外
+    /// 集合相同排除后
     /// </summary>
+    /// <param name="other">其它集合</param>
+    /// <param name="newItems">新项目</param>
+    /// <param name="oldTiems">旧项目</param>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
-    private void OnSetSymmetricExcepted(IEnumerable<T> collection)
+    private void OnSetSymmetricExcepted(
+        IEnumerable<T> other,
+        IList<T>? newItems,
+        IList<T>? oldTiems
+    )
     {
-        OnSetChanged(new(SetChangeMode.SymmetricExcept, collection));
+        OnSetChanged(new(SetChangeAction.SymmetricExcept, other, newItems, oldTiems));
+        OnSetModifies(newItems, oldTiems);
     }
 
     /// <summary>
-    /// 集合合并
+    /// 集合合并后
     /// </summary>
+    /// <param name="other">其它集合</param>
+    /// <param name="newItems">新项目</param>
+    /// <param name="oldTiems">旧项目</param>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
-    private void OnSetUnioned(IEnumerable<T> collection)
+    private void OnSetUnioned(IEnumerable<T> other, IList<T>? newItems, IList<T>? oldTiems)
     {
-        OnSetChanged(new(SetChangeMode.Union, collection));
+        OnSetChanged(new(SetChangeAction.Union, other, newItems, oldTiems));
+        OnSetModifies(newItems, oldTiems);
+    }
+
+    private void OnSetModifies(IList<T>? newItems, IList<T>? oldTiems)
+    {
+        if (newItems is not null)
+        {
+            foreach (var item in newItems)
+                OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item));
+        }
+        if (oldTiems is not null)
+        {
+            foreach (var item in oldTiems)
+                OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, item));
+        }
     }
 
     /// <summary>
-    /// 集合已改变前
+    /// 集合改变后
     /// </summary>
     /// <param name="args">参数</param>
     protected virtual void OnSetChanged(NotifySetChangedEventArgs<T> args)
     {
-        SetChanged?.Invoke(this, args);
+        SetChanged?.Invoke(args);
     }
 
     /// <inheritdoc/>
-    public event XEventHandler<IObservableSet<T>, NotifySetChangedEventArgs<T>>? SetChanged;
-    #endregion
+    public event XEventHandler<NotifySetChangedEventArgs<T>>? SetChanged;
+
+    #endregion SetChanged
+
     #region PropertyChanged
+
     /// <summary>
-    /// 数量已改变前
+    /// 数量改变后
     /// </summary>
     private void OnCountPropertyChanged()
     {
-        if (PropertyChanged is not null)
-            OnPropertyChanged(nameof(Count));
+        OnPropertyChanged(nameof(Count));
     }
 
     /// <summary>
@@ -437,12 +502,14 @@ public class ObservableSet<T> : IObservableSet<T>
     /// <param name="name">参数</param>
     protected virtual void OnPropertyChanged(string name)
     {
-        PropertyChanged?.Invoke(this, new(name));
+        PropertyChanged?.Invoke(null, new(name));
     }
 
     /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged;
-    #endregion
+
+    #endregion PropertyChanged
+
     #region CollectionChanged
 
     /// <summary>
@@ -451,25 +518,11 @@ public class ObservableSet<T> : IObservableSet<T>
     /// <param name="args">参数</param>
     protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
     {
-        CollectionChanged?.Invoke(this, args);
+        CollectionChanged?.Invoke(null, args);
     }
 
     /// <inheritdoc/>
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
-    #endregion
 
-    internal class DebugView
-    {
-        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public T[] Array
-        {
-            get => r_set.ToArray();
-        }
-        private readonly ISet<T> r_set;
-
-        public DebugView(ISet<T> set)
-        {
-            r_set = set;
-        }
-    }
+    #endregion CollectionChanged
 }

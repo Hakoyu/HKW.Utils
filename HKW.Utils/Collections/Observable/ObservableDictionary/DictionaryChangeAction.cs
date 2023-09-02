@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace HKW.HKWUtils.Collections;
+﻿namespace HKW.HKWUtils.Collections;
 
 /// <summary>
-/// 列表改变方案
+/// 字典改变行动
 /// </summary>
-public enum ListChangeMode
+public enum DictionaryChangeAction
 {
     /// <summary>
     /// 添加
@@ -27,7 +21,7 @@ public enum ListChangeMode
     Clear,
 
     /// <summary>
-    /// 值改变
+    /// 修改值
     /// </summary>
     ValueChange,
 }

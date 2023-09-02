@@ -1,12 +1,6 @@
-﻿using Microsoft.VisualBasic;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -19,6 +13,7 @@ internal class ObservableStack<T> : IStack<T>
     private readonly Stack<T> r_stack = new();
 
     #region Ctor
+
     /// <inheritdoc/>
     public ObservableStack()
     {
@@ -37,8 +32,11 @@ internal class ObservableStack<T> : IStack<T>
     {
         r_stack = new(collection);
     }
-    #endregion
+
+    #endregion Ctor
+
     #region IStack
+
     public int Count => r_stack.Count;
 
     public bool IsSynchronized => ((ICollection)r_stack).IsSynchronized;
@@ -103,5 +101,6 @@ internal class ObservableStack<T> : IStack<T>
     {
         return r_stack.GetEnumerator();
     }
-    #endregion
+
+    #endregion IStack
 }

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -13,14 +8,14 @@ namespace HKW.HKWUtils.Collections;
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
-[DebuggerDisplay("DictionaryChanging, ChangeMode = {ChangeMode}")]
+[DebuggerDisplay("DictionaryChanging, Action = {Action}")]
 public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
     where TKey : notnull
 {
     /// <summary>
-    /// 改变模式
+    /// 改变行动
     /// </summary>
-    public DictionaryChangeMode ChangeMode { get; }
+    public DictionaryChangeAction Action { get; }
 
     /// <summary>
     /// 新条目
@@ -33,46 +28,46 @@ public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
     public KeyValuePair<TKey, TValue>? OldEntry { get; }
 
     /// <inheritdoc/>
-    /// <summary>仅用于: <see cref="DictionaryChangeMode.Clear"/></summary>
-    /// <param name="changeMode">改变方案</param>
-    /// <exception cref="ArgumentException"><paramref name="changeMode"/> 不是 <see cref="DictionaryChangeMode.Clear"/></exception>
-    public NotifyDictionaryChangingEventArgs(DictionaryChangeMode changeMode)
+    /// <summary>仅用于: <see cref="DictionaryChangeAction.Clear"/></summary>
+    /// <param name="action">改变行动</param>
+    /// <exception cref="ArgumentException"><paramref name="action"/> 不是 <see cref="DictionaryChangeAction.Clear"/></exception>
+    public NotifyDictionaryChangingEventArgs(DictionaryChangeAction action)
     {
-        ChangeMode = changeMode;
+        Action = action;
     }
 
     /// <inheritdoc/>
     /// <summary>仅用于:
-    /// <see cref="DictionaryChangeMode.Add"/>
-    /// <see cref="DictionaryChangeMode.Remove"/>
+    /// <see cref="DictionaryChangeAction.Add"/>
+    /// <see cref="DictionaryChangeAction.Remove"/>
     /// </summary>
-    /// <param name="changeMode">改变方案</param>
+    /// <param name="action">改变行动</param>
     /// <param name="entry">改变的条目</param>
     public NotifyDictionaryChangingEventArgs(
-        DictionaryChangeMode changeMode,
+        DictionaryChangeAction action,
         KeyValuePair<TKey, TValue> entry
     )
     {
-        ChangeMode = changeMode;
-        if (ChangeMode is DictionaryChangeMode.Add)
+        Action = action;
+        if (Action is DictionaryChangeAction.Add)
             NewEntry = entry;
         else
             OldEntry = entry;
     }
 
     /// <inheritdoc/>
-    /// <summary>仅用于: <see cref="DictionaryChangeMode.ValueChange"/></summary>
-    /// <param name="changeMode">改变方案</param>
+    /// <summary>仅用于: <see cref="DictionaryChangeAction.ValueChange"/></summary>
+    /// <param name="action">改变行动</param>
     /// <param name="newEntry">新条目</param>
     /// <param name="oldEntry">旧条目</param>
-    /// <exception cref="ArgumentException"><paramref name="changeMode"/> 不是 <see cref="DictionaryChangeMode.ValueChange"/></exception>
+    /// <exception cref="ArgumentException"><paramref name="action"/> 不是 <see cref="DictionaryChangeAction.ValueChange"/></exception>
     public NotifyDictionaryChangingEventArgs(
-        DictionaryChangeMode changeMode,
+        DictionaryChangeAction action,
         KeyValuePair<TKey, TValue> newEntry,
         KeyValuePair<TKey, TValue> oldEntry
     )
     {
-        ChangeMode = changeMode;
+        Action = action;
         NewEntry = newEntry;
         OldEntry = oldEntry;
     }

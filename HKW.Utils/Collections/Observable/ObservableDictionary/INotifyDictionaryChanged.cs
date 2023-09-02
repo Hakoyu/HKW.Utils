@@ -1,25 +1,14 @@
 ﻿using HKW.HKWUtils.Events;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HKW.HKWUtils.Collections;
 
 /// <summary>
-/// 通知字典已改变接口
+/// 非通用通知字典改变后接口
 /// </summary>
-/// <typeparam name="TKey">键类型</typeparam>
-/// <typeparam name="TValue">值类型</typeparam>
-public interface INotifyDictionaryChanged<TKey, TValue>
-    where TKey : notnull
+public interface INotifyDictionaryChanged
 {
     /// <summary>
-    /// 字典已改变事件
+    /// 字典改变后事件
     /// </summary>
-    public event XEventHandler<
-        IObservableDictionary<TKey, TValue>,
-        NotifyDictionaryChangedEventArgs<TKey, TValue>
-    >? DictionaryChanged;
+    public event XEventHandler<NotifyDictionaryChangedEventArgs<object, object>>? DictionaryChanged;
 }

@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using HKW.HKWUtils.Events;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Diagnostics;
 
-namespace HKW.HKWUtils.Utils;
+namespace HKW.HKWUtils.Timers;
 
 /// <summary>
 /// 倒计时器
@@ -14,16 +10,9 @@ namespace HKW.HKWUtils.Utils;
 public class CountdownTimer
 {
     /// <summary>
-    /// 倒计时
+    /// 倒计时持续时间
     /// </summary>
-    [DefaultValue(typeof(TimeSpan), nameof(TimeSpan.Zero))]
     public TimeSpan Duration { get; set; }
-
-    /// <summary>
-    /// 已停止
-    /// </summary>
-    [DefaultValue(false)]
-    public bool IsCancel { get; private set; }
 
     /// <summary>
     /// 正在运行
@@ -38,145 +27,141 @@ public class CountdownTimer
     public bool IsCompleted { get; private set; }
 
     /// <summary>
-    ///自动重置
+    /// 运行时间
+    /// </summary>
+    public TimeSpan Elapsed => r_timer.Elapsed;
+
+    /// <summary>
+    /// 完成后自动重置
     /// </summary>
     [DefaultValue(false)]
     public bool AutoReset { get; set; }
 
-    private CancellationTokenSource _cts = new();
+    /// <summary>
+    /// 上一次运行的倒计时持续时间
+    /// </summary>
+    public TimeSpan LastDuration { get; private set; }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private readonly TimerTrigger r_timer = new(0, 10);
+
+    #region Ctor
+    /// <inheritdoc/>
+    public CountdownTimer()
+        : this(TimeSpan.Zero) { }
 
     /// <inheritdoc/>
-    public CountdownTimer() { }
-
-    /// <inheritdoc/>
-    /// <param name="milliseconds">毫秒时间</param>
-    public CountdownTimer(int milliseconds)
-    {
-        Duration = TimeSpan.FromMilliseconds(milliseconds);
-    }
+    /// <param name="duration">持续时间 (单位: ms)</param>
+    public CountdownTimer(int duration)
+        : this(TimeSpan.FromMilliseconds(duration)) { }
 
     /// <inheritdoc/>
     /// <param name="duration">持续时间</param>
     public CountdownTimer(TimeSpan duration)
     {
         Duration = duration;
+        r_timer.TimedTrigger += TimedTrigger;
     }
-
-    /// <summary>
-    /// 启动定时器
-    /// </summary>
-    public async void Start()
+    #endregion
+    private void TimedTrigger(TimerTrigger args)
     {
-        await Countdown(Duration);
-    }
-
-    /// <summary>
-    /// 启动定时器
-    /// </summary>
-    /// <param name="milliseconds">毫秒时间</param>
-    public async void Start(int? milliseconds = null)
-    {
-        var currentDuration = Duration;
-        if (milliseconds is int ms)
-            currentDuration = TimeSpan.FromMilliseconds(ms);
-        await Countdown(currentDuration);
-    }
-
-    /// <summary>
-    /// 启动定时器
-    /// </summary>
-    /// <param name="duration">持续时间</param>
-    public async void Start(TimeSpan? duration = null)
-    {
-        var currentDuration = Duration;
-        if (duration is TimeSpan span)
-            currentDuration = span;
-        await Countdown(currentDuration);
-    }
-
-    /// <summary>
-    /// 倒计时
-    /// </summary>
-    /// <param name="duration">持续时间</param>
-    /// <returns></returns>
-    private async Task Countdown(TimeSpan duration)
-    {
-        if (IsRunning || IsCompleted)
-            return;
-        IsRunning = true;
-        IsCancel = false;
-        try
+        if (LastDuration <= Elapsed)
         {
-            await Task.Delay(duration, _cts.Token);
-        }
-        catch { }
-        finally
-        {
-            if (IsCancel is false)
-            {
-                TimeUp?.Invoke();
-            }
+            r_timer.Stop();
+            Completed?.Invoke();
             if (AutoReset)
             {
-                Reset();
-            }
-            else
-            {
-                IsCompleted = true;
                 IsRunning = false;
-                _cts = new();
+                Reset();
             }
         }
     }
 
+    #region Timer
     /// <summary>
-    /// 取消倒计时
+    /// 启动定时器
     /// </summary>
-    public void Cancel()
+    /// <exception cref="Exception">CountdownTimer is running</exception>
+    public void Start()
+    {
+        Start(Duration);
+    }
+
+    /// <summary>
+    /// 启动定时器
+    /// </summary>
+    /// <param name="duration">持续时间 (单位: ms)</param>
+    /// <exception cref="Exception">CountdownTimer is running</exception>
+    public void Start(int duration)
+    {
+        Start(TimeSpan.FromMilliseconds(duration));
+    }
+
+    /// <summary>
+    /// 启动定时器
+    /// </summary>
+    /// <param name="duration">持续时间</param>
+    /// <exception cref="Exception">CountdownTimer is running</exception>
+    public void Start(TimeSpan duration)
+    {
+        if (IsRunning)
+            throw new Exception("CountdownTimer is running");
+        LastDuration = duration;
+        IsRunning = true;
+        r_timer.Start();
+    }
+
+    /// <summary>
+    /// 继续倒计时
+    /// </summary>
+    /// <exception cref="Exception">CountdownTimer never started</exception>
+    /// <exception cref="Exception">Countdown completed</exception>
+    /// <exception cref="Exception">CountdownTimer is running</exception>
+    public void Continue()
+    {
+        if (LastDuration == TimeSpan.Zero)
+            throw new Exception("CountdownTimer never started");
+        if (IsCompleted)
+            throw new Exception("Countdown completed");
+        if (IsRunning)
+            throw new Exception("CountdownTimer is running");
+        IsRunning = true;
+        r_timer.Continue();
+    }
+
+    /// <summary>
+    /// 停止倒计时
+    /// </summary>
+    public void Stop()
     {
         if (IsRunning)
         {
-            IsCancel = true;
-            _cts.Cancel();
-            TimeCancel?.Invoke();
+            IsRunning = false;
+            r_timer.Stop();
+            Stopped?.Invoke();
         }
     }
-
-    // TODO: 倒计时中止
-    //public void Stop()
-    //{
-    //    return;
-    //}
-
-    // TODO: 倒计时继续
-    //public void Continue()
-    //{
-    //    return;
-    //}
 
     /// <summary>
     /// 重置
     /// </summary>
+    /// <exception cref="Exception">CountdownTimer is running</exception>
     public void Reset()
     {
+        if (IsRunning)
+            throw new Exception("CountdownTimer is running");
         IsCompleted = false;
-        IsCancel = false;
         IsRunning = false;
-        _cts = new();
     }
+    #endregion
 
     /// <summary>
-    /// 倒计时结束事件
+    /// 倒计时完成事件
     /// </summary>
-    public event CountdownHandler? TimeUp;
+    public event XEventHandler? Completed;
 
     /// <summary>
-    /// 倒计时取消事件
+    /// 倒计时停止事件
     /// </summary>
-    public event CountdownHandler? TimeCancel;
-
-    /// <summary>
-    /// 倒计时委托
-    /// </summary>
-    public delegate void CountdownHandler();
+    public event XEventHandler? Stopped;
 }
