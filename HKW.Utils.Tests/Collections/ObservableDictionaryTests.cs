@@ -16,9 +16,9 @@ public class ObservableDictionaryTests
         {
             triggered = true;
             Assert.AreEqual(a.Action, DictionaryChangeAction.Add);
-            Assert.AreEqual(a.NewEntry?.Key, 10);
-            Assert.AreEqual(a.NewEntry?.Value, 10);
-            Assert.IsNull(a.OldEntry);
+            Assert.AreEqual(a.NewEntries?[0].Key, 10);
+            Assert.AreEqual(a.NewEntries?[0].Value, 10);
+            Assert.IsNull(a.OldEntries);
             a.Cancel = true;
         };
         observableDictionary.Add(10, 10);
@@ -37,9 +37,9 @@ public class ObservableDictionaryTests
         {
             triggered = true;
             Assert.AreEqual(a.Action, DictionaryChangeAction.Add);
-            Assert.AreEqual(a.NewEntry?.Key, 10);
-            Assert.AreEqual(a.NewEntry?.Value, 10);
-            Assert.IsNull(a.OldEntry);
+            Assert.AreEqual(a.NewEntries?[0].Key, 10);
+            Assert.AreEqual(a.NewEntries?[0].Value, 10);
+            Assert.IsNull(a.OldEntries);
         };
         observableDictionary.Add(10, 10);
         Assert.AreEqual(observableDictionary.Count, 11);
@@ -57,9 +57,9 @@ public class ObservableDictionaryTests
         {
             triggered = true;
             Assert.AreEqual(a.Action, DictionaryChangeAction.Remove);
-            Assert.AreEqual(a.OldEntry?.Key, 0);
-            Assert.AreEqual(a.OldEntry?.Value, 0);
-            Assert.IsNull(a.NewEntry);
+            Assert.AreEqual(a.OldEntries?[0].Key, 0);
+            Assert.AreEqual(a.OldEntries?[0].Value, 0);
+            Assert.IsNull(a.NewEntries);
             a.Cancel = true;
         };
         observableDictionary.Remove(0);
@@ -78,9 +78,9 @@ public class ObservableDictionaryTests
         {
             triggered = true;
             Assert.AreEqual(a.Action, DictionaryChangeAction.Remove);
-            Assert.AreEqual(a.OldEntry?.Key, 0);
-            Assert.AreEqual(a.OldEntry?.Value, 0);
-            Assert.IsNull(a.NewEntry);
+            Assert.AreEqual(a.OldEntries?[0].Key, 0);
+            Assert.AreEqual(a.OldEntries?[0].Value, 0);
+            Assert.IsNull(a.NewEntries);
         };
         observableDictionary.Remove(0);
         Assert.AreEqual(observableDictionary.Count, 9);
@@ -98,8 +98,8 @@ public class ObservableDictionaryTests
         {
             triggered = true;
             Assert.AreEqual(a.Action, DictionaryChangeAction.Clear);
-            Assert.IsNull(a.OldEntry);
-            Assert.IsNull(a.NewEntry);
+            Assert.IsNull(a.OldEntries);
+            Assert.IsNull(a.NewEntries);
             a.Cancel = true;
         };
         observableDictionary.Clear();
@@ -118,8 +118,8 @@ public class ObservableDictionaryTests
         {
             triggered = true;
             Assert.AreEqual(a.Action, DictionaryChangeAction.Clear);
-            Assert.IsNull(a.NewEntry);
-            Assert.IsNull(a.OldEntry);
+            Assert.IsNull(a.NewEntries);
+            Assert.IsNull(a.OldEntries);
         };
         observableDictionary.Clear();
         Assert.AreEqual(observableDictionary.Count, 0);
@@ -137,10 +137,10 @@ public class ObservableDictionaryTests
         {
             triggered = true;
             Assert.AreEqual(a.Action, DictionaryChangeAction.ValueChange);
-            Assert.AreEqual(a.NewEntry?.Key, 0);
-            Assert.AreEqual(a.NewEntry?.Value, 10);
-            Assert.AreEqual(a.OldEntry?.Key, 0);
-            Assert.AreEqual(a.OldEntry?.Value, 0);
+            Assert.AreEqual(a.NewEntries?[0].Key, 0);
+            Assert.AreEqual(a.NewEntries?[0].Value, 10);
+            Assert.AreEqual(a.OldEntries?[0].Key, 0);
+            Assert.AreEqual(a.OldEntries?[0].Value, 0);
             a.Cancel = true;
         };
         observableDictionary[0] = 10;
@@ -160,10 +160,10 @@ public class ObservableDictionaryTests
         {
             triggered = true;
             Assert.AreEqual(a.Action, DictionaryChangeAction.ValueChange);
-            Assert.AreEqual(a.NewEntry?.Key, 0);
-            Assert.AreEqual(a.NewEntry?.Value, 10);
-            Assert.AreEqual(a.OldEntry?.Key, 0);
-            Assert.AreEqual(a.OldEntry?.Value, 0);
+            Assert.AreEqual(a.NewEntries?[0].Key, 0);
+            Assert.AreEqual(a.NewEntries?[0].Value, 10);
+            Assert.AreEqual(a.OldEntries?[0].Key, 0);
+            Assert.AreEqual(a.OldEntries?[0].Value, 0);
         };
         observableDictionary[0] = 10;
         Assert.AreEqual(observableDictionary.Count, 10);

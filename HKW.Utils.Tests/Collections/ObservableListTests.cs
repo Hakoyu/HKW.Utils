@@ -14,8 +14,8 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.AreEqual(e.Action, ListChangeAction.Add);
-            Assert.AreEqual(e.NewItem, 10);
-            Assert.AreEqual(e.OldItem, default);
+            Assert.AreEqual(e.NewItems![0], 10);
+            Assert.AreEqual(e.OldItems, null);
             Assert.AreEqual(e.Index, 10);
             e.Cancel = true;
         };
@@ -33,8 +33,8 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.AreEqual(e.Action, ListChangeAction.Add);
-            Assert.AreEqual(e.NewItem, 10);
-            Assert.AreEqual(e.OldItem, default);
+            Assert.AreEqual(e.NewItems![0], 10);
+            Assert.AreEqual(e.OldItems, null);
             Assert.AreEqual(e.Index, 10);
         };
         observableList.Add(10);
@@ -51,8 +51,8 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.AreEqual(e.Action, ListChangeAction.Add);
-            Assert.AreEqual(e.NewItem, 10);
-            Assert.AreEqual(e.OldItem, default);
+            Assert.AreEqual(e.NewItems![0], 10);
+            Assert.AreEqual(e.OldItems, null);
             Assert.AreEqual(e.Index, 5);
             e.Cancel = true;
         };
@@ -70,8 +70,8 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.AreEqual(e.Action, ListChangeAction.Add);
-            Assert.AreEqual(e.NewItem, 10);
-            Assert.AreEqual(e.OldItem, default);
+            Assert.AreEqual(e.NewItems![0], 10);
+            Assert.AreEqual(e.OldItems, null);
             Assert.AreEqual(e.Index, 5);
         };
         observableList.Insert(5, 10);
@@ -88,8 +88,8 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.AreEqual(e.Action, ListChangeAction.Remove);
-            Assert.AreEqual(e.NewItem, default);
-            Assert.AreEqual(e.OldItem, 1);
+            Assert.AreEqual(e.NewItems, null);
+            Assert.AreEqual(e.OldItems![0], 1);
             Assert.AreEqual(e.Index, 0);
             e.Cancel = true;
         };
@@ -107,8 +107,8 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.AreEqual(e.Action, ListChangeAction.Remove);
-            Assert.AreEqual(e.NewItem, default);
-            Assert.AreEqual(e.OldItem, 1);
+            Assert.AreEqual(e.NewItems, null);
+            Assert.AreEqual(e.OldItems![0], 1);
             Assert.AreEqual(e.Index, 0);
         };
         observableList.RemoveAt(0);
@@ -125,8 +125,8 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.AreEqual(e.Action, ListChangeAction.Clear);
-            Assert.AreEqual(e.NewItem, default);
-            Assert.AreEqual(e.OldItem, default);
+            Assert.AreEqual(e.NewItems, null);
+            Assert.AreEqual(e.OldItems, null);
             Assert.AreEqual(e.Index, -1);
             e.Cancel = true;
         };
@@ -144,8 +144,8 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.AreEqual(e.Action, ListChangeAction.Clear);
-            Assert.AreEqual(e.NewItem, default);
-            Assert.AreEqual(e.OldItem, default);
+            Assert.AreEqual(e.NewItems, null);
+            Assert.AreEqual(e.OldItems, null);
             Assert.AreEqual(e.Index, -1);
         };
         observableList.Clear();
@@ -162,8 +162,8 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.AreEqual(e.Action, ListChangeAction.ValueChange);
-            Assert.AreEqual(e.NewItem, 10);
-            Assert.AreEqual(e.OldItem, 1);
+            Assert.AreEqual(e.NewItems![0], 10);
+            Assert.AreEqual(e.OldItems![0], 1);
             Assert.AreEqual(e.Index, 0);
             e.Cancel = true;
         };
@@ -182,8 +182,8 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.AreEqual(e.Action, ListChangeAction.ValueChange);
-            Assert.AreEqual(e.NewItem, 10);
-            Assert.AreEqual(e.OldItem, 1);
+            Assert.AreEqual(e.NewItems![0], 10);
+            Assert.AreEqual(e.OldItems![0], 1);
             Assert.AreEqual(e.Index, 0);
         };
         observableList[0] = 10;
@@ -204,7 +204,7 @@ public class ObservableListTests
                 e.Action,
                 System.Collections.Specialized.NotifyCollectionChangedAction.Add
             );
-            Assert.AreEqual(e.OldItems?[0], default);
+            Assert.AreEqual(e.OldItems?[0], null);
             Assert.AreEqual(e.NewItems?[0], 10);
             Assert.AreEqual(e.NewStartingIndex, 10);
             Assert.AreEqual(e.OldStartingIndex, -1);
@@ -227,7 +227,7 @@ public class ObservableListTests
                 e.Action,
                 System.Collections.Specialized.NotifyCollectionChangedAction.Add
             );
-            Assert.AreEqual(e.OldItems?[0], default);
+            Assert.AreEqual(e.OldItems?[0], null);
             Assert.AreEqual(e.NewItems?[0], 10);
             Assert.AreEqual(e.NewStartingIndex, 5);
             Assert.AreEqual(e.OldStartingIndex, -1);
@@ -251,7 +251,7 @@ public class ObservableListTests
                 System.Collections.Specialized.NotifyCollectionChangedAction.Remove
             );
             Assert.AreEqual(e.OldItems?[0], 1);
-            Assert.AreEqual(e.NewItems?[0], default);
+            Assert.AreEqual(e.NewItems?[0], null);
             Assert.AreEqual(e.NewStartingIndex, -1);
             Assert.AreEqual(e.OldStartingIndex, 0);
         };
@@ -273,8 +273,8 @@ public class ObservableListTests
                 e.Action,
                 System.Collections.Specialized.NotifyCollectionChangedAction.Reset
             );
-            Assert.AreEqual(e.OldItems?[0], default);
-            Assert.AreEqual(e.NewItems?[0], default);
+            Assert.AreEqual(e.OldItems?[0], null);
+            Assert.AreEqual(e.NewItems?[0], null);
             Assert.AreEqual(e.NewStartingIndex, -1);
             Assert.AreEqual(e.OldStartingIndex, -1);
         };

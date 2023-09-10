@@ -13,6 +13,6 @@ public class IEnumerableTests
         Collection<List<int>> cl =
             new(Enumerable.Range(0, 10).Select(i => new List<int>() { i }).ToList());
         Assert.IsFalse(cl.SequenceEqual(ll));
-        Assert.IsTrue(cl.EqualOnComparer(ll, (x, y) => x.SequenceEqual(y)));
+        Assert.IsTrue(cl.SequenceEqualOnComparer(ll, (x, y) => x.SequenceEqual(y)));
     }
 }

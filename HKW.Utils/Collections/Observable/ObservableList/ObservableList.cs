@@ -276,11 +276,11 @@ public class ObservableList<T> : IObservableList<T>, IObservableList, IReadOnlyO
         if (args.Action is ListChangeAction.Clear)
             newArgs = new(args.Action);
         else if (args.Action is ListChangeAction.Add)
-            newArgs = new(args.Action, args.NewItem!, args.Index);
+            newArgs = new(args.Action, args.NewItems!, args.Index);
         else if (args.Action is ListChangeAction.Remove)
-            newArgs = new(args.Action, args.OldItem!, args.Index);
+            newArgs = new(args.Action, args.OldItems!, args.Index);
         else
-            newArgs = new(args.Action, args.NewItem!, args.OldItem!, args.Index);
+            newArgs = new(args.Action, args.NewItems!, args.OldItems!, args.Index);
         nonGenericEvent?.Invoke(newArgs);
         args.Cancel = newArgs.Cancel;
     }
@@ -296,11 +296,11 @@ public class ObservableList<T> : IObservableList<T>, IObservableList, IReadOnlyO
         if (args.Action is ListChangeAction.Clear)
             newArgs = new(args.Action);
         else if (args.Action is ListChangeAction.Add)
-            newArgs = new(args.Action, args.NewItem!, args.Index);
+            newArgs = new(args.Action, args.NewItems!, args.Index);
         else if (args.Action is ListChangeAction.Remove)
-            newArgs = new(args.Action, args.OldItem!, args.Index);
+            newArgs = new(args.Action, args.OldItems!, args.Index);
         else
-            newArgs = new(args.Action, args.NewItem!, args.OldItem!, args.Index);
+            newArgs = new(args.Action, args.NewItems!, args.OldItems!, args.Index);
         nonGenericEvent?.Invoke(newArgs);
     }
 

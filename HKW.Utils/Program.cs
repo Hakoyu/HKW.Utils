@@ -17,11 +17,11 @@ internal class Program
         //};
         //notify.DictionaryChanging += (v) =>
         //{
-        //    Console.WriteLine(v.OldEntry);
+        //    Console.WriteLine(v.OldEntries);
         //};
         //notify.DictionaryChanging += (v) =>
         //{
-        //    Console.WriteLine(v.NewEntry);
+        //    Console.WriteLine(v.NewEntries);
         //};
         //_dict.Add("1", "111");
         //Console.WriteLine(_dict.Keys is ICollection);

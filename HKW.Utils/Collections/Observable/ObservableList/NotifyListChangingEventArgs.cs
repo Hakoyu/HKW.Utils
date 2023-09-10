@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using HKW.HKWUtils.Natives;
+using System.ComponentModel;
 using System.Diagnostics;
 
 namespace HKW.HKWUtils.Collections;
@@ -7,7 +8,9 @@ namespace HKW.HKWUtils.Collections;
 /// 通知列表改变前事件参数
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
-[DebuggerDisplay("ListChanging, Action = {Action}, Index = {Index}")]
+[DebuggerDisplay(
+    "ListChanging, Action = {Action}, Index = {Index}, NewItemsCount = {NewItems.Count}, OldItemsCount = {OldItems.Count}"
+)]
 public class NotifyListChangingEventArgs<T> : CancelEventArgs
 {
     /// <summary>
@@ -18,12 +21,12 @@ public class NotifyListChangingEventArgs<T> : CancelEventArgs
     /// <summary>
     /// 新项目
     /// </summary>
-    public T? NewItem { get; }
+    public IList<T>? NewItems { get; }
 
     /// <summary>
     /// 旧项目
     /// </summary>
-    public T? OldItem { get; }
+    public IList<T>? OldItems { get; }
 
     /// <summary>
     /// 索引
@@ -31,11 +34,17 @@ public class NotifyListChangingEventArgs<T> : CancelEventArgs
     [DefaultValue(-1)]
     public int Index { get; } = -1;
 
+    #region Ctor
     /// <inheritdoc/>
     /// <summary>仅用于: <see cref="ListChangeAction.Clear"/></summary>
     /// <param name="action">改变行动</param>
     public NotifyListChangingEventArgs(ListChangeAction action)
     {
+        if (action != ListChangeAction.Clear)
+            throw new ArgumentException(
+                string.Format(MessageFormat.MustBe, nameof(DictionaryChangeAction.Clear)),
+                nameof(action)
+            );
         Action = action;
     }
 
@@ -49,10 +58,18 @@ public class NotifyListChangingEventArgs<T> : CancelEventArgs
     /// <param name="index">索引</param>
     public NotifyListChangingEventArgs(ListChangeAction action, T item, int index)
     {
+        if (action != ListChangeAction.Add && action != ListChangeAction.Remove)
+            throw new ArgumentException(
+                string.Format(
+                    MessageFormat.MustBe,
+                    $"{nameof(ListChangeAction.Add)} or {nameof(ListChangeAction.Remove)}"
+                ),
+                nameof(action)
+            );
         if (action is ListChangeAction.Add)
-            NewItem = item;
+            NewItems = new List<T>() { item };
         else
-            OldItem = item;
+            OldItems = new List<T>() { item };
         Action = action;
         Index = index;
     }
@@ -68,8 +85,40 @@ public class NotifyListChangingEventArgs<T> : CancelEventArgs
     public NotifyListChangingEventArgs(ListChangeAction action, T newItem, T oldItem, int index)
     {
         Action = action;
-        NewItem = newItem;
-        OldItem = oldItem;
+        Index = index;
+        OldItems = new List<T>() { oldItem };
+        NewItems = new List<T>() { newItem };
+    }
+
+    /// <inheritdoc/>
+    /// <summary>仅用于:
+    /// <see cref="ListChangeAction.Add"/>
+    /// <see cref="ListChangeAction.Remove"/>
+    /// <see cref="ListChangeAction.Clear"/>
+    /// </summary>
+    /// <param name="action">改变行动</param>
+    /// <param name="items">项目</param>
+    /// <param name="index">索引</param>
+    public NotifyListChangingEventArgs(ListChangeAction action, IList<T> items, int index)
+    {
+        if (
+            action != ListChangeAction.Add
+            && action != ListChangeAction.Remove
+            && action != ListChangeAction.Clear
+        )
+            throw new ArgumentException(
+                string.Format(
+                    MessageFormat.MustBe,
+                    $"{nameof(ListChangeAction.Add)} or {nameof(ListChangeAction.Remove)} or {nameof(ListChangeAction.Clear)}"
+                ),
+                nameof(action)
+            );
+        if (action is ListChangeAction.Add)
+            NewItems = items;
+        else
+            OldItems = items;
+        Action = action;
         Index = index;
     }
+    #endregion
 }

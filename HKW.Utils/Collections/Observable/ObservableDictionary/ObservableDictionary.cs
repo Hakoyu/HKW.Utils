@@ -141,21 +141,23 @@ public class ObservableDictionary<TKey, TValue>
         {
             if (r_dictionary.TryGetValue(key, out var oldValue) is false)
             {
+                var entry = new KeyValuePair<TKey, TValue>(key, value);
                 // 字典允许不存在的 key 作为键,会创建新的键值对
-                if (OnDictionaryAdding(new(key, value)))
+                if (OnDictionaryAdding(entry))
                     return;
                 r_dictionary[key] = value;
-                OnDictionaryAdded(r_dictionary.GetEntry(key));
+                OnDictionaryAdded(entry);
             }
             else
             {
+                var oldEntry = new KeyValuePair<TKey, TValue>(key, oldValue);
+                var newEntry = new KeyValuePair<TKey, TValue>(key, value);
                 if (
-                    oldValue?.Equals(value) is true
-                    || OnDictionaryValueChanging(r_dictionary.GetEntry(key), value)
+                    oldValue?.Equals(value) is true || OnDictionaryValueChanging(newEntry, oldEntry)
                 )
                     return;
                 r_dictionary[key] = value;
-                OnDictionaryValueChanged(r_dictionary.GetEntry(key), oldValue);
+                OnDictionaryValueChanged(newEntry, oldEntry);
             }
         }
     }
@@ -390,14 +392,20 @@ public class ObservableDictionary<TKey, TValue>
         if (args.Action is DictionaryChangeAction.Clear)
             newArgs = new(args.Action);
         else if (args.Action is DictionaryChangeAction.Add)
-            newArgs = new(args.Action, new(args.NewEntry!.Value.Key!, args.NewEntry.Value.Value!));
+            newArgs = new(
+                args.Action,
+                entry: new(args.NewEntries![0].Key!, args.NewEntries![0].Value!)
+            );
         else if (args.Action is DictionaryChangeAction.Remove)
-            newArgs = new(args.Action, new(args.OldEntry!.Value.Key!, args.OldEntry.Value.Value!));
+            newArgs = new(
+                args.Action,
+                entry: new(args.OldEntries![0].Key!, args.OldEntries![0].Value!)
+            );
         else
             newArgs = new(
                 args.Action,
-                new(args.NewEntry!.Value.Key!, args.NewEntry.Value.Value!),
-                new(args.OldEntry!.Value.Key!, args.OldEntry.Value.Value!)
+                new(args.NewEntries![0].Key!, args.NewEntries![0].Value!),
+                new(args.OldEntries![0].Key!, args.OldEntries![0].Value!)
             );
         nonGenericEvent?.Invoke(newArgs);
         args.Cancel = newArgs.Cancel;
@@ -414,18 +422,18 @@ public class ObservableDictionary<TKey, TValue>
             nonGenericEvent?.Invoke(new(args.Action));
         else if (args.Action is DictionaryChangeAction.Add)
             nonGenericEvent?.Invoke(
-                new(args.Action, new(args.NewEntry!.Value.Key!, args.NewEntry.Value.Value!))
+                new(args.Action, entry: new(args.NewEntries![0].Key!, args.NewEntries![0].Value!))
             );
         else if (args.Action is DictionaryChangeAction.Remove)
             nonGenericEvent?.Invoke(
-                new(args.Action, new(args.OldEntry!.Value.Key!, args.OldEntry.Value.Value!))
+                new(args.Action, entry: new(args.OldEntries![0].Key!, args.OldEntries![0].Value!))
             );
         else
             nonGenericEvent?.Invoke(
                 new(
                     args.Action,
-                    new(args.NewEntry!.Value.Key!, args.NewEntry.Value.Value!),
-                    new(args.OldEntry!.Value.Key!, args.OldEntry.Value.Value!)
+                    new(args.NewEntries![0].Key!, args.NewEntries![0].Value!),
+                    new(args.OldEntries![0].Key!, args.OldEntries![0].Value!)
                 )
             );
     }
@@ -457,14 +465,15 @@ public class ObservableDictionary<TKey, TValue>
     /// <summary>
     /// 字典改变条目值前
     /// </summary>
-    /// <param name="entry">条目</param>
-    /// <param name="newValue">新值</param>
+    /// <param name="newEntry">新条目</param>
+    /// <param name="oldEntry">旧条目</param>
     /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
-    private bool OnDictionaryValueChanging(KeyValuePair<TKey, TValue> entry, TValue newValue)
+    private bool OnDictionaryValueChanging(
+        KeyValuePair<TKey, TValue> newEntry,
+        KeyValuePair<TKey, TValue> oldEntry
+    )
     {
-        return OnDictionaryChanging(
-            new(DictionaryChangeAction.ValueChange, new(entry.Key, newValue), entry)
-        );
+        return OnDictionaryChanging(new(DictionaryChangeAction.ValueChange, newEntry, oldEntry));
     }
 
     /// <summary>
@@ -531,22 +540,18 @@ public class ObservableDictionary<TKey, TValue>
     /// <summary>
     /// 字典条目值改变后
     /// </summary>
-    /// <param name="entry">新条目</param>
-    /// <param name="oldValue">旧值</param>
-    private void OnDictionaryValueChanged(KeyValuePair<TKey, TValue> entry, TValue oldValue)
+    /// <param name="newEntry">新条目</param>
+    /// <param name="oldEntry">旧条目</param>
+    private void OnDictionaryValueChanged(
+        KeyValuePair<TKey, TValue> newEntry,
+        KeyValuePair<TKey, TValue> oldEntry
+    )
     {
-        var oldEntry = new KeyValuePair<TKey, TValue>(entry.Key, oldValue);
-        OnDictionaryChanged(new(DictionaryChangeAction.ValueChange, entry, oldEntry));
-        OnCollectionChanged(
-            new(
-                NotifyCollectionChangedAction.Replace,
-                entry,
-                new KeyValuePair<TKey, TValue>(entry.Key, oldValue)
-            )
-        );
+        OnDictionaryChanged(new(DictionaryChangeAction.ValueChange, newEntry, oldEntry));
+        OnCollectionChanged(new(NotifyCollectionChangedAction.Replace, newEntry, oldEntry));
         if (ObservableKeysAndValues)
         {
-            r_observableValues[r_observableKeys.IndexOf(entry.Key)] = entry.Value;
+            r_observableValues[r_observableKeys.IndexOf(newEntry.Key)] = newEntry.Value;
         }
     }
 

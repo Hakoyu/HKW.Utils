@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using HKW.HKWUtils.Natives;
+using System.ComponentModel;
 using System.Diagnostics;
 
 namespace HKW.HKWUtils.Collections;
@@ -8,7 +9,9 @@ namespace HKW.HKWUtils.Collections;
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
-[DebuggerDisplay("DictionaryChanging, Action = {Action}")]
+[DebuggerDisplay(
+    "DictionaryChanging, Action = {Action}, NewEntriesCount = {NewEntries.Count}, OldEntriesCount = {OldEntries.Count}"
+)]
 public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
     where TKey : notnull
 {
@@ -20,19 +23,24 @@ public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
     /// <summary>
     /// 新条目
     /// </summary>
-    public KeyValuePair<TKey, TValue>? NewEntry { get; }
+    public IList<KeyValuePair<TKey, TValue>>? NewEntries { get; }
 
     /// <summary>
     /// 旧条目
     /// </summary>
-    public KeyValuePair<TKey, TValue>? OldEntry { get; }
+    public IList<KeyValuePair<TKey, TValue>>? OldEntries { get; }
 
+    #region Ctor
     /// <inheritdoc/>
     /// <summary>仅用于: <see cref="DictionaryChangeAction.Clear"/></summary>
     /// <param name="action">改变行动</param>
-    /// <exception cref="ArgumentException"><paramref name="action"/> 不是 <see cref="DictionaryChangeAction.Clear"/></exception>
     public NotifyDictionaryChangingEventArgs(DictionaryChangeAction action)
     {
+        if (action != DictionaryChangeAction.Clear)
+            throw new ArgumentException(
+                string.Format(MessageFormat.MustBe, nameof(DictionaryChangeAction.Clear)),
+                nameof(action)
+            );
         Action = action;
     }
 
@@ -48,19 +56,26 @@ public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
         KeyValuePair<TKey, TValue> entry
     )
     {
+        if (action != DictionaryChangeAction.Add && action != DictionaryChangeAction.Remove)
+            throw new ArgumentException(
+                string.Format(
+                    MessageFormat.MustBe,
+                    $"{nameof(DictionaryChangeAction.Add)} or {nameof(DictionaryChangeAction.Remove)}"
+                ),
+                nameof(action)
+            );
         Action = action;
         if (Action is DictionaryChangeAction.Add)
-            NewEntry = entry;
+            NewEntries = new List<KeyValuePair<TKey, TValue>>() { entry };
         else
-            OldEntry = entry;
+            OldEntries = new List<KeyValuePair<TKey, TValue>>() { entry };
     }
 
     /// <inheritdoc/>
-    /// <summary>仅用于: <see cref="DictionaryChangeAction.ValueChange"/></summary>
+    /// <summary>仅用于 <see cref="DictionaryChangeAction.ValueChange"/></summary>
     /// <param name="action">改变行动</param>
     /// <param name="newEntry">新条目</param>
     /// <param name="oldEntry">旧条目</param>
-    /// <exception cref="ArgumentException"><paramref name="action"/> 不是 <see cref="DictionaryChangeAction.ValueChange"/></exception>
     public NotifyDictionaryChangingEventArgs(
         DictionaryChangeAction action,
         KeyValuePair<TKey, TValue> newEntry,
@@ -68,7 +83,38 @@ public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
     )
     {
         Action = action;
-        NewEntry = newEntry;
-        OldEntry = oldEntry;
+        NewEntries = new List<KeyValuePair<TKey, TValue>>() { newEntry };
+        OldEntries = new List<KeyValuePair<TKey, TValue>>() { oldEntry };
     }
+
+    /// <inheritdoc/>
+    /// <see cref="DictionaryChangeAction.Add"/>
+    /// <see cref="DictionaryChangeAction.Remove"/>
+    /// <see cref="DictionaryChangeAction.Clear"/>
+    /// <param name="action">改变行动</param>
+    /// <param name="entries">条目</param>
+    public NotifyDictionaryChangingEventArgs(
+        DictionaryChangeAction action,
+        IList<KeyValuePair<TKey, TValue>> entries
+    )
+    {
+        if (
+            action != DictionaryChangeAction.Add
+            && action != DictionaryChangeAction.Remove
+            && action != DictionaryChangeAction.Clear
+        )
+            throw new ArgumentException(
+                string.Format(
+                    MessageFormat.MustBe,
+                    $"{nameof(DictionaryChangeAction.Add)} or {nameof(DictionaryChangeAction.Remove)} or {nameof(DictionaryChangeAction.Clear)}"
+                ),
+                nameof(action)
+            );
+        Action = action;
+        if (Action is DictionaryChangeAction.Add)
+            NewEntries = entries;
+        else
+            OldEntries = entries;
+    }
+    #endregion
 }
