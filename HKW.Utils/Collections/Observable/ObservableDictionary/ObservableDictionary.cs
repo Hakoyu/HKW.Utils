@@ -25,7 +25,7 @@ public class ObservableDictionary<TKey, TValue>
     where TKey : notnull
 {
     /// <inheritdoc/>
-    public IEqualityComparer<TKey>? Comparer => _dictionary.Comparer;
+    public IEqualityComparer<TKey> Comparer => _dictionary.Comparer;
 
     /// <inheritdoc/>
     public bool TriggerRemoveActionOnClear { get; set; }

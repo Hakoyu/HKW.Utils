@@ -21,7 +21,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     private readonly HashSet<T> _set;
 
     /// <inheritdoc/>
-    public IEqualityComparer<T>? Comparer => _set.Comparer;
+    public IEqualityComparer<T> Comparer => _set.Comparer;
 
     /// <inheritdoc/>
     public bool NotifySetModifies { get; set; }

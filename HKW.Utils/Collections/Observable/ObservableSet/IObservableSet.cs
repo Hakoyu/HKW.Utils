@@ -16,7 +16,7 @@ public interface IObservableSet<T>
     /// <summary>
     /// 比较器
     /// </summary>
-    public IEqualityComparer<T>? Comparer { get; }
+    public IEqualityComparer<T> Comparer { get; }
 
     /// <summary>
     /// 启用通知集合修改

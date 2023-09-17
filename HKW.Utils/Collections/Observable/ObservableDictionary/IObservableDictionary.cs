@@ -21,7 +21,7 @@ public interface IObservableDictionary<TKey, TValue>
     /// <summary>
     /// 比较器
     /// </summary>
-    public IEqualityComparer<TKey>? Comparer { get; }
+    public IEqualityComparer<TKey> Comparer { get; }
 
     /// <summary>
     /// 启用可观察的键集合与值集合
