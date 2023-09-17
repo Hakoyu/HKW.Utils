@@ -257,29 +257,23 @@ public class ObservableDictionary<TKey, TValue>
     }
 
     /// <inheritdoc/>
-    public void RemoveRange(IEnumerable<KeyValuePair<TKey, TValue>> pairs)
-    {
-        var list = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(pairs);
-        var addList = new List<KeyValuePair<TKey, TValue>>();
-        if (OnDictionaryRemoving(list))
-            return;
-        foreach (var pair in list)
-        {
-            if (_dictionary.Remove(pair.Key))
-                addList.Add(pair);
-        }
-        if (addList.HasValue())
-        {
-            OnDictionaryRemoved(list);
-        }
-    }
-
-    /// <inheritdoc/>
     public void Clear()
     {
         if (TriggerRemoveActionOnClear)
         {
-            RemoveRange(_dictionary);
+            var list = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(_dictionary);
+            var removeList = new List<KeyValuePair<TKey, TValue>>();
+            if (OnDictionaryRemoving(list))
+                return;
+            foreach (var pair in list)
+            {
+                if (_dictionary.Remove(pair.Key))
+                    removeList.Add(pair);
+            }
+            if (removeList.HasValue())
+            {
+                OnDictionaryRemoved(list);
+            }
         }
         else
         {
@@ -287,39 +281,6 @@ public class ObservableDictionary<TKey, TValue>
                 return;
             _dictionary.Clear();
             OnDictionaryCleared();
-        }
-    }
-
-    /// <inheritdoc/>
-    public void ChangeRange(
-        IEnumerable<KeyValuePair<TKey, TValue>> pairs,
-        bool addWhenNotExists = false
-    )
-    {
-        var addList = new List<KeyValuePair<TKey, TValue>>();
-        var newList = new List<KeyValuePair<TKey, TValue>>();
-        var oldList = new List<KeyValuePair<TKey, TValue>>();
-        foreach (var pair in pairs)
-        {
-            if (_dictionary.TryGetValue(pair.Key, out var oldValue) is false)
-            {
-                addList.Add(pair);
-            }
-            else
-            {
-                oldList.Add(new(pair.Key, oldValue));
-                newList.Add(pair);
-            }
-        }
-        if (addWhenNotExists && addList.HasValue())
-            AddRange(addList);
-        if (newList.HasValue())
-        {
-            if (OnDictionaryValueChanging(newList, oldList))
-                return;
-            foreach (var pair in newList)
-                _dictionary[pair.Key] = pair.Value;
-            OnDictionaryValueChanged(newList, oldList);
         }
     }
 
@@ -467,14 +428,11 @@ public class ObservableDictionary<TKey, TValue>
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, (IList)pairs));
         if (ObservableKeysAndValues)
         {
-            // TODO: 优化集合更新
             foreach (var pair in pairs)
             {
                 _observableKeys.Remove(pair.Key);
                 _observableValues.Remove(pair.Value);
             }
-            //_observableKeys.RemoveRange(pairs.Select(p => p.Key));
-            //_observableValues.RemoveRange(pairs.Select(p => p.Value));
         }
     }
 
@@ -500,7 +458,6 @@ public class ObservableDictionary<TKey, TValue>
             );
         if (ObservableKeysAndValues)
         {
-            // TODO: 优化集合更新
             foreach (var pair in newPairs)
             {
                 _observableValues[_observableKeys.IndexOf(pair.Key)] = pair.Value;

@@ -114,21 +114,6 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
         throw new NotImplementedException();
     }
 
-    void IObservableDictionary<TKey, TValue>.RemoveRange(
-        IEnumerable<KeyValuePair<TKey, TValue>> items
-    )
-    {
-        throw new NotImplementedException();
-    }
-
-    void IObservableDictionary<TKey, TValue>.ChangeRange(
-        IEnumerable<KeyValuePair<TKey, TValue>> pairs,
-        bool addWhenNotExists
-    )
-    {
-        throw new NotImplementedException();
-    }
-
     void IDictionary<TKey, TValue>.Add(TKey key, TValue value)
     {
         throw new NotImplementedException();
