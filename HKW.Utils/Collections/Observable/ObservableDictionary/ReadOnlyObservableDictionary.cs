@@ -16,69 +16,169 @@ namespace HKW.HKWUtils.Collections;
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
 public class ReadOnlyObservableDictionary<TKey, TValue>
-    : IReadOnlyObservableDictionary<TKey, TValue>
+    : IObservableDictionary<TKey, TValue>,
+        IReadOnlyObservableDictionary<TKey, TValue>
     where TKey : notnull
 {
     /// <summary>
     /// 原始字典
     /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private readonly IObservableDictionary<TKey, TValue> r_dictionary;
+    private readonly IObservableDictionary<TKey, TValue> _dictionary;
 
     /// <inheritdoc/>
     /// <param name="dictionary"></param>
     public ReadOnlyObservableDictionary(IObservableDictionary<TKey, TValue> dictionary)
     {
-        r_dictionary = dictionary;
+        _dictionary = dictionary;
     }
 
     /// <inheritdoc/>
-    public TValue this[TKey key] => ((IReadOnlyDictionary<TKey, TValue>)r_dictionary)[key];
+    public TValue this[TKey key] => ((IReadOnlyDictionary<TKey, TValue>)_dictionary)[key];
 
     /// <inheritdoc/>
-    public IEnumerable<TKey> Keys => ((IReadOnlyDictionary<TKey, TValue>)r_dictionary).Keys;
+    public IEnumerable<TKey> Keys => ((IReadOnlyDictionary<TKey, TValue>)_dictionary).Keys;
 
     /// <inheritdoc/>
-    public IEnumerable<TValue> Values => ((IReadOnlyDictionary<TKey, TValue>)r_dictionary).Values;
+    public IEnumerable<TValue> Values => ((IReadOnlyDictionary<TKey, TValue>)_dictionary).Values;
 
     /// <inheritdoc/>
-    public int Count => ((IReadOnlyDictionary<TKey, TValue>)r_dictionary).Count;
+    public int Count => ((IReadOnlyDictionary<TKey, TValue>)_dictionary).Count;
 
     /// <inheritdoc/>
-    public IReadOnlyObservableList<TKey> ObservableKeys => r_dictionary.ObservableKeys;
+    public IObservableList<TKey> ObservableKeys => _dictionary.ObservableKeys;
 
     /// <inheritdoc/>
-    public IReadOnlyObservableList<TValue> ObservableValues => r_dictionary.ObservableValues;
+    public IObservableList<TValue> ObservableValues => _dictionary.ObservableValues;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    IEqualityComparer<TKey>? IObservableDictionary<TKey, TValue>.Comparer => _dictionary.Comparer;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    bool IObservableDictionary<TKey, TValue>.ObservableKeysAndValues
+    {
+        get => _dictionary.ObservableKeysAndValues;
+        set => throw new NotImplementedException();
+    }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    ICollection<TKey> IDictionary<TKey, TValue>.Keys => _dictionary.Keys;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    ICollection<TValue> IDictionary<TKey, TValue>.Values => _dictionary.Values;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    bool IObservableCollection<KeyValuePair<TKey, TValue>>.TriggerRemoveActionOnClear
+    {
+        get => _dictionary.TriggerRemoveActionOnClear;
+        set => throw new NotImplementedException();
+    }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly => _dictionary.IsReadOnly;
+
+    TValue IDictionary<TKey, TValue>.this[TKey key]
+    {
+        get => _dictionary[key];
+        set => throw new NotImplementedException();
+    }
 
     /// <inheritdoc/>
     public bool ContainsKey(TKey key)
     {
-        return ((IReadOnlyDictionary<TKey, TValue>)r_dictionary).ContainsKey(key);
+        return ((IReadOnlyDictionary<TKey, TValue>)_dictionary).ContainsKey(key);
     }
 
     /// <inheritdoc/>
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
-        return ((IReadOnlyDictionary<TKey, TValue>)r_dictionary).TryGetValue(key, out value);
+        return ((IReadOnlyDictionary<TKey, TValue>)_dictionary).TryGetValue(key, out value);
     }
 
     /// <inheritdoc/>
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
-        return ((IReadOnlyDictionary<TKey, TValue>)r_dictionary).GetEnumerator();
+        return ((IReadOnlyDictionary<TKey, TValue>)_dictionary).GetEnumerator();
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)r_dictionary).GetEnumerator();
+        return ((IEnumerable)_dictionary).GetEnumerator();
+    }
+
+    IList<KeyValuePair<TKey, TValue>> IObservableDictionary<TKey, TValue>.TryAddRange(
+        IEnumerable<KeyValuePair<TKey, TValue>> items
+    )
+    {
+        throw new NotImplementedException();
+    }
+
+    void IObservableDictionary<TKey, TValue>.RemoveRange(
+        IEnumerable<KeyValuePair<TKey, TValue>> items
+    )
+    {
+        throw new NotImplementedException();
+    }
+
+    void IObservableDictionary<TKey, TValue>.ChangeRange(
+        IEnumerable<KeyValuePair<TKey, TValue>> pairs,
+        bool addWhenNotExists
+    )
+    {
+        throw new NotImplementedException();
+    }
+
+    void IDictionary<TKey, TValue>.Add(TKey key, TValue value)
+    {
+        throw new NotImplementedException();
+    }
+
+    bool IDictionary<TKey, TValue>.Remove(TKey key)
+    {
+        throw new NotImplementedException();
+    }
+
+    void IObservableCollection<KeyValuePair<TKey, TValue>>.AddRange(
+        IEnumerable<KeyValuePair<TKey, TValue>> items
+    )
+    {
+        throw new NotImplementedException();
+    }
+
+    void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
+    {
+        throw new NotImplementedException();
+    }
+
+    void ICollection<KeyValuePair<TKey, TValue>>.Clear()
+    {
+        throw new NotImplementedException();
+    }
+
+    bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
+    {
+        throw new NotImplementedException();
+    }
+
+    void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(
+        KeyValuePair<TKey, TValue>[] array,
+        int arrayIndex
+    )
+    {
+        ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).CopyTo(array, arrayIndex);
+    }
+
+    bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
+    {
+        throw new NotImplementedException();
     }
 
     /// <inheritdoc/>
-    public event XEventHandler<NotifyDictionaryChangedEventArgs<TKey, TValue>>? DictionaryChanged
+    public event XEventHandler<NotifyDictionaryChangingEventArgs<TKey, TValue>>? DictionaryChanged
     {
-        add { r_dictionary.DictionaryChanged += value; }
-        remove { r_dictionary.DictionaryChanged -= value; }
+        add { _dictionary.DictionaryChanged += value; }
+        remove { _dictionary.DictionaryChanged -= value; }
     }
 
     /// <inheritdoc/>
@@ -86,22 +186,22 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
         NotifyDictionaryChangingEventArgs<TKey, TValue>
     >? DictionaryChanging
     {
-        add { r_dictionary.DictionaryChanging += value; }
-        remove { r_dictionary.DictionaryChanging -= value; }
+        add { _dictionary.DictionaryChanging += value; }
+        remove { _dictionary.DictionaryChanging -= value; }
     }
 
     /// <inheritdoc/>
     public event NotifyCollectionChangedEventHandler? CollectionChanged
     {
-        add { r_dictionary.CollectionChanged += value; }
-        remove { r_dictionary.CollectionChanged -= value; }
+        add { _dictionary.CollectionChanged += value; }
+        remove { _dictionary.CollectionChanged -= value; }
     }
 
     /// <inheritdoc/>
 
     public event PropertyChangedEventHandler? PropertyChanged
     {
-        add { r_dictionary.PropertyChanged += value; }
-        remove { r_dictionary.PropertyChanged -= value; }
+        add { _dictionary.PropertyChanged += value; }
+        remove { _dictionary.PropertyChanged -= value; }
     }
 }

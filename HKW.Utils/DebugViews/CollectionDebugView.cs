@@ -14,15 +14,15 @@ public class CollectionDebugView
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
     public Array Array
     {
-        get => r_collection.Cast<object>().ToArray();
+        get => _collection.Cast<object>().ToArray();
     }
 
-    private readonly IEnumerable r_collection;
+    private readonly IEnumerable _collection;
 
     /// <inheritdoc/>
     /// <param name="collection">集合</param>
     public CollectionDebugView(IEnumerable collection)
     {
-        r_collection = collection;
+        _collection = collection;
     }
 }

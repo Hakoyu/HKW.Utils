@@ -130,8 +130,8 @@ public class ObservableSetTests
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Intersect);
             Assert.IsTrue(e.NewItems == null);
-            Assert.IsTrue(e.OldItems == null);
-            Assert.IsTrue(e.OtherItems == ints);
+            Assert.IsTrue(e.OldItems != null);
+            Assert.IsTrue(e.OtherItems?.SequenceEqual(ints));
         };
         observableSet.IntersectWith(ints);
         Assert.IsTrue(observableSet.Count == 5);
@@ -149,8 +149,8 @@ public class ObservableSetTests
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Except);
             Assert.IsTrue(e.NewItems == null);
-            Assert.IsTrue(e.OldItems == null);
-            Assert.IsTrue(e.OtherItems == ints);
+            Assert.IsTrue(e.OldItems != null);
+            Assert.IsTrue(e.OtherItems?.SequenceEqual(ints));
         };
         observableSet.ExceptWith(ints);
         Assert.IsTrue(observableSet.Count == 5);
@@ -167,9 +167,9 @@ public class ObservableSetTests
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.SymmetricExcept);
-            Assert.IsTrue(e.NewItems == null);
-            Assert.IsTrue(e.OldItems == null);
-            Assert.IsTrue(e.OtherItems == ints);
+            Assert.IsTrue(e.NewItems != null);
+            Assert.IsTrue(e.OldItems != null);
+            Assert.IsTrue(e.OtherItems?.SequenceEqual(ints));
             // set1.Union(set2).Except(set1.Intersect(set2))
         };
         observableSet.SymmetricExceptWith(ints);
@@ -187,8 +187,9 @@ public class ObservableSetTests
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Union);
-            Assert.IsTrue(e.OtherItems == ints);
-            Assert.IsTrue(e.NewItems == default);
+            Assert.IsTrue(e.NewItems != null);
+            Assert.IsTrue(e.OldItems == null);
+            Assert.IsTrue(e.OtherItems?.SequenceEqual(ints));
         };
         observableSet.UnionWith(ints);
         Assert.IsTrue(observableSet.Count == 11);
@@ -257,70 +258,70 @@ public class ObservableSetTests
     [TestMethod]
     public void CollectionChanged_IntersectWith()
     {
-        var triggeredCount = 0;
+        var triggered = false;
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         observableSet.NotifySetModifies = true;
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
         observableSet.CollectionChanged += (s, e) =>
         {
-            triggeredCount++;
+            triggered = true;
             Assert.IsTrue(e.Action == NotifyCollectionChangedAction.Remove);
             Assert.AreNotEqual(e.OldItems, null);
         };
         observableSet.IntersectWith(ints);
         Assert.IsTrue(observableSet.Count == 5);
-        Assert.IsTrue(triggeredCount == 5);
+        Assert.IsTrue(triggered);
     }
 
     [TestMethod]
     public void CollectionChanged_ExceptWith()
     {
-        var triggeredCount = 0;
+        var triggered = false;
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         observableSet.NotifySetModifies = true;
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
         observableSet.CollectionChanged += (s, e) =>
         {
-            triggeredCount++;
+            triggered = true;
             Assert.IsTrue(e.Action == NotifyCollectionChangedAction.Remove);
             Assert.AreNotEqual(e.OldItems, null);
         };
         observableSet.ExceptWith(ints);
         Assert.IsTrue(observableSet.Count == 5);
-        Assert.IsTrue(triggeredCount == 5);
+        Assert.IsTrue(triggered);
     }
 
     [TestMethod]
     public void CollectionChanged_SymmetricExceptWith()
     {
-        var triggeredCount = 0;
+        var triggered = true;
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         observableSet.NotifySetModifies = true;
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
         observableSet.CollectionChanged += (s, e) =>
         {
-            triggeredCount++;
+            triggered = true;
         };
         observableSet.SymmetricExceptWith(ints);
         Assert.IsTrue(observableSet.Count == 6);
-        Assert.IsTrue(triggeredCount == 6);
+        Assert.IsTrue(triggered);
     }
 
     [TestMethod]
     public void CollectionChanged_UnionWith()
     {
-        var triggeredCount = 0;
+        var triggered = true;
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         observableSet.NotifySetModifies = true;
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
         observableSet.CollectionChanged += (s, e) =>
         {
-            triggeredCount++;
+            triggered = true;
             Assert.IsTrue(e.Action == NotifyCollectionChangedAction.Add);
             Assert.AreNotEqual(e.NewItems, null);
         };
         observableSet.UnionWith(ints);
         Assert.IsTrue(observableSet.Count == 11);
-        Assert.IsTrue(triggeredCount == 1);
+        Assert.IsTrue(triggered);
     }
 }

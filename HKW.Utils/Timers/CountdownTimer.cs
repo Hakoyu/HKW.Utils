@@ -29,7 +29,7 @@ public class CountdownTimer
     /// <summary>
     /// 运行时间
     /// </summary>
-    public TimeSpan Elapsed => r_timer.Elapsed;
+    public TimeSpan Elapsed => _timer.Elapsed;
 
     /// <summary>
     /// 完成后自动重置
@@ -43,7 +43,7 @@ public class CountdownTimer
     public TimeSpan LastDuration { get; private set; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private readonly TimerTrigger r_timer = new(0, 10);
+    private readonly TimerTrigger _timer = new(0, 10);
 
     #region Ctor
     /// <inheritdoc/>
@@ -60,14 +60,14 @@ public class CountdownTimer
     public CountdownTimer(TimeSpan duration)
     {
         Duration = duration;
-        r_timer.TimedTrigger += TimedTrigger;
+        _timer.TimedTrigger += TimedTrigger;
     }
     #endregion
     private void TimedTrigger(TimerTrigger args)
     {
         if (LastDuration <= Elapsed)
         {
-            r_timer.Stop();
+            _timer.Stop();
             Completed?.Invoke();
             if (AutoReset)
             {
@@ -108,7 +108,7 @@ public class CountdownTimer
             throw new Exception("CountdownTimer is running");
         LastDuration = duration;
         IsRunning = true;
-        r_timer.Start();
+        _timer.Start();
     }
 
     /// <summary>
@@ -126,7 +126,7 @@ public class CountdownTimer
         if (IsRunning)
             throw new Exception("CountdownTimer is running");
         IsRunning = true;
-        r_timer.Continue();
+        _timer.Continue();
     }
 
     /// <summary>
@@ -137,7 +137,7 @@ public class CountdownTimer
         if (IsRunning)
         {
             IsRunning = false;
-            r_timer.Stop();
+            _timer.Stop();
             Stopped?.Invoke();
         }
     }

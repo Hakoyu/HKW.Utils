@@ -3,12 +3,13 @@
 namespace HKW.HKWUtils.Collections;
 
 /// <summary>
-/// 非通用通知列表改变后接口
+/// 通知列表改变后接口
 /// </summary>
-public interface INotifyListChanged
+/// <typeparam name="T">类型</typeparam>
+public interface INotifyListChanged<T>
 {
     /// <summary>
     /// 列表改变后事件
     /// </summary>
-    public event XEventHandler<NotifyListChangedEventArgs<object>>? ListChanged;
+    public event XEventHandler<NotifyListChangedEventArgs<T>>? ListChanged;
 }

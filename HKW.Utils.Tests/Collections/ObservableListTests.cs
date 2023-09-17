@@ -206,7 +206,7 @@ public class ObservableListTests
             );
             Assert.AreEqual(e.OldItems?[0], null);
             Assert.AreEqual(e.NewItems?[0], 10);
-            Assert.AreEqual(e.NewStartingIndex, 10);
+            Assert.AreEqual(e.NewStartingIndex, -1);
             Assert.AreEqual(e.OldStartingIndex, -1);
         };
         observableList.Add(10);

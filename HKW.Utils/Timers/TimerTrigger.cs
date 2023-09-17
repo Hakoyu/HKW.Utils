@@ -32,7 +32,7 @@ public class TimerTrigger
     /// <summary>
     /// 运行时间
     /// </summary>
-    public TimeSpan Elapsed => r_stopWatch.Elapsed;
+    public TimeSpan Elapsed => _stopWatch.Elapsed;
 
     /// <summary>
     /// 触发器状态
@@ -52,7 +52,7 @@ public class TimerTrigger
     private Timer? _timer;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private readonly Stopwatch r_stopWatch = new();
+    private readonly Stopwatch _stopWatch = new();
 
     #region Ctor
     /// <inheritdoc/>
@@ -110,7 +110,7 @@ public class TimerTrigger
         IsRunning = true;
         LastDueTime = dueTime;
         LastPeriod = period;
-        r_stopWatch.Start();
+        _stopWatch.Start();
         _timer = new Timer(new TimerCallback(TimerTask), State, dueTime, period);
     }
 
@@ -126,7 +126,7 @@ public class TimerTrigger
         if (IsRunning)
             throw new Exception("TimerTrigger not stopped");
         IsRunning = true;
-        r_stopWatch.Start();
+        _stopWatch.Start();
         _timer = new Timer(
             new TimerCallback(TimerTask),
             State,
@@ -141,7 +141,7 @@ public class TimerTrigger
     public void Stop()
     {
         IsRunning = false;
-        r_stopWatch.Stop();
+        _stopWatch.Stop();
     }
 
     /// <summary>
@@ -150,7 +150,7 @@ public class TimerTrigger
     private void Reset()
     {
         State.Reset();
-        r_stopWatch.Reset();
+        _stopWatch.Reset();
     }
 
     private void TimerTask(object? timerState)

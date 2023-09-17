@@ -19,7 +19,7 @@ public class ReadOnlySet<T> : ISet<T>, IReadOnlySet<T>
     /// <summary>
     /// 原始集合
     /// </summary>
-    private readonly ISet<T> r_iSet;
+    private readonly ISet<T> _iSet;
 
     /// <summary>
     /// 初始化只读集合
@@ -29,35 +29,35 @@ public class ReadOnlySet<T> : ISet<T>, IReadOnlySet<T>
     public ReadOnlySet(ISet<T> iSet)
     {
         ArgumentNullException.ThrowIfNull(iSet);
-        r_iSet = iSet;
+        _iSet = iSet;
     }
 
     /// <inheritdoc/>
-    public int Count => r_iSet.Count;
+    public int Count => _iSet.Count;
 
     /// <inheritdoc/>
     public bool IsReadOnly => true;
 
     /// <inheritdoc/>
-    public bool Contains(T item) => r_iSet.Contains(item);
+    public bool Contains(T item) => _iSet.Contains(item);
 
     /// <inheritdoc/>
-    public bool IsProperSubsetOf(IEnumerable<T> other) => r_iSet.IsProperSubsetOf(other);
+    public bool IsProperSubsetOf(IEnumerable<T> other) => _iSet.IsProperSubsetOf(other);
 
     /// <inheritdoc/>
-    public bool IsProperSupersetOf(IEnumerable<T> other) => r_iSet.IsProperSupersetOf(other);
+    public bool IsProperSupersetOf(IEnumerable<T> other) => _iSet.IsProperSupersetOf(other);
 
     /// <inheritdoc/>
-    public bool IsSubsetOf(IEnumerable<T> other) => r_iSet.IsSubsetOf(other);
+    public bool IsSubsetOf(IEnumerable<T> other) => _iSet.IsSubsetOf(other);
 
     /// <inheritdoc/>
-    public bool IsSupersetOf(IEnumerable<T> other) => r_iSet.IsSupersetOf(other);
+    public bool IsSupersetOf(IEnumerable<T> other) => _iSet.IsSupersetOf(other);
 
     /// <inheritdoc/>
-    public bool Overlaps(IEnumerable<T> other) => r_iSet.Overlaps(other);
+    public bool Overlaps(IEnumerable<T> other) => _iSet.Overlaps(other);
 
     /// <inheritdoc/>
-    public bool SetEquals(IEnumerable<T> other) => r_iSet.SetEquals(other);
+    public bool SetEquals(IEnumerable<T> other) => _iSet.SetEquals(other);
 
     /// <inheritdoc/>
     bool ISet<T>.Add(T item)
@@ -104,7 +104,7 @@ public class ReadOnlySet<T> : ISet<T>, IReadOnlySet<T>
     /// <inheritdoc/>
     public void CopyTo(T[] array, int arrayIndex)
     {
-        r_iSet.CopyTo(array, arrayIndex);
+        _iSet.CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
@@ -114,7 +114,7 @@ public class ReadOnlySet<T> : ISet<T>, IReadOnlySet<T>
     }
 
     /// <inheritdoc/>
-    public IEnumerator<T> GetEnumerator() => r_iSet.GetEnumerator();
+    public IEnumerator<T> GetEnumerator() => _iSet.GetEnumerator();
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

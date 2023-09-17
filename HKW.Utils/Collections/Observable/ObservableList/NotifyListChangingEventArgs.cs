@@ -42,52 +42,10 @@ public class NotifyListChangingEventArgs<T> : CancelEventArgs
     {
         if (action != ListChangeAction.Clear)
             throw new ArgumentException(
-                string.Format(MessageFormat.MustBe, nameof(DictionaryChangeAction.Clear)),
+                string.Format(MessageFormat.MustBe, nameof(ListChangeAction.Clear)),
                 nameof(action)
             );
         Action = action;
-    }
-
-    /// <inheritdoc/>
-    /// <summary>仅用于:
-    /// <see cref="ListChangeAction.Add"/>
-    /// <see cref="ListChangeAction.Remove"/>
-    /// </summary>
-    /// <param name="action">改变行动</param>
-    /// <param name="item">项目</param>
-    /// <param name="index">索引</param>
-    public NotifyListChangingEventArgs(ListChangeAction action, T item, int index)
-    {
-        if (action != ListChangeAction.Add && action != ListChangeAction.Remove)
-            throw new ArgumentException(
-                string.Format(
-                    MessageFormat.MustBe,
-                    $"{nameof(ListChangeAction.Add)} or {nameof(ListChangeAction.Remove)}"
-                ),
-                nameof(action)
-            );
-        if (action is ListChangeAction.Add)
-            NewItems = new List<T>() { item };
-        else
-            OldItems = new List<T>() { item };
-        Action = action;
-        Index = index;
-    }
-
-    /// <inheritdoc/>
-    /// <summary>
-    /// 仅用于: <see cref="ListChangeAction.ValueChange"/>
-    /// </summary>
-    /// <param name="action">改变行动</param>
-    /// <param name="newItem">新项目</param>
-    /// <param name="oldItem">旧项目</param>
-    /// <param name="index">索引</param>
-    public NotifyListChangingEventArgs(ListChangeAction action, T newItem, T oldItem, int index)
-    {
-        Action = action;
-        Index = index;
-        OldItems = new List<T>() { oldItem };
-        NewItems = new List<T>() { newItem };
     }
 
     /// <inheritdoc/>
@@ -113,12 +71,49 @@ public class NotifyListChangingEventArgs<T> : CancelEventArgs
                 ),
                 nameof(action)
             );
-        if (action is ListChangeAction.Add)
-            NewItems = items;
-        else
-            OldItems = items;
         Action = action;
         Index = index;
+        IList<T> list;
+        if (items.IsReadOnly)
+            list = items;
+        else
+            list = new SimpleReadOnlyList<T>(items);
+        if (action is ListChangeAction.Add)
+            NewItems = list;
+        else
+            OldItems = list;
+    }
+
+    /// <inheritdoc/>
+    /// <summary>
+    /// 仅用于: <see cref="ListChangeAction.ValueChange"/>
+    /// </summary>
+    /// <param name="action">改变行动</param>
+    /// <param name="newItems">新项目</param>
+    /// <param name="oldItems">旧项目</param>
+    /// <param name="index">索引</param>
+    public NotifyListChangingEventArgs(
+        ListChangeAction action,
+        IList<T> newItems,
+        IList<T> oldItems,
+        int index
+    )
+    {
+        if (action != ListChangeAction.ValueChange)
+            throw new ArgumentException(
+                string.Format(MessageFormat.MustBe, nameof(ListChangeAction.ValueChange)),
+                nameof(action)
+            );
+        Action = action;
+        Index = index;
+        if (newItems.IsReadOnly)
+            NewItems = newItems;
+        else
+            NewItems = new SimpleReadOnlyList<T>(newItems);
+        if (oldItems.IsReadOnly)
+            OldItems = oldItems;
+        else
+            OldItems = new SimpleReadOnlyList<T>(oldItems);
     }
     #endregion
 }

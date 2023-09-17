@@ -19,10 +19,10 @@ public interface IReadOnlyObservableDictionary<TKey, TValue>
     /// <summary>
     /// 可观察的键的集合
     /// </summary>
-    public IReadOnlyObservableList<TKey> ObservableKeys { get; }
+    public IObservableList<TKey> ObservableKeys { get; }
 
     /// <summary>
     /// 可观察的值的集合
     /// </summary>
-    public IReadOnlyObservableList<TValue> ObservableValues { get; }
+    public IObservableList<TValue> ObservableValues { get; }
 }

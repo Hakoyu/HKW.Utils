@@ -7,45 +7,45 @@ namespace HKWTests.Extensions;
 public class IDictionaryTests
 {
     [TestMethod]
-    public void GetEntry()
+    public void GetPair()
     {
         var dic = Enumerable.Range(0, 10).ToDictionary(x => x, x => x);
-        var entry = dic.GetEntry(0);
-        Assert.AreEqual(entry, new KeyValuePair<int, int>(0, 0));
+        var pair = dic.GetPair(0);
+        Assert.AreEqual(pair, new KeyValuePair<int, int>(0, 0));
     }
 
     [TestMethod]
-    public void GetEntry_Error()
+    public void GetPai_Error()
     {
         var dic = Enumerable.Range(0, 10).ToDictionary(x => x, x => x);
-        KeyValuePair<int, int>? entry = null;
+        KeyValuePair<int, int>? pair = null;
         try
         {
-            entry = dic.GetEntry(-1);
-            Assert.AreEqual(entry, new KeyValuePair<int, int>(0, 0));
+            pair = dic.GetPair(-1);
+            Assert.AreEqual(pair, new KeyValuePair<int, int>(0, 0));
         }
         catch
         {
-            Assert.AreEqual(entry, null);
+            Assert.AreEqual(pair, null);
         }
     }
 
     [TestMethod]
-    public void TryGetEntry_True()
+    public void TryGetPai_True()
     {
         var dic = Enumerable.Range(0, 10).ToDictionary(x => x, x => x);
-        var result = dic.TryGetEntry(0, out var entry);
+        var result = dic.TryGetPair(0, out var pair);
         Assert.IsTrue(result);
-        Assert.AreEqual(entry, new KeyValuePair<int, int>(0, 0));
+        Assert.AreEqual(pair, new KeyValuePair<int, int>(0, 0));
     }
 
     [TestMethod]
-    public void TryGetEntry_False()
+    public void TryGetPai_False()
     {
         var dic = Enumerable.Range(0, 10).ToDictionary(x => x, x => x);
-        var result = dic.TryGetEntry(-1, out var entry);
+        var result = dic.TryGetPair(-1, out var pair);
         Assert.IsFalse(result);
-        Assert.IsNull(entry);
+        Assert.IsNull(pair);
     }
 
     [TestMethod]
@@ -72,7 +72,7 @@ public class IDictionaryTests
     }
 
     [TestMethod]
-    public void AsReadOnlyOnWrapper_SourceDictionaryChange()
+    public void AsReadOnlyOnWrappe_SourceDictionaryChange()
     {
         var dic = Enumerable.Range(0, 10).ToDictionary(x => x, x => new List<int> { x });
         var readOnlyDictionary = new ReadOnlyDictionary<int, IReadOnlyList<int>>(

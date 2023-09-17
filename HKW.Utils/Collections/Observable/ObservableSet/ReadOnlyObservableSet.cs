@@ -22,110 +22,110 @@ namespace HKW.HKWUtils.Collections;
 public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private readonly IObservableSet<T> r_set;
+    private readonly IObservableSet<T> _set;
 
     /// <inheritdoc/>
     /// <param name="set"></param>
     public ReadOnlyObservableSet(IObservableSet<T> set)
     {
-        r_set = set;
+        _set = set;
     }
 
     #region IReadOnlyObservableSet
     /// <inheritdoc/>
-    public int Count => ((IReadOnlyCollection<T>)r_set).Count;
+    public int Count => ((IReadOnlyCollection<T>)_set).Count;
 
     /// <inheritdoc/>
     public bool Contains(T item)
     {
-        return ((IReadOnlySet<T>)r_set).Contains(item);
+        return ((IReadOnlySet<T>)_set).Contains(item);
     }
 
     /// <inheritdoc/>
     public IEnumerator<T> GetEnumerator()
     {
-        return ((IEnumerable<T>)r_set).GetEnumerator();
+        return ((IEnumerable<T>)_set).GetEnumerator();
     }
 
     /// <inheritdoc/>
     public bool IsProperSubsetOf(IEnumerable<T> other)
     {
-        return ((IReadOnlySet<T>)r_set).IsProperSubsetOf(other);
+        return ((IReadOnlySet<T>)_set).IsProperSubsetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsProperSupersetOf(IEnumerable<T> other)
     {
-        return ((IReadOnlySet<T>)r_set).IsProperSupersetOf(other);
+        return ((IReadOnlySet<T>)_set).IsProperSupersetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsSubsetOf(IEnumerable<T> other)
     {
-        return ((IReadOnlySet<T>)r_set).IsSubsetOf(other);
+        return ((IReadOnlySet<T>)_set).IsSubsetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsSupersetOf(IEnumerable<T> other)
     {
-        return ((IReadOnlySet<T>)r_set).IsSupersetOf(other);
+        return ((IReadOnlySet<T>)_set).IsSupersetOf(other);
     }
 
     /// <inheritdoc/>
     public bool Overlaps(IEnumerable<T> other)
     {
-        return ((IReadOnlySet<T>)r_set).Overlaps(other);
+        return ((IReadOnlySet<T>)_set).Overlaps(other);
     }
 
     /// <inheritdoc/>
     public bool SetEquals(IEnumerable<T> other)
     {
-        return ((IReadOnlySet<T>)r_set).SetEquals(other);
+        return ((IReadOnlySet<T>)_set).SetEquals(other);
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)r_set).GetEnumerator();
+        return ((IEnumerable)_set).GetEnumerator();
     }
 
     /// <inheritdoc/>
     public event XCancelEventHandler<NotifySetChangingEventArgs<T>>? SetChanging
     {
-        add { ((INotifySetChanging<T>)r_set).SetChanging += value; }
-        remove { ((INotifySetChanging<T>)r_set).SetChanging -= value; }
+        add { ((INotifySetChanging<T>)_set).SetChanging += value; }
+        remove { ((INotifySetChanging<T>)_set).SetChanging -= value; }
     }
 
     /// <inheritdoc/>
     public event XEventHandler<NotifySetChangedEventArgs<T>>? SetChanged
     {
-        add { ((INotifySetChanged<T>)r_set).SetChanged += value; }
-        remove { ((INotifySetChanged<T>)r_set).SetChanged -= value; }
+        add { ((INotifySetChanged<T>)_set).SetChanged += value; }
+        remove { ((INotifySetChanged<T>)_set).SetChanged -= value; }
     }
 
     /// <inheritdoc/>
     public event NotifyCollectionChangedEventHandler? CollectionChanged
     {
-        add { ((INotifyCollectionChanged)r_set).CollectionChanged += value; }
-        remove { ((INotifyCollectionChanged)r_set).CollectionChanged -= value; }
+        add { ((INotifyCollectionChanged)_set).CollectionChanged += value; }
+        remove { ((INotifyCollectionChanged)_set).CollectionChanged -= value; }
     }
 
     /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged
     {
-        add { ((INotifyPropertyChanged)r_set).PropertyChanged += value; }
-        remove { ((INotifyPropertyChanged)r_set).PropertyChanged -= value; }
+        add { ((INotifyPropertyChanged)_set).PropertyChanged += value; }
+        remove { ((INotifyPropertyChanged)_set).PropertyChanged -= value; }
     }
     #endregion
 
     #region IObservableSet
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    IEqualityComparer<T>? IObservableSet<T>.Comparer => r_set.Comparer;
+    IEqualityComparer<T>? IObservableSet<T>.Comparer => _set.Comparer;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     bool IObservableSet<T>.NotifySetModifies
     {
-        get => r_set.NotifySetModifies;
+        get => _set.NotifySetModifies;
         set => throw new ReadOnlyException();
     }
 
@@ -174,7 +174,7 @@ public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSe
 
     void ICollection<T>.CopyTo(T[] array, int arrayIndex)
     {
-        r_set.CopyTo(array, arrayIndex);
+        _set.CopyTo(array, arrayIndex);
     }
     #endregion
 }

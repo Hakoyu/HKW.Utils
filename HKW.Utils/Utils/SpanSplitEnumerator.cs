@@ -15,7 +15,7 @@ public ref struct SpanSplitEnumerator<T>
     /// <summary>
     /// 分割器
     /// </summary>
-    private readonly T r_separator;
+    private readonly T _separator;
 
     /// <summary>
     /// 分割设置
@@ -48,7 +48,7 @@ public ref struct SpanSplitEnumerator<T>
     {
         Current = default;
         _sequence = span;
-        r_separator = separator;
+        _separator = separator;
         _spanSplitInfo =
             default(SpanSplitInfo) | (removeEmptyEntries ? SpanSplitInfo.RemoveEmptyEntries : 0);
     }
@@ -66,7 +66,7 @@ public ref struct SpanSplitEnumerator<T>
 
         do
         {
-            int index = _sequence.IndexOf(r_separator);
+            int index = _sequence.IndexOf(_separator);
             if (index < 0)
             {
                 Current = _sequence;

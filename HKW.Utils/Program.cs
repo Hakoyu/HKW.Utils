@@ -1,5 +1,8 @@
 ﻿using HKW.HKWUtils.Collections;
+using HKW.HKWUtils.Events;
 using HKW.HKWUtils.Timers;
+using System.Collections;
+using System.Collections.ObjectModel;
 
 namespace HKW;
 
@@ -9,7 +12,50 @@ internal class Program
 
     private static void Main(string[] args)
     {
-        //IObservableDictionary dictionary = _dict;
+        //ObservableDictionary<int, int> dict = new() { ObservableKeysAndValues = true };
+        //dict.AddRange(
+        //    Enumerable.Range(dict.Count, 10).Select(i => new KeyValuePair<int, int>(i, i))
+        //);
+        ObservableList<int> list = new();
+        list.CollectionChanged += (s, e) =>
+        {
+            return;
+        };
+        list.AddRange(Enumerable.Range(0, 10));
+        //ObservableDictionary<int, int> dic =
+        //    new(Enumerable.Range(0, 10).ToDictionary(i => i, i => i));
+        //dic.TriggerRemoveActionOnClear = true;
+        //dic.DictionaryChanged += (v) =>
+        //{
+        //    return;
+        //};
+        //dic.DictionaryChanging += (v) =>
+        //{
+        //    return;
+        //};
+        //dic.CollectionChanged += (s, e) =>
+        //{
+        //    return;
+        //};
+        //dic.ChangeRange(dic.Select(p => new KeyValuePair<int, int>(p.Key, 999)));
+
+        //ObservableList<int> list = new();
+        //list.ListChanging += (v) =>
+        //{
+        //    return;
+        //};
+        //list.ListChanged += (v) =>
+        //{
+        //    return;
+        //};
+        //list.CollectionChanged += (s, e) =>
+        //{
+        //    return;
+        //};
+        ////for (var i = 0; i < 1000; i++)
+        ////    list.Add(i);
+        //list.AddRange(Enumerable.Range(0, 1000));
+        //ObservableCollection
         //INotifyDictionaryChanging notify = dictionary;
         //notify.DictionaryChanging += (v) =>
         //{
@@ -17,11 +63,11 @@ internal class Program
         //};
         //notify.DictionaryChanging += (v) =>
         //{
-        //    Console.WriteLine(v.OldEntries);
+        //    Console.WriteLine(v.OldPairs);
         //};
         //notify.DictionaryChanging += (v) =>
         //{
-        //    Console.WriteLine(v.NewEntries);
+        //    Console.WriteLine(v.NewPairs);
         //};
         //_dict.Add("1", "111");
         //Console.WriteLine(_dict.Keys is ICollection);
@@ -107,7 +153,7 @@ internal class Program
         //timer.Continue();
         //Task.Delay(2000).Wait();
         //Console.WriteLine($"{timer.Elapsed.TotalMilliseconds:f4}ms");
-        //Dictionary<int, List<int>> sr_dic =
+        //Dictionary<int, List<int>> _dic =
         //    new()
         //    {
         //        [0] = new() { 0 },

@@ -38,7 +38,7 @@ public class NotifySetChangingEventArgs<T> : CancelEventArgs
     /// <see cref="SetChangeAction.Union"/>
     /// </para>
     /// </summary>
-    public IEnumerable<T>? OtherItems { get; }
+    public IList<T>? OtherItems { get; }
 
     #region Ctor
     /// <inheritdoc/>
@@ -55,28 +55,6 @@ public class NotifySetChangingEventArgs<T> : CancelEventArgs
     }
 
     /// <inheritdoc/>
-    /// <param name="action">改变行动</param>
-    /// <see cref="SetChangeAction.Add"/>
-    /// <see cref="SetChangeAction.Remove"/>
-    /// <param name="item">项目</param>
-    public NotifySetChangingEventArgs(SetChangeAction action, T item)
-    {
-        if (action != SetChangeAction.Add && action != SetChangeAction.Remove)
-            throw new ArgumentException(
-                string.Format(
-                    MessageFormat.MustBe,
-                    $"{nameof(SetChangeAction.Add)} or {nameof(SetChangeAction.Remove)}"
-                ),
-                nameof(action)
-            );
-        Action = action;
-        if (action is SetChangeAction.Add)
-            NewItems = new List<T>() { item };
-        else
-            OldItems = new List<T>() { item };
-    }
-
-    /// <inheritdoc/>
     /// <summary>仅用于:
     /// <see cref="SetChangeAction.Add"/>
     /// <see cref="SetChangeAction.Remove"/>
@@ -84,7 +62,7 @@ public class NotifySetChangingEventArgs<T> : CancelEventArgs
     /// </summary>
     /// <param name="action">改变行动</param>
     /// <param name="items">旧项目</param>
-    public NotifySetChangingEventArgs(SetChangeAction action, IList<T>? items)
+    public NotifySetChangingEventArgs(SetChangeAction action, IList<T> items)
     {
         if (
             action != SetChangeAction.Add
@@ -99,10 +77,15 @@ public class NotifySetChangingEventArgs<T> : CancelEventArgs
                 nameof(action)
             );
         Action = action;
-        if (action is SetChangeAction.Add)
-            NewItems = items;
+        IList<T> list;
+        if (items.IsReadOnly)
+            list = items;
         else
-            OldItems = items;
+            list = new SimpleReadOnlyList<T>(items);
+        if (action is SetChangeAction.Add)
+            NewItems = list;
+        else
+            OldItems = list;
     }
 
     /// <inheritdoc/>
@@ -118,15 +101,28 @@ public class NotifySetChangingEventArgs<T> : CancelEventArgs
     /// <param name="oldItems">旧项目</param>
     public NotifySetChangingEventArgs(
         SetChangeAction action,
-        IEnumerable<T> otherItems,
+        IList<T> otherItems,
         IList<T>? newItems,
         IList<T>? oldItems
     )
     {
         Action = action;
-        OtherItems = otherItems;
-        NewItems = newItems;
-        OldItems = oldItems;
+        if (otherItems.IsReadOnly)
+            OtherItems = otherItems;
+        else
+            OtherItems = new SimpleReadOnlyList<T>(otherItems);
+        if (newItems is null)
+            NewItems = null;
+        else if (newItems.IsReadOnly)
+            NewItems = newItems;
+        else
+            NewItems = new SimpleReadOnlyList<T>(newItems);
+        if (oldItems is null)
+            OldItems = null;
+        else if (oldItems.IsReadOnly)
+            OldItems = oldItems;
+        else
+            OldItems = new SimpleReadOnlyList<T>(oldItems);
     }
-    #endregion
+#endregion
 }
