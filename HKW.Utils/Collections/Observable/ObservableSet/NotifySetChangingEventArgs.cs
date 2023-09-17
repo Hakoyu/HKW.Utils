@@ -106,6 +106,19 @@ public class NotifySetChangingEventArgs<T> : CancelEventArgs
         IList<T>? oldItems
     )
     {
+        if (
+            action != SetChangeAction.Intersect
+            && action != SetChangeAction.Except
+            && action != SetChangeAction.SymmetricExcept
+            && action != SetChangeAction.Union
+        )
+            throw new ArgumentException(
+                string.Format(
+                    MessageFormat.MustBe,
+                    $"{nameof(SetChangeAction.Intersect)} or {nameof(SetChangeAction.Except)} or {nameof(SetChangeAction.SymmetricExcept)} or {SetChangeAction.Union}"
+                ),
+                nameof(action)
+            );
         Action = action;
         if (otherItems.IsReadOnly)
             OtherItems = otherItems;

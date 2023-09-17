@@ -13,7 +13,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
 [DebuggerDisplay(
-    "DictionaryChanging, Action = {Action}, NewPairsCount = {NewPairs.Count}, OldPairsCount = {OldPairs.Count}"
+    "DictionaryChanging, Action = {Action}, NewPairsCount = {NewItems.Count}, OldPairsCount = {OldItems.Count}"
 )]
 public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
     where TKey : notnull
