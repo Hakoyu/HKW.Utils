@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using HKW.HKWUtils.Natives;
+using System.Collections;
 using System.Diagnostics;
 
 namespace HKW.HKWUtils.Collections;
@@ -12,109 +13,128 @@ public class ReadOnlySet<T> : ISet<T>, IReadOnlySet<T>
     where T : notnull
 {
     /// <summary>
-    /// 异常信息
-    /// </summary>
-    private const string c_notSupportedExceptionMessage = "Is read only";
-
-    /// <summary>
     /// 原始集合
     /// </summary>
-    private readonly ISet<T> _iSet;
+    private readonly ISet<T> _set;
 
     /// <summary>
     /// 初始化只读集合
     /// </summary>
-    /// <param name="iSet">集合</param>
+    /// <param name="set">集合</param>
     /// <exception cref="ArgumentNullException">iSet 为 null</exception>
-    public ReadOnlySet(ISet<T> iSet)
+    public ReadOnlySet(ISet<T> set)
     {
-        ArgumentNullException.ThrowIfNull(iSet);
-        _iSet = iSet;
+        ArgumentNullException.ThrowIfNull(set);
+        _set = set;
     }
 
     /// <inheritdoc/>
-    public int Count => _iSet.Count;
+    public int Count => _set.Count;
 
     /// <inheritdoc/>
     public bool IsReadOnly => true;
 
     /// <inheritdoc/>
-    public bool Contains(T item) => _iSet.Contains(item);
+    public bool Contains(T item)
+    {
+        return _set.Contains(item);
+    }
 
     /// <inheritdoc/>
-    public bool IsProperSubsetOf(IEnumerable<T> other) => _iSet.IsProperSubsetOf(other);
+    public bool IsProperSubsetOf(IEnumerable<T> other)
+    {
+        return _set.IsProperSubsetOf(other);
+    }
 
     /// <inheritdoc/>
-    public bool IsProperSupersetOf(IEnumerable<T> other) => _iSet.IsProperSupersetOf(other);
+    public bool IsProperSupersetOf(IEnumerable<T> other)
+    {
+        return _set.IsProperSupersetOf(other);
+    }
 
     /// <inheritdoc/>
-    public bool IsSubsetOf(IEnumerable<T> other) => _iSet.IsSubsetOf(other);
+    public bool IsSubsetOf(IEnumerable<T> other)
+    {
+        return _set.IsSubsetOf(other);
+    }
 
     /// <inheritdoc/>
-    public bool IsSupersetOf(IEnumerable<T> other) => _iSet.IsSupersetOf(other);
+    public bool IsSupersetOf(IEnumerable<T> other)
+    {
+        return _set.IsSupersetOf(other);
+    }
 
     /// <inheritdoc/>
-    public bool Overlaps(IEnumerable<T> other) => _iSet.Overlaps(other);
+    public bool Overlaps(IEnumerable<T> other)
+    {
+        return _set.Overlaps(other);
+    }
 
     /// <inheritdoc/>
-    public bool SetEquals(IEnumerable<T> other) => _iSet.SetEquals(other);
+    public bool SetEquals(IEnumerable<T> other)
+    {
+        return _set.SetEquals(other);
+    }
 
     /// <inheritdoc/>
     bool ISet<T>.Add(T item)
     {
-        throw new NotSupportedException(c_notSupportedExceptionMessage);
+        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ISet<T>.ExceptWith(IEnumerable<T> other)
     {
-        throw new NotSupportedException(c_notSupportedExceptionMessage);
+        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ISet<T>.IntersectWith(IEnumerable<T> other)
     {
-        throw new NotSupportedException(c_notSupportedExceptionMessage);
+        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ISet<T>.SymmetricExceptWith(IEnumerable<T> other)
     {
-        throw new NotSupportedException(c_notSupportedExceptionMessage);
+        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ISet<T>.UnionWith(IEnumerable<T> other)
     {
-        throw new NotSupportedException(c_notSupportedExceptionMessage);
+        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ICollection<T>.Add(T item)
     {
-        throw new NotSupportedException(c_notSupportedExceptionMessage);
+        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ICollection<T>.Clear()
     {
-        throw new NotSupportedException(c_notSupportedExceptionMessage);
+        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     public void CopyTo(T[] array, int arrayIndex)
     {
-        _iSet.CopyTo(array, arrayIndex);
+        _set.CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
     bool ICollection<T>.Remove(T item)
     {
-        throw new NotSupportedException(c_notSupportedExceptionMessage);
+        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
     }
 
     /// <inheritdoc/>
-    public IEnumerator<T> GetEnumerator() => _iSet.GetEnumerator();
+    public IEnumerator<T> GetEnumerator()
+    {
+        return _set.GetEnumerator();
+    }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

@@ -61,7 +61,7 @@ public class IDictionaryTests
             IReadOnlyCollection<int>
         >();
         Assert.IsTrue(
-            readOnlyDictionary.SequenceEqualOnComparer(
+            readOnlyDictionary.SequenceEqual(
                 readOnlyDictionaryOnWrapper,
                 (x, y) =>
                 {

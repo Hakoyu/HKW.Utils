@@ -7,12 +7,12 @@ namespace HKWTests.Extensions;
 public class IEnumerableTests
 {
     [TestMethod]
-    public void EqualOnComparer()
+    public void SequenceEqual()
     {
         List<List<int>> ll = Enumerable.Range(0, 10).Select(i => new List<int>() { i }).ToList();
         Collection<List<int>> cl =
             new(Enumerable.Range(0, 10).Select(i => new List<int>() { i }).ToList());
         Assert.IsFalse(cl.SequenceEqual(ll));
-        Assert.IsTrue(cl.SequenceEqualOnComparer(ll, (x, y) => x.SequenceEqual(y)));
+        Assert.IsTrue(cl.SequenceEqual(ll, (x, y) => x.SequenceEqual(y)));
     }
 }

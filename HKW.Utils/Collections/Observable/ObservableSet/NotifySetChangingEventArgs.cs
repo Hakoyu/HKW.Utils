@@ -48,7 +48,7 @@ public class NotifySetChangingEventArgs<T> : CancelEventArgs
     {
         if (action != SetChangeAction.Clear)
             throw new ArgumentException(
-                string.Format(MessageFormat.MustBe, nameof(SetChangeAction.Clear)),
+                $"{ExceptionMessage.MustBe} {nameof(SetChangeAction.Clear)}",
                 nameof(action)
             );
         Action = action;
@@ -70,10 +70,7 @@ public class NotifySetChangingEventArgs<T> : CancelEventArgs
             && action != SetChangeAction.Clear
         )
             throw new ArgumentException(
-                string.Format(
-                    MessageFormat.MustBe,
-                    $"{nameof(SetChangeAction.Add)} or {nameof(SetChangeAction.Remove)} or {nameof(SetChangeAction.Clear)}"
-                ),
+                $"{nameof(SetChangeAction.Add)} or {nameof(SetChangeAction.Remove)} or {nameof(SetChangeAction.Clear)}",
                 nameof(action)
             );
         Action = action;
@@ -113,10 +110,7 @@ public class NotifySetChangingEventArgs<T> : CancelEventArgs
             && action != SetChangeAction.Union
         )
             throw new ArgumentException(
-                string.Format(
-                    MessageFormat.MustBe,
-                    $"{nameof(SetChangeAction.Intersect)} or {nameof(SetChangeAction.Except)} or {nameof(SetChangeAction.SymmetricExcept)} or {SetChangeAction.Union}"
-                ),
+                $"{nameof(SetChangeAction.Intersect)} or {nameof(SetChangeAction.Except)} or {nameof(SetChangeAction.SymmetricExcept)} or {SetChangeAction.Union}",
                 nameof(action)
             );
         Action = action;

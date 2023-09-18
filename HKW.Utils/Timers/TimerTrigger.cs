@@ -1,4 +1,5 @@
 ﻿using HKW.HKWUtils.Events;
+using HKW.HKWUtils.Natives;
 using System.ComponentModel;
 using System.Diagnostics;
 
@@ -59,10 +60,13 @@ public class TimerTrigger
     public TimerTrigger() { }
 
     /// <inheritdoc/>
-    /// <param name="dueTime">启动延迟 (单位: ms)</param>
-    /// <param name="period">触发间隔 (单位: ms)</param>
-    public TimerTrigger(int dueTime, int period)
-        : this(TimeSpan.FromMilliseconds(dueTime), TimeSpan.FromMilliseconds(period)) { }
+    /// <param name="dueTimeMillisecond">启动延迟 (单位: ms)</param>
+    /// <param name="periodMillisecond">触发间隔 (单位: ms)</param>
+    public TimerTrigger(int dueTimeMillisecond, int periodMillisecond)
+        : this(
+            TimeSpan.FromMilliseconds(dueTimeMillisecond),
+            TimeSpan.FromMilliseconds(periodMillisecond)
+        ) { }
 
     /// <inheritdoc/>
     /// <param name="dueTime">启动延迟</param>
@@ -75,9 +79,9 @@ public class TimerTrigger
     #endregion
 
     /// <summary>
-    /// 按设定的 <see cref="DueTime"/> 和 <see cref="Period"/> 启动
+    /// 按设定的 <see cref="DueTime"/> 和 <see cref="Period"/> 启动定时触发器
     /// </summary>
-    /// <exception cref="Exception">TimerTrigger not stopped</exception>
+    /// <exception cref="Exception">正在运行</exception>
     public void Start()
     {
         Start(DueTime, Period);
@@ -86,12 +90,15 @@ public class TimerTrigger
     /// <summary>
     /// 启动
     /// </summary>
-    /// <param name="dueTime">启动延迟 (单位: ms)</param>
-    /// <param name="period">触发间隔 (单位: ms)</param>
-    /// <exception cref="Exception">TimerTrigger not stopped</exception>
-    public void Start(int dueTime, int period)
+    /// <param name="dueTimeMillisecond">启动延迟 (单位: ms)</param>
+    /// <param name="periodMillisecond">触发间隔 (单位: ms)</param>
+    /// <exception cref="Exception">正在运行</exception>
+    public void Start(int dueTimeMillisecond, int periodMillisecond)
     {
-        Start(TimeSpan.FromMilliseconds(dueTime), TimeSpan.FromMilliseconds(period));
+        Start(
+            TimeSpan.FromMilliseconds(dueTimeMillisecond),
+            TimeSpan.FromMilliseconds(periodMillisecond)
+        );
     }
 
     /// <summary>
@@ -99,13 +106,16 @@ public class TimerTrigger
     /// </summary>
     /// <param name="dueTime">启动延迟</param>
     /// <param name="period">触发间隔</param>
-    /// <exception cref="Exception">TimerTrigger not stopped</exception>
+    /// <exception cref="Exception">正在运行</exception>
     public void Start(TimeSpan dueTime, TimeSpan period)
     {
         if (period == TimeSpan.Zero)
-            throw new ArgumentException("Cannot be Zero", nameof(period));
+            throw new ArgumentException(
+                $"{ExceptionMessage.CannotBe} {TimeSpan.Zero}",
+                nameof(period)
+            );
         if (IsRunning)
-            throw new Exception("TimerTrigger not stopped");
+            throw new Exception(ExceptionMessage.IsRunning);
         Reset();
         IsRunning = true;
         LastDueTime = dueTime;
@@ -117,14 +127,13 @@ public class TimerTrigger
     /// <summary>
     /// 按上次启动继续
     /// </summary>
-    /// <exception cref="Exception">TimerTrigger not stopped</exception>
-    /// <exception cref="Exception">TimerTrigger never started</exception>
+    /// <exception cref="Exception">从未开始或正在运行</exception>
     public void Continue()
     {
         if (LastDueTime is null || LastPeriod is null)
-            throw new Exception("TimerTrigger never started");
+            throw new Exception(ExceptionMessage.NeverStart);
         if (IsRunning)
-            throw new Exception("TimerTrigger not stopped");
+            throw new Exception(ExceptionMessage.IsRunning);
         IsRunning = true;
         _stopWatch.Start();
         _timer = new Timer(
@@ -140,8 +149,9 @@ public class TimerTrigger
     /// </summary>
     public void Stop()
     {
-        IsRunning = false;
+        _timer?.Dispose();
         _stopWatch.Stop();
+        IsRunning = false;
     }
 
     /// <summary>
@@ -155,17 +165,16 @@ public class TimerTrigger
 
     private void TimerTask(object? timerState)
     {
-        if (IsRunning is false)
-            _timer?.Dispose();
         if (timerState is not TimerTriggerState state)
         {
             _timer?.Dispose();
-            throw new ArgumentException($"Not {nameof(TimerTriggerState)}", nameof(timerState));
+            throw new ArgumentException(
+                $"{ExceptionMessage.NotBe} {nameof(TimerTriggerState)}",
+                nameof(timerState)
+            );
         }
         Interlocked.Increment(ref state._counter);
         TimedTrigger?.Invoke(this);
-        if (IsRunning is false)
-            _timer?.Dispose();
     }
 
     /// <summary>

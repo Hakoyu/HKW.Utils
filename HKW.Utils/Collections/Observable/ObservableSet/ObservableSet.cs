@@ -23,9 +23,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <inheritdoc/>
     public IEqualityComparer<T> Comparer => _set.Comparer;
 
-    /// <inheritdoc/>
-    public bool NotifySetModifies { get; set; }
-
     #region Ctor
 
     /// <inheritdoc/>

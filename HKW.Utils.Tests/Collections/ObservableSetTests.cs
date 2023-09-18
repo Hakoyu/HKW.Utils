@@ -260,7 +260,6 @@ public class ObservableSetTests
     {
         var triggered = false;
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.NotifySetModifies = true;
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
         observableSet.CollectionChanged += (s, e) =>
         {
@@ -278,7 +277,6 @@ public class ObservableSetTests
     {
         var triggered = false;
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.NotifySetModifies = true;
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
         observableSet.CollectionChanged += (s, e) =>
         {
@@ -296,7 +294,6 @@ public class ObservableSetTests
     {
         var triggered = true;
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.NotifySetModifies = true;
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
         observableSet.CollectionChanged += (s, e) =>
         {
@@ -312,7 +309,6 @@ public class ObservableSetTests
     {
         var triggered = true;
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.NotifySetModifies = true;
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
         observableSet.CollectionChanged += (s, e) =>
         {

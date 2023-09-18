@@ -30,9 +30,7 @@ public sealed class SimpleSingleItemReadOnlyList<T> : IList<T>, IList
         get
         {
             if (index != 0)
-            {
                 throw new ArgumentOutOfRangeException(nameof(index));
-            }
 
             return _item;
         }

@@ -120,14 +120,7 @@ public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSe
 
     #region IObservableSet
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    IEqualityComparer<T>? IObservableSet<T>.Comparer => _set.Comparer;
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    bool IObservableSet<T>.NotifySetModifies
-    {
-        get => _set.NotifySetModifies;
-        set => throw new ReadOnlyException();
-    }
+    IEqualityComparer<T> IObservableSet<T>.Comparer => _set.Comparer;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     bool ICollection<T>.IsReadOnly => true;

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
@@ -9,9 +8,9 @@ using System.Threading.Tasks;
 namespace HKW.HKWUtils.Collections;
 
 /// <summary>
-/// 非通用可观察集合接口
+/// 可观察集合接口
 /// </summary>
-public interface IObservableCollection : ICollection
+public interface IObservableCollection<T> : ICollection<T>
 {
     /// <summary>
     /// 启用清理将触发删除事件
@@ -25,5 +24,5 @@ public interface IObservableCollection : ICollection
     /// 添加多个项目
     /// </summary>
     /// <param name="items">项目</param>
-    public void AddRange(IEnumerable items);
+    public void AddRange(IEnumerable<T> items);
 }

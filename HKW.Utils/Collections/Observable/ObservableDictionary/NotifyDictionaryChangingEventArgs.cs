@@ -42,7 +42,7 @@ public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
     {
         if (action != DictionaryChangeAction.Clear)
             throw new ArgumentException(
-                string.Format(MessageFormat.MustBe, nameof(DictionaryChangeAction.Clear)),
+                $"{ExceptionMessage.MustBe} {nameof(DictionaryChangeAction.Clear)}",
                 nameof(action)
             );
         Action = action;
@@ -67,10 +67,7 @@ public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
             && action != DictionaryChangeAction.Clear
         )
             throw new ArgumentException(
-                string.Format(
-                    MessageFormat.MustBe,
-                    $"{nameof(DictionaryChangeAction.Add)} or {nameof(DictionaryChangeAction.Remove)} or {nameof(DictionaryChangeAction.Clear)}"
-                ),
+                $"{ExceptionMessage.MustBe} {nameof(DictionaryChangeAction.Add)} or {nameof(DictionaryChangeAction.Remove)} or {nameof(DictionaryChangeAction.Clear)}",
                 nameof(action)
             );
         Action = action;
@@ -98,7 +95,7 @@ public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
     {
         if (action != DictionaryChangeAction.ValueChange)
             throw new ArgumentException(
-                string.Format(MessageFormat.MustBe, nameof(DictionaryChangeAction.ValueChange)),
+                $"{ExceptionMessage.MustBe} {nameof(DictionaryChangeAction.ValueChange)}",
                 nameof(action)
             );
         Action = action;

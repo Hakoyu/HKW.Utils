@@ -1,4 +1,5 @@
 ﻿using HKW.HKWUtils.Events;
+using HKW.HKWUtils.Natives;
 using System.ComponentModel;
 using System.Diagnostics;
 
@@ -68,12 +69,13 @@ public class CountdownTimer
         if (LastDuration <= Elapsed)
         {
             _timer.Stop();
+            if (IsCompleted is not false)
+                return;
+            IsCompleted = true;
             Completed?.Invoke();
+            IsRunning = false;
             if (AutoReset)
-            {
-                IsRunning = false;
                 Reset();
-            }
         }
     }
 
@@ -81,7 +83,7 @@ public class CountdownTimer
     /// <summary>
     /// 启动定时器
     /// </summary>
-    /// <exception cref="Exception">CountdownTimer is running</exception>
+    /// <exception cref="Exception">正在运行</exception>
     public void Start()
     {
         Start(Duration);
@@ -91,7 +93,7 @@ public class CountdownTimer
     /// 启动定时器
     /// </summary>
     /// <param name="duration">持续时间 (单位: ms)</param>
-    /// <exception cref="Exception">CountdownTimer is running</exception>
+    /// <exception cref="Exception">正在运行</exception>
     public void Start(int duration)
     {
         Start(TimeSpan.FromMilliseconds(duration));
@@ -101,11 +103,11 @@ public class CountdownTimer
     /// 启动定时器
     /// </summary>
     /// <param name="duration">持续时间</param>
-    /// <exception cref="Exception">CountdownTimer is running</exception>
+    /// <exception cref="Exception">正在运行</exception>
     public void Start(TimeSpan duration)
     {
         if (IsRunning)
-            throw new Exception("CountdownTimer is running");
+            throw new Exception(ExceptionMessage.IsRunning);
         LastDuration = duration;
         IsRunning = true;
         _timer.Start();
@@ -114,17 +116,13 @@ public class CountdownTimer
     /// <summary>
     /// 继续倒计时
     /// </summary>
-    /// <exception cref="Exception">CountdownTimer never started</exception>
-    /// <exception cref="Exception">Countdown completed</exception>
-    /// <exception cref="Exception">CountdownTimer is running</exception>
+    /// <exception cref="Exception">已完成或正在运行</exception>
     public void Continue()
     {
-        if (LastDuration == TimeSpan.Zero)
-            throw new Exception("CountdownTimer never started");
         if (IsCompleted)
-            throw new Exception("Countdown completed");
+            throw new Exception(ExceptionMessage.IsCompleted);
         if (IsRunning)
-            throw new Exception("CountdownTimer is running");
+            throw new Exception(ExceptionMessage.IsRunning);
         IsRunning = true;
         _timer.Continue();
     }
@@ -145,13 +143,12 @@ public class CountdownTimer
     /// <summary>
     /// 重置
     /// </summary>
-    /// <exception cref="Exception">CountdownTimer is running</exception>
+    /// <exception cref="Exception">正在运行</exception>
     public void Reset()
     {
         if (IsRunning)
-            throw new Exception("CountdownTimer is running");
+            throw new Exception(ExceptionMessage.IsRunning);
         IsCompleted = false;
-        IsRunning = false;
     }
     #endregion
 

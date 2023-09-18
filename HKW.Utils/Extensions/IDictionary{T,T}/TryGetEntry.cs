@@ -16,7 +16,7 @@ public static partial class HKWExtensions
     public static bool TryGetPair<TKey, TValue>(
         this IDictionary<TKey, TValue> dictionary,
         TKey key,
-        [NotNullWhen(true)] out KeyValuePair<TKey, TValue>? pair
+        [MaybeNullWhen(true)] out KeyValuePair<TKey, TValue>? pair
     )
     {
         var result = dictionary.TryGetValue(key, out var value);

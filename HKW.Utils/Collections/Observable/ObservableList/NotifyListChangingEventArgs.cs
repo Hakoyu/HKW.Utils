@@ -42,7 +42,7 @@ public class NotifyListChangingEventArgs<T> : CancelEventArgs
     {
         if (action != ListChangeAction.Clear)
             throw new ArgumentException(
-                string.Format(MessageFormat.MustBe, nameof(ListChangeAction.Clear)),
+                $"{ExceptionMessage.MustBe} {nameof(ListChangeAction.Clear)}",
                 nameof(action)
             );
         Action = action;
@@ -65,10 +65,7 @@ public class NotifyListChangingEventArgs<T> : CancelEventArgs
             && action != ListChangeAction.Clear
         )
             throw new ArgumentException(
-                string.Format(
-                    MessageFormat.MustBe,
-                    $"{nameof(ListChangeAction.Add)} or {nameof(ListChangeAction.Remove)} or {nameof(ListChangeAction.Clear)}"
-                ),
+                $"{ExceptionMessage.MustBe} {nameof(ListChangeAction.Add)} or {nameof(ListChangeAction.Remove)} or {nameof(ListChangeAction.Clear)}",
                 nameof(action)
             );
         Action = action;
@@ -101,7 +98,7 @@ public class NotifyListChangingEventArgs<T> : CancelEventArgs
     {
         if (action != ListChangeAction.ValueChange)
             throw new ArgumentException(
-                string.Format(MessageFormat.MustBe, nameof(ListChangeAction.ValueChange)),
+                $"{ExceptionMessage.MustBe} {nameof(ListChangeAction.ValueChange)}",
                 nameof(action)
             );
         Action = action;

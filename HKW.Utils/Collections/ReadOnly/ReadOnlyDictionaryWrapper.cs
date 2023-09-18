@@ -24,101 +24,120 @@ public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
     /// <summary>
     /// 原始字典
     /// </summary>
-    private readonly IDictionary<TKey, TValue> _iDictionary;
+    private readonly IDictionary<TKey, TValue> _dictionary;
 
     /// <inheritdoc/>
-    /// <param name="iDictionary">字典</param>
+    /// <param name="dictionary">字典</param>
     /// <exception cref="ArgumentNullException">iDictionary 为 null</exception>
-    public ReadOnlyDictionaryWrapper(IDictionary<TKey, TValue> iDictionary)
+    public ReadOnlyDictionaryWrapper(IDictionary<TKey, TValue> dictionary)
     {
-        ArgumentNullException.ThrowIfNull(iDictionary);
-        _iDictionary = iDictionary;
+        ArgumentNullException.ThrowIfNull(dictionary);
+        _dictionary = dictionary;
     }
 
     #region IDictionary
 
     /// <inheritdoc/>
-    public int Count => _iDictionary.Count;
+    public int Count => _dictionary.Count;
 
     /// <inheritdoc/>
-    public ICollection<TKey> Keys => _iDictionary.Keys;
+    public ICollection<TKey> Keys => _dictionary.Keys;
 
     /// <inheritdoc/>
-    /// <summary>此属性有性能问题, 少用</summary>
-    public ICollection<TReadOnlyValue> Values =>
-        _iDictionary.Values.Cast<TReadOnlyValue>().ToList();
+    public ICollection<TReadOnlyValue> Values => _dictionary.Values.Cast<TReadOnlyValue>().ToList();
 
     /// <inheritdoc/>
     public bool IsReadOnly => true;
 
     /// <inheritdoc/>
-    IEnumerable<TKey> IReadOnlyDictionary<TKey, TReadOnlyValue>.Keys => _iDictionary.Keys;
+    IEnumerable<TKey> IReadOnlyDictionary<TKey, TReadOnlyValue>.Keys => _dictionary.Keys;
 
     /// <inheritdoc/>
     IEnumerable<TReadOnlyValue> IReadOnlyDictionary<TKey, TReadOnlyValue>.Values =>
-        _iDictionary.Values.Cast<TReadOnlyValue>();
+        _dictionary.Values.Cast<TReadOnlyValue>();
 
     /// <inheritdoc/>
-    public TReadOnlyValue this[TKey key] => _iDictionary[key];
+    public TReadOnlyValue this[TKey key] => _dictionary[key];
 
     /// <inheritdoc/>
     TReadOnlyValue IDictionary<TKey, TReadOnlyValue>.this[TKey key]
     {
-        get => _iDictionary[key];
+        get => _dictionary[key];
         set => throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
     }
 
     /// <inheritdoc/>
-    public IEnumerator<KeyValuePair<TKey, TReadOnlyValue>> GetEnumerator() =>
-        _iDictionary
+    public IEnumerator<KeyValuePair<TKey, TReadOnlyValue>> GetEnumerator()
+    {
+        return _dictionary
             .Select(kv => new KeyValuePair<TKey, TReadOnlyValue>(kv.Key, kv.Value))
             .GetEnumerator();
+    }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     /// <inheritdoc/>
-    void IDictionary<TKey, TReadOnlyValue>.Add(TKey key, TReadOnlyValue value) =>
+    void IDictionary<TKey, TReadOnlyValue>.Add(TKey key, TReadOnlyValue value)
+    {
         throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+    }
 
     /// <inheritdoc/>
-    bool IDictionary<TKey, TReadOnlyValue>.Remove(TKey key) =>
+    bool IDictionary<TKey, TReadOnlyValue>.Remove(TKey key)
+    {
         throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+    }
 
     /// <inheritdoc/>
     void ICollection<KeyValuePair<TKey, TReadOnlyValue>>.Add(
         KeyValuePair<TKey, TReadOnlyValue> item
-    ) => throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+    )
+    {
+        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+    }
 
     /// <inheritdoc/>
-    void ICollection<KeyValuePair<TKey, TReadOnlyValue>>.Clear() =>
+    void ICollection<KeyValuePair<TKey, TReadOnlyValue>>.Clear()
+    {
         throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+    }
 
     /// <inheritdoc/>
     bool ICollection<KeyValuePair<TKey, TReadOnlyValue>>.Remove(
         KeyValuePair<TKey, TReadOnlyValue> item
-    ) => throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+    )
+    {
+        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+    }
 
     /// <inheritdoc/>
-    public bool ContainsKey(TKey key) => _iDictionary.ContainsKey(key);
+    public bool ContainsKey(TKey key)
+    {
+        return _dictionary.ContainsKey(key);
+    }
 
     /// <inheritdoc/>
-    public bool Contains(KeyValuePair<TKey, TReadOnlyValue> item) =>
-        _iDictionary.ContainsKey(item.Key);
+    public bool Contains(KeyValuePair<TKey, TReadOnlyValue> item)
+    {
+        return _dictionary.ContainsKey(item.Key);
+    }
 
     /// <inheritdoc/>
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TReadOnlyValue value)
     {
-        var r = _iDictionary.TryGetValue(key, out var v);
+        var r = _dictionary.TryGetValue(key, out var v);
         value = v!;
         return r;
     }
 
     /// <inheritdoc/>
-    public void CopyTo(KeyValuePair<TKey, TReadOnlyValue>[] array, int arrayIndex) =>
+    public void CopyTo(KeyValuePair<TKey, TReadOnlyValue>[] array, int arrayIndex)
+    {
         (
             (ICollection<KeyValuePair<TKey, TReadOnlyValue>>)
-                _iDictionary.ToDictionary(kv => kv.Key, kv => (TReadOnlyValue)kv.Value)
+                _dictionary.ToDictionary(kv => kv.Key, kv => (TReadOnlyValue)kv.Value)
         ).CopyTo(array, arrayIndex);
+    }
 
     #endregion IDictionary
 }
