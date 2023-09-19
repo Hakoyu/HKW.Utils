@@ -45,7 +45,7 @@ public class IDictionaryTests
         var dic = Enumerable.Range(0, 10).ToDictionary(x => x, x => x);
         var result = dic.TryGetPair(-1, out var pair);
         Assert.IsFalse(result);
-        Assert.IsNull(pair);
+        Assert.IsTrue(pair.Equals(default(KeyValuePair<int, int>)));
     }
 
     [TestMethod]

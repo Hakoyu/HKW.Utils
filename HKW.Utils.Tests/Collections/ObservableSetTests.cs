@@ -20,6 +20,24 @@ public class ObservableSetTests
             Assert.IsTrue(e.NewItems![0] == 10);
             Assert.IsTrue(e.OldItems == null);
             Assert.IsTrue(e.OtherItems == null);
+        };
+        observableSet.Add(10);
+        Assert.IsTrue(observableSet.Count == 11);
+        Assert.IsTrue(triggered);
+    }
+
+    [TestMethod]
+    public void Adding_Cancel()
+    {
+        var triggered = false;
+        var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
+        observableSet.SetChanging += (e) =>
+        {
+            triggered = true;
+            Assert.IsTrue(e.Action == SetChangeAction.Add);
+            Assert.IsTrue(e.NewItems![0] == 10);
+            Assert.IsTrue(e.OldItems == null);
+            Assert.IsTrue(e.OtherItems == null);
             e.Cancel = true;
         };
         observableSet.Add(10);
@@ -57,6 +75,24 @@ public class ObservableSetTests
             Assert.IsTrue(e.NewItems == null);
             Assert.IsTrue(e.OldItems![0] == 0);
             Assert.IsTrue(e.OtherItems == null);
+        };
+        observableSet.Remove(0);
+        Assert.IsTrue(observableSet.Count == 9);
+        Assert.IsTrue(triggered);
+    }
+
+    [TestMethod]
+    public void Removing_Cancel()
+    {
+        var triggered = false;
+        var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
+        observableSet.SetChanging += (e) =>
+        {
+            triggered = true;
+            Assert.IsTrue(e.Action == SetChangeAction.Remove);
+            Assert.IsTrue(e.NewItems == null);
+            Assert.IsTrue(e.OldItems![0] == 0);
+            Assert.IsTrue(e.OtherItems == null);
             e.Cancel = true;
         };
         observableSet.Remove(0);
@@ -84,6 +120,24 @@ public class ObservableSetTests
 
     [TestMethod]
     public void Clearing()
+    {
+        var triggered = false;
+        var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
+        observableSet.SetChanging += (e) =>
+        {
+            triggered = true;
+            Assert.IsTrue(e.Action == SetChangeAction.Clear);
+            Assert.IsTrue(e.NewItems == null);
+            Assert.IsTrue(e.OldItems == null);
+            Assert.IsTrue(e.OtherItems == null);
+        };
+        observableSet.Clear();
+        Assert.IsTrue(observableSet.Count == 0);
+        Assert.IsTrue(triggered);
+    }
+
+    [TestMethod]
+    public void Clearing_Cancel()
     {
         var triggered = false;
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
@@ -205,8 +259,8 @@ public class ObservableSetTests
         {
             triggered = true;
             Assert.IsTrue(e.Action == NotifyCollectionChangedAction.Add);
-            Assert.IsTrue(e.OldItems == null);
             Assert.IsTrue(e.NewItems?[0] is 10);
+            Assert.IsTrue(e.OldItems == null);
             Assert.IsTrue(e.NewStartingIndex == -1);
             Assert.IsTrue(e.OldStartingIndex == -1);
         };
@@ -225,8 +279,8 @@ public class ObservableSetTests
         {
             triggered = true;
             Assert.IsTrue(e.Action == NotifyCollectionChangedAction.Remove);
-            Assert.IsTrue(e.OldItems?[0] is 0);
             Assert.IsTrue(e.NewItems == null);
+            Assert.IsTrue(e.OldItems?[0] is 0);
             Assert.IsTrue(e.NewStartingIndex == -1);
             Assert.IsTrue(e.OldStartingIndex == -1);
         };
@@ -245,8 +299,8 @@ public class ObservableSetTests
         {
             triggered = true;
             Assert.IsTrue(e.Action == NotifyCollectionChangedAction.Reset);
-            Assert.IsTrue(e.OldItems == null);
             Assert.IsTrue(e.NewItems == null);
+            Assert.IsTrue(e.OldItems == null);
             Assert.IsTrue(e.NewStartingIndex == -1);
             Assert.IsTrue(e.OldStartingIndex == -1);
         };
@@ -265,7 +319,10 @@ public class ObservableSetTests
         {
             triggered = true;
             Assert.IsTrue(e.Action == NotifyCollectionChangedAction.Remove);
-            Assert.AreNotEqual(e.OldItems, null);
+            Assert.IsTrue(e.NewItems == null);
+            Assert.IsTrue(e.OldItems?.ItemsEqual(Enumerable.Range(0, 10).Except(ints)));
+            Assert.IsTrue(e.NewStartingIndex == -1);
+            Assert.IsTrue(e.OldStartingIndex == -1);
         };
         observableSet.IntersectWith(ints);
         Assert.IsTrue(observableSet.Count == 5);
@@ -282,7 +339,10 @@ public class ObservableSetTests
         {
             triggered = true;
             Assert.IsTrue(e.Action == NotifyCollectionChangedAction.Remove);
-            Assert.AreNotEqual(e.OldItems, null);
+            Assert.IsTrue(e.NewItems == null);
+            Assert.IsTrue(e.OldItems?.ItemsEqual(Enumerable.Range(0, 10).Intersect(ints)));
+            Assert.IsTrue(e.NewStartingIndex == -1);
+            Assert.IsTrue(e.OldStartingIndex == -1);
         };
         observableSet.ExceptWith(ints);
         Assert.IsTrue(observableSet.Count == 5);
@@ -314,7 +374,10 @@ public class ObservableSetTests
         {
             triggered = true;
             Assert.IsTrue(e.Action == NotifyCollectionChangedAction.Add);
-            Assert.AreNotEqual(e.NewItems, null);
+            Assert.IsTrue(e.NewItems?.ItemsEqual(observableSet.Union(ints)));
+            Assert.IsTrue(e.OldItems == null);
+            Assert.IsTrue(e.NewStartingIndex == -1);
+            Assert.IsTrue(e.OldStartingIndex == -1);
         };
         observableSet.UnionWith(ints);
         Assert.IsTrue(observableSet.Count == 11);

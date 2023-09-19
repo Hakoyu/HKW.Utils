@@ -39,19 +39,19 @@ public class SimpleReadOnlyList<T> : IList<T>, IList
     public T this[int index]
     {
         get => _list[index];
-        set => throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     public int Add(T value)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     public void Clear()
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -72,19 +72,19 @@ public class SimpleReadOnlyList<T> : IList<T>, IList
     /// <inheritdoc/>
     public void Insert(int index, T value)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     public void Remove(T value)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     public void RemoveAt(int index)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -113,22 +113,22 @@ public class SimpleReadOnlyList<T> : IList<T>, IList
     object? IList.this[int index]
     {
         get => _list[index];
-        set => throw new NotImplementedException(ExceptionMessage.ReadOnlyCollection);
+        set => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ICollection<T>.Add(T item)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     bool ICollection<T>.Remove(T item)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     int IList.Add(object? value)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     bool IList.Contains(object? value)
@@ -138,17 +138,17 @@ public class SimpleReadOnlyList<T> : IList<T>, IList
 
     int IList.IndexOf(object? value)
     {
-        throw new NotImplementedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void IList.Insert(int index, object? value)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void IList.Remove(object? value)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ICollection.CopyTo(Array array, int index)

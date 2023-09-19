@@ -1,5 +1,6 @@
 ﻿using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Events;
+using HKW.HKWUtils.Natives;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -34,6 +35,12 @@ public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSe
     #region IReadOnlyObservableSet
     /// <inheritdoc/>
     public int Count => ((IReadOnlyCollection<T>)_set).Count;
+
+    /// <inheritdoc/>
+    public bool IsReadOnly => true;
+
+    /// <inheritdoc/>
+    public IEqualityComparer<T> Comparer => _set.Comparer;
 
     /// <inheritdoc/>
     public bool Contains(T item)
@@ -88,86 +95,82 @@ public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSe
     {
         return ((IEnumerable)_set).GetEnumerator();
     }
-
-    /// <inheritdoc/>
-    public event XCancelEventHandler<NotifySetChangingEventArgs<T>>? SetChanging
-    {
-        add { ((INotifySetChanging<T>)_set).SetChanging += value; }
-        remove { ((INotifySetChanging<T>)_set).SetChanging -= value; }
-    }
-
-    /// <inheritdoc/>
-    public event XEventHandler<NotifySetChangedEventArgs<T>>? SetChanged
-    {
-        add { ((INotifySetChanged<T>)_set).SetChanged += value; }
-        remove { ((INotifySetChanged<T>)_set).SetChanged -= value; }
-    }
-
-    /// <inheritdoc/>
-    public event NotifyCollectionChangedEventHandler? CollectionChanged
-    {
-        add { ((INotifyCollectionChanged)_set).CollectionChanged += value; }
-        remove { ((INotifyCollectionChanged)_set).CollectionChanged -= value; }
-    }
-
-    /// <inheritdoc/>
-    public event PropertyChangedEventHandler? PropertyChanged
-    {
-        add { ((INotifyPropertyChanged)_set).PropertyChanged += value; }
-        remove { ((INotifyPropertyChanged)_set).PropertyChanged -= value; }
-    }
     #endregion
 
     #region IObservableSet
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    IEqualityComparer<T> IObservableSet<T>.Comparer => _set.Comparer;
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    bool ICollection<T>.IsReadOnly => true;
 
     bool ISet<T>.Add(T item)
     {
-        throw new ReadOnlyException();
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ICollection<T>.Add(T item)
     {
-        throw new ReadOnlyException();
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ICollection<T>.Clear()
     {
-        throw new ReadOnlyException();
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ISet<T>.ExceptWith(IEnumerable<T> other)
     {
-        throw new ReadOnlyException();
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ISet<T>.IntersectWith(IEnumerable<T> other)
     {
-        throw new ReadOnlyException();
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     bool ICollection<T>.Remove(T item)
     {
-        throw new ReadOnlyException();
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ISet<T>.SymmetricExceptWith(IEnumerable<T> other)
     {
-        throw new ReadOnlyException();
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ISet<T>.UnionWith(IEnumerable<T> other)
     {
-        throw new ReadOnlyException();
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ICollection<T>.CopyTo(T[] array, int arrayIndex)
     {
         _set.CopyTo(array, arrayIndex);
+    }
+    #endregion
+
+    #region Event
+    event XCancelEventHandler<NotifySetChangingEventArgs<T>>? INotifySetChanging<T>.SetChanging
+    {
+        add => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        remove => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+    }
+
+    /// <inheritdoc/>
+    public event XEventHandler<NotifySetChangedEventArgs<T>>? SetChanged
+    {
+        add => _set.SetChanged += value;
+        remove => _set.SetChanged -= value;
+    }
+
+    /// <inheritdoc/>
+    public event NotifyCollectionChangedEventHandler? CollectionChanged
+    {
+        add => _set.CollectionChanged += value;
+        remove => _set.CollectionChanged -= value;
+    }
+
+    /// <inheritdoc/>
+    public event PropertyChangedEventHandler? PropertyChanged
+    {
+        add => _set.PropertyChanged += value;
+        remove => _set.PropertyChanged -= value;
     }
     #endregion
 }

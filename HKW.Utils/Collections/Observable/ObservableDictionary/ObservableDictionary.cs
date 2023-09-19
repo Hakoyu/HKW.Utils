@@ -204,9 +204,7 @@ public class ObservableDictionary<TKey, TValue>
     {
         if (_dictionary.TryGetPair(key, out var pair) is false)
             return false;
-        var list = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(
-            (KeyValuePair<TKey, TValue>)pair
-        );
+        var list = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(pair);
         if (OnDictionaryRemoving(list))
             return false;
         var result = _dictionary.Remove(key);

@@ -34,7 +34,7 @@ public sealed class SimpleSingleItemReadOnlyList<T> : IList<T>, IList
 
             return _item;
         }
-        set => throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -46,31 +46,31 @@ public sealed class SimpleSingleItemReadOnlyList<T> : IList<T>, IList
     /// <inheritdoc/>
     public void Add(T item)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     public void Clear()
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     public void Insert(int index, T item)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     public bool Remove(T item)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     public void RemoveAt(int index)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -124,22 +124,22 @@ public sealed class SimpleSingleItemReadOnlyList<T> : IList<T>, IList
             }
             return _item;
         }
-        set => throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     int IList.Add(object? value)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void IList.Insert(int index, object? value)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void IList.Remove(object? value)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     bool IList.Contains(object? value)

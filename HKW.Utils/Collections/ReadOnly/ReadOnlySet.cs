@@ -79,43 +79,43 @@ public class ReadOnlySet<T> : ISet<T>, IReadOnlySet<T>
     /// <inheritdoc/>
     bool ISet<T>.Add(T item)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ISet<T>.ExceptWith(IEnumerable<T> other)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ISet<T>.IntersectWith(IEnumerable<T> other)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ISet<T>.SymmetricExceptWith(IEnumerable<T> other)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ISet<T>.UnionWith(IEnumerable<T> other)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ICollection<T>.Add(T item)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ICollection<T>.Clear()
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -127,7 +127,7 @@ public class ReadOnlySet<T> : ISet<T>, IReadOnlySet<T>
     /// <inheritdoc/>
     bool ICollection<T>.Remove(T item)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>

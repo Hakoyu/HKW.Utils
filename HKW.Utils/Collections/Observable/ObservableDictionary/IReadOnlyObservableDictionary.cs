@@ -11,7 +11,6 @@ namespace HKW.HKWUtils.Collections;
 public interface IReadOnlyObservableDictionary<TKey, TValue>
     : IReadOnlyDictionary<TKey, TValue>,
         INotifyDictionaryChanged<TKey, TValue>,
-        INotifyDictionaryChanging<TKey, TValue>,
         INotifyCollectionChanged,
         INotifyPropertyChanged
     where TKey : notnull

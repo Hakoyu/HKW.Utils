@@ -61,32 +61,32 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     T IList<T>.this[int index]
     {
         get => ((IReadOnlyList<T>)_list)[index];
-        set => throw new NotImplementedException(ExceptionMessage.ReadOnlyCollection);
+        set => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void IList<T>.Insert(int index, T item)
     {
-        throw new NotImplementedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void IList<T>.RemoveAt(int index)
     {
-        throw new NotImplementedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ICollection<T>.Add(T item)
     {
-        throw new NotImplementedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     bool ICollection<T>.Remove(T item)
     {
-        throw new NotImplementedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ICollection<T>.Clear()
     {
-        throw new NotImplementedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     int IList<T>.IndexOf(T item)
@@ -114,32 +114,32 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     bool IObservableCollection<T>.TriggerRemoveActionOnClear
     {
         get => _list.TriggerRemoveActionOnClear;
-        set => throw new NotImplementedException(ExceptionMessage.ReadOnlyCollection);
+        set => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void IObservableList<T>.InsertRange(int index, IEnumerable<T> collection)
     {
-        throw new NotImplementedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void IObservableList<T>.RemoveRange(int index, int count)
     {
-        throw new NotImplementedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void IObservableList<T>.ChangeRange(IEnumerable<T> collection, int index)
     {
-        throw new NotImplementedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void IObservableList<T>.ChangeRange(IEnumerable<T> collection, int index, int count)
     {
-        throw new NotImplementedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void IObservableCollection<T>.AddRange(IEnumerable<T> items)
     {
-        throw new NotImplementedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     #endregion IObservableList
@@ -147,10 +147,10 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     #region Event
 
     /// <inheritdoc/>
-    public event XCancelEventHandler<NotifyListChangingEventArgs<T>>? ListChanging
+    event XCancelEventHandler<NotifyListChangingEventArgs<T>>? INotifyListChanging<T>.ListChanging
     {
-        add => _list.ListChanging += value;
-        remove => _list.ListChanging -= value;
+        add => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        remove => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>

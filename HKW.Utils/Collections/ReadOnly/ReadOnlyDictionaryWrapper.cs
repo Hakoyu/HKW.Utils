@@ -63,7 +63,7 @@ public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
     TReadOnlyValue IDictionary<TKey, TReadOnlyValue>.this[TKey key]
     {
         get => _dictionary[key];
-        set => throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -79,13 +79,13 @@ public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
     /// <inheritdoc/>
     void IDictionary<TKey, TReadOnlyValue>.Add(TKey key, TReadOnlyValue value)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     bool IDictionary<TKey, TReadOnlyValue>.Remove(TKey key)
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -93,13 +93,13 @@ public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
         KeyValuePair<TKey, TReadOnlyValue> item
     )
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ICollection<KeyValuePair<TKey, TReadOnlyValue>>.Clear()
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -107,7 +107,7 @@ public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
         KeyValuePair<TKey, TReadOnlyValue> item
     )
     {
-        throw new NotSupportedException(ExceptionMessage.ReadOnlyCollection);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>

@@ -26,12 +26,12 @@ public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
     /// <summary>
     /// 新键值对
     /// </summary>
-    public IList<KeyValuePair<TKey, TValue>>? NewPairs { get; }
+    public IList<KeyValuePair<TKey, TValue>>? NewItems { get; }
 
     /// <summary>
     /// 旧键值对
     /// </summary>
-    public IList<KeyValuePair<TKey, TValue>>? OldPairs { get; }
+    public IList<KeyValuePair<TKey, TValue>>? OldItems { get; }
 
     #region Ctor
 
@@ -77,9 +77,9 @@ public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
         else
             list = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(pairs);
         if (Action is DictionaryChangeAction.Add)
-            NewPairs = list;
+            NewItems = list;
         else
-            OldPairs = list;
+            OldItems = list;
     }
 
     /// <inheritdoc/>
@@ -100,13 +100,13 @@ public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
             );
         Action = action;
         if (newPairs.IsReadOnly)
-            NewPairs = newPairs;
+            NewItems = newPairs;
         else
-            NewPairs = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(newPairs);
+            NewItems = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(newPairs);
         if (oldPairs.IsReadOnly)
-            OldPairs = oldPairs;
+            OldItems = oldPairs;
         else
-            OldPairs = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(oldPairs);
+            OldItems = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(oldPairs);
     }
 
     #endregion

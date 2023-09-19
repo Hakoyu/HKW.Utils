@@ -1,5 +1,6 @@
 ﻿using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Events;
+using HKW.HKWUtils.Natives;
 using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -51,14 +52,17 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     /// <inheritdoc/>
     public IObservableList<TValue> ObservableValues => _dictionary.ObservableValues;
 
+    /// <inheritdoc/>
+    public bool IsReadOnly => true;
+
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    IEqualityComparer<TKey>? IObservableDictionary<TKey, TValue>.Comparer => _dictionary.Comparer;
+    IEqualityComparer<TKey> IObservableDictionary<TKey, TValue>.Comparer => _dictionary.Comparer;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     bool IObservableDictionary<TKey, TValue>.ObservableKeysAndValues
     {
         get => _dictionary.ObservableKeysAndValues;
-        set => throw new NotImplementedException();
+        set => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -71,16 +75,13 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     bool IObservableCollection<KeyValuePair<TKey, TValue>>.TriggerRemoveActionOnClear
     {
         get => _dictionary.TriggerRemoveActionOnClear;
-        set => throw new NotImplementedException();
+        set => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly => _dictionary.IsReadOnly;
 
     TValue IDictionary<TKey, TValue>.this[TKey key]
     {
         get => _dictionary[key];
-        set => throw new NotImplementedException();
+        set => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -111,39 +112,39 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
         IEnumerable<KeyValuePair<TKey, TValue>> items
     )
     {
-        throw new NotImplementedException();
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void IDictionary<TKey, TValue>.Add(TKey key, TValue value)
     {
-        throw new NotImplementedException();
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     bool IDictionary<TKey, TValue>.Remove(TKey key)
     {
-        throw new NotImplementedException();
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void IObservableCollection<KeyValuePair<TKey, TValue>>.AddRange(
         IEnumerable<KeyValuePair<TKey, TValue>> items
     )
     {
-        throw new NotImplementedException();
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
     {
-        throw new NotImplementedException();
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ICollection<KeyValuePair<TKey, TValue>>.Clear()
     {
-        throw new NotImplementedException();
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
     {
-        throw new NotImplementedException();
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(
@@ -156,37 +157,38 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
 
     bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
     {
-        throw new NotImplementedException();
+        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+    }
+
+    #region Event
+    event XCancelEventHandler<
+        NotifyDictionaryChangingEventArgs<TKey, TValue>
+    >? INotifyDictionaryChanging<TKey, TValue>.DictionaryChanging
+    {
+        add => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        remove => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     public event XEventHandler<NotifyDictionaryChangingEventArgs<TKey, TValue>>? DictionaryChanged
     {
-        add { _dictionary.DictionaryChanged += value; }
-        remove { _dictionary.DictionaryChanged -= value; }
-    }
-
-    /// <inheritdoc/>
-    public event XCancelEventHandler<
-        NotifyDictionaryChangingEventArgs<TKey, TValue>
-    >? DictionaryChanging
-    {
-        add { _dictionary.DictionaryChanging += value; }
-        remove { _dictionary.DictionaryChanging -= value; }
+        add => _dictionary.DictionaryChanged += value;
+        remove => _dictionary.DictionaryChanged -= value;
     }
 
     /// <inheritdoc/>
     public event NotifyCollectionChangedEventHandler? CollectionChanged
     {
-        add { _dictionary.CollectionChanged += value; }
-        remove { _dictionary.CollectionChanged -= value; }
+        add => _dictionary.CollectionChanged += value;
+        remove => _dictionary.CollectionChanged -= value;
     }
 
     /// <inheritdoc/>
 
     public event PropertyChangedEventHandler? PropertyChanged
     {
-        add { _dictionary.PropertyChanged += value; }
-        remove { _dictionary.PropertyChanged -= value; }
+        add => _dictionary.PropertyChanged += value;
+        remove => _dictionary.PropertyChanged -= value;
     }
+    #endregion
 }

@@ -12,18 +12,21 @@ internal class Program
 
     private static void Main(string[] args)
     {
-        stopWatch.Start();
-        CountdownTimer timer = new();
-        timer.Completed += () =>
-        {
-            Console.WriteLine($"Completed {stopWatch.ElapsedMilliseconds:f4}");
-            return;
-        };
-        timer.Start(1000);
-        Task.Delay(500).Wait();
-        timer.Stop();
-        timer.Continue();
-        Task.Delay(1000).Wait();
+        var dict = new ObservableDictionary<int, int>();
+        var rdict = new ReadOnlyObservableDictionary<int, int>(dict);
+        dict.Add(dict.Count, dict.Count);
+        //stopWatch.Start();
+        //CountdownTimer timer = new();
+        //timer.Completed += () =>
+        //{
+        //    Console.WriteLine($"Completed {stopWatch.ElapsedMilliseconds:f4}");
+        //    return;
+        //};
+        //timer.Start(1000);
+        //Task.Delay(500).Wait();
+        //timer.Stop();
+        //timer.Continue();
+        //Task.Delay(1000).Wait();
     }
 
 #if DEBUG
