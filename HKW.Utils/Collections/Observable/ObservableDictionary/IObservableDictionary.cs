@@ -24,23 +24,6 @@ public interface IObservableDictionary<TKey, TValue>
     public IEqualityComparer<TKey> Comparer { get; }
 
     /// <summary>
-    /// 启用可观察的键集合与值集合
-    /// </summary>
-    public bool ObservableKeysAndValues { get; set; }
-
-    /// <summary>
-    /// 可观察的键的集合
-    /// <para>使用此值需启用 <see cref="ObservableKeysAndValues"/></para>
-    /// </summary>
-    public IObservableList<TKey> ObservableKeys { get; }
-
-    /// <summary>
-    /// 可观察的值的集合
-    /// <para>使用此值需启用 <see cref="ObservableKeysAndValues"/></para>
-    /// </summary>
-    public IObservableList<TValue> ObservableValues { get; }
-
-    /// <summary>
     /// 尝试添加多个键值对
     /// </summary>
     /// <param name="collection">键值对</param>

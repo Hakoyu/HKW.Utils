@@ -30,34 +30,6 @@ public class ObservableDictionary<TKey, TValue>
     /// <inheritdoc/>
     public bool TriggerRemoveActionOnClear { get; set; }
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private bool _observableKeysAndValues;
-
-    /// <inheritdoc/>
-    public bool ObservableKeysAndValues
-    {
-        get => _observableKeysAndValues;
-        set
-        {
-            if (_observableKeysAndValues == value)
-                return;
-            if (value is true)
-            {
-                foreach (var pair in _dictionary)
-                {
-                    _observableKeys.Add(pair.Key);
-                    _observableValues.Add(pair.Value);
-                }
-            }
-            else
-            {
-                _observableKeys.Clear();
-                _observableValues.Clear();
-            }
-            _observableKeysAndValues = value;
-        }
-    }
-
     /// <summary>
     /// 原始字典
     /// </summary>
@@ -96,23 +68,9 @@ public class ObservableDictionary<TKey, TValue>
             _dictionary = new(comparer);
         else
             _dictionary = new();
-        ObservableKeys = new ReadOnlyObservableList<TKey>(_observableKeys);
-        ObservableValues = new ReadOnlyObservableList<TValue>(_observableValues);
     }
 
     #endregion Ctor
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private readonly ObservableList<TKey> _observableKeys = new();
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private readonly ObservableList<TValue> _observableValues = new();
-
-    /// <inheritdoc/>
-    public IObservableList<TKey> ObservableKeys { get; }
-
-    /// <inheritdoc/>
-    public IObservableList<TValue> ObservableValues { get; }
 
     #region IDictionaryT
 
@@ -407,11 +365,6 @@ public class ObservableDictionary<TKey, TValue>
             OnDictionaryChanged(new(DictionaryChangeAction.Add, pairs));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, (IList)pairs));
-        if (ObservableKeysAndValues)
-        {
-            _observableKeys.AddRange(pairs.Select(p => p.Key));
-            _observableValues.AddRange(pairs.Select(p => p.Value));
-        }
     }
 
     /// <summary>
@@ -424,14 +377,6 @@ public class ObservableDictionary<TKey, TValue>
             OnDictionaryChanged(new(DictionaryChangeAction.Remove, pairs));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, (IList)pairs));
-        if (ObservableKeysAndValues)
-        {
-            foreach (var pair in pairs)
-            {
-                _observableKeys.Remove(pair.Key);
-                _observableValues.Remove(pair.Value);
-            }
-        }
     }
 
     /// <summary>
@@ -454,13 +399,6 @@ public class ObservableDictionary<TKey, TValue>
                     oldItems: (IList)oldPairs
                 )
             );
-        if (ObservableKeysAndValues)
-        {
-            foreach (var pair in newPairs)
-            {
-                _observableValues[_observableKeys.IndexOf(pair.Key)] = pair.Value;
-            }
-        }
     }
 
     /// <summary>
@@ -472,11 +410,6 @@ public class ObservableDictionary<TKey, TValue>
             OnDictionaryChanged(new(DictionaryChangeAction.Clear));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Reset));
-        if (ObservableKeysAndValues)
-        {
-            _observableKeys.Clear();
-            _observableValues.Clear();
-        }
     }
 
     /// <summary>

@@ -13,15 +13,4 @@ public interface IReadOnlyObservableDictionary<TKey, TValue>
         INotifyDictionaryChanged<TKey, TValue>,
         INotifyCollectionChanged,
         INotifyPropertyChanged
-    where TKey : notnull
-{
-    /// <summary>
-    /// 可观察的键的集合
-    /// </summary>
-    public IObservableList<TKey> ObservableKeys { get; }
-
-    /// <summary>
-    /// 可观察的值的集合
-    /// </summary>
-    public IObservableList<TValue> ObservableValues { get; }
-}
+    where TKey : notnull { }
