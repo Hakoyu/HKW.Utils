@@ -3,7 +3,7 @@
 namespace HKWTests.Collections;
 
 [TestClass]
-public class ObservableListTests
+public class ObservableListXTests
 {
     #region Add
     [TestMethod]
@@ -63,6 +63,69 @@ public class ObservableListTests
         Assert.IsTrue(observableList.Count == 11);
         Assert.IsTrue(triggered);
     }
+
+    #region AddRange
+    [TestMethod]
+    public void AddingRange()
+    {
+        var triggered = false;
+        var list = Enumerable.Range(1, 10).ToList();
+        var observableList = new ObservableListX<int>(list);
+        observableList.ListChanging += (e) =>
+        {
+            triggered = true;
+            Assert.IsTrue(e.Action == ListChangeAction.Add);
+            Assert.IsTrue(e.NewItems!.Count == 10);
+            Assert.IsTrue(e.NewItems!.SequenceEqual(list));
+            Assert.IsTrue(e.OldItems == null);
+            Assert.IsTrue(e.Index == 10);
+        };
+        observableList.AddRange(list);
+        Assert.IsTrue(observableList.Count == 20);
+        Assert.IsTrue(triggered);
+    }
+
+    [TestMethod]
+    public void AddingRange_Cancel()
+    {
+        var triggered = false;
+        var list = Enumerable.Range(1, 10).ToList();
+        var observableList = new ObservableListX<int>(list);
+        observableList.ListChanging += (e) =>
+        {
+            triggered = true;
+            Assert.IsTrue(e.Action == ListChangeAction.Add);
+            Assert.IsTrue(e.NewItems!.Count == 10);
+            Assert.IsTrue(e.NewItems!.SequenceEqual(list));
+            Assert.IsTrue(e.OldItems == null);
+            Assert.IsTrue(e.Index == 10);
+            e.Cancel = true;
+        };
+        observableList.AddRange(list);
+        Assert.IsTrue(observableList.Count == 10);
+        Assert.IsTrue(triggered);
+    }
+
+    [TestMethod]
+    public void AddedRange()
+    {
+        var triggered = false;
+        var list = Enumerable.Range(1, 10).ToList();
+        var observableList = new ObservableListX<int>(list);
+        observableList.ListChanged += (e) =>
+        {
+            triggered = true;
+            Assert.IsTrue(e.Action == ListChangeAction.Add);
+            Assert.IsTrue(e.NewItems!.Count == 10);
+            Assert.IsTrue(e.NewItems!.SequenceEqual(list));
+            Assert.IsTrue(e.OldItems == null);
+            Assert.IsTrue(e.Index == 10);
+        };
+        observableList.AddRange(list);
+        Assert.IsTrue(observableList.Count == 20);
+        Assert.IsTrue(triggered);
+    }
+    #endregion
     #endregion
 
     #region Insert
@@ -123,6 +186,78 @@ public class ObservableListTests
         Assert.IsTrue(observableList.Count == 11);
         Assert.IsTrue(triggered);
     }
+
+    #region InsertRange
+    [TestMethod]
+    public void InsertingRange()
+    {
+        var triggered = false;
+        var list = Enumerable.Range(1, 10).ToList();
+        var observableList = new ObservableListX<int>(list);
+        var insertItems = Enumerable.Range(10, 10).ToList();
+        observableList.ListChanging += (e) =>
+        {
+            triggered = true;
+            Assert.IsTrue(e.Action == ListChangeAction.Add);
+            Assert.IsTrue(e.NewItems!.Count == 10);
+            Assert.IsTrue(e.NewItems!.SequenceEqual(insertItems));
+            Assert.IsTrue(e.OldItems == null);
+            Assert.IsTrue(e.Index == 5);
+        };
+        observableList.InsertRange(5, insertItems);
+        Assert.IsTrue(observableList.Count == 20);
+        Assert.IsTrue(triggered);
+        var temp = list.ToList();
+        temp.InsertRange(5, insertItems);
+        Assert.IsTrue(observableList.SequenceEqual(temp));
+    }
+
+    [TestMethod]
+    public void InsertingRange_Cancel()
+    {
+        var triggered = false;
+        var list = Enumerable.Range(1, 10).ToList();
+        var observableList = new ObservableListX<int>(list);
+        var insertItems = Enumerable.Range(10, 10).ToList();
+        observableList.ListChanging += (e) =>
+        {
+            triggered = true;
+            Assert.IsTrue(e.Action == ListChangeAction.Add);
+            Assert.IsTrue(e.NewItems!.Count == 10);
+            Assert.IsTrue(e.NewItems!.SequenceEqual(insertItems));
+            Assert.IsTrue(e.OldItems == null);
+            Assert.IsTrue(e.Index == 5);
+            e.Cancel = true;
+        };
+        observableList.InsertRange(5, insertItems);
+        Assert.IsTrue(observableList.Count == 10);
+        Assert.IsTrue(triggered);
+    }
+
+    [TestMethod]
+    public void InsertedRange()
+    {
+        var triggered = false;
+        var list = Enumerable.Range(1, 10).ToList();
+        var observableList = new ObservableListX<int>(list);
+        var insertItems = Enumerable.Range(10, 10).ToList();
+        observableList.ListChanged += (e) =>
+        {
+            triggered = true;
+            Assert.IsTrue(e.Action == ListChangeAction.Add);
+            Assert.IsTrue(e.NewItems!.Count == 10);
+            Assert.IsTrue(e.NewItems!.SequenceEqual(insertItems));
+            Assert.IsTrue(e.OldItems == null);
+            Assert.IsTrue(e.Index == 5);
+        };
+        observableList.InsertRange(5, insertItems);
+        Assert.IsTrue(observableList.Count == 20);
+        Assert.IsTrue(triggered);
+        var temp = list.ToList();
+        temp.InsertRange(5, insertItems);
+        Assert.IsTrue(observableList.SequenceEqual(temp));
+    }
+    #endregion
     #endregion
 
     #region Remove
@@ -183,6 +318,72 @@ public class ObservableListTests
         Assert.IsTrue(observableList.Count == 9);
         Assert.IsTrue(triggered);
     }
+
+    #region RemoveRange
+    [TestMethod]
+    public void RemovingRange()
+    {
+        var triggered = false;
+        var list = Enumerable.Range(1, 10).ToList();
+        var observableList = new ObservableListX<int>(list);
+        var items = Enumerable.Range(6, 5).ToList();
+        observableList.ListChanging += (e) =>
+        {
+            triggered = true;
+            Assert.IsTrue(e.Action == ListChangeAction.Remove);
+            Assert.IsTrue(e.NewItems == null);
+            Assert.IsTrue(e.OldItems!.Count == 5);
+            Assert.IsTrue(e.OldItems!.SequenceEqual(items));
+            Assert.IsTrue(e.Index == 5);
+        };
+        observableList.RemoveRange(5, 5);
+        Assert.IsTrue(observableList.Count == 5);
+        Assert.IsTrue(triggered);
+    }
+
+    [TestMethod]
+    public void RemovingRange_Cancel()
+    {
+        var triggered = false;
+        var list = Enumerable.Range(1, 10).ToList();
+        var observableList = new ObservableListX<int>(list);
+        var items = Enumerable.Range(6, 5).ToList();
+        observableList.ListChanging += (e) =>
+        {
+            triggered = true;
+            Assert.IsTrue(e.Action == ListChangeAction.Remove);
+            Assert.IsTrue(e.NewItems == null);
+            Assert.IsTrue(e.OldItems!.Count == 5);
+            Assert.IsTrue(e.OldItems!.SequenceEqual(items));
+            Assert.IsTrue(e.Index == 5);
+            e.Cancel = true;
+        };
+        observableList.RemoveRange(5, 5);
+        Assert.IsTrue(observableList.Count == 10);
+        Assert.IsTrue(triggered);
+    }
+
+    [TestMethod]
+    public void RemovedRange()
+    {
+        var triggered = false;
+        var list = Enumerable.Range(1, 10).ToList();
+        var observableList = new ObservableListX<int>(list);
+        var items = Enumerable.Range(6, 5).ToList();
+        observableList.ListChanged += (e) =>
+        {
+            triggered = true;
+            Assert.IsTrue(e.Action == ListChangeAction.Remove);
+            Assert.IsTrue(e.NewItems == null);
+            Assert.IsTrue(e.OldItems!.Count == 5);
+            Assert.IsTrue(e.OldItems!.SequenceEqual(items));
+            Assert.IsTrue(e.Index == 5);
+        };
+        observableList.RemoveRange(5, 5);
+        Assert.IsTrue(observableList.Count == 5);
+        Assert.IsTrue(triggered);
+    }
+    #endregion
     #endregion
 
     #region Clear

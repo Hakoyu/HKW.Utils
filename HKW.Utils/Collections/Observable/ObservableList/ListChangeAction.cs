@@ -21,7 +21,7 @@ public enum ListChangeAction
     Clear,
 
     /// <summary>
-    /// 值改变
+    /// 替换
     /// </summary>
-    ValueChange,
+    Replace,
 }

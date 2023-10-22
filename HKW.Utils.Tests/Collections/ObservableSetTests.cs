@@ -12,6 +12,7 @@ public class ObservableSetTests
     public void Adding()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         observableSet.SetChanging += (e) =>
         {
@@ -30,6 +31,7 @@ public class ObservableSetTests
     public void Adding_Cancel()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         observableSet.SetChanging += (e) =>
         {
@@ -49,6 +51,7 @@ public class ObservableSetTests
     public void Added()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         observableSet.SetChanged += (e) =>
         {
@@ -67,6 +70,7 @@ public class ObservableSetTests
     public void Removing()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         observableSet.SetChanging += (e) =>
         {
@@ -85,6 +89,7 @@ public class ObservableSetTests
     public void Removing_Cancel()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         observableSet.SetChanging += (e) =>
         {
@@ -104,6 +109,7 @@ public class ObservableSetTests
     public void Removed()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         observableSet.SetChanged += (e) =>
         {
@@ -122,6 +128,7 @@ public class ObservableSetTests
     public void Clearing()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         observableSet.SetChanging += (e) =>
         {
@@ -140,6 +147,7 @@ public class ObservableSetTests
     public void Clearing_Cancel()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         observableSet.SetChanging += (e) =>
         {
@@ -159,6 +167,7 @@ public class ObservableSetTests
     public void Cleared()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         observableSet.SetChanged += (e) =>
         {
@@ -177,6 +186,7 @@ public class ObservableSetTests
     public void IntersectWith()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
         observableSet.SetChanged += (e) =>
@@ -196,6 +206,7 @@ public class ObservableSetTests
     public void ExceptWith()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
         observableSet.SetChanged += (e) =>
@@ -215,6 +226,7 @@ public class ObservableSetTests
     public void SymmetricExceptWith()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
         observableSet.SetChanged += (e) =>
@@ -235,6 +247,7 @@ public class ObservableSetTests
     public void UnionWith()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
         observableSet.SetChanged += (e) =>
@@ -254,6 +267,7 @@ public class ObservableSetTests
     public void CollectionChanged_Add()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         observableSet.CollectionChanged += (s, e) =>
         {
@@ -274,6 +288,7 @@ public class ObservableSetTests
     public void CollectionChanged_Remove()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         observableSet.CollectionChanged += (s, e) =>
         {
@@ -294,6 +309,7 @@ public class ObservableSetTests
     public void CollectionChanged_Reset()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         observableSet.CollectionChanged += (s, e) =>
         {
@@ -313,6 +329,7 @@ public class ObservableSetTests
     public void CollectionChanged_IntersectWith()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
         observableSet.CollectionChanged += (s, e) =>
@@ -333,6 +350,7 @@ public class ObservableSetTests
     public void CollectionChanged_ExceptWith()
     {
         var triggered = false;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
         observableSet.CollectionChanged += (s, e) =>
@@ -353,6 +371,7 @@ public class ObservableSetTests
     public void CollectionChanged_SymmetricExceptWith()
     {
         var triggered = true;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
         observableSet.CollectionChanged += (s, e) =>
@@ -368,6 +387,7 @@ public class ObservableSetTests
     public void CollectionChanged_UnionWith()
     {
         var triggered = true;
+        var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
         observableSet.CollectionChanged += (s, e) =>

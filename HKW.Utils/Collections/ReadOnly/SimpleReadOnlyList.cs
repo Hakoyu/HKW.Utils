@@ -25,7 +25,7 @@ public class SimpleReadOnlyList<T> : IList<T>, IList
     {
         if (collection is IList && collection is IList<T> list)
             _list = list;
-        _list = new List<T>(collection);
+        _list = collection.ToList();
     }
 
     #region IListT

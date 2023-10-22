@@ -83,7 +83,7 @@ public class NotifyListChangingEventArgs<T> : CancelEventArgs
 
     /// <inheritdoc/>
     /// <summary>
-    /// 仅用于: <see cref="ListChangeAction.ValueChange"/>
+    /// 仅用于: <see cref="ListChangeAction.Replace"/>
     /// </summary>
     /// <param name="action">改变行动</param>
     /// <param name="newItems">新项目</param>
@@ -96,9 +96,9 @@ public class NotifyListChangingEventArgs<T> : CancelEventArgs
         int index
     )
     {
-        if (action != ListChangeAction.ValueChange)
+        if (action != ListChangeAction.Replace)
             throw new ArgumentException(
-                $"{ExceptionMessage.MustBe} {nameof(ListChangeAction.ValueChange)}",
+                $"{ExceptionMessage.MustBe} {nameof(ListChangeAction.Replace)}",
                 nameof(action)
             );
         Action = action;

@@ -19,10 +19,4 @@ public interface IObservableCollection<T> : ICollection<T>
     /// </para>
     /// </summary>
     public bool TriggerRemoveActionOnClear { get; set; }
-
-    /// <summary>
-    /// 添加多个项目
-    /// </summary>
-    /// <param name="items">项目</param>
-    public void AddRange(IEnumerable<T> items);
 }

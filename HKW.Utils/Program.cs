@@ -12,9 +12,10 @@ internal class Program
 
     private static void Main(string[] args)
     {
-        var dict = new ObservableDictionary<int, int>();
-        var rdict = new ReadOnlyObservableDictionary<int, int>(dict);
-        dict.Add(dict.Count, dict.Count);
+        ObservableCollection<int> oc = new();
+        ObservableList<int> ints = new();
+        ints.Add(1);
+        oc.Add(1);
         //stopWatch.Start();
         //CountdownTimer timer = new();
         //timer.Completed += () =>

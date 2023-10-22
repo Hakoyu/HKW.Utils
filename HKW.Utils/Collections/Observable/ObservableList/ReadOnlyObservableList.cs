@@ -21,13 +21,13 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     /// 原始可观察列表
     /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public IObservableList<T> _list;
+    public IObservableListX<T> _list;
 
     #region Ctor
 
     /// <inheritdoc/>
     /// <param name="list">引用列表</param>
-    public ReadOnlyObservableList(IObservableList<T> list)
+    public ReadOnlyObservableList(IObservableListX<T> list)
     {
         _list = list;
     }
@@ -115,31 +115,6 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     {
         get => _list.TriggerRemoveActionOnClear;
         set => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
-    }
-
-    void IObservableList<T>.InsertRange(int index, IEnumerable<T> collection)
-    {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
-    }
-
-    void IObservableList<T>.RemoveRange(int index, int count)
-    {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
-    }
-
-    void IObservableList<T>.ChangeRange(IEnumerable<T> collection, int index)
-    {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
-    }
-
-    void IObservableList<T>.ChangeRange(IEnumerable<T> collection, int index, int count)
-    {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
-    }
-
-    void IObservableCollection<T>.AddRange(IEnumerable<T> items)
-    {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     #endregion IObservableList

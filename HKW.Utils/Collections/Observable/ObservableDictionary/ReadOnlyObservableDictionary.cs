@@ -47,23 +47,10 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     public int Count => ((IReadOnlyDictionary<TKey, TValue>)_dictionary).Count;
 
     /// <inheritdoc/>
-    public IObservableList<TKey> ObservableKeys => _dictionary.ObservableKeys;
-
-    /// <inheritdoc/>
-    public IObservableList<TValue> ObservableValues => _dictionary.ObservableValues;
-
-    /// <inheritdoc/>
     public bool IsReadOnly => true;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     IEqualityComparer<TKey> IObservableDictionary<TKey, TValue>.Comparer => _dictionary.Comparer;
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    bool IObservableDictionary<TKey, TValue>.ObservableKeysAndValues
-    {
-        get => _dictionary.ObservableKeysAndValues;
-        set => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
-    }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     ICollection<TKey> IDictionary<TKey, TValue>.Keys => _dictionary.Keys;
@@ -125,9 +112,7 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
         throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
-    void IObservableCollection<KeyValuePair<TKey, TValue>>.AddRange(
-        IEnumerable<KeyValuePair<TKey, TValue>> items
-    )
+    void IObservableDictionary<TKey, TValue>.AddRange(IEnumerable<KeyValuePair<TKey, TValue>> items)
     {
         throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }

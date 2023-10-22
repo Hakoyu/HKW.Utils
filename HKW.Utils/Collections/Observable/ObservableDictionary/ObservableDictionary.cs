@@ -319,7 +319,7 @@ public class ObservableDictionary<TKey, TValue>
     {
         if (DictionaryChanging is null)
             return false;
-        return OnDictionaryChanging(new(DictionaryChangeAction.ValueChange, newPairs, oldPairs));
+        return OnDictionaryChanging(new(DictionaryChangeAction.Replace, newPairs, oldPairs));
     }
 
     /// <summary>
@@ -390,7 +390,7 @@ public class ObservableDictionary<TKey, TValue>
     )
     {
         if (DictionaryChanged is not null)
-            OnDictionaryChanged(new(DictionaryChangeAction.ValueChange, newPairs, oldPairs));
+            OnDictionaryChanged(new(DictionaryChangeAction.Replace, newPairs, oldPairs));
         if (CollectionChanged is not null)
             OnCollectionChanged(
                 new(

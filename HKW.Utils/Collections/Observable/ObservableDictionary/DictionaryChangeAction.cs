@@ -21,7 +21,7 @@ public enum DictionaryChangeAction
     Clear,
 
     /// <summary>
-    /// 修改值
+    /// 替换
     /// </summary>
-    ValueChange,
+    Replace,
 }

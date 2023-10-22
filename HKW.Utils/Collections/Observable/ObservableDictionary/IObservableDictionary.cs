@@ -24,6 +24,12 @@ public interface IObservableDictionary<TKey, TValue>
     public IEqualityComparer<TKey> Comparer { get; }
 
     /// <summary>
+    /// 添加多个项目
+    /// </summary>
+    /// <param name="items">项目</param>
+    public void AddRange(IEnumerable<KeyValuePair<TKey, TValue>> items);
+
+    /// <summary>
     /// 尝试添加多个键值对
     /// </summary>
     /// <param name="collection">键值对</param>

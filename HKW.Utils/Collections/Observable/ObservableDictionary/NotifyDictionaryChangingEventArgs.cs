@@ -83,7 +83,7 @@ public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
     }
 
     /// <inheritdoc/>
-    /// <summary>仅用于 <see cref="DictionaryChangeAction.ValueChange"/></summary>
+    /// <summary>仅用于 <see cref="DictionaryChangeAction.Replace"/></summary>
     /// <param name="action">改变行动</param>
     /// <param name="newPairs">新键值对</param>
     /// <param name="oldPairs">旧键值对</param>
@@ -93,9 +93,9 @@ public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
         IList<KeyValuePair<TKey, TValue>> oldPairs
     )
     {
-        if (action != DictionaryChangeAction.ValueChange)
+        if (action != DictionaryChangeAction.Replace)
             throw new ArgumentException(
-                $"{ExceptionMessage.MustBe} {nameof(DictionaryChangeAction.ValueChange)}",
+                $"{ExceptionMessage.MustBe} {nameof(DictionaryChangeAction.Replace)}",
                 nameof(action)
             );
         Action = action;
