@@ -28,14 +28,14 @@ public static partial class HKWExtensions
 public readonly struct ItemInfo
 {
     /// <summary>
-    /// 值
-    /// </summary>
-    public object Value { get; }
-
-    /// <summary>
     /// 索引值
     /// </summary>
     public int Index { get; }
+
+    /// <summary>
+    /// 值
+    /// </summary>
+    public object Value { get; }
 
     /// <inheritdoc/>
     /// <param name="value">值</param>
