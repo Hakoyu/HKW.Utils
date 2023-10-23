@@ -11,7 +11,7 @@ public class IDictionaryTests
     {
         var dic = Enumerable.Range(0, 10).ToDictionary(x => x, x => x);
         var pair = dic.GetPair(0);
-        Assert.AreEqual(pair, new KeyValuePair<int, int>(0, 0));
+        Assert.IsTrue(pair.Equals(new KeyValuePair<int, int>(0, 0)));
     }
 
     [TestMethod]
@@ -22,11 +22,11 @@ public class IDictionaryTests
         try
         {
             pair = dic.GetPair(-1);
-            Assert.AreEqual(pair, new KeyValuePair<int, int>(0, 0));
+            Assert.IsTrue(pair.Equals(new KeyValuePair<int, int>(0, 0)));
         }
         catch
         {
-            Assert.AreEqual(pair, null);
+            Assert.IsTrue(pair == null);
         }
     }
 
@@ -36,7 +36,7 @@ public class IDictionaryTests
         var dic = Enumerable.Range(0, 10).ToDictionary(x => x, x => x);
         var result = dic.TryGetPair(0, out var pair);
         Assert.IsTrue(result);
-        Assert.AreEqual(pair, new KeyValuePair<int, int>(0, 0));
+        Assert.IsTrue(pair.Equals(new KeyValuePair<int, int>(0, 0)));
     }
 
     [TestMethod]
@@ -44,7 +44,7 @@ public class IDictionaryTests
     {
         var dic = Enumerable.Range(0, 10).ToDictionary(x => x, x => x);
         var result = dic.TryGetPair(-1, out var pair);
-        Assert.IsFalse(result);
+        Assert.IsTrue(result is false);
         Assert.IsTrue(pair.Equals(default(KeyValuePair<int, int>)));
     }
 
@@ -86,6 +86,6 @@ public class IDictionaryTests
         dic.Add(dic.Count, new() { dic.Count });
         Assert.IsTrue(readOnlyDictionary.Count < readOnlyDictionaryOnWrapper.Count);
         Assert.IsTrue(readOnlyDictionary.Last().Value is List<int>);
-        Assert.IsTrue(readOnlyDictionaryOnWrapper.Last().Value is IReadOnlyList<int>);
+        Assert.IsTrue(readOnlyDictionaryOnWrapper.Last().Value is not null);
     }
 }

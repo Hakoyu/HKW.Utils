@@ -10,7 +10,7 @@ public class StringTests
     {
         string str1 = "red";
         string str2 = str1.FirstLetterCapital();
-        Assert.AreEqual(str2, "Red");
+        Assert.IsTrue(str2 == "Red");
     }
 
     [TestMethod]
@@ -18,9 +18,9 @@ public class StringTests
     {
         string str1 = "rEd";
         string str2 = str1.FirstLetterCapital();
-        Assert.AreEqual(str2, "REd");
+        Assert.IsTrue(str2 == "REd");
         string str3 = str1.FirstLetterCapital(true);
-        Assert.AreEqual(str3, "Red");
+        Assert.IsTrue(str3 == "Red");
     }
 
     [TestMethod]
@@ -28,7 +28,7 @@ public class StringTests
     {
         string str1 = "red red red";
         string str2 = str1.ToPascal();
-        Assert.AreEqual(str2, "RedRedRed");
+        Assert.IsTrue(str2 == "RedRedRed");
     }
 
     [TestMethod]
@@ -36,7 +36,7 @@ public class StringTests
     {
         string str1 = "red red red";
         string str2 = str1.ToPascal(removeSeparator: false);
-        Assert.AreEqual(str2, "Red Red Red");
+        Assert.IsTrue(str2 == "Red Red Red");
     }
 
     [TestMethod]
@@ -44,8 +44,8 @@ public class StringTests
     {
         string str1 = "rEd rEd rEd";
         string str2 = str1.ToPascal();
-        Assert.AreEqual(str2, "REdREdREd");
+        Assert.IsTrue(str2 == "REdREdREd");
         string str3 = str1.ToPascal(otherToLower: true);
-        Assert.AreEqual(str3, "RedRedRed");
+        Assert.IsTrue(str3 == "RedRedRed");
     }
 }

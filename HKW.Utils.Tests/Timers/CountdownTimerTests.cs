@@ -27,16 +27,16 @@ public class CountdownTimerTests
         };
         timer.Start(100);
         Task.Delay(1000).Wait();
-        Assert.AreEqual(completedCount, 1);
-        Assert.AreEqual(stoppedCount, 0);
+        Assert.IsTrue(completedCount == 1);
+        Assert.IsTrue(stoppedCount == 0);
         timer.Start(100);
         timer.Stop();
-        Assert.AreEqual(completedCount, 1);
-        Assert.AreEqual(stoppedCount, 1);
+        Assert.IsTrue(completedCount == 1);
+        Assert.IsTrue(stoppedCount == 1);
         Task.Delay(100).Wait();
         timer.Continue();
         Task.Delay(1000).Wait();
-        Assert.AreEqual(completedCount, 2);
-        Assert.AreEqual(stoppedCount, 1);
+        Assert.IsTrue(completedCount == 2);
+        Assert.IsTrue(stoppedCount == 1);
     }
 }

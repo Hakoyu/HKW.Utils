@@ -24,6 +24,6 @@ public class TimerTriggerTests
         };
         timer.Start(100, 100);
         Task.Delay(3000).Wait();
-        Assert.AreEqual(timer.State.Counter, triggerCount);
+        Assert.IsTrue(timer.State.Counter == triggerCount);
     }
 }

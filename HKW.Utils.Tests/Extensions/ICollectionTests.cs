@@ -18,6 +18,6 @@ public class ICollectionTests
     {
         var list = new List<int>();
         var hasValue = list.HasValue();
-        Assert.IsFalse(hasValue);
+        Assert.IsTrue(hasValue is false);
     }
 }
