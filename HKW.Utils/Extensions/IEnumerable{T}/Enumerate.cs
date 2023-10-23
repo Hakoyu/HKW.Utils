@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,6 +27,7 @@ public static partial class HKWExtensions
 /// 项信息
 /// </summary>
 /// <typeparam name="T"></typeparam>
+[DebuggerDisplay("[{Index}, {Value}]")]
 public readonly struct ItemInfo<T>
 {
     /// <summary>
@@ -45,5 +47,11 @@ public readonly struct ItemInfo<T>
     {
         Index = index;
         Value = value;
+    }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return $"[{Index}, {Value}]";
     }
 }
