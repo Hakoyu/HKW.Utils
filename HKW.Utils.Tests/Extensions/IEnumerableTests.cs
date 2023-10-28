@@ -20,10 +20,11 @@ public class IEnumerableTests
     public void Enumerate()
     {
         var index = 0;
-        foreach (var item in Enumerable.Range(0, 10).Enumerate())
+        var list = Enumerable.Range(0, 10).ToList();
+        foreach (var (i, item) in list.EnumerateIndex())
         {
-            Assert.IsTrue(index == item.Value);
-            Assert.IsTrue(index == item.Index);
+            Assert.IsTrue(index == i);
+            Assert.IsTrue(list[i] == item);
             index++;
         }
     }

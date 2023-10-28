@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace HKW.HKWUtils.Extensions;
+﻿namespace HKW.HKWUtils.Extensions;
 
 public static partial class HKWExtensions
 {
