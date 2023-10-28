@@ -8,7 +8,7 @@ public static partial class HKWExtensions
     /// 枚举出带有索引值的枚举值
     /// </summary>
     /// <param name="collection">集合</param>
-    /// <returns>带有索引的枚举值</returns>
+    /// <returns>带有索引的枚举值 (Index, Item)</returns>
     public static IEnumerable<(int, object)> EnumerateIndex(this IEnumerable collection)
     {
         var index = 0;
