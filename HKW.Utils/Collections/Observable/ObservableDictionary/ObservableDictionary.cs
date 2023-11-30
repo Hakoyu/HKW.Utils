@@ -1,6 +1,6 @@
 ﻿using HKW.HKWUtils.DebugViews;
-using HKW.HKWUtils.Events;
 using HKW.HKWUtils.Extensions;
+using HKW.HKWUtils.Natives;
 using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -38,12 +38,12 @@ public class ObservableDictionary<TKey, TValue>
 
     /// <inheritdoc/>
     public ObservableDictionary()
-        : this(null!, null!) { }
+        : this(null!, null) { }
 
     /// <inheritdoc/>
     /// <param name="collection">键值对集合</param>
     public ObservableDictionary(IEnumerable<KeyValuePair<TKey, TValue>> collection)
-        : this(collection, null!) { }
+        : this(collection, null) { }
 
     /// <inheritdoc/>
     /// <param name="comparer">比较器</param>
@@ -55,19 +55,22 @@ public class ObservableDictionary<TKey, TValue>
     /// <param name="comparer">比较器</param>
     public ObservableDictionary(
         IEnumerable<KeyValuePair<TKey, TValue>> collection,
-        IEqualityComparer<TKey> comparer
+        IEqualityComparer<TKey>? comparer
     )
     {
-        if (collection is not null && comparer is not null)
+        if (collection is not null)
             _dictionary = new(collection, comparer);
-        else if (collection is not null)
-            _dictionary = new(collection);
         else if (comparer is not null)
             _dictionary = new(comparer);
         else
             _dictionary = new();
     }
 
+    /// <inheritdoc/>
+    void IReadOnlyObservableCollection<KeyValuePair<TKey, TValue>>.Close()
+    {
+        throw new NotImplementedException(ExceptionMessage.IsNotReadOnlyCollection);
+    }
     #endregion Ctor
 
     #region IDictionaryT
@@ -340,14 +343,12 @@ public class ObservableDictionary<TKey, TValue>
         NotifyDictionaryChangingEventArgs<TKey, TValue> args
     )
     {
-        DictionaryChanging?.Invoke(args);
+        DictionaryChanging?.Invoke(this, args);
         return args.Cancel;
     }
 
     /// <inheritdoc/>
-    public event XCancelEventHandler<
-        NotifyDictionaryChangingEventArgs<TKey, TValue>
-    >? DictionaryChanging;
+    public event ObservableDictionaryChangingEventHandler<TKey, TValue>? DictionaryChanging;
 
     #endregion DictionaryChanging
 
@@ -414,14 +415,14 @@ public class ObservableDictionary<TKey, TValue>
     /// 字典改变后
     /// </summary>
     /// <param name="args">参数</param>
-    protected virtual void OnDictionaryChanged(NotifyDictionaryChangingEventArgs<TKey, TValue> args)
+    protected virtual void OnDictionaryChanged(NotifyDictionaryChangedEventArgs<TKey, TValue> args)
     {
-        DictionaryChanged?.Invoke(args);
+        DictionaryChanged?.Invoke(this, args);
         OnCountPropertyChanged();
     }
 
     /// <inheritdoc/>
-    public event XEventHandler<NotifyDictionaryChangingEventArgs<TKey, TValue>>? DictionaryChanged;
+    public event ObservableDictionaryChangedEventHandler<TKey, TValue>? DictionaryChanged;
 
     #endregion DictionaryChanged
 

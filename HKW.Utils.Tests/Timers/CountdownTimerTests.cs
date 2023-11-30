@@ -17,11 +17,11 @@ public class CountdownTimerTests
         var stoppedCount = 0;
         var timer = new CountdownTimer();
         timer.AutoReset = true;
-        timer.Completed += () =>
+        timer.Completed += (s) =>
         {
             completedCount++;
         };
-        timer.Stopped += () =>
+        timer.Stopped += (s) =>
         {
             stoppedCount++;
         };

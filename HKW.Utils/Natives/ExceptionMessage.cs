@@ -10,6 +10,7 @@ internal static class ExceptionMessage
 
     //public const string IsReadOnly = "It's read only";
     public const string IsReadOnlyCollection = "It's read only collection";
+    public const string IsNotReadOnlyCollection = "It's not read only collection";
     public const string NotStop = "Not stop";
     public const string NotBe = "Not be";
     public const string CannotCancelInReadOnlyCollection =

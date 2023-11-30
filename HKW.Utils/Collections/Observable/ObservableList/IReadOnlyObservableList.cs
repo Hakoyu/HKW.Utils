@@ -9,6 +9,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="T">类型</typeparam>
 public interface IReadOnlyObservableList<T>
     : IReadOnlyList<T>,
+        IReadOnlyObservableCollection<T>,
         INotifyListChanged<T>,
         INotifyCollectionChanged,
         INotifyPropertyChanged { }

@@ -1,5 +1,5 @@
 ﻿using HKW.HKWUtils.DebugViews;
-using HKW.HKWUtils.Events;
+
 using HKW.HKWUtils.Natives;
 using System.Collections;
 using System.Collections.Specialized;
@@ -14,7 +14,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
-public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>
+public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>, IDisposable
 {
     /// <summary>
     /// 原始可观察列表
@@ -29,9 +29,68 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     public ReadOnlyObservableList(IObservableListX<T> list)
     {
         _list = list;
+        _list.ListChanging += List_ListChanging;
+        _list.ListChanged += List_ListChanged;
+        _list.CollectionChanged += List_CollectionChanged;
+        _list.PropertyChanged += List_PropertyChanged;
     }
 
-    #endregion Ctor
+    private void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
+    {
+        ListChanging?.Invoke(this, e);
+    }
+
+    private void List_ListChanged(IObservableList<T> sender, NotifyListChangedEventArgs<T> e)
+    {
+        ListChanged?.Invoke(this, e);
+    }
+
+    private void List_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        CollectionChanged?.Invoke(this, e);
+    }
+
+    private void List_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        PropertyChanged?.Invoke(this, e);
+    }
+    #endregion
+
+    #region Dispose
+    private bool _disposedValue;
+
+    /// <inheritdoc/>
+    ~ReadOnlyObservableList() => Dispose(false);
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="disposing"></param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposedValue)
+            return;
+        if (disposing)
+            Close();
+        _disposedValue = true;
+    }
+
+    /// <inheritdoc/>
+    public void Close()
+    {
+        _list.ListChanging -= List_ListChanging;
+        _list.ListChanged -= List_ListChanged;
+        _list.CollectionChanged -= List_CollectionChanged;
+        _list.PropertyChanged -= List_PropertyChanged;
+    }
+    #endregion
 
     #region IReadOnlyObservableList
 
@@ -121,31 +180,16 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     #region Event
 
     /// <inheritdoc/>
-    event XCancelEventHandler<NotifyListChangingEventArgs<T>>? INotifyListChanging<T>.ListChanging
-    {
-        add => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
-        remove => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
-    }
+    /// <remarks>!!!注意!!! 使用 <see cref="CancelEventArgs.Cancel"/> 不会产生效果</remarks>
+    public event ObservableListChangingEventHandler<T>? ListChanging;
 
     /// <inheritdoc/>
-    public event XEventHandler<NotifyListChangedEventArgs<T>>? ListChanged
-    {
-        add => _list.ListChanged += value;
-        remove => _list.ListChanged -= value;
-    }
+    public event ObservableListChangedEventHandler<T>? ListChanged;
 
     /// <inheritdoc/>
-    public event NotifyCollectionChangedEventHandler? CollectionChanged
-    {
-        add => _list.CollectionChanged += value;
-        remove => _list.CollectionChanged -= value;
-    }
+    public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
     /// <inheritdoc/>
-    public event PropertyChangedEventHandler? PropertyChanged
-    {
-        add => _list.PropertyChanged += value;
-        remove => _list.PropertyChanged -= value;
-    }
+    public event PropertyChangedEventHandler? PropertyChanged;
     #endregion Event
 }

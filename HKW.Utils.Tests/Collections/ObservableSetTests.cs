@@ -14,7 +14,7 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (e) =>
+        observableSet.SetChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Add);
@@ -33,7 +33,7 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (e) =>
+        observableSet.SetChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Add);
@@ -53,7 +53,7 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanged += (e) =>
+        observableSet.SetChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Add);
@@ -72,7 +72,7 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (e) =>
+        observableSet.SetChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Remove);
@@ -91,7 +91,7 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (e) =>
+        observableSet.SetChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Remove);
@@ -111,7 +111,7 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanged += (e) =>
+        observableSet.SetChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Remove);
@@ -130,7 +130,7 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (e) =>
+        observableSet.SetChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Clear);
@@ -149,7 +149,7 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (e) =>
+        observableSet.SetChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Clear);
@@ -169,7 +169,7 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanged += (e) =>
+        observableSet.SetChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Clear);
@@ -189,7 +189,7 @@ public class ObservableSetTests
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
-        observableSet.SetChanged += (e) =>
+        observableSet.SetChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Intersect);
@@ -209,7 +209,7 @@ public class ObservableSetTests
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
-        observableSet.SetChanged += (e) =>
+        observableSet.SetChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Except);
@@ -229,7 +229,7 @@ public class ObservableSetTests
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
-        observableSet.SetChanged += (e) =>
+        observableSet.SetChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.SymmetricExcept);
@@ -250,7 +250,7 @@ public class ObservableSetTests
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
-        observableSet.SetChanged += (e) =>
+        observableSet.SetChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Union);

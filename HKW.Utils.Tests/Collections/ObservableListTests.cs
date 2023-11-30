@@ -12,7 +12,7 @@ public class ObservableListTests
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
         var observableList = new ObservableListX<int>(list);
-        observableList.ListChanging += (e) =>
+        observableList.ListChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == ListChangeAction.Add);
@@ -31,7 +31,7 @@ public class ObservableListTests
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
         var observableList = new ObservableListX<int>(list);
-        observableList.ListChanging += (e) =>
+        observableList.ListChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == ListChangeAction.Add);
@@ -51,7 +51,7 @@ public class ObservableListTests
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
         var observableList = new ObservableListX<int>(list);
-        observableList.ListChanged += (e) =>
+        observableList.ListChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == ListChangeAction.Add);
@@ -72,7 +72,7 @@ public class ObservableListTests
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
         var observableList = new ObservableListX<int>(list);
-        observableList.ListChanging += (e) =>
+        observableList.ListChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == ListChangeAction.Add);
@@ -91,7 +91,7 @@ public class ObservableListTests
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
         var observableList = new ObservableListX<int>(list);
-        observableList.ListChanging += (e) =>
+        observableList.ListChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == ListChangeAction.Add);
@@ -111,7 +111,7 @@ public class ObservableListTests
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
         var observableList = new ObservableListX<int>(list);
-        observableList.ListChanged += (e) =>
+        observableList.ListChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == ListChangeAction.Add);
@@ -132,7 +132,7 @@ public class ObservableListTests
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
         var observableList = new ObservableListX<int>(list);
-        observableList.ListChanging += (e) =>
+        observableList.ListChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == ListChangeAction.Remove);
@@ -151,7 +151,7 @@ public class ObservableListTests
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
         var observableList = new ObservableListX<int>(list);
-        observableList.ListChanging += (e) =>
+        observableList.ListChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == ListChangeAction.Remove);
@@ -171,7 +171,7 @@ public class ObservableListTests
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
         var observableList = new ObservableListX<int>(list);
-        observableList.ListChanged += (e) =>
+        observableList.ListChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == ListChangeAction.Remove);
@@ -192,7 +192,7 @@ public class ObservableListTests
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
         var observableList = new ObservableListX<int>(list);
-        observableList.ListChanging += (e) =>
+        observableList.ListChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == ListChangeAction.Clear);
@@ -211,7 +211,7 @@ public class ObservableListTests
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
         var observableList = new ObservableListX<int>(list);
-        observableList.ListChanging += (e) =>
+        observableList.ListChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == ListChangeAction.Clear);
@@ -231,7 +231,7 @@ public class ObservableListTests
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
         var observableList = new ObservableListX<int>(list);
-        observableList.ListChanged += (e) =>
+        observableList.ListChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == ListChangeAction.Clear);
@@ -252,7 +252,7 @@ public class ObservableListTests
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
         var observableList = new ObservableListX<int>(list);
-        observableList.ListChanging += (e) =>
+        observableList.ListChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == ListChangeAction.Replace);
@@ -272,7 +272,7 @@ public class ObservableListTests
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
         var observableList = new ObservableListX<int>(list);
-        observableList.ListChanging += (e) =>
+        observableList.ListChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == ListChangeAction.Replace);
@@ -293,7 +293,7 @@ public class ObservableListTests
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
         var observableList = new ObservableListX<int>(list);
-        observableList.ListChanged += (e) =>
+        observableList.ListChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == ListChangeAction.Replace);

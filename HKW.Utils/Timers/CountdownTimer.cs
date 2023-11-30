@@ -1,5 +1,4 @@
-﻿using HKW.HKWUtils.Events;
-using HKW.HKWUtils.Natives;
+﻿using HKW.HKWUtils.Natives;
 using System.ComponentModel;
 using System.Diagnostics;
 
@@ -72,7 +71,7 @@ public class CountdownTimer
             if (IsCompleted is not false)
                 return;
             IsCompleted = true;
-            Completed?.Invoke();
+            Completed?.Invoke(this);
             IsRunning = false;
             if (AutoReset)
                 Reset();
@@ -136,7 +135,7 @@ public class CountdownTimer
         {
             IsRunning = false;
             _timer.Stop();
-            Stopped?.Invoke();
+            Stopped?.Invoke(this);
         }
     }
 
@@ -155,10 +154,16 @@ public class CountdownTimer
     /// <summary>
     /// 倒计时完成事件
     /// </summary>
-    public event XEventHandler? Completed;
+    public event CountdownEventHandler? Completed;
 
     /// <summary>
     /// 倒计时停止事件
     /// </summary>
-    public event XEventHandler? Stopped;
+    public event CountdownEventHandler? Stopped;
 }
+
+/// <summary>
+/// 倒计时完成事件
+/// </summary>
+/// <param name="sender"></param>
+public delegate void CountdownEventHandler(CountdownTimer sender);

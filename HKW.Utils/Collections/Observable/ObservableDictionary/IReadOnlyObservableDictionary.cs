@@ -10,6 +10,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TValue">值类型</typeparam>
 public interface IReadOnlyObservableDictionary<TKey, TValue>
     : IReadOnlyDictionary<TKey, TValue>,
+        IReadOnlyObservableCollection<KeyValuePair<TKey, TValue>>,
         INotifyDictionaryChanged<TKey, TValue>,
         INotifyCollectionChanged,
         INotifyPropertyChanged

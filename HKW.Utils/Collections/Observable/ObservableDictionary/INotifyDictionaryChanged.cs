@@ -1,6 +1,4 @@
-﻿using HKW.HKWUtils.Events;
-
-namespace HKW.HKWUtils.Collections;
+﻿namespace HKW.HKWUtils.Collections;
 
 /// <summary>
 /// 通知字典改变后接口
@@ -13,5 +11,5 @@ public interface INotifyDictionaryChanged<TKey, TValue>
     /// <summary>
     /// 字典改变后事件
     /// </summary>
-    public event XEventHandler<NotifyDictionaryChangingEventArgs<TKey, TValue>>? DictionaryChanged;
+    public event ObservableDictionaryChangedEventHandler<TKey, TValue>? DictionaryChanged;
 }

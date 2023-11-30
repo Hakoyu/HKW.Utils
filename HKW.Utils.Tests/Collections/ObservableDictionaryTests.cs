@@ -13,7 +13,7 @@ public class ObservableDictionaryTests
         var dictionary = Enumerable.Range(0, 10).ToDictionary(i => i, i => i);
         var observableDictionary = new ObservableDictionary<int, int>(dictionary);
         var newPair = KeyValuePair.Create(10, 10);
-        observableDictionary.DictionaryChanging += (e) =>
+        observableDictionary.DictionaryChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == DictionaryChangeAction.Add);
@@ -32,7 +32,7 @@ public class ObservableDictionaryTests
         var dictionary = Enumerable.Range(0, 10).ToDictionary(i => i, i => i);
         var observableDictionary = new ObservableDictionary<int, int>(dictionary);
         var newPair = KeyValuePair.Create(10, 10);
-        observableDictionary.DictionaryChanging += (e) =>
+        observableDictionary.DictionaryChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == DictionaryChangeAction.Add);
@@ -51,7 +51,7 @@ public class ObservableDictionaryTests
         var triggered = false;
         var dictionary = Enumerable.Range(0, 10).ToDictionary(i => i, i => i);
         var observableDictionary = new ObservableDictionary<int, int>(dictionary);
-        observableDictionary.DictionaryChanged += (e) =>
+        observableDictionary.DictionaryChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == DictionaryChangeAction.Add);
@@ -71,7 +71,7 @@ public class ObservableDictionaryTests
         var dictionary = Enumerable.Range(0, 10).ToDictionary(i => i, i => i);
         var observableDictionary = new ObservableDictionary<int, int>(dictionary);
         var addPairs = Enumerable.Range(10, 5).ToDictionary(i => i, i => i);
-        observableDictionary.DictionaryChanging += (e) =>
+        observableDictionary.DictionaryChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == DictionaryChangeAction.Add);
@@ -91,7 +91,7 @@ public class ObservableDictionaryTests
         var dictionary = Enumerable.Range(0, 10).ToDictionary(i => i, i => i);
         var observableDictionary = new ObservableDictionary<int, int>(dictionary);
         var addPairs = Enumerable.Range(10, 5).ToDictionary(i => i, i => i);
-        observableDictionary.DictionaryChanging += (e) =>
+        observableDictionary.DictionaryChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == DictionaryChangeAction.Add);
@@ -112,7 +112,7 @@ public class ObservableDictionaryTests
         var dictionary = Enumerable.Range(0, 10).ToDictionary(i => i, i => i);
         var observableDictionary = new ObservableDictionary<int, int>(dictionary);
         var addPairs = Enumerable.Range(10, 5).ToDictionary(i => i, i => i);
-        observableDictionary.DictionaryChanged += (e) =>
+        observableDictionary.DictionaryChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == DictionaryChangeAction.Add);
@@ -132,7 +132,7 @@ public class ObservableDictionaryTests
         var dictionary = Enumerable.Range(0, 10).ToDictionary(i => i, i => i);
         var observableDictionary = new ObservableDictionary<int, int>(dictionary);
         var newPair = KeyValuePair.Create(0, 0);
-        observableDictionary.DictionaryChanging += (e) =>
+        observableDictionary.DictionaryChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == DictionaryChangeAction.Remove);
@@ -151,7 +151,7 @@ public class ObservableDictionaryTests
         var dictionary = Enumerable.Range(0, 10).ToDictionary(i => i, i => i);
         var observableDictionary = new ObservableDictionary<int, int>(dictionary);
         var newPair = KeyValuePair.Create(0, 0);
-        observableDictionary.DictionaryChanging += (e) =>
+        observableDictionary.DictionaryChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == DictionaryChangeAction.Remove);
@@ -171,7 +171,7 @@ public class ObservableDictionaryTests
         var dictionary = Enumerable.Range(0, 10).ToDictionary(i => i, i => i);
         var observableDictionary = new ObservableDictionary<int, int>(dictionary);
         var newPair = KeyValuePair.Create(0, 0);
-        observableDictionary.DictionaryChanged += (e) =>
+        observableDictionary.DictionaryChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == DictionaryChangeAction.Remove);
@@ -189,7 +189,7 @@ public class ObservableDictionaryTests
         var triggered = false;
         var dictionary = Enumerable.Range(0, 10).ToDictionary(i => i, i => i);
         var observableDictionary = new ObservableDictionary<int, int>(dictionary);
-        observableDictionary.DictionaryChanging += (e) =>
+        observableDictionary.DictionaryChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == DictionaryChangeAction.Clear);
@@ -207,7 +207,7 @@ public class ObservableDictionaryTests
         var triggered = false;
         var dictionary = Enumerable.Range(0, 10).ToDictionary(i => i, i => i);
         var observableDictionary = new ObservableDictionary<int, int>(dictionary);
-        observableDictionary.DictionaryChanging += (e) =>
+        observableDictionary.DictionaryChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == DictionaryChangeAction.Clear);
@@ -226,7 +226,7 @@ public class ObservableDictionaryTests
         var triggered = false;
         var dictionary = Enumerable.Range(0, 10).ToDictionary(i => i, i => i);
         var observableDictionary = new ObservableDictionary<int, int>(dictionary);
-        observableDictionary.DictionaryChanged += (e) =>
+        observableDictionary.DictionaryChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == DictionaryChangeAction.Clear);
@@ -244,7 +244,7 @@ public class ObservableDictionaryTests
         var triggered = false;
         var dictionary = Enumerable.Range(0, 10).ToDictionary(i => i, i => i);
         var observableDictionary = new ObservableDictionary<int, int>(dictionary);
-        observableDictionary.DictionaryChanging += (e) =>
+        observableDictionary.DictionaryChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == DictionaryChangeAction.Replace);
@@ -265,7 +265,7 @@ public class ObservableDictionaryTests
         var triggered = false;
         var dictionary = Enumerable.Range(0, 10).ToDictionary(i => i, i => i);
         var observableDictionary = new ObservableDictionary<int, int>(dictionary);
-        observableDictionary.DictionaryChanging += (e) =>
+        observableDictionary.DictionaryChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == DictionaryChangeAction.Replace);
@@ -287,7 +287,7 @@ public class ObservableDictionaryTests
         var triggered = false;
         var dictionary = Enumerable.Range(0, 10).ToDictionary(i => i, i => i);
         var observableDictionary = new ObservableDictionary<int, int>(dictionary);
-        observableDictionary.DictionaryChanged += (e) =>
+        observableDictionary.DictionaryChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == DictionaryChangeAction.Replace);

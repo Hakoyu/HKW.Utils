@@ -1,5 +1,5 @@
 ﻿using HKW.HKWUtils.DebugViews;
-using HKW.HKWUtils.Events;
+using HKW.HKWUtils.Natives;
 using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -45,6 +45,11 @@ public class ObservableListBase<T> : IObservableList<T>, IReadOnlyObservableList
         _list = new(collection);
     }
 
+    /// <inheritdoc/>
+    void IReadOnlyObservableCollection<T>.Close()
+    {
+        throw new NotImplementedException(ExceptionMessage.IsNotReadOnlyCollection);
+    }
     #endregion Ctor
 
     #region IListT
@@ -229,12 +234,12 @@ public class ObservableListBase<T> : IObservableList<T>, IReadOnlyObservableList
     /// <param name="args">参数</param>
     protected virtual bool OnListChanging(NotifyListChangingEventArgs<T> args)
     {
-        ListChanging?.Invoke(args);
+        ListChanging?.Invoke(this, args);
         return args.Cancel;
     }
 
     /// <inheritdoc/>
-    public event XCancelEventHandler<NotifyListChangingEventArgs<T>>? ListChanging;
+    public event ObservableListChangingEventHandler<T>? ListChanging;
 
     #endregion ListChanging
 
@@ -299,12 +304,12 @@ public class ObservableListBase<T> : IObservableList<T>, IReadOnlyObservableList
     /// <param name="args">参数</param>
     protected virtual void OnListChanged(NotifyListChangedEventArgs<T> args)
     {
-        ListChanged?.Invoke(args);
+        ListChanged?.Invoke(this, args);
         OnCountPropertyChanged();
     }
 
     /// <inheritdoc/>
-    public event XEventHandler<NotifyListChangedEventArgs<T>>? ListChanged;
+    public event ObservableListChangedEventHandler<T>? ListChanged;
 
     #endregion ListChanged
 

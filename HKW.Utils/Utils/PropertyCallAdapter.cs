@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HKW.HKWUtils;
 
@@ -67,7 +62,7 @@ public class PropertyCallAdapterProvider<TTarget>
     /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
     public static bool TryGetInstance(
         string propertyName,
-        [MaybeNullWhen(true)] out IPropertyCallAdapter<TTarget>? propertyCallAdapter
+        [MaybeNullWhen(false)] out IPropertyCallAdapter<TTarget> propertyCallAdapter
     )
     {
         if (_instances.TryGetValue(propertyName, out var instance))

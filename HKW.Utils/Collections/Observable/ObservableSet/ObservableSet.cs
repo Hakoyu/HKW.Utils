@@ -1,5 +1,5 @@
 ﻿using HKW.HKWUtils.DebugViews;
-using HKW.HKWUtils.Events;
+using HKW.HKWUtils.Natives;
 using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -27,47 +27,50 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
 
     /// <inheritdoc/>
     public ObservableSet()
-    {
-        _set = new();
-    }
+        : this(null, null, null) { }
 
     /// <inheritdoc/>
     /// <param name="capacity">容量</param>
     public ObservableSet(int capacity)
-    {
-        _set = new(capacity);
-    }
+        : this(capacity, null, null) { }
 
     /// <inheritdoc/>
     /// <param name="comparer">比较器</param>
     public ObservableSet(IEqualityComparer<T> comparer)
-    {
-        _set = new(comparer);
-    }
+        : this(null, null, comparer) { }
 
     /// <inheritdoc/>
     /// <param name="collection">集合</param>
     public ObservableSet(IEnumerable<T> collection)
-    {
-        _set = new(collection);
-    }
+        : this(null, collection, null) { }
 
     /// <inheritdoc/>
     ///  <param name="collection">集合</param>
     /// <param name="comparer">比较器</param>
     public ObservableSet(IEnumerable<T> collection, IEqualityComparer<T>? comparer)
-    {
-        _set = new(collection, comparer);
-    }
+        : this(null, collection, comparer) { }
 
     /// <inheritdoc/>
     /// <param name="capacity">容量</param>
     /// <param name="comparer">比较器</param>
     public ObservableSet(int capacity, IEqualityComparer<T>? comparer)
+        : this(capacity, null, comparer) { }
+
+    private ObservableSet(int? capacity, IEnumerable<T>? collection, IEqualityComparer<T>? comparer)
     {
-        _set = new(capacity, comparer);
+        if (capacity is not null)
+            _set = new(capacity.Value, comparer);
+        if (collection is not null)
+            _set = new(collection, comparer);
+        else
+            _set = new();
     }
 
+    /// <inheritdoc/>
+    void IReadOnlyObservableCollection<T>.Close()
+    {
+        throw new NotImplementedException(ExceptionMessage.IsNotReadOnlyCollection);
+    }
     #endregion Ctor
 
     #region ISet
@@ -292,12 +295,12 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <param name="args">参数</param>
     protected virtual bool OnSetChanging(NotifySetChangingEventArgs<T> args)
     {
-        SetChanging?.Invoke(args);
+        SetChanging?.Invoke(this, args);
         return args.Cancel;
     }
 
     /// <inheritdoc/>
-    public event XCancelEventHandler<NotifySetChangingEventArgs<T>>? SetChanging;
+    public event ObservableSetChangingEventHandler<T>? SetChanging;
 
     #endregion SetChanging
 
@@ -370,12 +373,12 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <param name="args">参数</param>
     protected virtual void OnSetChanged(NotifySetChangedEventArgs<T> args)
     {
-        SetChanged?.Invoke(args);
+        SetChanged?.Invoke(this, args);
         OnCountPropertyChanged();
     }
 
     /// <inheritdoc/>
-    public event XEventHandler<NotifySetChangedEventArgs<T>>? SetChanged;
+    public event ObservableSetChangedEventHandler<T>? SetChanged;
 
     #endregion SetChanged
 

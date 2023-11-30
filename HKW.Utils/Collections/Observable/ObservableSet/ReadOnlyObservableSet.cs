@@ -1,5 +1,5 @@
 ﻿using HKW.HKWUtils.DebugViews;
-using HKW.HKWUtils.Events;
+
 using HKW.HKWUtils.Natives;
 using System.Collections;
 using System.Collections.Specialized;
@@ -14,17 +14,79 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
-public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
+public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>, IDisposable
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly IObservableSet<T> _set;
 
+    #region Ctor
     /// <inheritdoc/>
     /// <param name="set"></param>
     public ReadOnlyObservableSet(IObservableSet<T> set)
     {
         _set = set;
+        _set.SetChanging += Set_SetChanging;
+        _set.SetChanged += Set_SetChanged;
+        _set.CollectionChanged += Set_CollectionChanged;
+        _set.PropertyChanged += Set_PropertyChanged;
     }
+
+    private void Set_SetChanging(IObservableSet<T> sender, NotifySetChangingEventArgs<T> e)
+    {
+        SetChanging?.Invoke(this, e);
+    }
+
+    private void Set_SetChanged(IObservableSet<T> sender, NotifySetChangedEventArgs<T> e)
+    {
+        SetChanged?.Invoke(this, e);
+    }
+
+    private void Set_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        CollectionChanged?.Invoke(this, e);
+    }
+
+    private void Set_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        PropertyChanged?.Invoke(this, e);
+    }
+    #endregion
+
+    #region Dispose
+    private bool _disposedValue;
+
+    /// <inheritdoc/>
+    ~ReadOnlyObservableSet() => Dispose(false);
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="disposing"></param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposedValue)
+            return;
+        if (disposing)
+            Close();
+        _disposedValue = true;
+    }
+
+    /// <inheritdoc/>
+    public void Close()
+    {
+        _set.SetChanging -= Set_SetChanging;
+        _set.SetChanged -= Set_SetChanged;
+        _set.CollectionChanged -= Set_CollectionChanged;
+        _set.PropertyChanged -= Set_PropertyChanged;
+    }
+    #endregion
 
     #region IReadOnlyObservableSet
     /// <inheritdoc/>
@@ -140,31 +202,17 @@ public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSe
     #endregion
 
     #region Event
-    event XCancelEventHandler<NotifySetChangingEventArgs<T>>? INotifySetChanging<T>.SetChanging
-    {
-        add => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
-        remove => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
-    }
+    /// <inheritdoc/>
+    /// <remarks>!!!注意!!! 使用 <see cref="CancelEventArgs.Cancel"/> 不会产生效果</remarks>
+    public event ObservableSetChangingEventHandler<T>? SetChanging;
 
     /// <inheritdoc/>
-    public event XEventHandler<NotifySetChangedEventArgs<T>>? SetChanged
-    {
-        add => _set.SetChanged += value;
-        remove => _set.SetChanged -= value;
-    }
+    public event ObservableSetChangedEventHandler<T>? SetChanged;
 
     /// <inheritdoc/>
-    public event NotifyCollectionChangedEventHandler? CollectionChanged
-    {
-        add => _set.CollectionChanged += value;
-        remove => _set.CollectionChanged -= value;
-    }
+    public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
     /// <inheritdoc/>
-    public event PropertyChangedEventHandler? PropertyChanged
-    {
-        add => _set.PropertyChanged += value;
-        remove => _set.PropertyChanged -= value;
-    }
+    public event PropertyChangedEventHandler? PropertyChanged;
     #endregion
 }

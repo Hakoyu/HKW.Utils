@@ -1,6 +1,4 @@
-﻿using HKW.HKWUtils.Events;
-
-namespace HKW.HKWUtils.Collections;
+﻿namespace HKW.HKWUtils.Collections;
 
 /// <summary>
 /// 通知列表改变前接口
@@ -11,5 +9,5 @@ public interface INotifyListChanging<T>
     /// <summary>
     /// 列表改变前事件
     /// </summary>
-    public event XCancelEventHandler<NotifyListChangingEventArgs<T>>? ListChanging;
+    public event ObservableListChangingEventHandler<T>? ListChanging;
 }

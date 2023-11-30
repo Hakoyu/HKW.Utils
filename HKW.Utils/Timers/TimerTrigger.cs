@@ -1,5 +1,4 @@
-﻿using HKW.HKWUtils.Events;
-using HKW.HKWUtils.Natives;
+﻿using HKW.HKWUtils.Natives;
 using System.ComponentModel;
 using System.Diagnostics;
 
@@ -180,5 +179,11 @@ public class TimerTrigger
     /// <summary>
     /// 定时触发事件
     /// </summary>
-    public event XEventHandler<TimerTrigger>? TimedTrigger;
+    public event TimeTriggerEventHandler? TimedTrigger;
 }
+
+/// <summary>
+/// 时间触发器事件
+/// </summary>
+/// <param name="sender">发送者</param>
+public delegate void TimeTriggerEventHandler(TimerTrigger sender);
