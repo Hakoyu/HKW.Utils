@@ -172,8 +172,10 @@ public class TimerTrigger
                 nameof(timerState)
             );
         }
-        Interlocked.Increment(ref state._counter);
-        TimedTrigger?.Invoke(this);
+        var count = state.Count;
+        Interlocked.Increment(ref count);
+        state.Count = count;
+        TimedTrigger?.Invoke(this, state);
     }
 
     /// <summary>
@@ -181,9 +183,3 @@ public class TimerTrigger
     /// </summary>
     public event TimeTriggerEventHandler? TimedTrigger;
 }
-
-/// <summary>
-/// 时间触发器事件
-/// </summary>
-/// <param name="sender">发送者</param>
-public delegate void TimeTriggerEventHandler(TimerTrigger sender);

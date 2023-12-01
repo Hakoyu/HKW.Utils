@@ -63,7 +63,7 @@ public class CountdownTimer
         _timer.TimedTrigger += TimedTrigger;
     }
     #endregion
-    private void TimedTrigger(TimerTrigger args)
+    private void TimedTrigger(TimerTrigger sender, EventArgs e)
     {
         if (LastDuration <= Elapsed)
         {
@@ -71,7 +71,7 @@ public class CountdownTimer
             if (IsCompleted is not false)
                 return;
             IsCompleted = true;
-            Completed?.Invoke(this);
+            Completed?.Invoke(this, new());
             IsRunning = false;
             if (AutoReset)
                 Reset();
@@ -135,7 +135,7 @@ public class CountdownTimer
         {
             IsRunning = false;
             _timer.Stop();
-            Stopped?.Invoke(this);
+            Stopped?.Invoke(this, new());
         }
     }
 
@@ -161,9 +161,3 @@ public class CountdownTimer
     /// </summary>
     public event CountdownEventHandler? Stopped;
 }
-
-/// <summary>
-/// 倒计时完成事件
-/// </summary>
-/// <param name="sender"></param>
-public delegate void CountdownEventHandler(CountdownTimer sender);

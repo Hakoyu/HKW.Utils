@@ -10,15 +10,15 @@ public class TimerTriggerTests
     {
         var triggerCount = 5;
         var timer = new TimerTrigger();
-        timer.TimedTrigger += (v) =>
+        timer.TimedTrigger += (s, e) =>
         {
-            if (v.State.Counter == triggerCount)
+            if (e.Count == triggerCount)
             {
-                v.Stop();
+                s.Stop();
             }
         };
         timer.Start(100, 100);
         Task.Delay(3000).Wait();
-        Assert.IsTrue(timer.State.Counter == triggerCount);
+        Assert.IsTrue(timer.State.Count == triggerCount);
     }
 }

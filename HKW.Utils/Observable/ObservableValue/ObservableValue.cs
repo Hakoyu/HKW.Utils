@@ -221,101 +221,16 @@ public class ObservableValue<T>
     /// <summary>
     /// 值改变前事件
     /// </summary>
-    public event ValueChangingEventHandler? ValueChanging;
+    public event ValueChangingEventHandler<T>? ValueChanging;
 
     /// <summary>
     /// 值改变后事件
     /// </summary>
-    public event ValueChangedEventHandler? ValueChanged;
+    public event ValueChangedEventHandler<T>? ValueChanged;
 
     /// <summary>
     /// 通知接收事件
     /// </summary>
-    public event NotifySenderPropertyChangedHandler? SenderPropertyChanged;
-
+    public event NotifySenderPropertyChangedHandler<T>? SenderPropertyChanged;
     #endregion
-
-    #region Delegate
-    /// <summary>
-    /// 值改变前事件
-    /// </summary>
-    /// <param name="sender">发送者</param>
-    /// <param name="e">参数</param>
-    public delegate void ValueChangingEventHandler(
-        ObservableValue<T> sender,
-        ValueChangingEventArgs<T> e
-    );
-
-    /// <summary>
-    /// 值改变后事件
-    /// </summary>
-    /// <param name="sender">发送者</param>
-    /// <param name="e">参数</param>
-    public delegate void ValueChangedEventHandler(
-        ObservableValue<T> sender,
-        ValueChangedEventArgs<T> e
-    );
-
-    /// <summary>
-    /// 通知发送者属性改变接收器
-    /// </summary>
-    /// <param name="source">源</param>
-    /// <param name="sender">发送者</param>
-    public delegate void NotifySenderPropertyChangedHandler(
-        ObservableValue<T> source,
-        INotifyPropertyChanged? sender
-    );
-    #endregion
-}
-
-/// <summary>
-/// 值改变前事件参数
-/// </summary>
-/// <typeparam name="T">值类型</typeparam>
-public class ValueChangingEventArgs<T> : CancelEventArgs
-{
-    /// <summary>
-    /// 旧值
-    /// </summary>
-    public T? OldValue { get; }
-
-    /// <summary>
-    /// 新值
-    /// </summary>
-    public T? NewValue { get; }
-
-    /// <inheritdoc/>
-    /// <param name="oldValue">旧值</param>
-    /// <param name="newValue">新值</param>
-    public ValueChangingEventArgs(T? oldValue, T? newValue)
-    {
-        OldValue = oldValue;
-        NewValue = newValue;
-    }
-}
-
-/// <summary>
-/// 值改变后事件参数
-/// </summary>
-/// <typeparam name="T">值类型</typeparam>
-public class ValueChangedEventArgs<T> : EventArgs
-{
-    /// <summary>
-    /// 旧值
-    /// </summary>
-    public T? OldValue { get; }
-
-    /// <summary>
-    /// 新值
-    /// </summary>
-    public T? NewValue { get; }
-
-    /// <inheritdoc/>
-    /// <param name="oldValue">旧值</param>
-    /// <param name="newValue">新值</param>
-    public ValueChangedEventArgs(T oldValue, T newValue)
-    {
-        OldValue = oldValue;
-        NewValue = newValue;
-    }
 }
