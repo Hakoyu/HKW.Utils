@@ -7,7 +7,7 @@
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <RootNamespace>HKW.Utils.Tests</RootNamespace>
+    <RootNamespace>HKWTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,10 +19,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HKW.Utils\HKW.Utils.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Utils\" />
   </ItemGroup>
 
 </Project>

@@ -28,21 +28,25 @@ public class ObservableListBase<T> : IObservableList<T>, IReadOnlyObservableList
 
     /// <inheritdoc/>
     public ObservableListBase()
-    {
-        _list = new();
-    }
+        : this(null, null) { }
 
     /// <inheritdoc/>
     public ObservableListBase(int capacity)
-    {
-        _list = new(capacity);
-    }
+        : this(capacity, null) { }
 
     /// <inheritdoc/>
     /// <param name="collection">集合</param>
     public ObservableListBase(IEnumerable<T> collection)
+        : this(null, collection) { }
+
+    private ObservableListBase(int? capacity, IEnumerable<T>? collection)
     {
-        _list = new(collection);
+        if (capacity is not null)
+            _list = new(capacity.Value);
+        else if (collection is not null)
+            _list = new(collection);
+        else
+            _list = new();
     }
 
     /// <inheritdoc/>

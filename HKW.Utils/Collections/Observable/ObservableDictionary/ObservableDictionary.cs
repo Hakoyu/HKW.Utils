@@ -60,10 +60,8 @@ public class ObservableDictionary<TKey, TValue>
     {
         if (collection is not null)
             _dictionary = new(collection, comparer);
-        else if (comparer is not null)
-            _dictionary = new(comparer);
         else
-            _dictionary = new();
+            _dictionary = new(comparer);
     }
 
     /// <inheritdoc/>

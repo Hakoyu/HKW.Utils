@@ -63,7 +63,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         if (collection is not null)
             _set = new(collection, comparer);
         else
-            _set = new();
+            _set = new(comparer);
     }
 
     /// <inheritdoc/>

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HKW.Utils.Tests.Timers;
+namespace HKWTests.Timers;
 
 [TestClass]
 public class TimerTriggerTests
