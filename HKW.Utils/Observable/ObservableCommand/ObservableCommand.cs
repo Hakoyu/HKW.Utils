@@ -61,7 +61,7 @@ public class ObservableCommand : ICommand
     /// <param name="parameter">参数</param>
     public async void Execute(object? parameter)
     {
-        ExecuteEvent?.Invoke(this, new());
+        ExecuteCommand?.Invoke(this, new());
         await ExecuteAsync();
     }
 
@@ -71,11 +71,13 @@ public class ObservableCommand : ICommand
     /// <returns>等待</returns>
     private async Task ExecuteAsync()
     {
-        if (AsyncExecuteEvent is null)
+        if (AsyncExecuteCommand is null)
             return;
         CurrentCanExecute.Value = false;
         foreach (
-            var asyncEvent in AsyncExecuteEvent.GetInvocationList().Cast<AsyncExecuteEventHandler>()
+            var asyncEvent in AsyncExecuteCommand
+                .GetInvocationList()
+                .Cast<AsyncExecuteEventHandler>()
         )
             await asyncEvent.Invoke(this, new());
         CurrentCanExecute.Value = true;
@@ -136,12 +138,12 @@ public class ObservableCommand : ICommand
     /// <summary>
     /// 执行事件
     /// </summary>
-    public event ExecuteEventHandler? ExecuteEvent;
+    public event ExecuteEventHandler? ExecuteCommand;
 
     /// <summary>
     /// 异步执行事件
     /// </summary>
-    public event AsyncExecuteEventHandler? AsyncExecuteEvent;
+    public event AsyncExecuteEventHandler? AsyncExecuteCommand;
 
     /// <summary>
     /// 可执行通知接收器事件

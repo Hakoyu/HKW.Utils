@@ -19,4 +19,4 @@ public delegate Task AsyncExecuteEventHandler(ICommand sender, EventArgs e);
 /// </summary>
 /// <param name="sender">发送者</param>
 /// <param name="e">参数</param>
-public delegate Task AsyncExecuteEventHandler<T>(ICommand sender, CommandParameterArgs<T> e);
+public delegate Task AsyncExecuteEventHandler<T>(ICommand sender, CommandParameterEventArgs<T> e);

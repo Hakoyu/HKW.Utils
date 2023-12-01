@@ -102,10 +102,10 @@ public class ObservableCommand<T> : ICommand
     /// <inheritdoc cref="ObservableCommand.CanExecuteChanged"/>
     public event EventHandler? CanExecuteChanged;
 
-    /// <inheritdoc cref="ObservableCommand.ExecuteEvent"/>
+    /// <inheritdoc cref="ObservableCommand.ExecuteCommand"/>
     public event ExecuteEventHandler<T>? ExecuteCommand;
 
-    /// <inheritdoc cref="ObservableCommand.AsyncExecuteEvent"/>
+    /// <inheritdoc cref="ObservableCommand.AsyncExecuteCommand"/>
     public event AsyncExecuteEventHandler<T>? AsyncExecuteCommand;
 
     /// <inheritdoc cref="ObservableCommand.NotifyCanExecuteReceived"/>
