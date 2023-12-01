@@ -1,4 +1,4 @@
-﻿using HKW.HKWUtils.Collections;
+﻿using HKW.HKWUtils.Observable;
 using System.Collections.ObjectModel;
 
 namespace HKW;
