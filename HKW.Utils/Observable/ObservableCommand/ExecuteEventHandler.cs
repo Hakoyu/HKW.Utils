@@ -6,13 +6,10 @@ namespace HKW.HKWUtils.Observable;
 /// <summary>
 /// 执行事件
 /// </summary>
-/// <param name="sender">发送者</param>
-/// <param name="e">参数</param>
-public delegate void ExecuteEventHandler(ICommand sender, EventArgs e);
+public delegate void ExecuteEventHandler();
 
 /// <summary>
 /// 执行事件
 /// </summary>
-/// <param name="sender">发送者</param>
-/// <param name="e">参数</param>
-public delegate void ExecuteEventHandler<T>(ICommand sender, CommandParameterEventArgs<T> e);
+/// <param name="parameter">参数</param>
+public delegate void ExecuteEventHandler<T>(T parameter);

@@ -64,7 +64,7 @@ public class ObservableCommand : ICommand
     /// <param name="parameter">参数</param>
     public async void Execute(object? parameter)
     {
-        ExecuteCommand?.Invoke(this, new());
+        ExecuteCommand?.Invoke();
         await ExecuteAsync();
     }
 
@@ -82,7 +82,7 @@ public class ObservableCommand : ICommand
                 .GetInvocationList()
                 .Cast<AsyncExecuteEventHandler>()
         )
-            await asyncEvent.Invoke(this, new());
+            await asyncEvent.Invoke();
         CurrentCanExecute.Value = true;
     }
     #endregion

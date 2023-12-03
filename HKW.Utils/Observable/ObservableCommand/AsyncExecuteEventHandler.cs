@@ -5,15 +5,12 @@ using System.Windows.Input;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 异步执行事件
+/// 异步执行命令事件
 /// </summary>
-/// <param name="sender">发送者</param>
-/// <param name="e">参数</param>
-public delegate Task AsyncExecuteEventHandler(ICommand sender, EventArgs e);
+public delegate Task AsyncExecuteEventHandler();
 
 /// <summary>
-/// 异步执行事件
+/// 异步执行命令事件
 /// </summary>
-/// <param name="sender">发送者</param>
-/// <param name="e">参数</param>
-public delegate Task AsyncExecuteEventHandler<T>(ICommand sender, CommandParameterEventArgs<T> e);
+/// <param name="parameter">值</param>
+public delegate Task AsyncExecuteEventHandler<T>(T parameter);

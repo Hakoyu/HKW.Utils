@@ -57,7 +57,7 @@ public class ObservableCommand<T> : ICommand
     /// <inheritdoc cref="ObservableCommand.Execute(object?)"/>
     public async void Execute(object? parameter)
     {
-        ExecuteCommand?.Invoke(this, new((T)parameter!));
+        ExecuteCommand?.Invoke((T)parameter!);
         await ExecuteAsync((T)parameter!);
     }
 
@@ -73,7 +73,7 @@ public class ObservableCommand<T> : ICommand
                 .GetInvocationList()
                 .Cast<AsyncExecuteEventHandler<T>>()
         )
-            await asyncEvent.Invoke(this, new(parameter));
+            await asyncEvent.Invoke(parameter);
         CurrentCanExecute.Value = true;
     }
     #endregion
