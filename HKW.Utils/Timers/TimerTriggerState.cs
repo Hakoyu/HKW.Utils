@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace HKW.HKWUtils.Timers;
+﻿namespace HKW.HKWUtils.Timers;
 
 /// <summary>
 /// 定时器状态

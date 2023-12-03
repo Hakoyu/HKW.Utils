@@ -1,4 +1,6 @@
-﻿namespace HKW.HKWUtils.Observable;
+﻿using System;
+
+namespace HKW.HKWUtils.Observable;
 
 /// <summary>
 /// 命令参数事件参数

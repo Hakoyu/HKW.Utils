@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 
 namespace HKW.HKWUtils.Observable;
@@ -71,9 +73,11 @@ public class ObservableValue<T>
     private bool NotifyPropertyChanging(T oldValue, T newValue)
     {
         PropertyChanging?.Invoke(this, new(nameof(Value)));
-        // 若全部事件取消改变 则取消改变
         var args = new ValueChangingEventArgs<T>(oldValue, newValue);
         ValueChanging?.Invoke(this, args);
+        // 取消改变后通知UI更改
+        if (args.Cancel)
+            PropertyChanged?.Invoke(this, new(nameof(Value)));
         return args.Cancel;
     }
 
@@ -93,7 +97,7 @@ public class ObservableValue<T>
     /// <summary>
     /// 通知发送者
     /// </summary>
-    public IReadOnlySet<INotifyPropertyChanged> NotifySenders => _notifySenders;
+    public IReadOnlyCollection<INotifyPropertyChanged> NotifySenders => _notifySenders;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly HashSet<INotifyPropertyChanged> _notifySenders = new();
@@ -180,6 +184,16 @@ public class ObservableValue<T>
     public bool Equals(ObservableValue<T>? other)
     {
         return Guid.Equals(other?.Guid) is true;
+    }
+
+    /// <summary>
+    /// 值相等
+    /// </summary>
+    /// <param name="other">其它可观察值</param>
+    /// <returns>相等为 <see langword="true"/> 否则为 <see langword="false"/></returns>
+    public bool ValueEquals(ObservableValue<T> other)
+    {
+        return Value?.Equals(other.Value) is true;
     }
 
     /// <summary>
