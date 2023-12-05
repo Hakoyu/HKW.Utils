@@ -65,13 +65,13 @@ public class ObservableCommand<T> : ICommand
     /// <param name="parameter">参数</param>
     private async Task ExecuteAsync(T parameter)
     {
-        if (AsyncExecuteCommand is null)
+        if (ExecuteAsyncCommand is null)
             return;
         CurrentCanExecute.Value = false;
         foreach (
-            var asyncEvent in AsyncExecuteCommand
+            var asyncEvent in ExecuteAsyncCommand
                 .GetInvocationList()
-                .Cast<AsyncExecuteEventHandler<T>>()
+                .Cast<ExecuteAsyncEventHandler<T>>()
         )
             await asyncEvent.Invoke(parameter);
         CurrentCanExecute.Value = true;
@@ -108,8 +108,8 @@ public class ObservableCommand<T> : ICommand
     /// <inheritdoc cref="ObservableCommand.ExecuteCommand"/>
     public event ExecuteEventHandler<T>? ExecuteCommand;
 
-    /// <inheritdoc cref="ObservableCommand.AsyncExecuteCommand"/>
-    public event AsyncExecuteEventHandler<T>? AsyncExecuteCommand;
+    /// <inheritdoc cref="ObservableCommand.ExecuteAsyncCommand"/>
+    public event ExecuteAsyncEventHandler<T>? ExecuteAsyncCommand;
 
     /// <inheritdoc cref="ObservableCommand.NotifyCanExecuteReceived"/>
     public event NotifyReceivedEventHandler? NotifyCanExecuteReceived;

@@ -74,13 +74,13 @@ public class ObservableCommand : ICommand
     /// <returns>等待</returns>
     private async Task ExecuteAsync()
     {
-        if (AsyncExecuteCommand is null)
+        if (ExecuteAsyncCommand is null)
             return;
         CurrentCanExecute.Value = false;
         foreach (
-            var asyncEvent in AsyncExecuteCommand
+            var asyncEvent in ExecuteAsyncCommand
                 .GetInvocationList()
-                .Cast<AsyncExecuteEventHandler>()
+                .Cast<ExecuteAsyncEventHandler>()
         )
             await asyncEvent.Invoke();
         CurrentCanExecute.Value = true;
@@ -132,6 +132,41 @@ public class ObservableCommand : ICommand
     }
     #endregion
 
+    #region FacilitationMethod
+    /// <summary>
+    /// 添加执行事件
+    /// </summary>
+    /// <param name="handler"></param>
+    /// <returns></returns>
+    public ObservableCommand AddExecute(ExecuteEventHandler handler)
+    {
+        ExecuteCommand += handler;
+        return this;
+    }
+
+    /// <summary>
+    /// 添加异步执行事件
+    /// </summary>
+    /// <param name="handler"></param>
+    /// <returns></returns>
+    public ObservableCommand AddAsyncExecute(ExecuteAsyncEventHandler handler)
+    {
+        ExecuteAsyncCommand += handler;
+        return this;
+    }
+
+    /// <summary>
+    /// 设置可执行
+    /// </summary>
+    /// <param name="canExecute">可执行</param>
+    /// <returns></returns>
+    public ObservableCommand SetCanExecute(bool canExecute)
+    {
+        CanExecuteProperty.Value = canExecute;
+        return this;
+    }
+    #endregion
+
     #region Event
     /// <summary>
     /// 能否执行属性改变后事件
@@ -146,7 +181,7 @@ public class ObservableCommand : ICommand
     /// <summary>
     /// 异步执行事件
     /// </summary>
-    public event AsyncExecuteEventHandler? AsyncExecuteCommand;
+    public event ExecuteAsyncEventHandler? ExecuteAsyncCommand;
 
     /// <summary>
     /// 可执行通知接收器事件

@@ -7,4 +7,4 @@ using System.Threading.Tasks;
 namespace HKWTests.Observable;
 
 [TestClass]
-public class ObservableCommandTest { }
+public class ObservableCommandTests { }

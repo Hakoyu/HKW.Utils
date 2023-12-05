@@ -9,10 +9,6 @@ internal class Program
 
     private static void Main(string[] args)
     {
-        ObservableCollection<int> oc = new();
-        ObservableList<int> ints = new();
-        ints.Add(1);
-        oc.Add(1);
         //stopWatch.Start();
         //CountdownTimer timer = new();
         //timer.Completed += () =>
