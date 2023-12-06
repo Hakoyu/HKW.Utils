@@ -6,7 +6,7 @@ namespace HKWTests.Timers;
 public class TimerTriggerTests
 {
     [TestMethod]
-    public void TimeTrigger()
+    public async Task TimeTrigger()
     {
         var triggerCount = 5;
         var timer = new TimerTrigger();
@@ -18,7 +18,7 @@ public class TimerTriggerTests
             }
         };
         timer.Start(100, 100);
-        Task.Delay(3000).Wait();
+        await Task.Delay(1000);
         Assert.IsTrue(timer.State.Count == triggerCount);
     }
 }
