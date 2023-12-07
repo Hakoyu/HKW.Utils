@@ -121,38 +121,6 @@ public class ObservableClassTests
         Assert.IsTrue(example.Value1 == newValue);
         Assert.IsTrue(triggerEvent);
     }
-
-    [TestMethod]
-    public void PropertyChangedResponder()
-    {
-        var triggerEvent = false;
-        var example = new ObservableClassExample();
-        var oldValue = example.Value1;
-        var newValue1 = 1;
-        var newValue2 = 1;
-        var senders = new HashSet<string>()
-        {
-            nameof(ObservableClassExample.Value2),
-            nameof(ObservableClassExample.Value3)
-        };
-        var responder = example.GetPropertyChangedResponder(nameof(ObservableClassExample.Value1));
-        responder.SenderPropertyNames.UnionWith(senders);
-        responder.SenderPropertyChanged += (s, e) =>
-        {
-            Assert.IsTrue(s!.Equals(responder));
-            Assert.IsTrue(s.Parent.Equals(example));
-            Assert.IsTrue(s.PropertyName == nameof(ObservableClassExample.Value1));
-            Assert.IsTrue(s.SenderPropertyNames.SequenceEqual(senders));
-            s.Parent.Value1 = newValue2;
-            triggerEvent = true;
-        };
-        example.Value1 = newValue1;
-        Assert.IsTrue(triggerEvent is false);
-        example.Value2 = newValue1;
-        Assert.IsTrue(example.Value2 == newValue1);
-        Assert.IsTrue(example.Value1 == newValue2);
-        Assert.IsTrue(triggerEvent);
-    }
 }
 
 public class ObservableClassExample : ObservableClass<ObservableClassExample>

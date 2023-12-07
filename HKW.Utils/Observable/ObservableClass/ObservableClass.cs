@@ -18,7 +18,7 @@ namespace HKW.HKWUtils.Observable;
 ///     public int Value
 ///     {
 ///         get => _value;
-///         set => SetProperty(nameof(Value), ref _value, value);
+///         set => SetProperty(ref _value, value);
 ///     }
 /// }]]></code></para>
 /// </summary>
@@ -29,41 +29,6 @@ public abstract class ObservableClass<TObject>
         INotifyPropertyChangedX<TObject>
     where TObject : ObservableClass<TObject>
 {
-    #region NotifySender
-    /// <summary>
-    /// 通知属性更改 (PropertyName, Responder)
-    /// </summary>
-    protected readonly Dictionary<
-        string,
-        PropertyChangedResponder<TObject>
-    > _allPropertyChangedResponder = new();
-
-    /// <summary>
-    /// 获取通知响应器
-    /// </summary>
-    /// <param name="propertyName">属性名</param>
-    /// <returns>接收器</returns>
-    public PropertyChangedResponder<TObject> GetPropertyChangedResponder(string propertyName)
-    {
-        if (_allPropertyChangedResponder.TryGetValue(propertyName, out var value) is false)
-            value = new(propertyName, (TObject)this);
-        return value;
-    }
-
-    /// <summary>
-    /// 删除通知响应器
-    /// </summary>
-    /// <param name="propertyName">属性名</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
-    public bool RemovePropertyChangedResponder(string propertyName)
-    {
-        if (_allPropertyChangedResponder.TryGetValue(propertyName, out var value) is false)
-            return false;
-        value.Close();
-        return _allPropertyChangedResponder.Remove(propertyName);
-    }
-    #endregion
-
     #region OnPropertyChange
     /// <summary>
     /// 设置属性值
