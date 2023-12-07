@@ -1,5 +1,6 @@
 ﻿using HKW.HKWUtils.Observable;
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace HKW;
 
@@ -29,4 +30,13 @@ internal class Program
 }
 
 #if DEBUG
+public class TestViewModel : ObservableClass<TestViewModel>
+{
+    int _value0 = 0;
+    public int Value0
+    {
+        get => _value0;
+        set => SetProperty(ref _value0, value);
+    }
+}
 #endif

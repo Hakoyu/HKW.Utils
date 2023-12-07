@@ -21,7 +21,7 @@ public class ObservableCommand : ObservableClass<ObservableCommand>, ICommand
     public bool IsCanExecute
     {
         get => _isCanExecute;
-        set => SetProperty(nameof(IsCanExecute), ref _isCanExecute, value);
+        set => SetProperty(ref _isCanExecute, value);
     }
 
     bool _currentCanExecute = true;
@@ -35,7 +35,7 @@ public class ObservableCommand : ObservableClass<ObservableCommand>, ICommand
     public bool CurrentCanExecute
     {
         get => _currentCanExecute;
-        private set => SetProperty(nameof(CurrentCanExecute), ref _currentCanExecute, value);
+        private set => SetProperty(ref _currentCanExecute, value);
     }
 
     /// <inheritdoc/>

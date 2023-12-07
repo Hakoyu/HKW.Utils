@@ -161,19 +161,19 @@ public class ObservableClassExample : ObservableClass<ObservableClassExample>
     public int Value1
     {
         get => _value1;
-        set => SetProperty(nameof(Value1), ref _value1, value);
+        set => SetProperty(ref _value1, value);
     }
     int _value2 = 0;
     public int Value2
     {
         get => _value2;
-        set => SetProperty(nameof(Value2), ref _value2, value);
+        set => SetProperty(ref _value2, value);
     }
 
     int _value3 = 0;
     public int Value3
     {
         get => _value3;
-        set => SetProperty(nameof(Value3), ref _value3, value);
+        set => SetProperty(ref _value3, value);
     }
 }
