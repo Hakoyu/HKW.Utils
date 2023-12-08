@@ -100,41 +100,6 @@ public class ObservableCommand<T> : ObservableClass<ObservableCommand>, ICommand
     }
     #endregion
 
-    #region FacilitationMethod
-    /// <summary>
-    /// 添加执行事件
-    /// </summary>
-    /// <param name="handler"></param>
-    /// <returns></returns>
-    public ObservableCommand<T> AddExecute(ExecuteEventHandler<T> handler)
-    {
-        ExecuteCommand += handler;
-        return this;
-    }
-
-    /// <summary>
-    /// 添加异步执行事件
-    /// </summary>
-    /// <param name="handler"></param>
-    /// <returns></returns>
-    public ObservableCommand<T> AddAsyncExecute(ExecuteAsyncEventHandler<T> handler)
-    {
-        ExecuteAsyncCommand += handler;
-        return this;
-    }
-
-    /// <summary>
-    /// 设置可执行
-    /// </summary>
-    /// <param name="canExecute">可执行</param>
-    /// <returns></returns>
-    public ObservableCommand<T> SetCanExecute(bool canExecute)
-    {
-        IsCanExecute = canExecute;
-        return this;
-    }
-    #endregion
-
     #region Event
     /// <summary>
     /// 能否执行属性改变后事件
