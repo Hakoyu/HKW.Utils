@@ -1,6 +1,6 @@
 ﻿using HKW.HKWUtils.Observable;
 
-namespace HKWTests.Observable;
+namespace HKW.HKWUtils.Tests.Observable;
 
 [TestClass]
 public class ObservableValueTest

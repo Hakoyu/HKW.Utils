@@ -9,6 +9,11 @@ namespace HKW.HKWUtils;
 public static class CultureUtils
 {
     /// <summary>
+    /// 未知文化标识符
+    /// </summary>
+    public const string Unknown = nameof(Unknown);
+
+    /// <summary>
     /// 检测文化是否存在
     /// </summary>
     /// <param name="name">文化名称</param>

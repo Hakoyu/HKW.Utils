@@ -2,7 +2,7 @@
 using HKW.HKWUtils.Observable;
 using System.Collections.Specialized;
 
-namespace HKWTests.Observable;
+namespace HKW.HKWUtils.Tests.Observable;
 
 [TestClass]
 public class ObservableSetTests

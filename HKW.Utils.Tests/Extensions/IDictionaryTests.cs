@@ -1,7 +1,7 @@
 ﻿using HKW.HKWUtils.Extensions;
 using System.Collections.ObjectModel;
 
-namespace HKWTests.Extensions;
+namespace HKW.HKWUtils.Tests.Extensions;
 
 [TestClass]
 public class IDictionaryTests

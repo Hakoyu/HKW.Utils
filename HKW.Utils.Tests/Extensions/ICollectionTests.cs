@@ -1,6 +1,6 @@
 using HKW.HKWUtils.Extensions;
 
-namespace HKWTests.Extensions;
+namespace HKW.HKWUtils.Tests.Extensions;
 
 [TestClass]
 public class ICollectionTests

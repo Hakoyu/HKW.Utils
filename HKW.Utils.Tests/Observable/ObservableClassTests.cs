@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HKWTests.Observable;
+namespace HKW.HKWUtils.Tests.Observable;
 
 [TestClass]
 public class ObservableClassTests

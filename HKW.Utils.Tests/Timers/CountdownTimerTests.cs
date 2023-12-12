@@ -1,6 +1,6 @@
 ﻿using HKW.HKWUtils.Timers;
 
-namespace HKWTests.Timers;
+namespace HKW.HKWUtils.Tests.Timers;
 
 [TestClass]
 public class CountdownTimerTests

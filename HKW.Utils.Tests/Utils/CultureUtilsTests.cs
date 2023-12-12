@@ -1,6 +1,6 @@
 ﻿using HKW.HKWUtils;
 
-namespace HKWTests.Utils;
+namespace HKW.HKWUtils.Tests.Utils;
 
 [TestClass]
 public class CultureUtilsTests
