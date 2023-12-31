@@ -33,6 +33,7 @@ public class PropertyChangingXEventArgs : CancelEventArgs
         NewValue = newValue;
     }
 
+#if  NETCOREAPP2_0_OR_GREATER
     /// <summary>
     /// 获取值
     /// </summary>
@@ -42,4 +43,43 @@ public class PropertyChangingXEventArgs : CancelEventArgs
     {
         return ((T)OldValue!, (T)NewValue!)!;
     }
+#else
+    /// <summary>
+    /// 获取值
+    /// </summary>
+    /// <typeparam name="T">类型</typeparam>
+    /// <returns>(旧值, 新值)</returns>
+    public ValueInfo<T> GetValue<T>()
+    {
+        return new((T)OldValue!, (T)NewValue!)!;
+    }
+#endif
 }
+
+#if !NETCOREAPP2_0_OR_GREATER
+/// <summary>
+/// 值信息
+/// </summary>
+/// <typeparam name="T">值类型</typeparam>
+public struct ValueInfo<T>
+{
+    /// <summary>
+    /// 旧值
+    /// </summary>
+    public T OldValue { get; set; }
+
+    /// <summary>
+    /// 新值
+    /// </summary>
+    public T NewValue { get; set; }
+
+    /// <inheritdoc/>
+    /// <param name="oldValue">旧值</param>
+    /// <param name="newValue">新值</param>
+    public ValueInfo(T oldValue, T newValue)
+    {
+        OldValue = oldValue;
+        NewValue = newValue;
+    }
+}
+#endif

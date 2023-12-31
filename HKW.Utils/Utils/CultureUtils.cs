@@ -35,6 +35,8 @@ public static class CultureUtils
     )
     {
         cultureInfo = null;
+        if (string.IsNullOrWhiteSpace(name))
+            return false;
         try
         {
             cultureInfo = CultureInfo.GetCultureInfo(name, true);
