@@ -56,7 +56,7 @@ public ref struct SpanSplitEnumerator<T>
     /// <summary>
     /// 将枚举器推进到 <see cref="ReadOnlySpan{T}"/> 中的下一个元素
     /// </summary>
-    /// <returns>返回枚举器中是否有另一个项目</returns>
+    /// <returns>枚举器中是否有另一个项目</returns>
     public bool MoveNext()
     {
         if (IsFinished)

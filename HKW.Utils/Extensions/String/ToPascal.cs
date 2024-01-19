@@ -1,55 +1,40 @@
-﻿namespace HKW.HKWUtils.Extensions;
+﻿using System.Buffers;
+using System.Globalization;
+
+namespace HKW.HKWUtils.Extensions;
 
 public static partial class HKWExtensions
 {
     /// <summary>
-    /// 将需要分割的字符串转换为帕斯卡命名格式
+    /// 将需要分割的字符串转换为帕斯卡风格名称
     /// <para><c>red red red => RedRedRed</c></para>
-    /// <para>如果不需要分隔则请使用更高性能的 <see cref="FirstLetterCapital(string,bool)"/></para>
     /// </summary>
     /// <param name="str">字符串</param>
     /// <param name="separator">分隔符</param>
-    /// <param name="removeSeparator">删除分隔符</param>
-    /// <param name="otherToLower">将其余字符变为小写</param>
     /// <returns>帕斯卡命名格式的字符串</returns>
-    public static string ToPascal(
-        this string str,
-        char separator = ' ',
-        bool removeSeparator = true,
-        bool otherToLower = false
-    )
+    public static string ToPascal(this string str, char separator = ' ')
     {
+        const int LengthLimit = 2048;
+        bool usePool = str.Length > LengthLimit;
+        char[] resultArray = usePool ? ArrayPool<char>.Shared.Rent(str.Length) : default!;
+        char[] sourcesArray = usePool ? ArrayPool<char>.Shared.Rent(str.Length) : default!;
+        Span<char> result = usePool ? resultArray : stackalloc char[str.Length];
+        Span<char> sources = usePool ? sourcesArray : stackalloc char[str.Length];
+        str.AsSpan().ToLower(sources, CultureInfo.CurrentCulture);
         var index = 0;
-        Span<char> chars = stackalloc char[str.Length];
-        Span<char> sourcesSpan = stackalloc char[str.Length];
-        if (otherToLower)
-            str.AsSpan().ToLower(sourcesSpan, null);
-        else
-            str.AsSpan().CopyTo(sourcesSpan);
-        if (removeSeparator)
+        foreach (var word in sources.Split(separator))
         {
-            foreach (var word in sourcesSpan.Split(separator))
-            {
-                word.CopyTo(chars.Slice(index, word.Length));
-                chars[index] = char.ToUpper(chars[0]);
-                index += word.Length;
-            }
-            return new string(chars[..index]);
+            word.CopyTo(result.Slice(index, word.Length));
+            result[index] = char.ToUpper(result[0]);
+            index += word.Length;
         }
-        else
+        result = result[..index];
+        var resultStr = result.ToString();
+        if (usePool)
         {
-            foreach (var word in sourcesSpan.Split(separator))
-            {
-                word.CopyTo(chars.Slice(index, word.Length));
-                chars[index] = char.ToUpper(chars[0]);
-                index += word.Length;
-                if (index < sourcesSpan.Length)
-                {
-                    chars[index] = separator;
-                    index++;
-                }
-            }
-            return new string(chars);
+            ArrayPool<char>.Shared.Return(resultArray);
+            ArrayPool<char>.Shared.Return(sourcesArray);
         }
+        return resultStr;
     }
 }
