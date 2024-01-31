@@ -123,7 +123,7 @@ public class ObservableClassTests
     }
 }
 
-public class ObservableClassExample : ObservableClass<ObservableClassExample>
+public class ObservableClassExample : ViewModelBase<ObservableClassExample>
 {
     int _value1 = 0;
     public int Value1

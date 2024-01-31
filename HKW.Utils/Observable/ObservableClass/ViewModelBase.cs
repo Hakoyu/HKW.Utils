@@ -12,7 +12,7 @@ namespace HKW.HKWUtils.Observable;
 /// <summary>
 /// 可观察对象
 /// <para>示例:<code><![CDATA[
-/// public class ObservableClassExample : ObservableClass<ObservableClassExample>
+/// public class ViewModelExample : ViewModelBase<ViewModelExample>
 /// {
 ///     int _value = 0;
 ///     public int Value
@@ -22,12 +22,12 @@ namespace HKW.HKWUtils.Observable;
 ///     }
 /// }]]></code></para>
 /// </summary>
-public abstract class ObservableClass<TObject>
+public abstract class ViewModelBase<TObject>
     : INotifyPropertyChanging,
         INotifyPropertyChanged,
         INotifyPropertyChangingX<TObject>,
         INotifyPropertyChangedX<TObject>
-    where TObject : ObservableClass<TObject>
+    where TObject : ViewModelBase<TObject>
 {
     #region OnPropertyChange
     /// <summary>
