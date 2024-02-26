@@ -1,5 +1,5 @@
-﻿using HKW.HKWUtils.Collections;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
+using HKW.HKWUtils.Collections;
 
 namespace HKW.HKWUtils.Extensions;
 
@@ -25,17 +25,17 @@ public static partial class HKWExtensions
     /// <typeparam name="TKey">键</typeparam>
     /// <typeparam name="TValue">值</typeparam>
     /// <typeparam name="TReadOnlyValue">只读值</typeparam>
-    /// <param name="this">此字典</param>
+    /// <param name="dictionary">此字典</param>
     /// <returns>只读字典</returns>
     public static ReadOnlyDictionary<TKey, TReadOnlyValue> AsReadOnlyOnWrapper<
         TKey,
         TValue,
         TReadOnlyValue
-    >(this IDictionary<TKey, TValue> @this)
+    >(this IDictionary<TKey, TValue> dictionary)
         where TKey : notnull
         where TValue : TReadOnlyValue
         where TReadOnlyValue : notnull
     {
-        return new(new ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>(@this));
+        return new(new ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>(dictionary));
     }
 }

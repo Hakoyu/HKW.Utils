@@ -1,5 +1,5 @@
-﻿using HKW.HKWUtils.Extensions;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Tests.Extensions;
 
@@ -63,10 +63,7 @@ public class IDictionaryTests
         Assert.IsTrue(
             readOnlyDictionary.SequenceEqual(
                 readOnlyDictionaryOnWrapper,
-                (x, y) =>
-                {
-                    return x.Value.SequenceEqual(y.Value);
-                }
+                (x, y) => x.Value.SequenceEqual(y.Value)
             )
         );
     }

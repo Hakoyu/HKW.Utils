@@ -1,13 +1,13 @@
-﻿using HKW.HKWUtils.Natives;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Timers;
 
 /// <summary>
 /// 定时触发器
 /// </summary>
-public class TimerTrigger
+public class TimerTrigger : IDisposable, IAsyncDisposable
 {
     /// <summary>
     /// 触发器间隔
@@ -182,4 +182,41 @@ public class TimerTrigger
     /// 定时触发事件
     /// </summary>
     public event TimeTriggerEventHandler? TimedTrigger;
+
+    #region IDisposable
+    private bool _disposedValue;
+
+    /// <inheritdoc/>
+    ~TimerTrigger() => Dispose(false);
+
+    /// <inheritdoc/>
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <inheritdoc cref="Dispose()"/>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposedValue)
+            return;
+        if (disposing)
+        {
+            _timer?.Dispose();
+        }
+        _disposedValue = true;
+    }
+
+    /// <inheritdoc/>
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_timer is not null)
+            await _timer.DisposeAsync();
+        Dispose(false);
+        GC.SuppressFinalize(this);
+    }
+    #endregion
 }

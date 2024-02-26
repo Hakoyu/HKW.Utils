@@ -1,13 +1,13 @@
-﻿using HKW.HKWUtils.Natives;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Timers;
 
 /// <summary>
 /// 倒计时器
 /// </summary>
-public class CountdownTimer
+public class CountdownTimer : IDisposable, IAsyncDisposable
 {
     /// <summary>
     /// 倒计时持续时间
@@ -160,4 +160,41 @@ public class CountdownTimer
     /// 倒计时停止事件
     /// </summary>
     public event CountdownEventHandler? Stopped;
+
+    #region IDisposable
+    private bool _disposedValue;
+
+    /// <inheritdoc/>
+    ~CountdownTimer() => Dispose(false);
+
+    /// <inheritdoc/>
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <inheritdoc cref="Dispose()"/>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposedValue)
+            return;
+        if (disposing)
+        {
+            _timer?.Dispose();
+        }
+        _disposedValue = true;
+    }
+
+    /// <inheritdoc/>
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_timer is not null)
+            await _timer.DisposeAsync();
+        Dispose(false);
+        GC.SuppressFinalize(this);
+    }
+    #endregion
 }
