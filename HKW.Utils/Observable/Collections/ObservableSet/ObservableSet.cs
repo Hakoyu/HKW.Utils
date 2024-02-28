@@ -91,7 +91,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         var list = new SimpleSingleItemReadOnlyList<T>(item);
         if (OnSetAdding(list) is false)
             return false;
-        var result = ((ISet<T>)_set).Add(item);
+        var result = _set.Add(item);
         if (result)
             OnSetAdded(list);
         return result;
@@ -103,7 +103,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         var list = new SimpleSingleItemReadOnlyList<T>(item);
         if (OnSetRemoving(list) is false)
             return false;
-        var result = ((ICollection<T>)_set).Remove(item);
+        var result = _set.Remove(item);
         if (result)
             OnSetRemoved(list);
         return result;
@@ -114,7 +114,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     {
         if (OnSetClearing() is false)
             return;
-        ((ICollection<T>)_set).Clear();
+        _set.Clear();
         OnSetCleared();
     }
 
@@ -125,7 +125,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         var otherItems = new SimpleReadOnlyList<T>(other);
         if (OnSetOperating(SetChangeAction.Intersect, otherItems, null, oldItems) is false)
             return;
-        ((ISet<T>)_set).IntersectWith(otherItems);
+        _set.IntersectWith(otherItems);
         OnSetOperated(SetChangeAction.Intersect, otherItems, null, oldItems);
     }
 
@@ -136,7 +136,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         var otherItems = new SimpleReadOnlyList<T>(other);
         if (OnSetOperating(SetChangeAction.Except, otherItems, null, oldItems) is false)
             return;
-        ((ISet<T>)_set).IntersectWith(otherItems);
+        _set.IntersectWith(otherItems);
         OnSetOperated(SetChangeAction.Except, otherItems, null, oldItems);
     }
 
@@ -150,7 +150,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
             OnSetOperating(SetChangeAction.SymmetricExcept, otherItems, newItems, oldItems) is false
         )
             return;
-        ((ISet<T>)_set).SymmetricExceptWith(otherItems);
+        _set.SymmetricExceptWith(otherItems);
         OnSetOperated(SetChangeAction.SymmetricExcept, otherItems, newItems, oldItems);
     }
 
@@ -161,7 +161,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         var otherItems = new SimpleReadOnlyList<T>(other);
         if (OnSetOperating(SetChangeAction.Union, otherItems, newItems, null) is false)
             return;
-        ((ISet<T>)_set).UnionWith(otherItems);
+        _set.UnionWith(otherItems);
         OnSetOperated(SetChangeAction.Union, otherItems, newItems, null);
     }
 
@@ -278,18 +278,18 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <param name="action">行动</param>
     /// <param name="other">其它集合</param>
     /// <param name="newItems">新项目</param>
-    /// <param name="oldTiems">旧项目</param>
+    /// <param name="oldItems">旧项目</param>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     private bool OnSetOperating(
         SetChangeAction action,
         IList<T> other,
         IList<T>? newItems,
-        IList<T>? oldTiems
+        IList<T>? oldItems
     )
     {
         if (SetChanging is null)
             return true;
-        return OnSetChanging(new(action, other, newItems, oldTiems));
+        return OnSetChanging(new(action, other, newItems, oldItems));
     }
 
     /// <summary>
@@ -352,7 +352,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <param name="other">其它集合</param>
     /// <param name="newItems">新项目</param>
     /// <param name="oldTiems">旧项目</param>
-    /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
     private void OnSetOperated(
         SetChangeAction action,
         IList<T> other,
