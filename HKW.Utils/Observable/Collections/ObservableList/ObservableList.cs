@@ -1,7 +1,7 @@
-﻿using HKW.HKWUtils.Collections;
-using HKW.HKWUtils.DebugViews;
-using System.Collections;
+﻿using System.Collections;
 using System.Diagnostics;
+using HKW.HKWUtils.Collections;
+using HKW.HKWUtils.DebugViews;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -42,7 +42,10 @@ public class ObservableList<T> : ObservableListBase<T>, IList
             var oldValue = _list[index];
             var oldList = new SimpleSingleItemReadOnlyList<T>(oldValue);
             var newList = new SimpleSingleItemReadOnlyList<T>((T)value!);
-            if (oldValue?.Equals(value) is true || OnListValueChanging(newList, oldList, index))
+            if (
+                oldValue?.Equals(value) is true
+                || OnListValueChanging(newList, oldList, index) is false
+            )
                 return;
             _list[index] = (T)value!;
             OnListValueChanged(newList, oldList, index);
@@ -61,7 +64,7 @@ public class ObservableList<T> : ObservableListBase<T>, IList
     {
         var item = (T)value!;
         var list = new SimpleSingleItemReadOnlyList<T>(item);
-        if (OnListAdding(list, index))
+        if (OnListAdding(list, index) is false)
             return;
         _list.Insert(index, item);
         OnListAdded(list, index);
@@ -74,7 +77,7 @@ public class ObservableList<T> : ObservableListBase<T>, IList
         if (index == -1)
             return;
         var list = new SimpleSingleItemReadOnlyList<T>(item);
-        if (OnListRemoving(list, index))
+        if (OnListRemoving(list, index) is false)
             return;
         _list.RemoveAt(index);
         OnListRemoved(list, index);

@@ -1,12 +1,12 @@
-﻿using HKW.HKWUtils.Collections;
-using HKW.HKWUtils.DebugViews;
-using HKW.HKWUtils.Extensions;
-using HKW.HKWUtils.Natives;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using HKW.HKWUtils.Collections;
+using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Extensions;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -106,7 +106,7 @@ public class ObservableDictionary<TKey, TValue>
                 var pair = new KeyValuePair<TKey, TValue>(key, value);
                 var list = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(pair);
                 // 字典允许不存在的 key 作为键,会创建新的键值对
-                if (OnDictionaryAdding(list))
+                if (OnDictionaryAdding(list) is false)
                     return;
                 _dictionary[key] = value;
                 OnDictionaryAdded(list);
@@ -117,7 +117,10 @@ public class ObservableDictionary<TKey, TValue>
                 var oldPair = new KeyValuePair<TKey, TValue>(key, oldValue);
                 var newList = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(newPair);
                 var oldList = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(oldPair);
-                if (oldValue?.Equals(value) is true || OnDictionaryValueChanging(newList, oldList))
+                if (
+                    oldValue?.Equals(value) is true
+                    || OnDictionaryValueChanging(newList, oldList) is false
+                )
                     return;
                 _dictionary[key] = value;
                 OnDictionaryValueChanged(newList, oldList);
@@ -136,7 +139,7 @@ public class ObservableDictionary<TKey, TValue>
     public void Add(KeyValuePair<TKey, TValue> item)
     {
         var list = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(item);
-        if (OnDictionaryAdding(list))
+        if (OnDictionaryAdding(list) is false)
             return;
         ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).Add(item);
         OnDictionaryAdded(list);
@@ -147,7 +150,7 @@ public class ObservableDictionary<TKey, TValue>
     {
         var pair = new KeyValuePair<TKey, TValue>(key, value);
         var list = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(pair);
-        if (OnDictionaryAdding(list))
+        if (OnDictionaryAdding(list) is false)
             return false;
         var result = _dictionary.TryAdd(pair.Key, pair.Value);
         if (result)
@@ -163,7 +166,7 @@ public class ObservableDictionary<TKey, TValue>
         if (_dictionary.TryGetPair(key, out var pair) is false)
             return false;
         var list = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(pair);
-        if (OnDictionaryRemoving(list))
+        if (OnDictionaryRemoving(list) is false)
             return false;
         var result = _dictionary.Remove(key);
         if (result)
@@ -183,7 +186,7 @@ public class ObservableDictionary<TKey, TValue>
     public void AddRange(IEnumerable<KeyValuePair<TKey, TValue>> pairs)
     {
         var list = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(pairs);
-        if (OnDictionaryAdding(list))
+        if (OnDictionaryAdding(list) is false)
             return;
         foreach (var pair in list)
             ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).Add(pair);
@@ -198,7 +201,7 @@ public class ObservableDictionary<TKey, TValue>
         var list = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(pairs);
         var addList = new List<KeyValuePair<TKey, TValue>>();
         var resultList = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(addList);
-        if (OnDictionaryAdding(list))
+        if (OnDictionaryAdding(list) is false)
             return resultList;
         foreach (var pair in list)
         {
@@ -219,7 +222,7 @@ public class ObservableDictionary<TKey, TValue>
         {
             var list = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(_dictionary);
             var removeList = new List<KeyValuePair<TKey, TValue>>();
-            if (OnDictionaryRemoving(list))
+            if (OnDictionaryRemoving(list) is false)
                 return;
             foreach (var pair in list)
             {
@@ -233,7 +236,7 @@ public class ObservableDictionary<TKey, TValue>
         }
         else
         {
-            if (OnDictionaryClearing())
+            if (OnDictionaryClearing() is false)
                 return;
             _dictionary.Clear();
             OnDictionaryCleared();
@@ -286,11 +289,11 @@ public class ObservableDictionary<TKey, TValue>
     /// 字典添加键值对前
     /// </summary>
     /// <param name="pairs">键值对</param>
-    /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
+    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     private bool OnDictionaryAdding(IList<KeyValuePair<TKey, TValue>> pairs)
     {
         if (DictionaryChanging is null)
-            return false;
+            return true;
         return OnDictionaryChanging(new(DictionaryChangeAction.Add, pairs));
     }
 
@@ -298,11 +301,11 @@ public class ObservableDictionary<TKey, TValue>
     /// 字典删除键值对前
     /// </summary>
     /// <param name="pairs">键值对</param>
-    /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
+    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     private bool OnDictionaryRemoving(IList<KeyValuePair<TKey, TValue>> pairs)
     {
         if (DictionaryChanging is null)
-            return false;
+            return true;
         return OnDictionaryChanging(new(DictionaryChangeAction.Remove, pairs));
     }
 
@@ -311,25 +314,25 @@ public class ObservableDictionary<TKey, TValue>
     /// </summary>
     /// <param name="newPairs">新键值对</param>
     /// <param name="oldPairs">旧键值对</param>
-    /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
+    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     private bool OnDictionaryValueChanging(
         IList<KeyValuePair<TKey, TValue>> newPairs,
         IList<KeyValuePair<TKey, TValue>> oldPairs
     )
     {
         if (DictionaryChanging is null)
-            return false;
+            return true;
         return OnDictionaryChanging(new(DictionaryChangeAction.Replace, newPairs, oldPairs));
     }
 
     /// <summary>
     /// 字典清理前
     /// </summary>
-    /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
+    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     private bool OnDictionaryClearing()
     {
         if (DictionaryChanging is null)
-            return false;
+            return true;
         return OnDictionaryChanging(new(DictionaryChangeAction.Clear));
     }
 
@@ -337,13 +340,13 @@ public class ObservableDictionary<TKey, TValue>
     /// 字典改变前
     /// </summary>
     /// <param name="args">参数</param>
-    /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
+    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     protected virtual bool OnDictionaryChanging(
         NotifyDictionaryChangingEventArgs<TKey, TValue> args
     )
     {
         DictionaryChanging?.Invoke(this, args);
-        return args.Cancel;
+        return args.Cancel is false;
     }
 
     /// <inheritdoc/>

@@ -1,7 +1,7 @@
-﻿using HKW.HKWUtils.Collections;
-using HKW.HKWUtils.DebugViews;
-using System.Collections;
+﻿using System.Collections;
 using System.Diagnostics;
+using HKW.HKWUtils.Collections;
+using HKW.HKWUtils.DebugViews;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -40,7 +40,7 @@ public class ObservableListX<T> : ObservableListBase<T>, IObservableListX<T>
     {
         var index = _list.Count;
         var list = new SimpleReadOnlyList<T>(collection);
-        if (OnListAdding(list, index))
+        if (OnListAdding(list, index) is false)
             return;
         _list.AddRange(list);
         OnListAdded(list, index);
@@ -50,7 +50,7 @@ public class ObservableListX<T> : ObservableListBase<T>, IObservableListX<T>
     public void InsertRange(int index, IEnumerable<T> collection)
     {
         var list = new SimpleReadOnlyList<T>(collection);
-        if (OnListAdding(list, index))
+        if (OnListAdding(list, index) is false)
             return;
         _list.InsertRange(index, list);
         OnListAdded(list, index);
@@ -60,22 +60,46 @@ public class ObservableListX<T> : ObservableListBase<T>, IObservableListX<T>
     public void RemoveRange(int index, int count)
     {
         var list = new SimpleReadOnlyList<T>(_list.Skip(index).Take(count));
-        if (OnListRemoving(list, index))
+        if (OnListRemoving(list, index) is false)
             return;
         _list.RemoveRange(index, count);
         OnListRemoved(list, index);
     }
 
     /// <inheritdoc/>
+    public void Reverse()
+    {
+        Reverse(0, _list.Count);
+    }
+
+    /// <inheritdoc/>
+    public void Reverse(int index, int count)
+    {
+        var oldList = new SimpleReadOnlyList<T>(_list.ToList());
+        var tempList = _list.ToList();
+        tempList.Reverse(index, count);
+        var newList = new SimpleReadOnlyList<T>(tempList);
+        if (OnListValueChanging(newList, oldList, index) is false)
+            return;
+        _list.Reverse(index, count);
+        OnListValueChanged(newList, oldList, index);
+    }
+
+    /// <inheritdoc/>
     public void ChangeRange(IEnumerable<T> collection, int index = 0)
     {
-        var oldList = new SimpleReadOnlyList<T>(_list.Skip(index));
+        var oldList = new SimpleReadOnlyList<T>(index >= 0 ? _list.Skip(index) : _list.ToList());
         var newList = new SimpleReadOnlyList<T>(collection);
-        if (OnListValueChanging(newList, oldList, index))
+        if (OnListValueChanging(newList, oldList, index) is false)
             return;
         for (var i = index; i < oldList.Count; i++)
             _list[i] = newList[i];
         OnListValueChanged(newList, oldList, index);
     }
+
     #endregion
+    void IListX<T>.RemoveAll(Predicate<T> match)
+    {
+        throw new NotImplementedException();
+    }
 }

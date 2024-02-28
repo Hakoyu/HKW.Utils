@@ -1,10 +1,10 @@
-﻿using HKW.HKWUtils.Collections;
-using HKW.HKWUtils.DebugViews;
-using HKW.HKWUtils.Natives;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
+using HKW.HKWUtils.Collections;
+using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -77,7 +77,10 @@ public class ObservableListBase<T> : IObservableList<T>, IReadOnlyObservableList
             var oldValue = _list[index];
             var oldList = new SimpleSingleItemReadOnlyList<T>(oldValue);
             var newList = new SimpleSingleItemReadOnlyList<T>(value);
-            if (oldValue?.Equals(value) is true || OnListValueChanging(newList, oldList, index))
+            if (
+                oldValue?.Equals(value) is true
+                || OnListValueChanging(newList, oldList, index) is false
+            )
                 return;
             _list[index] = value;
             OnListValueChanged(newList, oldList, index);
@@ -89,7 +92,7 @@ public class ObservableListBase<T> : IObservableList<T>, IReadOnlyObservableList
     {
         var index = _list.Count;
         var list = new SimpleSingleItemReadOnlyList<T>(item);
-        if (OnListAdding(list, index))
+        if (OnListAdding(list, index) is false)
             return;
         _list.Add(item);
         OnListAdded(list, index);
@@ -99,7 +102,7 @@ public class ObservableListBase<T> : IObservableList<T>, IReadOnlyObservableList
     public void Insert(int index, T item)
     {
         var list = new SimpleSingleItemReadOnlyList<T>(item);
-        if (OnListAdding(list, index))
+        if (OnListAdding(list, index) is false)
             return;
         _list.Insert(index, item);
         OnListAdded(list, index);
@@ -122,7 +125,7 @@ public class ObservableListBase<T> : IObservableList<T>, IReadOnlyObservableList
     {
         var item = _list[index];
         var list = new SimpleSingleItemReadOnlyList<T>(item);
-        if (OnListRemoving(list, index))
+        if (OnListRemoving(list, index) is false)
             return;
         _list.RemoveAt(index);
         OnListRemoved(list, index);
@@ -134,13 +137,13 @@ public class ObservableListBase<T> : IObservableList<T>, IReadOnlyObservableList
         if (TriggerRemoveActionOnClear)
         {
             var list = new SimpleReadOnlyList<T>(_list);
-            if (OnListRemoving(list, 0))
+            if (OnListRemoving(list, 0) is false)
                 return;
             _list.Clear();
             OnListRemoved(list, 0);
             return;
         }
-        if (OnListClearing())
+        if (OnListClearing() is false)
             return;
         _list.Clear();
         OnListCleared();
@@ -187,11 +190,11 @@ public class ObservableListBase<T> : IObservableList<T>, IReadOnlyObservableList
     /// </summary>
     /// <param name="items">项目</param>
     /// <param name="index">索引</param>
-    /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
+    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     protected bool OnListAdding(IList<T> items, int index)
     {
         if (ListChanging is null)
-            return false;
+            return true;
         return OnListChanging(new(ListChangeAction.Add, items, index));
     }
 
@@ -200,22 +203,22 @@ public class ObservableListBase<T> : IObservableList<T>, IReadOnlyObservableList
     /// </summary>
     /// <param name="items">项目</param>
     /// <param name="index">索引</param>
-    /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
+    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     protected bool OnListRemoving(IList<T> items, int index)
     {
         if (ListChanging is null)
-            return false;
+            return true;
         return OnListChanging(new(ListChangeAction.Remove, items, index));
     }
 
     /// <summary>
     /// 列表清理前
     /// </summary>
-    /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
+    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     protected bool OnListClearing()
     {
         if (ListChanging is null)
-            return false;
+            return true;
         return OnListChanging(new(ListChangeAction.Clear));
     }
 
@@ -225,11 +228,11 @@ public class ObservableListBase<T> : IObservableList<T>, IReadOnlyObservableList
     /// <param name="newItems">新项目</param>
     /// <param name="oldItems">旧项目</param>
     /// <param name="index"></param>
-    /// <returns>取消为 <see langword="true"/> 不取消为 <see langword="false"/></returns>
+    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     protected bool OnListValueChanging(IList<T> newItems, IList<T> oldItems, int index)
     {
         if (ListChanging is null)
-            return false;
+            return true;
         return OnListChanging(new(ListChangeAction.Replace, newItems, oldItems, index));
     }
 
@@ -237,10 +240,11 @@ public class ObservableListBase<T> : IObservableList<T>, IReadOnlyObservableList
     /// 列表改变前
     /// </summary>
     /// <param name="args">参数</param>
+    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     protected virtual bool OnListChanging(NotifyListChangingEventArgs<T> args)
     {
         ListChanging?.Invoke(this, args);
-        return args.Cancel;
+        return args.Cancel is false;
     }
 
     /// <inheritdoc/>
