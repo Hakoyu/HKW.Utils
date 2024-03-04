@@ -1,6 +1,6 @@
-﻿using HKW.HKWUtils.Observable;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
+using HKW.HKWUtils.Observable;
 
 namespace HKW;
 
@@ -10,6 +10,7 @@ internal class Program
 
     private static void Main(string[] args)
     {
+        var enumInfo = new ObservableEnum<TestEnum>();
         //stopWatch.Start();
         //CountdownTimer timer = new();
         //timer.Completed += () =>
@@ -30,5 +31,34 @@ internal class Program
 }
 
 #if DEBUG
-
+[Flags]
+internal enum TestEnum
+{
+    A,
+    B,
+    C,
+    D,
+    E,
+    F,
+    G,
+    H,
+    I,
+    J,
+    K,
+    L,
+    M,
+    N,
+    O,
+    P,
+    Q,
+    R,
+    S,
+    T,
+    U,
+    V,
+    W,
+    X,
+    Y,
+    Z
+}
 #endif

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using HKW.HKWUtils.Observable;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -13,11 +14,23 @@ namespace HKW.HKWUtils.Observable;
 /// 可观察枚举
 /// </summary>
 /// <typeparam name="TEnum">枚举类型</typeparam>
-public class ObservableEnum<TEnum> : ViewModelBase<ObservableEnum<TEnum>>
+public class ObservableEnum<TEnum>
+    : ViewModelBase<ObservableEnum<TEnum>>,
+        IEquatable<ObservableEnum<TEnum>>
     where TEnum : struct, Enum
 {
+    /// <inheritdoc/>
+    public ObservableEnum() { }
+
+    /// <inheritdoc/>
+    public ObservableEnum(TEnum value)
+        : this()
+    {
+        Value = value;
+    }
+
     #region Value
-    private TEnum _value;
+    private TEnum _value = default;
 
     /// <summary>
     /// 枚举值
@@ -33,33 +46,84 @@ public class ObservableEnum<TEnum> : ViewModelBase<ObservableEnum<TEnum>>
     }
     #endregion
 
-    #region DisplayValue
-    private string _displayValue = string.Empty;
+    #region Name
+    private string _name = string.Empty;
 
     /// <summary>
-    /// 显示名称
+    /// 名称
     /// </summary>
-    public string DisplayValue
+    public string Name
     {
-        get => _displayValue;
-        private set => SetProperty(ref _displayValue, value);
+        get => _name;
+        private set => SetProperty(ref _name, value);
+    }
+    #endregion
+
+    #region ShortName
+    private string _shortName = string.Empty;
+
+    /// <summary>
+    /// 短名称
+    /// </summary>
+    public string ShortName
+    {
+        get => _shortName;
+        private set => SetProperty(ref _shortName, value);
+    }
+    #endregion
+
+    #region Description
+    private string _description = string.Empty;
+
+    /// <summary>
+    /// 描述
+    /// </summary>
+    public string Description
+    {
+        get => _description;
+        set => SetProperty(ref _description, value);
     }
     #endregion
     /// <summary>
-    /// 枚举类型
+    /// 全部名称
     /// </summary>
-    public Type EnumType { get; } = typeof(TEnum);
+    public static string[] Names { get; } = Enum.GetNames<TEnum>();
 
     /// <summary>
-    /// 所有枚举信息
-    /// <para>
-    /// (EnumType, (EnumName, DisplayAttribute))
-    /// </para>
+    /// 全部值
     /// </summary>
-    internal static Dictionary<
-        Type,
-        FrozenDictionary<string, DisplayAttribute>
-    > EnumInfos { get; } = new();
+    public static TEnum[] Values { get; } = Enum.GetValues<TEnum>();
+
+    /// <summary>
+    /// 枚举类型
+    /// </summary>
+    public static Type EnumType { get; } = typeof(TEnum);
+
+    /// <summary>
+    /// 是可标记的
+    /// </summary>
+    public static bool IsFlagable { get; } = Attribute.IsDefined(EnumType, typeof(FlagsAttribute));
+
+    /// <summary>
+    /// 分隔符 (用于显示带有标签的枚举)
+    /// </summary>
+    [DeniedValues(" | ")]
+    public string Separator { get; set; } = " | ";
+
+    /// <summary>
+    /// 刷新行动
+    /// </summary>
+    public Action<ObservableEnum<TEnum>> RefreshAction { get; set; } = DefaultRefreshAction;
+
+    ///// <summary>
+    ///// 或行动
+    ///// </summary>
+    //public Action<ObservableEnum<TEnum>, ObservableEnum<TEnum>> OrAction { get; set; }
+
+    ///// <summary>
+    ///// 与行动
+    ///// </summary>
+    //public Action<ObservableEnum<TEnum>, ObservableEnum<TEnum>> AndAction { get; set; }
 
     /// <summary>
     /// 枚举信息
@@ -67,48 +131,132 @@ public class ObservableEnum<TEnum> : ViewModelBase<ObservableEnum<TEnum>>
     /// (EnumName, DisplayAttribute)
     /// </para>
     /// </summary>
-    public FrozenDictionary<string, DisplayAttribute> EnumInfo { get; }
-
-    /// <inheritdoc/>
-    public ObservableEnum()
-    {
-        if (EnumInfos.TryGetValue(EnumType, out var info))
-        {
-            EnumInfo = info;
-        }
-        else
-        {
-            EnumInfo = EnumInfos[EnumType] = GetEnumInfo<TEnum>();
-        }
-    }
-
-    /// <inheritdoc/>
-    public ObservableEnum(TEnum value)
-        : this()
-    {
-        Value = value;
-    }
+    public static FrozenDictionary<TEnum, DisplayAttribute>? EnumInfos { get; private set; } =
+        null!;
 
     /// <summary>
     /// 刷新
     /// </summary>
     public virtual void Refresh()
     {
-        DisplayValue = Value.ToString();
+        DefaultRefreshAction(this);
     }
 
-    internal static FrozenDictionary<string, DisplayAttribute> GetEnumInfo<T>()
+    internal static FrozenDictionary<TEnum, DisplayAttribute> GetEnumInfo<T>()
     {
-        return Enum.GetNames<TEnum>()
-            .Select(static n => (Name: n, FieldInfo: typeof(TEnum).GetField(n)!))
-            .Where(static t => t.FieldInfo.IsDefined(typeof(DisplayAttribute)))
-            .Select(
-                static t =>
-                    new KeyValuePair<string, DisplayAttribute>(
-                        t.Name,
-                        t.FieldInfo.GetCustomAttribute<DisplayAttribute>()!
-                    )
+        return Values
+            .Select(static v =>
+                (Value: v, FieldInfo: typeof(TEnum).GetField(Enum.GetName<TEnum>(v)!)!)
             )
-            .ToFrozenDictionary();
+            .Where(static v => v.FieldInfo.IsDefined(typeof(DisplayAttribute)))
+            .ToFrozenDictionary(
+                v => v.Value,
+                v => v.FieldInfo.GetCustomAttribute<DisplayAttribute>()!
+            );
     }
+
+    #region Equals
+    /// <inheritdoc/>
+    public bool Equals(ObservableEnum<TEnum>? other)
+    {
+        return other is null ? false : EqualityComparer<TEnum>.Default.Equals(Value, other.Value);
+    }
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as ObservableEnum<TEnum>);
+    }
+
+    /// <inheritdoc/>
+    public override int GetHashCode()
+    {
+        return Value.GetHashCode();
+    }
+    #endregion
+
+    #region Operator
+    /// <inheritdoc/>
+    public static bool operator ==(ObservableEnum<TEnum> a, ObservableEnum<TEnum> b)
+    {
+        return a.Equals(other: b) is true;
+    }
+
+    /// <inheritdoc/>
+    public static bool operator !=(ObservableEnum<TEnum> a, ObservableEnum<TEnum> b)
+    {
+        return a.Equals(other: b) is not true;
+    }
+
+    /// <inheritdoc/>
+    public static ObservableEnum<TEnum> operator |(ObservableEnum<TEnum> a, ObservableEnum<TEnum> b)
+    {
+        if (IsFlagable is false)
+            throw new Exception($"此枚举类型未使用特性 \"{nameof(FlagsAttribute)}\"");
+        return new()
+        {
+            RefreshAction = a.RefreshAction,
+            Separator = a.Separator,
+            Value = (TEnum)
+                Enum.ToObject(EnumType, Convert.ToInt64(a.Value) | Convert.ToInt64(b.Value))
+        };
+    }
+
+    /// <inheritdoc/>
+    public static ObservableEnum<TEnum> operator &(ObservableEnum<TEnum> a, ObservableEnum<TEnum> b)
+    {
+        if (IsFlagable is false)
+            throw new Exception($"此枚举类型未使用特性 \"{nameof(FlagsAttribute)}\"");
+        return new()
+        {
+            RefreshAction = a.RefreshAction,
+            Separator = a.Separator,
+            Value = (TEnum)
+                Enum.ToObject(EnumType, Convert.ToInt64(a.Value) & Convert.ToInt64(b.Value))
+        };
+    }
+
+    #endregion
+
+    #region DefaultAction
+
+    /// <summary>
+    /// 默认刷新行动
+    /// </summary>
+    public static Action<ObservableEnum<TEnum>> DefaultRefreshAction { get; } =
+        (v) =>
+        {
+            EnumInfos ??= GetEnumInfo<TEnum>();
+            if (IsFlagable)
+            {
+                var nameSB = new StringBuilder();
+                var shortNameSB = new StringBuilder();
+                var descriptionSB = new StringBuilder();
+                foreach (var value in Values)
+                {
+                    if (v.Value.HasFlag(value) is false)
+                        continue;
+                    EnumInfos.TryGetValue(value, out var display);
+                    var name = display?.Name ?? value.ToString();
+                    nameSB.Append(display?.Name ?? name).Append(v.Separator);
+                    shortNameSB.Append(display?.ShortName ?? name).Append(v.Separator);
+                    descriptionSB.Append(display?.Description ?? name).Append(v.Separator);
+                }
+                // 删除多余的分隔符
+                nameSB.Remove(nameSB.Length - v.Separator.Length, v.Separator.Length);
+                shortNameSB.Remove(nameSB.Length - v.Separator.Length, v.Separator.Length);
+                descriptionSB.Remove(nameSB.Length - v.Separator.Length, v.Separator.Length);
+                v.Name = nameSB.ToString();
+                v.ShortName = shortNameSB.ToString();
+                v.Description = descriptionSB.ToString();
+            }
+            else
+            {
+                EnumInfos.TryGetValue(v.Value, out var display);
+                v.Name = display?.Name ?? v.Value.ToString();
+                v.ShortName = display?.ShortName ?? v.Name;
+                v.Description = display?.Description ?? v.Name;
+            }
+        };
+    #endregion
 }

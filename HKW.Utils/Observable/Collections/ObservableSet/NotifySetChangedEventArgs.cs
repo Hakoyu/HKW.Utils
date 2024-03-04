@@ -1,6 +1,6 @@
-﻿using HKW.HKWUtils.Collections;
+﻿using System.Diagnostics;
+using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Natives;
-using System.Diagnostics;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -8,7 +8,7 @@ namespace HKW.HKWUtils.Observable;
 /// 通知集合已改变事件参数
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
-[DebuggerDisplay("SetChanged, Action = {Action}")]
+[DebuggerDisplay("SetChanged, _refreshAction = {_refreshAction}")]
 public class NotifySetChangedEventArgs<T> : EventArgs
 {
     /// <summary>

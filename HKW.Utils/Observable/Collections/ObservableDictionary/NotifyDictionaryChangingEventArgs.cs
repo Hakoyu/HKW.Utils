@@ -1,7 +1,7 @@
-﻿using HKW.HKWUtils.Collections;
-using HKW.HKWUtils.Natives;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
+using HKW.HKWUtils.Collections;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -11,7 +11,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
 [DebuggerDisplay(
-    "DictionaryChanging, Action = {Action}, NewPairsCount = {NewItems.Count}, OldPairsCount = {OldItems.Count}"
+    "DictionaryChanging, _refreshAction = {_refreshAction}, NewPairsCount = {NewItems.Count}, OldPairsCount = {OldItems.Count}"
 )]
 public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
     where TKey : notnull

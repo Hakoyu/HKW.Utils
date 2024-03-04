@@ -1,7 +1,7 @@
-﻿using HKW.HKWUtils.Collections;
-using HKW.HKWUtils.Natives;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
+using HKW.HKWUtils.Collections;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -10,7 +10,7 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay(
-    "ListChanging, Action = {Action}, Index = {Index}, NewItemsCount = {NewItems.Count}, OldItemsCount = {OldItems.Count}"
+    "ListChanging, _refreshAction = {_refreshAction}, Index = {Index}, NewItemsCount = {NewItems.Count}, OldItemsCount = {OldItems.Count}"
 )]
 public class NotifyListChangingEventArgs<T> : CancelEventArgs
 {
