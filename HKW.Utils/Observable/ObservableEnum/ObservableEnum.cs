@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using HKW.HKWUtils.Observable;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -137,9 +136,29 @@ public class ObservableEnum<TEnum>
     /// <summary>
     /// 刷新
     /// </summary>
-    public virtual void Refresh()
+    public void Refresh()
     {
-        DefaultRefreshAction(this);
+        RefreshAction(this);
+    }
+
+    /// <summary>
+    /// 拥有标记
+    /// </summary>
+    /// <param name="flag">标记</param>
+    /// <returns>有标记为 <see langword="true"/> 没有为 <see langword="false"/></returns>
+    public bool HasFlag(TEnum flag)
+    {
+        return Value.HasFlag(flag);
+    }
+
+    /// <summary>
+    /// 拥有标记
+    /// </summary>
+    /// <param name="observableEnum">可观察枚举</param>
+    /// <returns>有标记为 <see langword="true"/> 没有为 <see langword="false"/></returns>
+    public bool HasFlag(ObservableEnum<TEnum> observableEnum)
+    {
+        return Value.HasFlag(observableEnum.Value);
     }
 
     internal static FrozenDictionary<TEnum, DisplayAttribute> GetEnumInfo<T>()
@@ -188,33 +207,33 @@ public class ObservableEnum<TEnum>
         return a.Equals(other: b) is not true;
     }
 
-    /// <inheritdoc/>
-    public static ObservableEnum<TEnum> operator |(ObservableEnum<TEnum> a, ObservableEnum<TEnum> b)
-    {
-        if (IsFlagable is false)
-            throw new Exception($"此枚举类型未使用特性 \"{nameof(FlagsAttribute)}\"");
-        return new()
-        {
-            RefreshAction = a.RefreshAction,
-            Separator = a.Separator,
-            Value = (TEnum)
-                Enum.ToObject(EnumType, Convert.ToInt64(a.Value) | Convert.ToInt64(b.Value))
-        };
-    }
+    ///// <inheritdoc/>
+    //public static ObservableEnum<TEnum> operator |(ObservableEnum<TEnum> a, ObservableEnum<TEnum> b)
+    //{
+    //    if (IsFlagable is false)
+    //        throw new Exception($"此枚举类型未使用特性 \"{nameof(FlagsAttribute)}\"");
+    //    return new()
+    //    {
+    //        RefreshAction = a.RefreshAction,
+    //        Separator = a.Separator,
+    //        Value = (TEnum)
+    //            Enum.ToObject(EnumType, Convert.ToInt64(a.Value) | Convert.ToInt64(b.Value))
+    //    };
+    //}
 
-    /// <inheritdoc/>
-    public static ObservableEnum<TEnum> operator &(ObservableEnum<TEnum> a, ObservableEnum<TEnum> b)
-    {
-        if (IsFlagable is false)
-            throw new Exception($"此枚举类型未使用特性 \"{nameof(FlagsAttribute)}\"");
-        return new()
-        {
-            RefreshAction = a.RefreshAction,
-            Separator = a.Separator,
-            Value = (TEnum)
-                Enum.ToObject(EnumType, Convert.ToInt64(a.Value) & Convert.ToInt64(b.Value))
-        };
-    }
+    ///// <inheritdoc/>
+    //public static ObservableEnum<TEnum> operator &(ObservableEnum<TEnum> a, ObservableEnum<TEnum> b)
+    //{
+    //    if (IsFlagable is false)
+    //        throw new Exception($"此枚举类型未使用特性 \"{nameof(FlagsAttribute)}\"");
+    //    return new()
+    //    {
+    //        RefreshAction = a.RefreshAction,
+    //        Separator = a.Separator,
+    //        Value = (TEnum)
+    //            Enum.ToObject(EnumType, Convert.ToInt64(a.Value) & Convert.ToInt64(b.Value))
+    //    };
+    //}
 
     #endregion
 
