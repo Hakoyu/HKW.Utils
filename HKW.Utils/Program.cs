@@ -10,6 +10,9 @@ internal class Program
 
     private static void Main(string[] args)
     {
+        var list = new List<string>();
+        //var s = list.First()
+        //s.Contains('a');
         //var enumInfo = new ObservableEnum<TestEnum>();
         //stopWatch.Start();
         //CountdownTimer timer = new();

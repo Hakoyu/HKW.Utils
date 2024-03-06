@@ -17,6 +17,7 @@ public static partial class HKWExtensions
         out KeyValuePair<TKey, TValue> pair
     )
     {
+        ArgumentNullException.ThrowIfNull(dictionary, nameof(dictionary));
         var result = dictionary.TryGetValue(key, out var value);
         if (result)
             pair = new(key, value!);

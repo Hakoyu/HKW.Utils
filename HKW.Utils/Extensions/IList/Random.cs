@@ -31,6 +31,7 @@ public static partial class HKWExtensions
     public static T Random<T>(this IList<T> list, Random random)
     {
         ArgumentNullException.ThrowIfNull(list, nameof(list));
+        ArgumentNullException.ThrowIfNull(random, nameof(random));
         return list[random.Next(list.Count)];
     }
 

@@ -16,7 +16,6 @@ public static partial class HKWExtensions
     /// <returns>随机后的枚举值</returns>
     public static IOrderedEnumerable<TSource> RandomOrder<TSource>(this IEnumerable<TSource> source)
     {
-        ArgumentNullException.ThrowIfNull(source, nameof(source));
         var count = source.Count();
         return source.OrderBy(x => System.Random.Shared.Next(count));
     }
@@ -33,7 +32,6 @@ public static partial class HKWExtensions
         Random random
     )
     {
-        ArgumentNullException.ThrowIfNull(source, nameof(source));
         ArgumentNullException.ThrowIfNull(random, nameof(random));
         var count = source.Count();
         return source.OrderBy(x => random.Next(count));

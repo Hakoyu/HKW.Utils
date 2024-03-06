@@ -11,6 +11,7 @@ public static partial class HKWExtensions
     /// <returns>含有值为 <see langword="true"/> 否则为 <see langword="false"/></returns>
     public static bool HasValue<T>(this ICollection<T> collection)
     {
+        ArgumentNullException.ThrowIfNull(collection, nameof(collection));
         return collection.Count != 0;
     }
 }

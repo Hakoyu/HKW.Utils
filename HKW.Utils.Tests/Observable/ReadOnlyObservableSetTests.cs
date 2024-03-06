@@ -5,7 +5,7 @@ using HKW.HKWUtils.Observable;
 namespace HKW.HKWUtils.Tests.Observable;
 
 [TestClass]
-public class ObservableSetTests
+public class ReadOnlyObservableSetTests
 {
     [TestMethod]
     public void Adding()
@@ -13,7 +13,8 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (s, e) =>
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
+        readOnlyObservableSet.SetChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Add);
@@ -22,7 +23,7 @@ public class ObservableSetTests
             Assert.IsTrue(e.OtherItems == null);
         };
         observableSet.Add(10);
-        Assert.IsTrue(observableSet.Count == 11);
+        Assert.IsTrue(readOnlyObservableSet.Count == 11);
         Assert.IsTrue(triggered);
     }
 
@@ -32,7 +33,8 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (s, e) =>
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
+        readOnlyObservableSet.SetChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Add);
@@ -42,7 +44,7 @@ public class ObservableSetTests
             e.Cancel = true;
         };
         observableSet.Add(10);
-        Assert.IsTrue(observableSet.Count == 10);
+        Assert.IsTrue(readOnlyObservableSet.Count == 10);
         Assert.IsTrue(triggered);
     }
 
@@ -52,7 +54,8 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanged += (s, e) =>
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
+        readOnlyObservableSet.SetChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Add);
@@ -61,7 +64,7 @@ public class ObservableSetTests
             Assert.IsTrue(e.OtherItems == null);
         };
         observableSet.Add(10);
-        Assert.IsTrue(observableSet.Count == 11);
+        Assert.IsTrue(readOnlyObservableSet.Count == 11);
         Assert.IsTrue(triggered);
     }
 
@@ -71,7 +74,8 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (s, e) =>
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
+        readOnlyObservableSet.SetChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Remove);
@@ -80,7 +84,7 @@ public class ObservableSetTests
             Assert.IsTrue(e.OtherItems == null);
         };
         observableSet.Remove(0);
-        Assert.IsTrue(observableSet.Count == 9);
+        Assert.IsTrue(readOnlyObservableSet.Count == 9);
         Assert.IsTrue(triggered);
     }
 
@@ -90,7 +94,8 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (s, e) =>
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
+        readOnlyObservableSet.SetChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Remove);
@@ -100,7 +105,7 @@ public class ObservableSetTests
             e.Cancel = true;
         };
         observableSet.Remove(0);
-        Assert.IsTrue(observableSet.Count == 10);
+        Assert.IsTrue(readOnlyObservableSet.Count == 10);
         Assert.IsTrue(triggered);
     }
 
@@ -110,7 +115,8 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanged += (s, e) =>
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
+        readOnlyObservableSet.SetChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Remove);
@@ -119,7 +125,7 @@ public class ObservableSetTests
             Assert.IsTrue(e.OtherItems == null);
         };
         observableSet.Remove(0);
-        Assert.IsTrue(observableSet.Count == 9);
+        Assert.IsTrue(readOnlyObservableSet.Count == 9);
         Assert.IsTrue(triggered);
     }
 
@@ -129,7 +135,8 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (s, e) =>
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
+        readOnlyObservableSet.SetChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Clear);
@@ -138,7 +145,7 @@ public class ObservableSetTests
             Assert.IsTrue(e.OtherItems == null);
         };
         observableSet.Clear();
-        Assert.IsTrue(observableSet.Count == 0);
+        Assert.IsTrue(readOnlyObservableSet.Count == 0);
         Assert.IsTrue(triggered);
     }
 
@@ -148,7 +155,8 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (s, e) =>
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
+        readOnlyObservableSet.SetChanging += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Clear);
@@ -158,7 +166,7 @@ public class ObservableSetTests
             e.Cancel = true;
         };
         observableSet.Clear();
-        Assert.IsTrue(observableSet.Count == 10);
+        Assert.IsTrue(readOnlyObservableSet.Count == 10);
         Assert.IsTrue(triggered);
     }
 
@@ -168,7 +176,8 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanged += (s, e) =>
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
+        readOnlyObservableSet.SetChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Clear);
@@ -177,7 +186,7 @@ public class ObservableSetTests
             Assert.IsTrue(e.OtherItems == null);
         };
         observableSet.Clear();
-        Assert.IsTrue(observableSet.Count == 0);
+        Assert.IsTrue(readOnlyObservableSet.Count == 0);
         Assert.IsTrue(triggered);
     }
 
@@ -187,8 +196,9 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
-        observableSet.SetChanged += (s, e) =>
+        readOnlyObservableSet.SetChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Intersect);
@@ -197,7 +207,7 @@ public class ObservableSetTests
             Assert.IsTrue(e.OtherItems?.SequenceEqual(ints));
         };
         observableSet.IntersectWith(ints);
-        Assert.IsTrue(observableSet.Count == 5);
+        Assert.IsTrue(readOnlyObservableSet.Count == 5);
         Assert.IsTrue(triggered);
     }
 
@@ -207,8 +217,9 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
-        observableSet.SetChanged += (s, e) =>
+        readOnlyObservableSet.SetChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Except);
@@ -217,7 +228,7 @@ public class ObservableSetTests
             Assert.IsTrue(e.OtherItems?.SequenceEqual(ints));
         };
         observableSet.ExceptWith(ints);
-        Assert.IsTrue(observableSet.Count == 5);
+        Assert.IsTrue(readOnlyObservableSet.Count == 5);
         Assert.IsTrue(triggered);
     }
 
@@ -227,8 +238,9 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
-        observableSet.SetChanged += (s, e) =>
+        readOnlyObservableSet.SetChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.SymmetricExcept);
@@ -238,7 +250,7 @@ public class ObservableSetTests
             // set1.Union(set2).Except(set1.Intersect(set2))
         };
         observableSet.SymmetricExceptWith(ints);
-        Assert.IsTrue(observableSet.Count == 6);
+        Assert.IsTrue(readOnlyObservableSet.Count == 6);
         Assert.IsTrue(triggered);
     }
 
@@ -248,8 +260,9 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
-        observableSet.SetChanged += (s, e) =>
+        readOnlyObservableSet.SetChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == SetChangeAction.Union);
@@ -258,7 +271,7 @@ public class ObservableSetTests
             Assert.IsTrue(e.OtherItems?.SequenceEqual(ints));
         };
         observableSet.UnionWith(ints);
-        Assert.IsTrue(observableSet.Count == 11);
+        Assert.IsTrue(readOnlyObservableSet.Count == 11);
         Assert.IsTrue(triggered);
     }
 
@@ -268,7 +281,8 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.CollectionChanged += (s, e) =>
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
+        readOnlyObservableSet.CollectionChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == NotifyCollectionChangedAction.Add);
@@ -278,8 +292,8 @@ public class ObservableSetTests
             Assert.IsTrue(e.OldStartingIndex == -1);
         };
         observableSet.Add(10);
-        Assert.IsTrue(observableSet.Last() == 10);
-        Assert.IsTrue(observableSet.Count == 11);
+        Assert.IsTrue(readOnlyObservableSet.Last() == 10);
+        Assert.IsTrue(readOnlyObservableSet.Count == 11);
         Assert.IsTrue(triggered);
     }
 
@@ -289,7 +303,8 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.CollectionChanged += (s, e) =>
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
+        readOnlyObservableSet.CollectionChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == NotifyCollectionChangedAction.Remove);
@@ -299,8 +314,8 @@ public class ObservableSetTests
             Assert.IsTrue(e.OldStartingIndex == -1);
         };
         observableSet.Remove(0);
-        Assert.IsTrue(observableSet.ElementAt(0) == 1);
-        Assert.IsTrue(observableSet.Count == 9);
+        Assert.IsTrue(readOnlyObservableSet.First() == 1);
+        Assert.IsTrue(readOnlyObservableSet.Count == 9);
         Assert.IsTrue(triggered);
     }
 
@@ -310,7 +325,8 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.CollectionChanged += (s, e) =>
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
+        readOnlyObservableSet.CollectionChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == NotifyCollectionChangedAction.Reset);
@@ -320,7 +336,7 @@ public class ObservableSetTests
             Assert.IsTrue(e.OldStartingIndex == -1);
         };
         observableSet.Clear();
-        Assert.IsTrue(observableSet.Count == 0);
+        Assert.IsTrue(readOnlyObservableSet.Count == 0);
         Assert.IsTrue(triggered);
     }
 
@@ -330,8 +346,9 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
-        observableSet.CollectionChanged += (s, e) =>
+        readOnlyObservableSet.CollectionChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == NotifyCollectionChangedAction.Remove);
@@ -341,7 +358,7 @@ public class ObservableSetTests
             Assert.IsTrue(e.OldStartingIndex == -1);
         };
         observableSet.IntersectWith(ints);
-        Assert.IsTrue(observableSet.Count == 5);
+        Assert.IsTrue(readOnlyObservableSet.Count == 5);
         Assert.IsTrue(triggered);
     }
 
@@ -351,8 +368,9 @@ public class ObservableSetTests
         var triggered = false;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
-        observableSet.CollectionChanged += (s, e) =>
+        readOnlyObservableSet.CollectionChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == NotifyCollectionChangedAction.Remove);
@@ -362,7 +380,7 @@ public class ObservableSetTests
             Assert.IsTrue(e.OldStartingIndex == -1);
         };
         observableSet.ExceptWith(ints);
-        Assert.IsTrue(observableSet.Count == 5);
+        Assert.IsTrue(readOnlyObservableSet.Count == 5);
         Assert.IsTrue(triggered);
     }
 
@@ -372,13 +390,14 @@ public class ObservableSetTests
         var triggered = true;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
-        observableSet.CollectionChanged += (s, e) =>
+        readOnlyObservableSet.CollectionChanged += (s, e) =>
         {
             triggered = true;
         };
         observableSet.SymmetricExceptWith(ints);
-        Assert.IsTrue(observableSet.Count == 6);
+        Assert.IsTrue(readOnlyObservableSet.Count == 6);
         Assert.IsTrue(triggered);
     }
 
@@ -388,18 +407,19 @@ public class ObservableSetTests
         var triggered = true;
         var set = Enumerable.Range(0, 10).ToHashSet();
         var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
+        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
         var ints = new int[] { 1, 3, 5, 7, 9, 11 };
-        observableSet.CollectionChanged += (s, e) =>
+        readOnlyObservableSet.CollectionChanged += (s, e) =>
         {
             triggered = true;
             Assert.IsTrue(e.Action == NotifyCollectionChangedAction.Add);
-            Assert.IsTrue(e.NewItems?.ItemsEqual(observableSet.Union(ints)));
+            Assert.IsTrue(e.NewItems?.ItemsEqual(readOnlyObservableSet.Union(ints)));
             Assert.IsTrue(e.OldItems == null);
             Assert.IsTrue(e.NewStartingIndex == -1);
             Assert.IsTrue(e.OldStartingIndex == -1);
         };
         observableSet.UnionWith(ints);
-        Assert.IsTrue(observableSet.Count == 11);
+        Assert.IsTrue(readOnlyObservableSet.Count == 11);
         Assert.IsTrue(triggered);
     }
 }

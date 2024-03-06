@@ -15,6 +15,7 @@ public static partial class HKWExtensions
         TKey key
     )
     {
+        ArgumentNullException.ThrowIfNull(dictionary, nameof(dictionary));
         return new(key, dictionary[key]);
     }
 }

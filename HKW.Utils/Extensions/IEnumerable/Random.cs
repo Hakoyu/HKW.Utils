@@ -16,7 +16,6 @@ public static partial class HKWExtensions
     /// <returns>随机的一个值</returns>
     public static TSource Random<TSource>(this IEnumerable<TSource> source)
     {
-        ArgumentNullException.ThrowIfNull(source, nameof(source));
         return source.ElementAt(System.Random.Shared.Next(source.Count()));
     }
 
@@ -29,7 +28,6 @@ public static partial class HKWExtensions
     /// <returns>随机的一个值</returns>
     public static T Random<T>(this IEnumerable<T> source, Random random)
     {
-        ArgumentNullException.ThrowIfNull(source, nameof(source));
         ArgumentNullException.ThrowIfNull(random, nameof(random));
         return source.ElementAt(random.Next(source.Count()));
     }

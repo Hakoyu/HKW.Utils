@@ -36,6 +36,7 @@ public static partial class HKWExtensions
         where TValue : TReadOnlyValue
         where TReadOnlyValue : notnull
     {
+        ArgumentNullException.ThrowIfNull(dictionary, nameof(dictionary));
         return new(new ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>(dictionary));
     }
 }

@@ -21,7 +21,9 @@ public static partial class HKWExtensions
         Func<TSource, TSource, bool> comparer
     )
     {
+        ArgumentNullException.ThrowIfNull(first, nameof(first));
         ArgumentNullException.ThrowIfNull(second, nameof(second));
+        ArgumentNullException.ThrowIfNull(comparer, nameof(comparer));
         using var firstEnumerator = first.GetEnumerator();
         using var secondEnumerator = second.GetEnumerator();
         while (firstEnumerator.MoveNext())
@@ -51,7 +53,9 @@ public static partial class HKWExtensions
         Func<object, object, bool> comparer
     )
     {
+        ArgumentNullException.ThrowIfNull(first, nameof(first));
         ArgumentNullException.ThrowIfNull(second, nameof(second));
+        ArgumentNullException.ThrowIfNull(comparer, nameof(comparer));
         var firstEnumerator = first.GetEnumerator();
         var secondEnumerator = second.GetEnumerator();
         while (firstEnumerator.MoveNext())

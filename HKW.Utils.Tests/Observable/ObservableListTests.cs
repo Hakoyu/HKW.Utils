@@ -11,7 +11,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.ListChanging += (s, e) =>
         {
             triggered = true;
@@ -30,7 +30,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.ListChanging += (s, e) =>
         {
             triggered = true;
@@ -50,7 +50,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.ListChanged += (s, e) =>
         {
             triggered = true;
@@ -71,7 +71,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.ListChanging += (s, e) =>
         {
             triggered = true;
@@ -90,7 +90,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.ListChanging += (s, e) =>
         {
             triggered = true;
@@ -110,7 +110,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.ListChanged += (s, e) =>
         {
             triggered = true;
@@ -131,7 +131,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.ListChanging += (s, e) =>
         {
             triggered = true;
@@ -150,7 +150,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.ListChanging += (s, e) =>
         {
             triggered = true;
@@ -170,7 +170,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.ListChanged += (s, e) =>
         {
             triggered = true;
@@ -191,7 +191,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.ListChanging += (s, e) =>
         {
             triggered = true;
@@ -210,7 +210,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.ListChanging += (s, e) =>
         {
             triggered = true;
@@ -230,7 +230,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.ListChanged += (s, e) =>
         {
             triggered = true;
@@ -251,7 +251,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.ListChanging += (s, e) =>
         {
             triggered = true;
@@ -271,7 +271,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.ListChanging += (s, e) =>
         {
             triggered = true;
@@ -292,7 +292,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.ListChanged += (s, e) =>
         {
             triggered = true;
@@ -314,7 +314,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.CollectionChanged += (s, e) =>
         {
             triggered = true;
@@ -337,7 +337,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.CollectionChanged += (s, e) =>
         {
             triggered = true;
@@ -360,7 +360,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.CollectionChanged += (s, e) =>
         {
             triggered = true;
@@ -383,7 +383,7 @@ public class ObservableListTests
     {
         var triggered = false;
         var list = Enumerable.Range(1, 10).ToList();
-        var observableList = new ObservableListX<int>(list);
+        var observableList = new ObservableList<int>(list);
         observableList.CollectionChanged += (s, e) =>
         {
             triggered = true;
@@ -398,6 +398,63 @@ public class ObservableListTests
         observableList.Clear();
         Assert.IsTrue(observableList.Count == 0);
         Assert.IsTrue(triggered);
+    }
+    #endregion
+    #region IListFind
+    [TestMethod]
+    public void Find()
+    {
+        var observableList = new ObservableList<int>(Enumerable.Range(1, 10));
+
+        Assert.IsTrue(observableList.Find(x => x == 1) == 1);
+        Assert.IsTrue(observableList.Find(1, x => x == 2) == (1, 2));
+        Assert.IsTrue(observableList.Find(1, 3, x => x == 3) == (2, 3));
+
+        Assert.IsTrue(observableList.Find(x => x == -1) == default);
+        Assert.IsTrue(observableList.Find(1, x => x == -1) == (-1, default));
+        Assert.IsTrue(observableList.Find(1, 3, x => x == -1) == (-1, default));
+    }
+
+    [TestMethod]
+    public void FindIndex()
+    {
+        var observableList = new ObservableList<int>(Enumerable.Range(1, 10));
+
+        Assert.IsTrue(observableList.FindIndex(x => x == 1) == 0);
+        Assert.IsTrue(observableList.FindIndex(1, x => x == 2) == 1);
+        Assert.IsTrue(observableList.FindIndex(1, 3, x => x == 3) == 2);
+
+        Assert.IsTrue(observableList.FindIndex(x => x == -1) == -1);
+        Assert.IsTrue(observableList.FindIndex(1, x => x == -1) == -1);
+        Assert.IsTrue(observableList.FindIndex(1, 3, x => x == -1) == -1);
+    }
+
+    [TestMethod]
+    public void FindLast()
+    {
+        var observableList = new ObservableList<int>(Enumerable.Range(1, 10));
+
+        Assert.IsTrue(observableList.FindLast(x => x == 1) == 1);
+        Assert.IsTrue(observableList.FindLast(1, x => x == 2) == (1, 2));
+        Assert.IsTrue(observableList.FindLast(4, 3, x => x == 3) == (2, 3));
+
+        Assert.IsTrue(observableList.FindLast(x => x == -1) == default);
+        Assert.IsTrue(observableList.FindLast(1, x => x == -1) == (-1, default));
+        Assert.IsTrue(observableList.FindLast(4, 3, x => x == -1) == (-1, default));
+    }
+
+    [TestMethod]
+    public void FindLastIndex()
+    {
+        var observableList = new ObservableList<int>(Enumerable.Range(1, 10));
+
+        Assert.IsTrue(observableList.FindLastIndex(x => x == 1) == 0);
+        Assert.IsTrue(observableList.FindLastIndex(1, x => x == 2) == 1);
+        Assert.IsTrue(observableList.FindLastIndex(4, 3, x => x == 3) == 2);
+
+        Assert.IsTrue(observableList.FindLastIndex(x => x == -1) == -1);
+        Assert.IsTrue(observableList.FindLastIndex(1, x => x == -1) == -1);
+        Assert.IsTrue(observableList.FindLastIndex(4, 3, x => x == -1) == -1);
     }
     #endregion
 }

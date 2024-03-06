@@ -8,11 +8,12 @@ public static partial class HKWExtensions
     /// 将普通集合转换为只读集合
     /// </summary>
     /// <typeparam name="T">类型</typeparam>
-    /// <param name="this">集合</param>
+    /// <param name="set">集合</param>
     /// <returns>只读集合</returns>
-    public static ReadOnlySet<T> AsReadOnly<T>(this ISet<T> @this)
+    public static ReadOnlySet<T> AsReadOnly<T>(this ISet<T> set)
         where T : notnull
     {
-        return new ReadOnlySet<T>(@this);
+        ArgumentNullException.ThrowIfNull(set, nameof(set));
+        return new ReadOnlySet<T>(set);
     }
 }
