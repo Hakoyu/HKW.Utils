@@ -23,8 +23,7 @@ public static partial class HKWExtensions
         [MaybeNullWhen(false)] out T value
     )
     {
-        ArgumentNullException.ThrowIfNull(list, nameof(list));
-        if (index >= 0 && index < list.Count)
+        if (list.ContainsIndex(index))
         {
             value = list[index];
             return true;

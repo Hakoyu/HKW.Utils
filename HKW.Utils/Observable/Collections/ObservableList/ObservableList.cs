@@ -8,7 +8,7 @@ namespace HKW.HKWUtils.Observable;
 /// <summary>
 /// 可观测列表
 /// </summary>
-/// <typeparam name="T">类型</typeparam>
+/// <typeparam name="T">项目类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
 public class ObservableList<T> : ObservableListBase<T>, IList
@@ -30,7 +30,7 @@ public class ObservableList<T> : ObservableListBase<T>, IList
 
     #endregion Ctor
 
-    #region ILis
+    #region IList
     bool IList.IsFixedSize => ((IList)_list).IsFixedSize;
     bool ICollection.IsSynchronized => ((ICollection)_list).IsSynchronized;
     object ICollection.SyncRoot => ((ICollection)_list).SyncRoot;

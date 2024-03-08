@@ -11,7 +11,7 @@ namespace HKW.HKWUtils.Observable;
 /// 可观察命令
 /// </summary>
 [DebuggerDisplay("\\{ObservableCommand, CanExecute = {IsCanExecute.Value}\\}")]
-public class ObservableCommand : ViewModelBase<ObservableCommand>, ICommand
+public class ObservableCommand : ObservableObjectX<ObservableCommand>, ICommand
 {
     bool _isCanExecute = true;
 

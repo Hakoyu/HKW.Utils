@@ -22,12 +22,12 @@ namespace HKW.HKWUtils.Observable;
 ///     }
 /// }]]></code></para>
 /// </summary>
-public abstract class ViewModelBase<TObject>
+public abstract class ObservableObjectX<TObject>
     : INotifyPropertyChanging,
         INotifyPropertyChanged,
         INotifyPropertyChangingX<TObject>,
         INotifyPropertyChangedX<TObject>
-    where TObject : ViewModelBase<TObject>
+    where TObject : ObservableObjectX<TObject>
 {
     #region OnPropertyChange
     /// <summary>

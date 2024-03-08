@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using HKW.HKWUtils;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -7,7 +8,7 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="T">数据类型</typeparam>
 public class ObservableRectangleLocation<T>
-    : ViewModelBase<ObservableRectangleLocation<T>>,
+    : ObservableObjectX<ObservableRectangleLocation<T>>,
         IEquatable<ObservableRectangleLocation<T>>,
         ICloneable<ObservableRectangleLocation<T>>
     where T : INumber<T>
@@ -23,55 +24,110 @@ public class ObservableRectangleLocation<T>
         ObservablePoint<T> location
     )
     {
-        Rectangle = rectangle;
-        Location = location;
+        Width = rectangle.Width;
+        Height = rectangle.Height;
+        X = location.X;
+        Y = location.Y;
     }
 
     #region Rectangle
-    private ObservableRectangle<T> _rectangle = default!;
+    #region Width
+    private T _width = default!;
 
     /// <summary>
-    /// 矩形
+    /// 宽度
     /// </summary>
-    public ObservableRectangle<T> Rectangle
+    public T Width
     {
-        get => _rectangle;
+        get => _width;
         set
         {
-            SetProperty(ref _rectangle, value);
-            EndLocation = new(_location.X + Rectangle.Width, _location.Y + Rectangle.Height);
+            SetProperty(ref _width, value);
+            EndX = X + Width;
         }
     }
+    #endregion
+
+    #region Height
+    private T _height = default!;
+
+    /// <summary>
+    /// 高度
+    /// </summary>
+    public T Height
+    {
+        get => _height;
+        set
+        {
+            SetProperty(ref _height, value);
+            EndY = Y + Height;
+        }
+    }
+    #endregion
     #endregion
 
     #region Location
-    private ObservablePoint<T> _location = new();
+    #region X
+    private T _x = default!;
 
     /// <summary>
-    /// 位置
+    /// 坐标X
     /// </summary>
-    public ObservablePoint<T> Location
+    public T X
     {
-        get => _location;
+        get => _x;
         set
         {
-            SetProperty(ref _location, value);
-            EndLocation = new(_location.X + Rectangle.Width, _location.Y + Rectangle.Height);
+            SetProperty(ref _x, value);
+            EndX = X + Width;
         }
     }
     #endregion
 
-    #region EndLocation
-    private ObservablePoint<T> _endLocation = default!;
+    #region Y
+    private T _y = default!;
 
     /// <summary>
-    /// 结束位置
+    /// 坐标Y
     /// </summary>
-    public ObservablePoint<T> EndLocation
+    public T Y
     {
-        get => _endLocation;
-        private set => SetProperty(ref _endLocation, value);
+        get => _y;
+        set
+        {
+            SetProperty(ref _y, value);
+            EndY = Y + Height;
+        }
     }
+    #endregion
+    #endregion
+
+    #region EndLocation
+    #region EndX
+    private T _endX = default!;
+
+    /// <summary>
+    /// 坐标X
+    /// </summary>
+    public T EndX
+    {
+        get => _endX;
+        private set => SetProperty(ref _endX, value);
+    }
+    #endregion
+
+    #region EndY
+    private T _endY = default!;
+
+    /// <summary>
+    /// 坐标Y
+    /// </summary>
+    public T EndY
+    {
+        get => _endY;
+        private set => SetProperty(ref _endY, value);
+    }
+    #endregion
     #endregion
 
     /// <summary>
@@ -82,9 +138,9 @@ public class ObservableRectangleLocation<T>
     /// <returns>在矩形内为 <see langword="true"/> 不在为 <see langword="false"/></returns>
     public bool InRectangle(T x, T y)
     {
-        if (x < Location.X || y < Location.Y)
+        if (x < X || y < Y)
             return false;
-        if (x > EndLocation.X || y > EndLocation.Y)
+        if (x > EndX || y > EndY)
             return false;
         return true;
     }
@@ -95,15 +151,23 @@ public class ObservableRectangleLocation<T>
     /// <returns>新对象</returns>
     public ObservableRectangleLocation<T> Clone()
     {
-        return new(Rectangle.Clone(), Location.Clone());
+        return new()
+        {
+            X = X,
+            Y = Y,
+            Width = Width,
+            Height = Height,
+        };
     }
+
+    object ICloneable.Clone() => Clone();
 
     #region Equals
 
     /// <inheritdoc/>
     public override int GetHashCode()
     {
-        return HashCode.Combine(Rectangle, Location);
+        return HashCode.Combine(Width, Height, X, Y);
     }
 
     /// <inheritdoc/>
@@ -117,7 +181,7 @@ public class ObservableRectangleLocation<T>
     {
         if (other is null)
             return false;
-        return Rectangle.Equals(other.Rectangle) && Location.Equals(other.Location);
+        return X == other.X && Y == other.Y && Width == other.Width && Height == other.Height;
     }
 
     /// <inheritdoc/>

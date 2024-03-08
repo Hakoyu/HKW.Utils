@@ -14,7 +14,7 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="TEnum">枚举类型</typeparam>
 public class ObservableEnum<TEnum>
-    : ViewModelBase<ObservableEnum<TEnum>>,
+    : ObservableObjectX<ObservableEnum<TEnum>>,
         IEquatable<ObservableEnum<TEnum>>
     where TEnum : struct, Enum
 {

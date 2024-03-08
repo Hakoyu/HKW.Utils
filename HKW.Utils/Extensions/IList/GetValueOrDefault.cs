@@ -12,8 +12,7 @@ public static partial class HKWExtensions
     /// <returns>获取成功则返回值, 获取失败则返回默认值</returns>
     public static T? GetValueOrDefault<T>(this IList<T> list, int index, T? defaultValue = default)
     {
-        ArgumentNullException.ThrowIfNull(list, nameof(list));
-        if (index >= 0 && index < list.Count)
+        if (list.ContainsIndex(index))
             return list[index];
         return defaultValue;
     }

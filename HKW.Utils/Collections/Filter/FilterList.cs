@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -13,35 +12,69 @@ using HKW.HKWUtils.Extensions;
 namespace HKW.HKWUtils.Collections;
 
 /// <summary>
-/// 循环列表
-/// <para>任何修改列表数量的行为会导致循环重置</para>
+/// 过滤列表
 /// </summary>
-/// <typeparam name="T">项目类型</typeparam>
+/// <typeparam name="TItem">项目类型</typeparam>
+/// <typeparam name="TFilteredList">已过滤列表类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
-public class CyclicList<T> : IListRange<T>, IListFind<T>
+public class FilterList<TItem, TFilteredList>
+    : IListRange<TItem>,
+        IListFind<TItem>,
+        IReadOnlyList<TItem>
+    where TFilteredList : IList<TItem>
 {
-    private readonly List<T> _list;
+    private readonly List<TItem> _list;
+
+    private Predicate<TItem> _filter = null!;
+
+    /// <summary>
+    /// 过滤器
+    /// </summary>
+    public required Predicate<TItem> Filter
+    {
+        get => _filter;
+        set
+        {
+            _filter = value;
+            Refresh();
+        }
+    }
+
+    private TFilteredList _filteredList = default!;
+
+    /// <summary>
+    /// 过滤完成的列表
+    /// </summary>
+    public required TFilteredList FilteredList
+    {
+        get => _filteredList;
+        init
+        {
+            _filteredList = value;
+            Refresh();
+        }
+    }
 
     #region Ctor
     /// <inheritdoc/>
-    public CyclicList()
+    public FilterList()
         : this(null, null) { }
 
     /// <inheritdoc/>
     /// <param name="capacity">容量</param>
-    public CyclicList(int capacity)
+    public FilterList(int capacity)
         : this(capacity, null) { }
 
     /// <inheritdoc/>
     /// <param name="collection">集合</param>
-    public CyclicList(IEnumerable<T> collection)
+    public FilterList(IEnumerable<TItem> collection)
         : this(null, collection) { }
 
     /// <inheritdoc/>
     /// <param name="capacity">容量</param>
     /// <param name="collection">集合</param>
-    private CyclicList(int? capacity, IEnumerable<T>? collection)
+    private FilterList(int? capacity, IEnumerable<TItem>? collection)
     {
         if (capacity is not null)
             _list = new(capacity.Value);
@@ -51,140 +84,104 @@ public class CyclicList<T> : IListRange<T>, IListFind<T>
             _list = new();
     }
     #endregion
-
-    #region Cyclic
     /// <summary>
-    /// 当前项目
+    /// 刷新过滤列表
     /// </summary>
-    public T Current { get; private set; } = default!;
-
-    /// <summary>
-    /// 当前索引
-    /// </summary>
-    public int CurrntIndex { get; private set; } = 0;
-
-    /// <summary>
-    /// 自动重置
-    /// </summary>
-    [DefaultValue(false)]
-    public bool AutoReset { get; set; } = false;
-
-    /// <summary>
-    /// 移动到下一个
-    /// </summary>
-    /// <returns>移动成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
-    public bool MoveNext()
+    public void Refresh()
     {
-        if (CurrntIndex >= _list.Count - 1)
-        {
-            if (AutoReset)
-            {
-                CurrntIndex = 0;
-                Current = _list[CurrntIndex];
-                return true;
-            }
-            return false;
-        }
-        CurrntIndex++;
-        Current = _list[CurrntIndex];
-        return true;
+        if (FilteredList is null || Filter is null)
+            return;
+        FilteredList.Clear();
+        if (_list.HasValue())
+            FilteredList.AddRange(_list.Where(i => Filter(i)));
     }
-
-    /// <summary>
-    /// 重置循环
-    /// </summary>
-    public void Reset()
-    {
-        if (Count == 0)
-        {
-            CurrntIndex = -1;
-            Current = default!;
-        }
-        else
-        {
-            CurrntIndex = 0;
-            Current = _list[CurrntIndex];
-        }
-    }
-    #endregion
 
     #region IList
     /// <inheritdoc/>
-    public T this[int index]
+    public TItem this[int index]
     {
-        get => ((IList<T>)_list)[index];
+        get => ((IList<TItem>)_list)[index];
         set
         {
-            ((IList<T>)_list)[index] = value;
-            if (index == CurrntIndex)
-                Current = value;
+            var oldValue = _list[index];
+            ((IList<TItem>)_list)[index] = value;
+            if (Filter(value) is false)
+                return;
+            var tempIndex = FilteredList.IndexOf(oldValue);
+            if (tempIndex != -1)
+                FilteredList[tempIndex] = value;
+            else
+                Refresh();
         }
     }
 
     /// <inheritdoc/>
-    public int Count => ((ICollection<T>)_list).Count;
+    public int Count => ((ICollection<TItem>)_list).Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<T>)_list).IsReadOnly;
+    public bool IsReadOnly => ((ICollection<TItem>)_list).IsReadOnly;
 
     /// <inheritdoc/>
-    public void Add(T item)
+    public void Add(TItem item)
     {
-        ((ICollection<T>)_list).Add(item);
-        Reset();
+        ((ICollection<TItem>)_list).Add(item);
+        FilteredList.Add(item);
     }
 
     /// <inheritdoc/>
     public void Clear()
     {
-        ((ICollection<T>)_list).Clear();
-        Reset();
+        ((ICollection<TItem>)_list).Clear();
+        FilteredList.Clear();
     }
 
     /// <inheritdoc/>
-    public bool Contains(T item)
+    public bool Contains(TItem item)
     {
-        return ((ICollection<T>)_list).Contains(item);
+        return ((ICollection<TItem>)_list).Contains(item);
     }
 
     /// <inheritdoc/>
-    public void CopyTo(T[] array, int arrayIndex)
+    public void CopyTo(TItem[] array, int arrayIndex)
     {
-        ((ICollection<T>)_list).CopyTo(array, arrayIndex);
+        ((ICollection<TItem>)_list).CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
-    public IEnumerator<T> GetEnumerator()
+    public IEnumerator<TItem> GetEnumerator()
     {
-        return ((IEnumerable<T>)_list).GetEnumerator();
+        return ((IEnumerable<TItem>)_list).GetEnumerator();
     }
 
     /// <inheritdoc/>
-    public int IndexOf(T item)
+    public int IndexOf(TItem item)
     {
-        return ((IList<T>)_list).IndexOf(item);
+        return ((IList<TItem>)_list).IndexOf(item);
     }
 
     /// <inheritdoc/>
-    public void Insert(int index, T item)
+    public void Insert(int index, TItem item)
     {
-        ((IList<T>)_list).Insert(index, item);
-        Reset();
+        ((IList<TItem>)_list).Insert(index, item);
+        FilteredList.Insert(index, item);
     }
 
     /// <inheritdoc/>
-    public bool Remove(T item)
+    public bool Remove(TItem item)
     {
-        var result = ((ICollection<T>)_list).Remove(item);
-        Reset();
+        var result = ((ICollection<TItem>)_list).Remove(item);
+        if (result)
+            FilteredList.Remove(item);
         return result;
     }
 
     /// <inheritdoc/>
     public void RemoveAt(int index)
     {
-        ((IList<T>)_list).RemoveAt(index);
-        Reset();
+        if (_list.TryGetValue(index, out var item) is false)
+            return;
+        _list.RemoveAt(index);
+        FilteredList.Remove(item);
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -195,71 +192,71 @@ public class CyclicList<T> : IListRange<T>, IListFind<T>
 
     #region IListX
     /// <inheritdoc/>
-    public void AddRange(IEnumerable<T> collection)
+    public void AddRange(IEnumerable<TItem> collection)
     {
         _list.AddRange(collection);
-        Reset();
+        FilteredList.AddRange(collection.Where(i => Filter(i)));
     }
 
     /// <inheritdoc/>
-    public void InsertRange(int index, IEnumerable<T> collection)
+    public void InsertRange(int index, IEnumerable<TItem> collection)
     {
         _list.InsertRange(index, collection);
-        Reset();
+        FilteredList.InsertRange(index, collection.Where(i => Filter(i)));
     }
 
     /// <inheritdoc/>
-    public void RemoveAll(Predicate<T> match)
+    public void RemoveAll(Predicate<TItem> match)
     {
         _list.RemoveAll(match);
-        Reset();
+        FilteredList.RemoveAll(match);
     }
 
     /// <inheritdoc/>
     public void RemoveRange(int index, int count)
     {
         _list.RemoveRange(index, count);
-        Reset();
+        FilteredList.RemoveRange(index, count);
     }
 
     /// <inheritdoc/>
     public void Reverse()
     {
         _list.Reverse();
-        Reset();
+        FilteredList.Reverse();
     }
 
     /// <inheritdoc/>
     public void Reverse(int index, int count)
     {
         _list.Reverse(index, count);
-        Reset();
+        FilteredList.Reverse(index, count);
     }
     #endregion
 
     #region IListFind
     /// <inheritdoc/>
-    public T? Find(Predicate<T> match)
+    public TItem? Find(Predicate<TItem> match)
     {
         return _list.Find(match);
     }
 
     /// <inheritdoc/>
-    public (int Index, T? Value) Find(int startIndex, Predicate<T> match)
+    public (int Index, TItem? Value) Find(int startIndex, Predicate<TItem> match)
     {
         var index = _list.FindIndex(startIndex, match);
         return (index, _list.GetValueOrDefault(index));
     }
 
     /// <inheritdoc/>
-    public (int Index, T? Value) Find(int startIndex, int count, Predicate<T> match)
+    public (int Index, TItem? Value) Find(int startIndex, int count, Predicate<TItem> match)
     {
         var index = _list.FindIndex(startIndex, count, match);
         return (index, _list.GetValueOrDefault(index));
     }
 
     /// <inheritdoc/>
-    public bool TryFind(Predicate<T> match, [MaybeNullWhen(false)] out T item)
+    public bool TryFind(Predicate<TItem> match, [MaybeNullWhen(false)] out TItem item)
     {
         var index = _list.FindIndex(match);
         item = _list.GetValueOrDefault(index);
@@ -267,7 +264,7 @@ public class CyclicList<T> : IListRange<T>, IListFind<T>
     }
 
     /// <inheritdoc/>
-    public bool TryFind(int startIndex, Predicate<T> match, out (int Index, T Value) item)
+    public bool TryFind(int startIndex, Predicate<TItem> match, out (int Index, TItem Value) item)
     {
         var index = _list.FindIndex(startIndex, match);
         item = (index, _list.GetValueOrDefault(index)!);
@@ -278,8 +275,8 @@ public class CyclicList<T> : IListRange<T>, IListFind<T>
     public bool TryFind(
         int startIndex,
         int count,
-        Predicate<T> match,
-        out (int Index, T Value) item
+        Predicate<TItem> match,
+        out (int Index, TItem Value) item
     )
     {
         var index = _list.FindIndex(startIndex, count, match);
@@ -288,45 +285,45 @@ public class CyclicList<T> : IListRange<T>, IListFind<T>
     }
 
     /// <inheritdoc/>
-    public int FindIndex(Predicate<T> match)
+    public int FindIndex(Predicate<TItem> match)
     {
         return _list.FindIndex(match);
     }
 
     /// <inheritdoc/>
-    public int FindIndex(int startIndex, Predicate<T> match)
+    public int FindIndex(int startIndex, Predicate<TItem> match)
     {
         return _list.FindIndex(startIndex, match);
     }
 
     /// <inheritdoc/>
-    public int FindIndex(int startIndex, int count, Predicate<T> match)
+    public int FindIndex(int startIndex, int count, Predicate<TItem> match)
     {
         return _list.FindIndex(startIndex, count, match);
     }
 
     /// <inheritdoc/>
-    public T? FindLast(Predicate<T> match)
+    public TItem? FindLast(Predicate<TItem> match)
     {
         return _list.FindLast(match);
     }
 
     /// <inheritdoc/>
-    public (int Index, T? Value) FindLast(int startIndex, Predicate<T> match)
+    public (int Index, TItem? Value) FindLast(int startIndex, Predicate<TItem> match)
     {
         var index = _list.FindLastIndex(startIndex, match);
         return (index, _list.GetValueOrDefault(index));
     }
 
     /// <inheritdoc/>
-    public (int Index, T? Value) FindLast(int startIndex, int count, Predicate<T> match)
+    public (int Index, TItem? Value) FindLast(int startIndex, int count, Predicate<TItem> match)
     {
         var index = _list.FindLastIndex(startIndex, count, match);
         return (index, _list.GetValueOrDefault(index));
     }
 
     /// <inheritdoc/>
-    public bool TryFindLast(Predicate<T> match, [MaybeNullWhen(false)] out T item)
+    public bool TryFindLast(Predicate<TItem> match, [MaybeNullWhen(false)] out TItem item)
     {
         var index = _list.FindLastIndex(match);
         item = _list.GetValueOrDefault(index);
@@ -334,7 +331,11 @@ public class CyclicList<T> : IListRange<T>, IListFind<T>
     }
 
     /// <inheritdoc/>
-    public bool TryFindLast(int startIndex, Predicate<T> match, out (int Index, T Value) item)
+    public bool TryFindLast(
+        int startIndex,
+        Predicate<TItem> match,
+        out (int Index, TItem Value) item
+    )
     {
         var index = _list.FindLastIndex(startIndex, match);
         item = (index, _list.GetValueOrDefault(index)!);
@@ -345,8 +346,8 @@ public class CyclicList<T> : IListRange<T>, IListFind<T>
     public bool TryFindLast(
         int startIndex,
         int count,
-        Predicate<T> match,
-        out (int Index, T Value) item
+        Predicate<TItem> match,
+        out (int Index, TItem Value) item
     )
     {
         var index = _list.FindLastIndex(startIndex, count, match);
@@ -355,19 +356,19 @@ public class CyclicList<T> : IListRange<T>, IListFind<T>
     }
 
     /// <inheritdoc/>
-    public int FindLastIndex(Predicate<T> match)
+    public int FindLastIndex(Predicate<TItem> match)
     {
         return _list.FindLastIndex(match);
     }
 
     /// <inheritdoc/>
-    public int FindLastIndex(int startIndex, Predicate<T> match)
+    public int FindLastIndex(int startIndex, Predicate<TItem> match)
     {
         return _list.FindLastIndex(startIndex, match);
     }
 
     /// <inheritdoc/>
-    public int FindLastIndex(int startIndex, int count, Predicate<T> match)
+    public int FindLastIndex(int startIndex, int count, Predicate<TItem> match)
     {
         return _list.FindLastIndex(startIndex, count, match);
     }

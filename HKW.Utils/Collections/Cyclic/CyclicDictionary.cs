@@ -1,21 +1,26 @@
 ﻿using System.Collections;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Collections;
 
 /// <summary>
 /// 循环字典
+/// <para>任何修改字典数量的行为会导致循环重置</para>
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
+[DebuggerDisplay("Count = {Count}")]
+[DebuggerTypeProxy(typeof(CollectionDebugView))]
 public class CyclicDictionary<TKey, TValue> : IDictionary<TKey, TValue>
     where TKey : notnull
 {
     private readonly Dictionary<TKey, TValue> _dictionary;
 
-    #region ctor
+    #region Ctor
     /// <inheritdoc/>
     public CyclicDictionary()
         : this(null!, null) { }
@@ -39,39 +44,32 @@ public class CyclicDictionary<TKey, TValue> : IDictionary<TKey, TValue>
     )
     {
         if (collection is not null)
+        {
             _dictionary = new(collection, comparer);
+            _keys.AddRange(collection.Select(i => i.Key));
+        }
         else
             _dictionary = new(comparer);
+        Reset();
     }
     #endregion
 
     #region Cyclic
 
-    private KeyValuePair<TKey, TValue> _current = default;
-
     /// <summary>
     /// 当前项目
     /// </summary>
-    public KeyValuePair<TKey, TValue> Current
-    {
-        get => _current;
-        private set
-        {
-            _current = value;
-            CurrentKey = _current.Key;
-            CurrentValue = _current.Value;
-        }
-    }
+    public KeyValuePair<TKey, TValue> Current { get; private set; }
 
     /// <summary>
     /// 当前索引
     /// </summary>
-    public TKey CurrentKey { get; private set; } = default!;
+    public TKey CurrentKey => Current.Key;
 
     /// <summary>
     /// 当前值
     /// </summary>
-    public TValue CurrentValue { get; private set; } = default!;
+    public TValue CurrentValue => Current.Value;
 
     /// <summary>
     /// 自动重置
@@ -88,7 +86,7 @@ public class CyclicDictionary<TKey, TValue> : IDictionary<TKey, TValue>
     /// <returns>移动成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
     public bool MoveNext()
     {
-        if (_currentIndex >= Count)
+        if (_currentIndex >= Count - 1)
         {
             if (AutoReset)
             {
@@ -126,7 +124,12 @@ public class CyclicDictionary<TKey, TValue> : IDictionary<TKey, TValue>
     public TValue this[TKey key]
     {
         get => ((IDictionary<TKey, TValue>)_dictionary)[key];
-        set => ((IDictionary<TKey, TValue>)_dictionary)[key] = value;
+        set
+        {
+            ((IDictionary<TKey, TValue>)_dictionary)[key] = value;
+            if (CurrentKey.Equals(key))
+                Current = new(key, value);
+        }
     }
 
     /// <inheritdoc/>

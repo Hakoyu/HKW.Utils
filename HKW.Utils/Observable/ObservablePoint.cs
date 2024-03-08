@@ -1,21 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 using System.Windows;
+using HKW.HKWUtils;
 
 namespace HKW.HKWUtils.Observable;
-
-/// <summary>
-/// 可克隆接口
-/// </summary>
-/// <typeparam name="T">对象类型</typeparam>
-public interface ICloneable<T>
-{
-    /// <summary>
-    /// 克隆当前对象
-    /// </summary>
-    /// <returns>新对象</returns>
-    public T Clone();
-}
 
 /// <summary>
 /// 可深克隆接口
@@ -35,7 +23,7 @@ public interface IDeepCloneable<T>
 /// </summary>
 /// <typeparam name="T">数据类型</typeparam>
 public class ObservablePoint<T>
-    : ViewModelBase<ObservablePoint<T>>,
+    : ObservableObjectX<ObservablePoint<T>>,
         IEquatable<ObservablePoint<T>>,
         ICloneable<ObservablePoint<T>>
     where T : INumber<T>
@@ -78,12 +66,13 @@ public class ObservablePoint<T>
     }
     #endregion
 
-
     /// <inheritdoc/>
     public ObservablePoint<T> Clone()
     {
         return new(X, Y);
     }
+
+    object ICloneable.Clone() => Clone();
 
     #region Equals
 

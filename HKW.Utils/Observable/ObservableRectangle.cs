@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using HKW.HKWUtils;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -7,7 +8,7 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 public class ObservableRectangle<T>
-    : ViewModelBase<ObservableRectangle<T>>,
+    : ObservableObjectX<ObservableRectangle<T>>,
         IEquatable<ObservableRectangle<T>>,
         ICloneable<ObservableRectangle<T>>
     where T : INumber<T>
@@ -55,6 +56,8 @@ public class ObservableRectangle<T>
     {
         return new(Width, Height);
     }
+
+    object ICloneable.Clone() => Clone();
 
     #region Equals
 

@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using HKW.HKWUtils;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -7,7 +8,7 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 public class ObservableRange<T>
-    : ViewModelBase<ObservableRange<T>>,
+    : ObservableObjectX<ObservableRange<T>>,
         IEquatable<ObservableRange<T>>,
         ICloneable<ObservableRange<T>>
     where T : INumber<T>
@@ -55,6 +56,8 @@ public class ObservableRange<T>
     {
         return new(Min, Max);
     }
+
+    object ICloneable.Clone() => Clone();
 
     #region Equals
 

@@ -64,13 +64,13 @@ public class ObservableDictionary<TKey, TValue>
         else
             _dictionary = new(comparer);
     }
+    #endregion Ctor
 
     /// <inheritdoc/>
     void IReadOnlyObservableCollection<KeyValuePair<TKey, TValue>>.Close()
     {
         throw new NotImplementedException(ExceptionMessage.IsNotReadOnlyCollection);
     }
-    #endregion Ctor
 
     #region IDictionaryT
 

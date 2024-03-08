@@ -98,7 +98,7 @@ public class ObservableListX<T> : ObservableListBase<T>, IObservableListX<T>
     }
 
     #endregion
-    void IListX<T>.RemoveAll(Predicate<T> match)
+    void IListRange<T>.RemoveAll(Predicate<T> match)
     {
         throw new NotImplementedException();
     }
