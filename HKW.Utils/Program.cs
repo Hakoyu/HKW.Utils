@@ -12,8 +12,11 @@ internal class Program
 
     private static void Main(string[] args)
     {
-        var list = new ReadOnlyObservableList<int>(new ObservableList<int>());
-        var a = list.Find(i => i > 0);
+        var span = "aaa,bbb,,ccc".AsSpan();
+        foreach (var str in span.Split(','))
+        {
+            Console.WriteLine(str.ToString());
+        }
     }
 
     static bool Foo(int i)

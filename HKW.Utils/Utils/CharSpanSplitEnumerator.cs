@@ -1,14 +1,19 @@
 ﻿namespace HKW.HKWUtils;
 
 /// <summary>
-/// 行分割枚举器
+/// Span&lt;char&gt;分割枚举器
 /// </summary>
-public ref struct LineSplitEnumerator
+public ref struct CharSpanSplitEnumerator
 {
     private ReadOnlySpan<char> _span;
 
     /// <summary>
-    /// 字符串分割设置
+    /// 分割项
+    /// </summary>
+    private readonly char[] _separator;
+
+    /// <summary>
+    /// 删除空项
     /// </summary>
     private StringSplitOptions _stringSplitOptions;
 
@@ -17,17 +22,20 @@ public ref struct LineSplitEnumerator
     /// </summary>
     public ReadOnlySpan<char> Current { get; private set; }
 
-    /// <inheritdoc/>
-    /// <param name="span">字符串</param>
-    /// <param name="stringSplitOptions">字符串分割设置</param>
-    internal LineSplitEnumerator(ReadOnlySpan<char> span, StringSplitOptions stringSplitOptions)
+    internal CharSpanSplitEnumerator(
+        ReadOnlySpan<char> span,
+        char[] separator,
+        StringSplitOptions stringSplitOptions
+    )
     {
+        Current = default;
         _span = span;
+        _separator = separator;
         _stringSplitOptions = stringSplitOptions;
     }
 
     /// <summary>
-    /// 将枚举器推进到下一个项目
+    /// 将枚举器将枚举器推进到下一个项目
     /// </summary>
     /// <returns>枚举器是否推进到下一个项目</returns>
     public bool MoveNext()
@@ -36,7 +44,7 @@ public ref struct LineSplitEnumerator
             return false;
         do
         {
-            var index = _span.IndexOfAny('\r', '\n');
+            int index = _span.IndexOfAny(_separator);
             if (index < 0)
             {
                 if (_stringSplitOptions.HasFlag(StringSplitOptions.TrimEntries))
@@ -58,15 +66,7 @@ public ref struct LineSplitEnumerator
             Current = _stringSplitOptions.HasFlag(StringSplitOptions.TrimEntries)
                 ? _span[..index].Trim()
                 : _span[..index];
-            if (index < _span.Length - 1 && _span[index] == '\r' && _span[index + 1] == '\n')
-            {
-                // 检测 \r\n
-                _span = _span[(index + 2)..];
-            }
-            else
-            {
-                _span = _span[(index + 1)..];
-            }
+            _span = _span[(index + 1)..];
         } while (
             Current.IsEmpty && _stringSplitOptions.HasFlag(StringSplitOptions.RemoveEmptyEntries)
         );
@@ -77,5 +77,5 @@ public ref struct LineSplitEnumerator
     /// 枚举器
     /// </summary>
     /// <returns>枚举器</returns>
-    public readonly LineSplitEnumerator GetEnumerator() => this;
+    public readonly CharSpanSplitEnumerator GetEnumerator() => this;
 }
