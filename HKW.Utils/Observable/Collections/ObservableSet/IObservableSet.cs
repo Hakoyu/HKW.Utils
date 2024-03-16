@@ -8,13 +8,6 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 public interface IObservableSet<T>
     : ISet<T>,
+        IObservableCollection<T>,
         INotifySetChanging<T>,
-        INotifySetChanged<T>,
-        INotifyCollectionChanged,
-        INotifyPropertyChanged
-{
-    /// <summary>
-    /// 比较器
-    /// </summary>
-    public IEqualityComparer<T> Comparer { get; }
-}
+        INotifySetChanged<T> { }

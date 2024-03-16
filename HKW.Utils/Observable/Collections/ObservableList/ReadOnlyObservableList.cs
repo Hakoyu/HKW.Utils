@@ -15,7 +15,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
-public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>, IDisposable
+public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>
 {
     /// <summary>
     /// 原始可观察列表
@@ -169,14 +169,7 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     bool ICollection<T>.IsReadOnly => true;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    bool IObservableCollection<T>.TriggerRemoveActionOnClear
-    {
-        get => _list.TriggerRemoveActionOnClear;
-        set => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
-    }
-
-    #endregion IObservableList
+    #endregion
 
     #region IListFind
     /// <inheritdoc/>

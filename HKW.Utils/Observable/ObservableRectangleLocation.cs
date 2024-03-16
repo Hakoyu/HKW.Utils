@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using HKW.HKWUtils;
 
 namespace HKW.HKWUtils.Observable;
@@ -7,6 +8,7 @@ namespace HKW.HKWUtils.Observable;
 /// 可观察矩形位置
 /// </summary>
 /// <typeparam name="T">数据类型</typeparam>
+[DebuggerDisplay("X = {X}, Y = {Y}, Width = {Width}, Height = {Height}")]
 public class ObservableRectangleLocation<T>
     : ObservableObjectX<ObservableRectangleLocation<T>>,
         IEquatable<ObservableRectangleLocation<T>>,
@@ -202,4 +204,9 @@ public class ObservableRectangleLocation<T>
         return a.Equals(b) is not true;
     }
     #endregion
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return $"X = {X}, Y = {Y}, Width = {Width}, Height = {Height}";
+    }
 }

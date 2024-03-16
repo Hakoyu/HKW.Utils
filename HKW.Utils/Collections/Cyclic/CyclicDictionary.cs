@@ -15,7 +15,10 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TValue">值类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
-public class CyclicDictionary<TKey, TValue> : IDictionary<TKey, TValue>
+public class CyclicDictionary<TKey, TValue>
+    : IDictionary<TKey, TValue>,
+        IReadOnlyDictionary<TKey, TValue>,
+        IDictionary
     where TKey : notnull
 {
     private readonly Dictionary<TKey, TValue> _dictionary;
@@ -144,19 +147,49 @@ public class CyclicDictionary<TKey, TValue> : IDictionary<TKey, TValue>
     /// <inheritdoc/>
     public bool IsReadOnly => ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).IsReadOnly;
 
+    IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys =>
+        ((IReadOnlyDictionary<TKey, TValue>)_dictionary).Keys;
+
+    IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values =>
+        ((IReadOnlyDictionary<TKey, TValue>)_dictionary).Values;
+
+    /// <inheritdoc/>
+    public bool IsFixedSize => ((IDictionary)_dictionary).IsFixedSize;
+
+    ICollection IDictionary.Keys => ((IDictionary)_dictionary).Keys;
+
+    ICollection IDictionary.Values => ((IDictionary)_dictionary).Values;
+
+    /// <inheritdoc/>
+    public bool IsSynchronized => ((ICollection)_dictionary).IsSynchronized;
+
+    /// <inheritdoc/>
+    public object SyncRoot => ((ICollection)_dictionary).SyncRoot;
+
+    /// <inheritdoc/>
+    public object? this[object key]
+    {
+        get => ((IDictionary)_dictionary)[key];
+        set => this[(TKey)key] = (TValue)value!;
+    }
+
     /// <inheritdoc/>
     public void Add(TKey key, TValue value)
     {
+        var count = Count;
         ((IDictionary<TKey, TValue>)_dictionary).Add(key, value);
-        _keys.Add(key);
+        if (count != Count)
+            _keys.Add(key);
         Reset();
     }
 
     /// <inheritdoc/>
     public void Add(KeyValuePair<TKey, TValue> item)
     {
+        var count = Count;
         ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).Add(item);
-        _keys.Add(item.Key);
+        if (count != Count)
+            _keys.Add(item.Key);
         Reset();
     }
 
@@ -196,7 +229,8 @@ public class CyclicDictionary<TKey, TValue> : IDictionary<TKey, TValue>
     public bool Remove(TKey key)
     {
         var result = ((IDictionary<TKey, TValue>)_dictionary).Remove(key);
-        _keys.Remove(key);
+        if (result)
+            _keys.Remove(key);
         Reset();
         return result;
     }
@@ -205,7 +239,8 @@ public class CyclicDictionary<TKey, TValue> : IDictionary<TKey, TValue>
     public bool Remove(KeyValuePair<TKey, TValue> item)
     {
         var result = ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).Remove(item);
-        _keys.Remove(item.Key);
+        if (result)
+            _keys.Remove(item.Key);
         Reset();
         return result;
     }
@@ -219,6 +254,43 @@ public class CyclicDictionary<TKey, TValue> : IDictionary<TKey, TValue>
     IEnumerator IEnumerable.GetEnumerator()
     {
         return ((IEnumerable)_dictionary).GetEnumerator();
+    }
+
+    /// <inheritdoc/>
+    public void Add(object key, object? value)
+    {
+        var count = Count;
+        ((IDictionary)_dictionary).Add(key, value);
+        if (count != Count)
+            _keys.Add((TKey)key);
+        Reset();
+    }
+
+    /// <inheritdoc/>
+    public bool Contains(object key)
+    {
+        return ((IDictionary)_dictionary).Contains(key);
+    }
+
+    IDictionaryEnumerator IDictionary.GetEnumerator()
+    {
+        return ((IDictionary)_dictionary).GetEnumerator();
+    }
+
+    /// <inheritdoc/>
+    public void Remove(object key)
+    {
+        var count = Count;
+        ((IDictionary)_dictionary).Remove(key);
+        if (count != Count)
+            _keys.Remove((TKey)key);
+        Reset();
+    }
+
+    /// <inheritdoc/>
+    public void CopyTo(Array array, int index)
+    {
+        ((ICollection)_dictionary).CopyTo(array, index);
     }
     #endregion
 }

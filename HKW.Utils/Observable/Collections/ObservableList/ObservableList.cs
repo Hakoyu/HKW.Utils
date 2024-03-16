@@ -28,7 +28,7 @@ public class ObservableList<T> : ObservableListBase<T>, IList
     public ObservableList(IEnumerable<T> collection)
         : base(collection) { }
 
-    #endregion Ctor
+    #endregion
 
     #region IList
     bool IList.IsFixedSize => ((IList)_list).IsFixedSize;
@@ -44,11 +44,11 @@ public class ObservableList<T> : ObservableListBase<T>, IList
             var newList = new SimpleSingleItemReadOnlyList<T>((T)value!);
             if (
                 oldValue?.Equals(value) is true
-                || OnListValueChanging(newList, oldList, index) is false
+                || OnListReplacing(newList, oldList, index) is false
             )
                 return;
             _list[index] = (T)value!;
-            OnListValueChanged(newList, oldList, index);
+            OnListReplaced(newList, oldList, index);
         }
     }
 

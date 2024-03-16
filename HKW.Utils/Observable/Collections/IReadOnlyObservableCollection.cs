@@ -1,9 +1,16 @@
-﻿namespace HKW.HKWUtils.Observable;
+﻿using System.Collections.Specialized;
+using System.ComponentModel;
+
+namespace HKW.HKWUtils.Observable;
 
 /// <summary>
 /// 只读可观察集合接口
 /// </summary>
-public interface IReadOnlyObservableCollection<T> : IReadOnlyCollection<T>
+public interface IReadOnlyObservableCollection<T>
+    : IReadOnlyCollection<T>,
+        INotifyCollectionChanged,
+        INotifyPropertyChanged,
+        IDisposable
 {
     /// <summary>
     /// 关闭 (从原始可观察集合上注销所有事件)

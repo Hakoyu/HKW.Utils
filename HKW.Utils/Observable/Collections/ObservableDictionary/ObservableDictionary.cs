@@ -10,7 +10,6 @@ using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Observable;
 
-//[Serializable]
 /// <summary>
 /// 可观测字典
 /// </summary>
@@ -23,12 +22,6 @@ public class ObservableDictionary<TKey, TValue>
         IReadOnlyObservableDictionary<TKey, TValue>
     where TKey : notnull
 {
-    /// <inheritdoc/>
-    public IEqualityComparer<TKey> Comparer => _dictionary.Comparer;
-
-    /// <inheritdoc/>
-    public bool TriggerRemoveActionOnClear { get; set; }
-
     /// <summary>
     /// 原始字典
     /// </summary>
@@ -36,7 +29,6 @@ public class ObservableDictionary<TKey, TValue>
     private readonly Dictionary<TKey, TValue> _dictionary;
 
     #region Ctor
-
     /// <inheritdoc/>
     public ObservableDictionary()
         : this(null!, null) { }
@@ -64,13 +56,13 @@ public class ObservableDictionary<TKey, TValue>
         else
             _dictionary = new(comparer);
     }
-    #endregion Ctor
+    #endregion
 
-    /// <inheritdoc/>
-    void IReadOnlyObservableCollection<KeyValuePair<TKey, TValue>>.Close()
-    {
-        throw new NotImplementedException(ExceptionMessage.IsNotReadOnlyCollection);
-    }
+    #region IDisposable
+    void IReadOnlyObservableCollection<KeyValuePair<TKey, TValue>>.Close() { }
+
+    void IDisposable.Dispose() { }
+    #endregion
 
     #region IDictionaryT
 
@@ -119,11 +111,11 @@ public class ObservableDictionary<TKey, TValue>
                 var oldList = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(oldPair);
                 if (
                     oldValue?.Equals(value) is true
-                    || OnDictionaryValueChanging(newList, oldList) is false
+                    || OnDictionaryReplacing(newList, oldList) is false
                 )
                     return;
                 _dictionary[key] = value;
-                OnDictionaryValueChanged(newList, oldList);
+                OnDictionaryReplaced(newList, oldList);
             }
         }
     }
@@ -143,21 +135,6 @@ public class ObservableDictionary<TKey, TValue>
             return;
         ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).Add(item);
         OnDictionaryAdded(list);
-    }
-
-    /// <inheritdoc cref="Dictionary{TKey, TValue}.TryAdd(TKey, TValue)" />
-    public bool TryAdd(TKey key, TValue value)
-    {
-        var pair = new KeyValuePair<TKey, TValue>(key, value);
-        var list = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(pair);
-        if (OnDictionaryAdding(list) is false)
-            return false;
-        var result = _dictionary.TryAdd(pair.Key, pair.Value);
-        if (result)
-        {
-            OnDictionaryAdded(list);
-        }
-        return result;
     }
 
     /// <inheritdoc/>
@@ -194,56 +171,15 @@ public class ObservableDictionary<TKey, TValue>
     }
 
     /// <inheritdoc/>
-    public IList<KeyValuePair<TKey, TValue>> TryAddRange(
-        IEnumerable<KeyValuePair<TKey, TValue>> pairs
-    )
-    {
-        var list = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(pairs);
-        var addList = new List<KeyValuePair<TKey, TValue>>();
-        var resultList = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(addList);
-        if (OnDictionaryAdding(list) is false)
-            return resultList;
-        foreach (var pair in list)
-        {
-            if (_dictionary.TryAdd(pair.Key, pair.Value))
-                addList.Add(pair);
-        }
-        if (addList.HasValue())
-        {
-            OnDictionaryAdded(list);
-        }
-        return resultList;
-    }
-
-    /// <inheritdoc/>
     public void Clear()
     {
-        if (TriggerRemoveActionOnClear)
-        {
-            var list = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(_dictionary);
-            var removeList = new List<KeyValuePair<TKey, TValue>>();
-            if (OnDictionaryRemoving(list) is false)
-                return;
-            foreach (var pair in list)
-            {
-                if (_dictionary.Remove(pair.Key))
-                    removeList.Add(pair);
-            }
-            if (removeList.HasValue())
-            {
-                OnDictionaryRemoved(list);
-            }
-        }
-        else
-        {
-            if (OnDictionaryClearing() is false)
-                return;
-            _dictionary.Clear();
-            OnDictionaryCleared();
-        }
+        if (OnDictionaryClearing() is false)
+            return;
+        _dictionary.Clear();
+        OnDictionaryCleared();
     }
 
-    #endregion Change
+    #endregion
 
     /// <inheritdoc/>
     public bool Contains(KeyValuePair<TKey, TValue> item)
@@ -290,7 +226,7 @@ public class ObservableDictionary<TKey, TValue>
     /// </summary>
     /// <param name="pairs">键值对</param>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    private bool OnDictionaryAdding(IList<KeyValuePair<TKey, TValue>> pairs)
+    protected virtual bool OnDictionaryAdding(IList<KeyValuePair<TKey, TValue>> pairs)
     {
         if (DictionaryChanging is null)
             return true;
@@ -302,7 +238,7 @@ public class ObservableDictionary<TKey, TValue>
     /// </summary>
     /// <param name="pairs">键值对</param>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    private bool OnDictionaryRemoving(IList<KeyValuePair<TKey, TValue>> pairs)
+    protected virtual bool OnDictionaryRemoving(IList<KeyValuePair<TKey, TValue>> pairs)
     {
         if (DictionaryChanging is null)
             return true;
@@ -315,7 +251,7 @@ public class ObservableDictionary<TKey, TValue>
     /// <param name="newPairs">新键值对</param>
     /// <param name="oldPairs">旧键值对</param>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    private bool OnDictionaryValueChanging(
+    protected virtual bool OnDictionaryReplacing(
         IList<KeyValuePair<TKey, TValue>> newPairs,
         IList<KeyValuePair<TKey, TValue>> oldPairs
     )
@@ -329,7 +265,7 @@ public class ObservableDictionary<TKey, TValue>
     /// 字典清理前
     /// </summary>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    private bool OnDictionaryClearing()
+    protected virtual bool OnDictionaryClearing()
     {
         if (DictionaryChanging is null)
             return true;
@@ -360,24 +296,26 @@ public class ObservableDictionary<TKey, TValue>
     /// 字典添加键值对后
     /// </summary>
     /// <param name="pairs">键值对</param>
-    private void OnDictionaryAdded(IList<KeyValuePair<TKey, TValue>> pairs)
+    protected virtual void OnDictionaryAdded(IList<KeyValuePair<TKey, TValue>> pairs)
     {
         if (DictionaryChanged is not null)
             OnDictionaryChanged(new(DictionaryChangeAction.Add, pairs));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, (IList)pairs));
+        OnCountChanged();
     }
 
     /// <summary>
     /// 字典删除键值对后
     /// </summary>
     /// <param name="pairs">键值对</param>
-    private void OnDictionaryRemoved(IList<KeyValuePair<TKey, TValue>> pairs)
+    protected virtual void OnDictionaryRemoved(IList<KeyValuePair<TKey, TValue>> pairs)
     {
         if (DictionaryChanged is not null)
             OnDictionaryChanged(new(DictionaryChangeAction.Remove, pairs));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, (IList)pairs));
+        OnCountChanged();
     }
 
     /// <summary>
@@ -385,7 +323,7 @@ public class ObservableDictionary<TKey, TValue>
     /// </summary>
     /// <param name="newPairs">新键值对</param>
     /// <param name="oldPairs">旧键值对</param>
-    private void OnDictionaryValueChanged(
+    protected virtual void OnDictionaryReplaced(
         IList<KeyValuePair<TKey, TValue>> newPairs,
         IList<KeyValuePair<TKey, TValue>> oldPairs
     )
@@ -405,12 +343,13 @@ public class ObservableDictionary<TKey, TValue>
     /// <summary>
     /// 字典清理后
     /// </summary>
-    private void OnDictionaryCleared()
+    protected virtual void OnDictionaryCleared()
     {
         if (DictionaryChanged is not null)
             OnDictionaryChanged(new(DictionaryChangeAction.Clear));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Reset));
+        OnCountChanged();
     }
 
     /// <summary>
@@ -420,7 +359,6 @@ public class ObservableDictionary<TKey, TValue>
     protected virtual void OnDictionaryChanged(NotifyDictionaryChangedEventArgs<TKey, TValue> args)
     {
         DictionaryChanged?.Invoke(this, args);
-        OnCountPropertyChanged();
     }
 
     /// <inheritdoc/>
@@ -436,8 +374,7 @@ public class ObservableDictionary<TKey, TValue>
     /// <param name="args">参数</param>
     protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
     {
-        CollectionChanged?.Invoke(null, args);
-        OnCountPropertyChanged();
+        CollectionChanged?.Invoke(this, args);
     }
 
     /// <inheritdoc/>
@@ -453,7 +390,7 @@ public class ObservableDictionary<TKey, TValue>
     /// <summary>
     /// 数量改变后
     /// </summary>
-    private void OnCountPropertyChanged()
+    private void OnCountChanged()
     {
         if (_lastCount != Count)
             OnPropertyChanged(nameof(Count));
@@ -466,7 +403,7 @@ public class ObservableDictionary<TKey, TValue>
     /// <param name="name">参数</param>
     protected virtual void OnPropertyChanged(string name)
     {
-        PropertyChanged?.Invoke(null, new(name));
+        PropertyChanged?.Invoke(this, new(name));
     }
 
     /// <inheritdoc/>

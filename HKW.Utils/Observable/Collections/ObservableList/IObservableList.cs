@@ -13,6 +13,4 @@ public interface IObservableList<T>
         IListFind<T>,
         IObservableCollection<T>,
         INotifyListChanging<T>,
-        INotifyListChanged<T>,
-        INotifyCollectionChanged,
-        INotifyPropertyChanged { }
+        INotifyListChanged<T> { }

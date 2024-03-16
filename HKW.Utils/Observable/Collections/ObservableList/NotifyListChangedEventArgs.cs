@@ -10,7 +10,7 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay(
-    "ListChanged, _refreshAction = {_refreshAction}, Index = {Index}, NewItemsCount = {NewItems.Count}, OldItemsCount = {OldItems.Count}"
+    "ListChanged, Action = {Action}, Index = {Index}, NewCount = {NewItems.Count}, OldCount = {OldItems.Count}"
 )]
 public class NotifyListChangedEventArgs<T> : EventArgs
 {

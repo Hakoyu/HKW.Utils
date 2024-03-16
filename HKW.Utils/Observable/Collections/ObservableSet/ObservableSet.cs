@@ -21,9 +21,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly HashSet<T> _set;
 
-    /// <inheritdoc/>
-    public IEqualityComparer<T> Comparer => _set.Comparer;
-
     #region Ctor
 
     /// <inheritdoc/>
@@ -66,13 +63,13 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         else
             _set = new(comparer);
     }
+    #endregion
 
-    /// <inheritdoc/>
-    void IReadOnlyObservableCollection<T>.Close()
-    {
-        throw new NotImplementedException(ExceptionMessage.IsNotReadOnlyCollection);
-    }
-    #endregion Ctor
+    #region IDisposable
+    void IReadOnlyObservableCollection<T>.Close() { }
+
+    void IDisposable.Dispose() { }
+    #endregion
 
     #region ISet
 
@@ -242,7 +239,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// </summary>
     /// <param name="items">键值对</param>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    private bool OnSetAdding(IList<T> items)
+    protected virtual bool OnSetAdding(IList<T> items)
     {
         if (SetChanging is null)
             return true;
@@ -254,7 +251,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// </summary>
     /// <param name="items">键值对</param>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    private bool OnSetRemoving(IList<T> items)
+    protected virtual bool OnSetRemoving(IList<T> items)
     {
         if (SetChanging is null)
             return true;
@@ -265,7 +262,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// 集合清理前
     /// </summary>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    private bool OnSetClearing()
+    protected virtual bool OnSetClearing()
     {
         if (SetChanging is null)
             return true;
@@ -276,20 +273,20 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// 集合运算前
     /// </summary>
     /// <param name="action">行动</param>
-    /// <param name="other">其它集合</param>
+    /// <param name="otherItems">其它集合</param>
     /// <param name="newItems">新项目</param>
     /// <param name="oldItems">旧项目</param>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    private bool OnSetOperating(
+    protected virtual bool OnSetOperating(
         SetChangeAction action,
-        IList<T> other,
+        IList<T> otherItems,
         IList<T>? newItems,
         IList<T>? oldItems
     )
     {
         if (SetChanging is null)
             return true;
-        return OnSetChanging(new(action, other, newItems, oldItems));
+        return OnSetChanging(new(action, otherItems, newItems, oldItems));
     }
 
     /// <summary>
@@ -314,53 +311,56 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// 集合添加键值对后
     /// </summary>
     /// <param name="items">键值对</param>
-    private void OnSetAdded(IList<T> items)
+    protected virtual void OnSetAdded(IList<T> items)
     {
         if (SetChanged is not null)
             OnSetChanged(new(SetChangeAction.Add, items));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, (IList)items));
+        OnCountChanged();
     }
 
     /// <summary>
     /// 集合删除项目后
     /// </summary>
     /// <param name="items">键值对</param>
-    private void OnSetRemoved(IList<T> items)
+    protected virtual void OnSetRemoved(IList<T> items)
     {
         if (SetChanged is not null)
             OnSetChanged(new(SetChangeAction.Remove, items));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, (IList)items));
+        OnCountChanged();
     }
 
     /// <summary>
     /// 集合清理后
     /// </summary>
-    private void OnSetCleared()
+    protected virtual void OnSetCleared()
     {
         if (SetChanged is not null)
             OnSetChanged(new(SetChangeAction.Clear));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Reset));
+        OnCountChanged();
     }
 
     /// <summary>
     /// 集合运算前
     /// </summary>
     /// <param name="action">行动</param>
-    /// <param name="other">其它集合</param>
+    /// <param name="otherItems">其它集合</param>
     /// <param name="newItems">新项目</param>
     /// <param name="oldTiems">旧项目</param>
-    private void OnSetOperated(
+    protected virtual void OnSetOperated(
         SetChangeAction action,
-        IList<T> other,
+        IList<T> otherItems,
         IList<T>? newItems,
         IList<T>? oldTiems
     )
     {
         if (SetChanged is not null)
-            OnSetChanged(new(action, other, newItems, oldTiems));
+            OnSetChanged(new(action, otherItems, newItems, oldTiems));
         if (CollectionChanged is not null)
         {
             if (newItems is not null)
@@ -368,6 +368,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
             if (oldTiems is not null)
                 OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, (IList)oldTiems));
         }
+        OnCountChanged();
     }
 
     /// <summary>
@@ -377,7 +378,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     protected virtual void OnSetChanged(NotifySetChangedEventArgs<T> args)
     {
         SetChanged?.Invoke(this, args);
-        OnCountPropertyChanged();
     }
 
     /// <inheritdoc/>
@@ -393,8 +393,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <param name="args">参数</param>
     protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
     {
-        CollectionChanged?.Invoke(null, args);
-        OnCountPropertyChanged();
+        CollectionChanged?.Invoke(this, args);
     }
 
     /// <inheritdoc/>
@@ -410,7 +409,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <summary>
     /// 数量改变后
     /// </summary>
-    private void OnCountPropertyChanged()
+    private void OnCountChanged()
     {
         if (_lastCount != Count)
             OnPropertyChanged(nameof(Count));
@@ -423,7 +422,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <param name="name">参数</param>
     protected virtual void OnPropertyChanged(string name)
     {
-        PropertyChanged?.Invoke(null, new(name));
+        PropertyChanged?.Invoke(this, new(name));
     }
 
     /// <inheritdoc/>

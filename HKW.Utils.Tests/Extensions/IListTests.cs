@@ -13,7 +13,7 @@ public class IListTests
     [TestMethod]
     public void Random()
     {
-        IList<int> set = Enumerable.Range(0, 10).ToList();
+        IList<int> set = Enumerable.Range(1, 10).ToList();
         var randomItem = set.Random();
         Assert.IsTrue(set.Contains(randomItem));
     }
@@ -22,7 +22,7 @@ public class IListTests
     [TestMethod]
     public void Find()
     {
-        IList<int> list = new List<int>(Enumerable.Range(1, 10));
+        IList<int> list = Enumerable.Range(1, 10).ToList();
 
         Assert.IsTrue(list.Find(x => x == 1) == 1);
         Assert.IsTrue(list.Find(1, x => x == 2) == (1, 2));
@@ -36,7 +36,7 @@ public class IListTests
     [TestMethod]
     public void TryFind()
     {
-        IList<int> list = new List<int>(Enumerable.Range(1, 10));
+        IList<int> list = Enumerable.Range(1, 10).ToList();
 
         Assert.IsTrue(list.TryFind(x => x == 1, out var i1) && i1 == 1);
         Assert.IsTrue(list.TryFind(1, x => x == 2, out var i2) && i2 == (1, 2));
@@ -50,7 +50,7 @@ public class IListTests
     [TestMethod]
     public void FindLast()
     {
-        IList<int> list = new List<int>(Enumerable.Range(1, 10));
+        IList<int> list = Enumerable.Range(1, 10).ToList();
 
         Assert.IsTrue(list.FindLast(x => x == 1) == 1);
         Assert.IsTrue(list.FindLast(1, x => x == 2) == (1, 2));
@@ -64,7 +64,7 @@ public class IListTests
     [TestMethod]
     public void TryFindLast()
     {
-        IList<int> list = new List<int>(Enumerable.Range(1, 10));
+        IList<int> list = Enumerable.Range(1, 10).ToList();
 
         Assert.IsTrue(list.TryFindLast(x => x == 1, out var i1) && i1 == 1);
         Assert.IsTrue(list.TryFindLast(1, x => x == 2, out var i2) && i2 == (1, 2));

@@ -19,7 +19,12 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="T">项目类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
-public class CyclicList<T> : IListRange<T>, IListFind<T>
+public class CyclicList<T>
+    : IListRange<T>,
+        IListFind<T>,
+        ICyclicCollection<T>,
+        IReadOnlyList<T>,
+        IList
 {
     private readonly List<T> _list;
 
@@ -52,27 +57,19 @@ public class CyclicList<T> : IListRange<T>, IListFind<T>
     }
     #endregion
 
-    #region Cyclic
-    /// <summary>
-    /// 当前项目
-    /// </summary>
-    public T Current { get; private set; } = default!;
-
     /// <summary>
     /// 当前索引
     /// </summary>
     public int CurrntIndex { get; private set; } = 0;
 
-    /// <summary>
-    /// 自动重置
-    /// </summary>
-    [DefaultValue(false)]
-    public bool AutoReset { get; set; } = false;
+    #region ICyclicCollection
+    /// <inheritdoc/>
+    public T Current { get; private set; } = default!;
 
-    /// <summary>
-    /// 移动到下一个
-    /// </summary>
-    /// <returns>移动成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <inheritdoc/>
+    public bool AutoReset { get; set; }
+
+    /// <inheritdoc/>
     public bool MoveNext()
     {
         if (CurrntIndex >= _list.Count - 1)
@@ -90,9 +87,7 @@ public class CyclicList<T> : IListRange<T>, IListFind<T>
         return true;
     }
 
-    /// <summary>
-    /// 重置循环
-    /// </summary>
+    /// <inheritdoc/>
     public void Reset()
     {
         if (Count == 0)
@@ -126,6 +121,21 @@ public class CyclicList<T> : IListRange<T>, IListFind<T>
 
     /// <inheritdoc/>
     public bool IsReadOnly => ((ICollection<T>)_list).IsReadOnly;
+
+    /// <inheritdoc/>
+    public bool IsFixedSize => ((IList)_list).IsFixedSize;
+
+    /// <inheritdoc/>
+    public bool IsSynchronized => ((ICollection)_list).IsSynchronized;
+
+    /// <inheritdoc/>
+    public object SyncRoot => ((ICollection)_list).SyncRoot;
+
+    object? IList.this[int index]
+    {
+        get => ((IList)_list)[index];
+        set => ((IList)_list)[index] = value;
+    }
 
     /// <inheritdoc/>
     public void Add(T item)
@@ -370,6 +380,46 @@ public class CyclicList<T> : IListRange<T>, IListFind<T>
     public int FindLastIndex(int startIndex, int count, Predicate<T> match)
     {
         return _list.FindLastIndex(startIndex, count, match);
+    }
+
+    /// <inheritdoc/>
+    public int Add(object? value)
+    {
+        var result = ((IList)_list).Add(value);
+        Reset();
+        return result;
+    }
+
+    /// <inheritdoc/>
+    public bool Contains(object? value)
+    {
+        return ((IList)_list).Contains(value);
+    }
+
+    /// <inheritdoc/>
+    public int IndexOf(object? value)
+    {
+        return ((IList)_list).IndexOf(value);
+    }
+
+    /// <inheritdoc/>
+    public void Insert(int index, object? value)
+    {
+        ((IList)_list).Insert(index, value);
+        Reset();
+    }
+
+    /// <inheritdoc/>
+    public void Remove(object? value)
+    {
+        ((IList)_list).Remove(value);
+        Reset();
+    }
+
+    /// <inheritdoc/>
+    public void CopyTo(Array array, int index)
+    {
+        ((ICollection)_list).CopyTo(array, index);
     }
     #endregion
 }

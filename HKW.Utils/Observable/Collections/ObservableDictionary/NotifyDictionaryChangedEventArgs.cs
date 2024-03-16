@@ -10,7 +10,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
 [DebuggerDisplay(
-    "DictionaryChanged, _refreshAction = {_refreshAction}, NewItemsCount = {NewItems.Count}, OldItemsCount = {OldItems.Count}"
+    "DictionaryChanged, Action = {Action}, NewCount = {NewItems.Count}, OldCount = {OldItems.Count}"
 )]
 public class NotifyDictionaryChangedEventArgs<TKey, TValue> : EventArgs
     where TKey : notnull

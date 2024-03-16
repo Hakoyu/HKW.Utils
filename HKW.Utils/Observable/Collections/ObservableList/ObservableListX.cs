@@ -79,22 +79,10 @@ public class ObservableListX<T> : ObservableListBase<T>, IObservableListX<T>
         var tempList = _list.ToList();
         tempList.Reverse(index, count);
         var newList = new SimpleReadOnlyList<T>(tempList);
-        if (OnListValueChanging(newList, oldList, index) is false)
+        if (OnListReplacing(newList, oldList, index) is false)
             return;
         _list.Reverse(index, count);
-        OnListValueChanged(newList, oldList, index);
-    }
-
-    /// <inheritdoc/>
-    public void ChangeRange(IEnumerable<T> collection, int index = 0)
-    {
-        var oldList = new SimpleReadOnlyList<T>(index >= 0 ? _list.Skip(index) : _list.ToList());
-        var newList = new SimpleReadOnlyList<T>(collection);
-        if (OnListValueChanging(newList, oldList, index) is false)
-            return;
-        for (var i = index; i < oldList.Count; i++)
-            _list[i] = newList[i];
-        OnListValueChanged(newList, oldList, index);
+        OnListReplaced(newList, oldList, index);
     }
 
     #endregion

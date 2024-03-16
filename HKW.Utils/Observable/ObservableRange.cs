@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using HKW.HKWUtils;
 
 namespace HKW.HKWUtils.Observable;
@@ -7,6 +8,7 @@ namespace HKW.HKWUtils.Observable;
 /// 可观察范围
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
+[DebuggerDisplay("Min = {Min}, Max = {Max}")]
 public class ObservableRange<T>
     : ObservableObjectX<ObservableRange<T>>,
         IEquatable<ObservableRange<T>>,
@@ -94,4 +96,9 @@ public class ObservableRange<T>
         return a.Equals(b) is not true;
     }
     #endregion
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return $"Min = {Min}, Max = {Max}";
+    }
 }

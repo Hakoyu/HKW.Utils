@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
 using System.Windows;
 using HKW.HKWUtils;
@@ -6,22 +7,10 @@ using HKW.HKWUtils;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可深克隆接口
-/// </summary>
-/// <typeparam name="T">对象类型</typeparam>
-public interface IDeepCloneable<T>
-{
-    /// <summary>
-    /// 深克隆克隆当前对象
-    /// </summary>
-    /// <returns>新对象</returns>
-    public T DeepClone();
-}
-
-/// <summary>
 /// 可观察点
 /// </summary>
 /// <typeparam name="T">数据类型</typeparam>
+[DebuggerDisplay("X = {X}, Y = {Y}")]
 public class ObservablePoint<T>
     : ObservableObjectX<ObservablePoint<T>>,
         IEquatable<ObservablePoint<T>>,
@@ -79,6 +68,7 @@ public class ObservablePoint<T>
     /// <inheritdoc/>
     public override int GetHashCode()
     {
+        var p = new Point();
         return HashCode.Combine(X, Y);
     }
 
@@ -109,4 +99,9 @@ public class ObservablePoint<T>
         return a.Equals(b) is not true;
     }
     #endregion
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return $"X = {X}, Y = {Y}";
+    }
 }

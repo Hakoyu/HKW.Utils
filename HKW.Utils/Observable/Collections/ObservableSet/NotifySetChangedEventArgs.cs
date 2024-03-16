@@ -8,7 +8,9 @@ namespace HKW.HKWUtils.Observable;
 /// 通知集合已改变事件参数
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
-[DebuggerDisplay("SetChanged, _refreshAction = {_refreshAction}")]
+[DebuggerDisplay(
+    "SetChanged, Action = {Action}, NewCount = {NewItems.Count}, OldCount = {OldItems.Count}"
+)]
 public class NotifySetChangedEventArgs<T> : EventArgs
 {
     /// <summary>

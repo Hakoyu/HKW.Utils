@@ -13,6 +13,7 @@ namespace HKW.HKWUtils.Collections;
 
 /// <summary>
 /// 过滤列表
+/// <para>基于 <see cref="Filter"/> 维护一个实时过滤的 <see cref="FilteredList"/></para>
 /// </summary>
 /// <typeparam name="TItem">项目类型</typeparam>
 /// <typeparam name="TFilteredList">已过滤列表类型</typeparam>
@@ -21,7 +22,9 @@ namespace HKW.HKWUtils.Collections;
 public class FilterList<TItem, TFilteredList>
     : IListRange<TItem>,
         IListFind<TItem>,
-        IReadOnlyList<TItem>
+        IReadOnlyList<TItem>,
+        IFilterCollection<TItem, TFilteredList>,
+        IList
     where TFilteredList : IList<TItem>
 {
     private readonly List<TItem> _list;
@@ -56,6 +59,8 @@ public class FilterList<TItem, TFilteredList>
         }
     }
 
+    TFilteredList IFilterCollection<TItem, TFilteredList>.FilteredCollection => FilteredList;
+
     #region Ctor
     /// <inheritdoc/>
     public FilterList()
@@ -84,6 +89,7 @@ public class FilterList<TItem, TFilteredList>
             _list = new();
     }
     #endregion
+
     /// <summary>
     /// 刷新过滤列表
     /// </summary>
@@ -122,10 +128,26 @@ public class FilterList<TItem, TFilteredList>
     public bool IsReadOnly => ((ICollection<TItem>)_list).IsReadOnly;
 
     /// <inheritdoc/>
+    public bool IsFixedSize => ((IList)_list).IsFixedSize;
+
+    /// <inheritdoc/>
+    public bool IsSynchronized => ((ICollection)_list).IsSynchronized;
+
+    /// <inheritdoc/>
+    public object SyncRoot => ((ICollection)_list).SyncRoot;
+
+    object? IList.this[int index]
+    {
+        get => ((IList)_list)[index];
+        set => ((IList)_list)[index] = value;
+    }
+
+    /// <inheritdoc/>
     public void Add(TItem item)
     {
         ((ICollection<TItem>)_list).Add(item);
-        FilteredList.Add(item);
+        if (Filter(item))
+            FilteredList.Add(item);
     }
 
     /// <inheritdoc/>
@@ -163,7 +185,8 @@ public class FilterList<TItem, TFilteredList>
     public void Insert(int index, TItem item)
     {
         ((IList<TItem>)_list).Insert(index, item);
-        FilteredList.Insert(index, item);
+        if (Filter(item))
+            FilteredList.Insert(index, item);
     }
 
     /// <inheritdoc/>
@@ -371,6 +394,51 @@ public class FilterList<TItem, TFilteredList>
     public int FindLastIndex(int startIndex, int count, Predicate<TItem> match)
     {
         return _list.FindLastIndex(startIndex, count, match);
+    }
+
+    /// <inheritdoc/>
+    public int Add(object? value)
+    {
+        var result = ((IList)_list).Add(value);
+        if (result != -1)
+            FilteredList.Add((TItem)value!);
+        return result;
+    }
+
+    /// <inheritdoc/>
+
+    public bool Contains(object? value)
+    {
+        return ((IList)_list).Contains(value);
+    }
+
+    /// <inheritdoc/>
+    public int IndexOf(object? value)
+    {
+        return ((IList)_list).IndexOf(value);
+    }
+
+    /// <inheritdoc/>
+    public void Insert(int index, object? value)
+    {
+        ((IList)_list).Insert(index, value);
+        if (Filter((TItem)value!))
+            FilteredList.Insert(index, (TItem)value!);
+    }
+
+    /// <inheritdoc/>
+    public void Remove(object? value)
+    {
+        var count = Count;
+        ((IList)_list).Remove(value);
+        if (count != Count)
+            FilteredList.Remove((TItem)value!);
+    }
+
+    /// <inheritdoc/>
+    public void CopyTo(Array array, int index)
+    {
+        ((ICollection)_list).CopyTo(array, index);
     }
     #endregion
 }

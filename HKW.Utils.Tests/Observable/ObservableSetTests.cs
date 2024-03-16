@@ -8,6 +8,17 @@ namespace HKW.HKWUtils.Tests.Observable;
 public class ObservableSetTests
 {
     [TestMethod]
+    public void Test()
+    {
+        Test(new ObservableSet<int>());
+    }
+
+    public static void Test(IObservableSet<int> set)
+    {
+        ObservableCollectionTests.Test(set);
+    }
+
+    [TestMethod]
     public void Adding()
     {
         var triggered = false;

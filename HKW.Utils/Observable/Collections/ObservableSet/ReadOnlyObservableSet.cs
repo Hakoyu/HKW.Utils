@@ -13,7 +13,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
-public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>, IDisposable
+public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly IObservableSet<T> _set;
@@ -93,9 +93,6 @@ public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSe
 
     /// <inheritdoc/>
     public bool IsReadOnly => true;
-
-    /// <inheritdoc/>
-    public IEqualityComparer<T> Comparer => _set.Comparer;
 
     /// <inheritdoc/>
     public bool Contains(T item)

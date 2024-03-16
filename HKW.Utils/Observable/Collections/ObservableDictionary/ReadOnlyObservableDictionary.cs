@@ -17,8 +17,7 @@ namespace HKW.HKWUtils.Observable;
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
 public class ReadOnlyObservableDictionary<TKey, TValue>
     : IObservableDictionary<TKey, TValue>,
-        IReadOnlyObservableDictionary<TKey, TValue>,
-        IDisposable
+        IReadOnlyObservableDictionary<TKey, TValue>
     where TKey : notnull
 {
     /// <summary>
@@ -117,20 +116,10 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     public bool IsReadOnly => true;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    IEqualityComparer<TKey> IObservableDictionary<TKey, TValue>.Comparer => _dictionary.Comparer;
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     ICollection<TKey> IDictionary<TKey, TValue>.Keys => _dictionary.Keys;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     ICollection<TValue> IDictionary<TKey, TValue>.Values => _dictionary.Values;
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    bool IObservableCollection<KeyValuePair<TKey, TValue>>.TriggerRemoveActionOnClear
-    {
-        get => _dictionary.TriggerRemoveActionOnClear;
-        set => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
-    }
 
     TValue IDictionary<TKey, TValue>.this[TKey key]
     {
@@ -160,13 +149,6 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     IEnumerator IEnumerable.GetEnumerator()
     {
         return ((IEnumerable)_dictionary).GetEnumerator();
-    }
-
-    IList<KeyValuePair<TKey, TValue>> IObservableDictionary<TKey, TValue>.TryAddRange(
-        IEnumerable<KeyValuePair<TKey, TValue>> items
-    )
-    {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void IDictionary<TKey, TValue>.Add(TKey key, TValue value)
