@@ -9,9 +9,7 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
-[DebuggerDisplay(
-    "DictionaryChanged, Action = {Action}, NewCount = {NewItems.Count}, OldCount = {OldItems.Count}"
-)]
+[DebuggerDisplay("DictionaryChanged, Action = {Action}, NewPair = {NewPair}, OldPair = {NewPair}")]
 public class NotifyDictionaryChangedEventArgs<TKey, TValue> : EventArgs
     where TKey : notnull
 {
@@ -23,12 +21,12 @@ public class NotifyDictionaryChangedEventArgs<TKey, TValue> : EventArgs
     /// <summary>
     /// 新键值对
     /// </summary>
-    public IList<KeyValuePair<TKey, TValue>>? NewItems { get; }
+    public KeyValuePair<TKey, TValue>? NewPair { get; }
 
     /// <summary>
     /// 旧键值对
     /// </summary>
-    public IList<KeyValuePair<TKey, TValue>>? OldItems { get; }
+    public KeyValuePair<TKey, TValue>? OldPair { get; }
 
     #region Ctor
 
@@ -49,45 +47,35 @@ public class NotifyDictionaryChangedEventArgs<TKey, TValue> : EventArgs
     /// <summary>仅用于
     /// <see cref="DictionaryChangeAction.Add"/>
     /// <see cref="DictionaryChangeAction.Remove"/>
-    /// <see cref="DictionaryChangeAction.Clear"/>
     /// </summary>
     /// <param name="action">改变行动</param>
-    /// <param name="items">键值对</param>
+    /// <param name="pair">键值对</param>
     public NotifyDictionaryChangedEventArgs(
         DictionaryChangeAction action,
-        IList<KeyValuePair<TKey, TValue>> items
+        KeyValuePair<TKey, TValue> pair
     )
     {
-        if (
-            action != DictionaryChangeAction.Add
-            && action != DictionaryChangeAction.Remove
-            && action != DictionaryChangeAction.Clear
-        )
+        if (action != DictionaryChangeAction.Add && action != DictionaryChangeAction.Remove)
             throw new ArgumentException(
-                $"{ExceptionMessage.MustBe} {nameof(DictionaryChangeAction.Add)} or {nameof(DictionaryChangeAction.Remove)} or {nameof(DictionaryChangeAction.Clear)}",
+                $"{ExceptionMessage.MustBe} {nameof(DictionaryChangeAction.Add)} or {nameof(DictionaryChangeAction.Remove)}",
                 nameof(action)
             );
         Action = action;
-        IList<KeyValuePair<TKey, TValue>> list;
-        if (items.IsReadOnly)
-            list = items;
-        else
-            list = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(items);
         if (Action is DictionaryChangeAction.Add)
-            NewItems = list;
+            NewPair = pair;
         else
-            OldItems = list;
+            OldPair = pair;
     }
 
     /// <inheritdoc/>
     /// <summary>仅用于 <see cref="DictionaryChangeAction.Replace"/></summary>
     /// <param name="action">改变行动</param>
-    /// <param name="newItems">新键值对</param>
-    /// <param name="oldItems">旧键值对</param>
+    /// <param name="newPair">新键值对</param>
+    /// <param name="oldPair">旧键值对</param>
     public NotifyDictionaryChangedEventArgs(
         DictionaryChangeAction action,
-        IList<KeyValuePair<TKey, TValue>> newItems,
-        IList<KeyValuePair<TKey, TValue>> oldItems
+        KeyValuePair<TKey, TValue> newPair,
+        KeyValuePair<TKey, TValue> oldPair
     )
     {
         if (action != DictionaryChangeAction.Replace)
@@ -96,15 +84,15 @@ public class NotifyDictionaryChangedEventArgs<TKey, TValue> : EventArgs
                 nameof(action)
             );
         Action = action;
-        if (newItems.IsReadOnly)
-            NewItems = newItems;
-        else
-            NewItems = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(newItems);
-        if (oldItems.IsReadOnly)
-            OldItems = oldItems;
-        else
-            OldItems = new SimpleReadOnlyList<KeyValuePair<TKey, TValue>>(oldItems);
+        NewPair = newPair;
+        OldPair = oldPair;
     }
 
     #endregion
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return $"DictionaryChanged, Action = {Action}, NewPair = {NewPair}, OldPair = {NewPair}";
+    }
 }

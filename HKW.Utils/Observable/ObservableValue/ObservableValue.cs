@@ -16,7 +16,6 @@ public class ObservableValue<T>
         INotifyPropertyChanged,
         IEquatable<ObservableValue<T>>
 {
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _value = default!;
 
     /// <summary>
@@ -100,7 +99,6 @@ public class ObservableValue<T>
     /// </summary>
     public IReadOnlyCollection<INotifyPropertyChanged> NotifySenders => _notifySenders;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly HashSet<INotifyPropertyChanged> _notifySenders = new();
 
     /// <summary>

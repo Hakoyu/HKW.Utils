@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Extensions;
+using HKW.HKWUtils.Tests.Collections;
 
 namespace HKW.HKWUtils.Tests;
 
@@ -16,6 +18,10 @@ public class IListTestUtils
         IndexOf(list);
         Insert(list);
         RemoveAt(list);
+        if (list is IListFind<int> listFind)
+            IListFindTestUtils.Test(listFind);
+        if (list is IListRange<int> listRange)
+            IListRangeTestUtils.Test(listRange);
     }
 
     public static void GetValueWithIndex(IList<int> list)

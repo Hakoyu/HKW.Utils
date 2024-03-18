@@ -13,11 +13,4 @@ public interface IObservableDictionary<TKey, TValue>
         IObservableCollection<KeyValuePair<TKey, TValue>>,
         INotifyDictionaryChanged<TKey, TValue>,
         INotifyDictionaryChanging<TKey, TValue>
-    where TKey : notnull
-{
-    /// <summary>
-    /// 添加多个项目
-    /// </summary>
-    /// <param name="items">项目</param>
-    public void AddRange(IEnumerable<KeyValuePair<TKey, TValue>> items);
-}
+    where TKey : notnull { }

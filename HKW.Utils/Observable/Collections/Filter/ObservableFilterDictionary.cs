@@ -91,31 +91,35 @@ public class ObservableFilterDictionary<TKey, TValue, TFilteredDictionary>
 
     #region DictionaryChanging
     /// <inheritdoc/>
-    protected override void OnDictionaryAdded(IList<KeyValuePair<TKey, TValue>> pairs)
+    protected override void OnDictionaryAdded(KeyValuePair<TKey, TValue> pair)
     {
-        base.OnDictionaryAdded(pairs);
-        FilteredDictionary.AddRange(pairs.Where(p => Filter(p)));
+        base.OnDictionaryAdded(pair);
+        if (Filter(pair))
+            FilteredDictionary.Add(pair);
     }
 
     /// <inheritdoc/>
-    protected override void OnDictionaryRemoved(IList<KeyValuePair<TKey, TValue>> pairs)
+    protected override void OnDictionaryRemoved(KeyValuePair<TKey, TValue> pair)
     {
-        base.OnDictionaryRemoved(pairs);
-        foreach (var pair in pairs)
-            FilteredDictionary.Remove(pair);
+        base.OnDictionaryRemoved(pair);
+        FilteredDictionary.Remove(pair);
     }
 
     /// <inheritdoc/>
     protected override void OnDictionaryReplaced(
-        IList<KeyValuePair<TKey, TValue>> newPairs,
-        IList<KeyValuePair<TKey, TValue>> oldPairs
+        KeyValuePair<TKey, TValue> newPair,
+        KeyValuePair<TKey, TValue> oldPair
     )
     {
-        base.OnDictionaryReplaced(newPairs, oldPairs);
-        foreach (var pair in newPairs)
+        base.OnDictionaryReplaced(newPair, oldPair);
+        if (Filter(newPair))
         {
-            if (FilteredDictionary.ContainsKey(pair.Key))
-                FilteredDictionary[pair.Key] = pair.Value;
+            if (FilteredDictionary.ContainsKey(newPair.Key))
+                FilteredDictionary[newPair.Key] = newPair.Value;
+        }
+        else
+        {
+            FilteredDictionary.Remove(newPair);
         }
     }
 

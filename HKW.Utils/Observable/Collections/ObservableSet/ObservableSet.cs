@@ -18,7 +18,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <summary>
     /// 源集合
     /// </summary>
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly HashSet<T> _set;
 
     #region Ctor
@@ -77,7 +76,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     public int Count => ((ICollection<T>)_set).Count;
 
     /// <inheritdoc/>
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public bool IsReadOnly => ((ICollection<T>)_set).IsReadOnly;
 
     #region Change
@@ -403,7 +401,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
 
     #region PropertyChanged
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private int _lastCount = 0;
 
     /// <summary>

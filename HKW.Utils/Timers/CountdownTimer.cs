@@ -42,7 +42,6 @@ public class CountdownTimer : IDisposable, IAsyncDisposable
     /// </summary>
     public TimeSpan LastDuration { get; private set; }
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly TimerTrigger _timer = new(0, 10);
 
     #region Ctor

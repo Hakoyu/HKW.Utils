@@ -21,7 +21,6 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
     /// <summary>
     /// 原始列表
     /// </summary>
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     protected readonly List<T> _list;
 
     #region Ctor
@@ -63,7 +62,6 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
     public int Count => _list.Count;
 
     /// <inheritdoc/>
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public bool IsReadOnly => ((ICollection<T>)_list).IsReadOnly;
 
     #region Change
@@ -469,7 +467,6 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
 
     #region PropertyChanged
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private int _lastCount = 0;
 
     /// <summary>

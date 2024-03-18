@@ -23,7 +23,6 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     /// <summary>
     /// 原始字典
     /// </summary>
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly IObservableDictionary<TKey, TValue> _dictionary;
 
     #region Ctor
@@ -115,10 +114,8 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     /// <inheritdoc/>
     public bool IsReadOnly => true;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     ICollection<TKey> IDictionary<TKey, TValue>.Keys => _dictionary.Keys;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     ICollection<TValue> IDictionary<TKey, TValue>.Values => _dictionary.Values;
 
     TValue IDictionary<TKey, TValue>.this[TKey key]
@@ -161,11 +158,6 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
         throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
-    void IObservableDictionary<TKey, TValue>.AddRange(IEnumerable<KeyValuePair<TKey, TValue>> items)
-    {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
-    }
-
     void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
     {
         throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
@@ -178,7 +170,7 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
 
     bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        return _dictionary.ContainsKey(item.Key);
     }
 
     void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(

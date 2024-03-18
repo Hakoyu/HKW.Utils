@@ -9,7 +9,7 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay(
-    "SetChanged, Action = {Action}, NewCount = {NewItems.Count}, OldCount = {OldItems.Count}"
+    "SetChanged, Action = {Action}, NewCount = {NewPair.Count}, OldCount = {NewPair.Count}"
 )]
 public class NotifySetChangedEventArgs<T> : EventArgs
 {

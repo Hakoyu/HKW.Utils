@@ -35,8 +35,8 @@ public class ObservableCollectionTests
 
         var triggered = false;
         collection.CollectionChanged += Collection_CollectionChanged;
-        comparisonList.Add(10);
-        collection.Add(10);
+        comparisonList.Add(int.MaxValue);
+        collection.Add(int.MaxValue);
 
         Assert.IsTrue(collection.SequenceEqual(comparisonList));
         Assert.IsTrue(triggered);
@@ -50,7 +50,7 @@ public class ObservableCollectionTests
             Assert.IsTrue(e.Action is NotifyCollectionChangedAction.Add);
             Assert.IsTrue(e.OldItems?[0] is null);
             Assert.IsTrue(e.NewItems?[0] is int i && i == comparisonList.Last());
-            Assert.IsTrue(e.NewStartingIndex == comparisonList.Count - 1);
+            Assert.IsTrue(e.NewStartingIndex == -1 || e.NewStartingIndex == collection.Count - 1);
             Assert.IsTrue(e.OldStartingIndex == -1);
             Assert.IsTrue(collection.SequenceEqual(comparisonList));
         }

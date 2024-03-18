@@ -20,7 +20,6 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     /// <summary>
     /// 原始可观察列表
     /// </summary>
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public IObservableList<T> _list;
 
     #region Ctor
@@ -166,7 +165,6 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     #endregion IObservableListT
 
     #region IObservableList
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     bool ICollection<T>.IsReadOnly => true;
 
     #endregion

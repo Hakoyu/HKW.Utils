@@ -8,11 +8,10 @@ using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Tests.Collections;
 
-public class IListFindTests
+public class IListFindTestUtils
 {
     public static void Test(IListFind<int> list)
     {
-        IListTestUtils.Test(list);
         Find(list);
         FindIndex(list);
         FindLast(list);

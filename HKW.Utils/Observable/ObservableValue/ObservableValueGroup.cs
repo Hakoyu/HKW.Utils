@@ -34,7 +34,6 @@ public class ObservableValueGroup<T> : IEnumerable<ObservableValue<T>?>
     [DefaultValue(false)]
     public bool ChangeOnAdd { get; set; } = false;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Dictionary<Guid, WeakReference<ObservableValue<T>>> _bindingValues = new();
 
     /// <summary>
@@ -117,8 +116,8 @@ public class ObservableValueGroup<T> : IEnumerable<ObservableValue<T>?>
     /// <inheritdoc/>
     public IEnumerator<ObservableValue<T>?> GetEnumerator()
     {
-        return _bindingValues.Values
-            .Select(v => v.TryGetTarget(out var t) ? t : null)
+        return _bindingValues
+            .Values.Select(v => v.TryGetTarget(out var t) ? t : null)
             .GetEnumerator();
     }
 
@@ -127,7 +126,6 @@ public class ObservableValueGroup<T> : IEnumerable<ObservableValue<T>?>
         return GetEnumerator();
     }
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private bool _onChange = false;
 
     private void Item_ValueChanged(ObservableValue<T> sender, ValueChangedEventArgs<T> e)

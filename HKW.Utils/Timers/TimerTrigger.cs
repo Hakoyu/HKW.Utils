@@ -48,10 +48,8 @@ public class TimerTrigger : IDisposable, IAsyncDisposable
     /// <summary>
     /// 核心定时器
     /// </summary>
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private Timer? _timer;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Stopwatch _stopWatch = new();
 
     #region Ctor

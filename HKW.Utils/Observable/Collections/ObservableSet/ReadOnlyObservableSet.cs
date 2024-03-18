@@ -15,7 +15,6 @@ namespace HKW.HKWUtils.Observable;
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
 public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
 {
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly IObservableSet<T> _set;
 
     #region Ctor

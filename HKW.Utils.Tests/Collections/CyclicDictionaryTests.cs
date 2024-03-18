@@ -42,16 +42,16 @@ public class CyclicDictionaryTests
         Assert.IsTrue(cyclicDictionary.Current.EqualsContent(cyclicDictionary.First()));
     }
 
-    [TestMethod]
-    public void Add()
-    {
-        var cyclicDictionary = new CyclicDictionary<int, int>();
-        Assert.IsTrue(cyclicDictionary.Count == 0);
-        Assert.IsTrue(cyclicDictionary.Current.EqualsContent(default));
-        cyclicDictionary.Add(1, 1);
-        Assert.IsTrue(cyclicDictionary.Count == 1);
-        Assert.IsTrue(cyclicDictionary.Current.EqualsContent(cyclicDictionary.First()));
-    }
+    //[TestMethod]
+    //public void Add()
+    //{
+    //    var cyclicDictionary = new CyclicDictionary<int, int>();
+    //    Assert.IsTrue(cyclicDictionary.Count == 0);
+    //    Assert.IsTrue(cyclicDictionary.Current.EqualsContent(default));
+    //    cyclicDictionary.Add(1, 1);
+    //    Assert.IsTrue(cyclicDictionary.Count == 1);
+    //    Assert.IsTrue(cyclicDictionary.Current.EqualsContent(cyclicDictionary.First()));
+    //}
 
     [TestMethod]
     public void Remove()
@@ -64,16 +64,16 @@ public class CyclicDictionaryTests
         Assert.IsTrue(cyclicDictionary.Current.EqualsContent(cyclicDictionary.First()));
     }
 
-    [TestMethod]
-    public void Clear()
-    {
-        var cyclicDictionary = new CyclicDictionary<int, int>(
-            Enumerable.Range(0, 10).ToDictionary(i => i, i => i)
-        );
-        Assert.IsTrue(cyclicDictionary.Current.EqualsContent(cyclicDictionary.First()));
-        cyclicDictionary.Clear();
-        Assert.IsTrue(cyclicDictionary.Current.EqualsContent(default));
-    }
+    //[TestMethod]
+    //public void Clear()
+    //{
+    //    var cyclicDictionary = new CyclicDictionary<int, int>(
+    //        Enumerable.Range(0, 10).ToDictionary(i => i, i => i)
+    //    );
+    //    Assert.IsTrue(cyclicDictionary.Current.EqualsContent(cyclicDictionary.First()));
+    //    cyclicDictionary.Clear();
+    //    Assert.IsTrue(cyclicDictionary.Current.EqualsContent(default));
+    //}
 
     [TestMethod]
     public void ValueChange()

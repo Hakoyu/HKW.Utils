@@ -1,7 +1,7 @@
-﻿using HKW.HKWUtils.DebugViews;
-using HKW.HKWUtils.Natives;
-using System.Collections;
+﻿using System.Collections;
 using System.Diagnostics;
+using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -12,7 +12,6 @@ namespace HKW.HKWUtils.Collections;
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
 public sealed class SimpleSingleItemReadOnlyList<T> : IList<T>, IList
 {
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly T _item;
 
     /// <inheritdoc/>
@@ -100,13 +99,10 @@ public sealed class SimpleSingleItemReadOnlyList<T> : IList<T>, IList
     #endregion
 
     #region IList
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     bool IList.IsFixedSize => true;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     bool ICollection.IsSynchronized => false;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     object ICollection.SyncRoot => this;
 
     object? IList.this[int index]

@@ -16,7 +16,7 @@ public class ObservableListTests
 
     public static void Test(IObservableList<int> list)
     {
-        IListFindTests.Test(list);
+        IListTestUtils.Test(list);
         ObservableCollectionTests.Test(list);
 
         ListChangingOnInsert(list, 0);
