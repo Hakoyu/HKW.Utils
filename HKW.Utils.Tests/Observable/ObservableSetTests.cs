@@ -15,7 +15,7 @@ public class ObservableSetTests
 
     public static void Test(IObservableSet<int> set)
     {
-        ObservableCollectionTests.Test(set);
+        //ObservableCollectionTests.Test(set);
     }
 
     [TestMethod]

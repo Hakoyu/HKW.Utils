@@ -99,6 +99,8 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
     /// <inheritdoc/>
     public void Insert(int index, T item)
     {
+        if (index < 0 || index > _list.Count)
+            _list.Insert(index, item);
         var list = new SimpleSingleItemReadOnlyList<T>(item);
         if (OnListAdding(list, index) is false)
             return;

@@ -10,14 +10,7 @@ internal class Program
 {
     private static System.Diagnostics.Stopwatch stopWatch = new();
 
-    private static void Main(string[] args)
-    {
-        var span = "aaa,bbb,,ccc".AsSpan();
-        foreach (var str in span.Split(','))
-        {
-            Console.WriteLine(str.ToString());
-        }
-    }
+    private static void Main(string[] args) { }
 
     static bool Foo(int i)
     {

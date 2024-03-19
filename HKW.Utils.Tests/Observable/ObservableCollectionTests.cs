@@ -12,33 +12,42 @@ namespace HKW.HKWUtils.Tests.Observable;
 
 public class ObservableCollectionTests
 {
-    public static void Test(IObservableCollection<int> collection)
+    public static void Test<T>(
+        IObservableCollection<T> collection,
+        ICollection<T> comparisonCollection,
+        Func<T> createNewItem
+    )
     {
-        CollectionChangedOnAdd(collection);
-        CollectionChangedOnRemove(collection);
-        CollectionChangedOnRemoveFailed(collection);
-        CollectionChangedOnClear(collection);
+        ICollectionTestUtils.Test(collection, comparisonCollection, createNewItem);
+        CollectionChangedOnAdd(collection, comparisonCollection, createNewItem());
+        CollectionChangedOnRemove(collection, comparisonCollection);
+        CollectionChangedOnRemoveFailed(collection, comparisonCollection, createNewItem());
+        CollectionChangedOnClear(collection, comparisonCollection);
 
-        PropertyChangedOnAdd(collection);
-        PropertyChangedOnRemove(collection);
-        PropertyChangedOnRemoveFailed(collection);
-        PropertyChangedOnClear(collection);
+        PropertyChangedOnAdd(collection, comparisonCollection, createNewItem());
+        PropertyChangedOnRemove(collection, comparisonCollection);
+        PropertyChangedOnRemoveFailed(collection, comparisonCollection, createNewItem());
+        PropertyChangedOnClear(collection, comparisonCollection);
     }
 
     #region CollectionChanged
-    public static void CollectionChangedOnAdd(IObservableCollection<int> collection)
+    public static void CollectionChangedOnAdd<T>(
+        IObservableCollection<T> collection,
+        ICollection<T> comparisonCollection,
+        T newItem
+    )
     {
         collection.Clear();
-        var comparisonList = Enumerable.Range(1, 10).ToList();
-        collection.AddRange(comparisonList);
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        var cCollection = comparisonCollection.ToList();
+        collection.AddRange(cCollection);
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
 
         var triggered = false;
         collection.CollectionChanged += Collection_CollectionChanged;
-        comparisonList.Add(int.MaxValue);
-        collection.Add(int.MaxValue);
+        cCollection.Add(newItem);
+        collection.Add(newItem);
 
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
         Assert.IsTrue(triggered);
         collection.CollectionChanged -= Collection_CollectionChanged;
         collection.Clear();
@@ -49,27 +58,31 @@ public class ObservableCollectionTests
             Assert.IsTrue(sender?.Equals(collection));
             Assert.IsTrue(e.Action is NotifyCollectionChangedAction.Add);
             Assert.IsTrue(e.OldItems?[0] is null);
-            Assert.IsTrue(e.NewItems?[0] is int i && i == comparisonList.Last());
+            Assert.IsTrue(e.NewItems?[0]?.Equals(cCollection.Last()));
             Assert.IsTrue(e.NewStartingIndex == -1 || e.NewStartingIndex == collection.Count - 1);
             Assert.IsTrue(e.OldStartingIndex == -1);
-            Assert.IsTrue(collection.SequenceEqual(comparisonList));
+            Assert.IsTrue(collection.SequenceEqual(cCollection));
         }
     }
 
-    public static void CollectionChangedOnRemove(IObservableCollection<int> collection)
+    public static void CollectionChangedOnRemove<T>(
+        IObservableCollection<T> collection,
+        ICollection<T> comparisonCollection
+    )
     {
         collection.Clear();
-        var comparisonList = Enumerable.Range(1, 10).ToList();
-        collection.AddRange(comparisonList);
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        var cCollection = comparisonCollection.ToList();
+        collection.AddRange(cCollection);
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
 
         var triggered = false;
-        var removeItem = comparisonList.First();
+        var removeIndex = cCollection.RandomIndex();
+        var removeItem = cCollection[removeIndex];
         collection.CollectionChanged += Collection_CollectionChanged;
-        comparisonList.Remove(removeItem);
+        cCollection.Remove(removeItem);
         collection.Remove(removeItem);
 
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
         Assert.IsTrue(triggered);
         collection.CollectionChanged -= Collection_CollectionChanged;
         collection.Clear();
@@ -79,25 +92,29 @@ public class ObservableCollectionTests
             triggered = true;
             Assert.IsTrue(sender?.Equals(collection));
             Assert.IsTrue(e.Action is NotifyCollectionChangedAction.Remove);
-            Assert.IsTrue(e.OldItems?[0] is int i && i == removeItem);
+            Assert.IsTrue(e.OldItems?[0]?.Equals(removeItem));
             Assert.IsTrue(e.NewItems?[0] is null);
             Assert.IsTrue(e.NewStartingIndex == -1);
-            Assert.IsTrue(e.OldStartingIndex == 0);
-            Assert.IsTrue(collection.SequenceEqual(comparisonList));
+            Assert.IsTrue(e.OldStartingIndex == removeIndex || e.OldStartingIndex == -1);
+            Assert.IsTrue(collection.SequenceEqual(cCollection));
         }
     }
 
-    public static void CollectionChangedOnRemoveFailed(IObservableCollection<int> collection)
+    public static void CollectionChangedOnRemoveFailed<T>(
+        IObservableCollection<T> collection,
+        ICollection<T> comparisonCollection,
+        T nonExeistItem
+    )
     {
         collection.Clear();
-        var comparisonList = Enumerable.Range(1, 10).ToList();
-        collection.AddRange(comparisonList);
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        var cCollection = comparisonCollection.ToList();
+        collection.AddRange(cCollection);
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
 
         collection.CollectionChanged += Collection_CollectionChanged;
-        Assert.IsTrue(collection.Remove(-1) == comparisonList.Remove(-1));
+        Assert.IsTrue(collection.Remove(nonExeistItem) == cCollection.Remove(nonExeistItem));
 
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
         collection.CollectionChanged -= Collection_CollectionChanged;
         collection.Clear();
 
@@ -107,19 +124,22 @@ public class ObservableCollectionTests
         }
     }
 
-    public static void CollectionChangedOnClear(IObservableCollection<int> collection)
+    public static void CollectionChangedOnClear<T>(
+        IObservableCollection<T> collection,
+        ICollection<T> comparisonCollection
+    )
     {
         collection.Clear();
-        var comparisonList = Enumerable.Range(1, 10).ToList();
-        collection.AddRange(comparisonList);
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        var cCollection = comparisonCollection.ToList();
+        collection.AddRange(cCollection);
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
 
         var triggered = false;
         collection.CollectionChanged += Collection_CollectionChanged;
-        comparisonList.Clear();
+        cCollection.Clear();
         collection.Clear();
 
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
         Assert.IsTrue(triggered);
         collection.CollectionChanged -= Collection_CollectionChanged;
         collection.Clear();
@@ -133,25 +153,29 @@ public class ObservableCollectionTests
             Assert.IsTrue(e.NewItems?[0] is null);
             Assert.IsTrue(e.NewStartingIndex == -1);
             Assert.IsTrue(e.OldStartingIndex == -1);
-            Assert.IsTrue(collection.SequenceEqual(comparisonList));
+            Assert.IsTrue(collection.SequenceEqual(cCollection));
         }
     }
     #endregion
 
     #region PropertyChanged
-    public static void PropertyChangedOnAdd(IObservableCollection<int> collection)
+    public static void PropertyChangedOnAdd<T>(
+        IObservableCollection<T> collection,
+        ICollection<T> comparisonCollection,
+        T newItem
+    )
     {
         collection.Clear();
-        var comparisonList = Enumerable.Range(1, 10).ToList();
-        collection.AddRange(comparisonList);
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        var cCollection = comparisonCollection.ToList();
+        collection.AddRange(cCollection);
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
 
         var triggered = false;
         collection.PropertyChanged += Collection_PropertyChanged;
-        comparisonList.Add(10);
-        collection.Add(10);
+        cCollection.Add(newItem);
+        collection.Add(newItem);
 
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
         Assert.IsTrue(triggered);
         collection.PropertyChanged -= Collection_PropertyChanged;
         collection.Clear();
@@ -161,23 +185,26 @@ public class ObservableCollectionTests
             triggered = true;
             Assert.IsTrue(sender?.Equals(collection));
             Assert.IsTrue(e.PropertyName == nameof(collection.Count));
-            Assert.IsTrue(comparisonList.Count == collection.Count);
+            Assert.IsTrue(cCollection.Count == collection.Count);
         }
     }
 
-    public static void PropertyChangedOnRemove(IObservableCollection<int> collection)
+    public static void PropertyChangedOnRemove<T>(
+        IObservableCollection<T> collection,
+        ICollection<T> comparisonCollection
+    )
     {
         collection.Clear();
-        var comparisonList = Enumerable.Range(1, 10).ToList();
-        collection.AddRange(comparisonList);
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        var cCollection = comparisonCollection.ToList();
+        collection.AddRange(cCollection);
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
 
         var triggered = false;
         collection.PropertyChanged += Collection_PropertyChanged;
-        comparisonList.Remove(comparisonList.First());
+        cCollection.Remove(cCollection.First());
         collection.Remove(collection.First());
 
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
         Assert.IsTrue(triggered);
         collection.PropertyChanged -= Collection_PropertyChanged;
         collection.Clear();
@@ -187,21 +214,25 @@ public class ObservableCollectionTests
             triggered = true;
             Assert.IsTrue(sender?.Equals(collection));
             Assert.IsTrue(e.PropertyName == nameof(collection.Count));
-            Assert.IsTrue(comparisonList.Count == collection.Count);
+            Assert.IsTrue(cCollection.Count == collection.Count);
         }
     }
 
-    public static void PropertyChangedOnRemoveFailed(IObservableCollection<int> collection)
+    public static void PropertyChangedOnRemoveFailed<T>(
+        IObservableCollection<T> collection,
+        ICollection<T> comparisonCollection,
+        T nonExeistItem
+    )
     {
         collection.Clear();
-        var comparisonList = Enumerable.Range(1, 10).ToList();
-        collection.AddRange(comparisonList);
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        var cCollection = comparisonCollection.ToList();
+        collection.AddRange(cCollection);
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
 
         collection.PropertyChanged += Collection_PropertyChanged;
-        Assert.IsTrue(collection.Remove(-1) == comparisonList.Remove(-1));
+        Assert.IsTrue(collection.Remove(nonExeistItem) == cCollection.Remove(nonExeistItem));
 
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
         collection.PropertyChanged -= Collection_PropertyChanged;
         collection.Clear();
 
@@ -211,19 +242,22 @@ public class ObservableCollectionTests
         }
     }
 
-    public static void PropertyChangedOnClear(IObservableCollection<int> collection)
+    public static void PropertyChangedOnClear<T>(
+        IObservableCollection<T> collection,
+        ICollection<T> comparisonCollection
+    )
     {
         collection.Clear();
-        var comparisonList = Enumerable.Range(1, 10).ToList();
-        collection.AddRange(comparisonList);
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        var cCollection = comparisonCollection.ToList();
+        collection.AddRange(cCollection);
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
 
         var triggered = false;
         collection.PropertyChanged += Collection_PropertyChanged;
-        comparisonList.Clear();
+        cCollection.Clear();
         collection.Clear();
 
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
         Assert.IsTrue(triggered);
         collection.PropertyChanged -= Collection_PropertyChanged;
         collection.Clear();
@@ -233,7 +267,7 @@ public class ObservableCollectionTests
             triggered = true;
             Assert.IsTrue(sender?.Equals(collection));
             Assert.IsTrue(e.PropertyName == nameof(collection.Count));
-            Assert.IsTrue(comparisonList.Count == collection.Count);
+            Assert.IsTrue(cCollection.Count == collection.Count);
         }
     }
     #endregion

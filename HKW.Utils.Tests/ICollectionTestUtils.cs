@@ -4,64 +4,75 @@ namespace HKW.HKWUtils.Tests;
 
 public class ICollectionTestUtils
 {
-    public static void Test(ICollection<int> collection)
+    static HashSet<Type> _testCompletedTypes = new();
+
+    public static void Test<T>(
+        ICollection<T> collection,
+        ICollection<T> comparisonCollection,
+        Func<T> createNewItem
+    )
     {
-        Add(collection);
-        Remove(collection);
-        Clear(collection);
+        if (_testCompletedTypes.Contains(collection.GetType()))
+            return;
+        else
+            _testCompletedTypes.Add(collection.GetType());
+
+        if (comparisonCollection.HasValue() is false)
+            throw new ArgumentException(
+                "ComparisonCollection must has value",
+                nameof(comparisonCollection)
+            );
+        var cCollection = comparisonCollection.ToList();
+        collection.AddRange(cCollection);
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
+        collection.Clear();
+
+        Add(collection, comparisonCollection, createNewItem());
+        Remove(collection, comparisonCollection);
+        Clear(collection, comparisonCollection);
     }
 
-    public static void Add(ICollection<int> collection)
+    public static void Add<T>(
+        ICollection<T> collection,
+        ICollection<T> comparisonCollection,
+        T newItem
+    )
     {
         collection.Clear();
-        var comparisonList = Enumerable.Range(1, 10).ToList();
-        collection.AddRange(comparisonList);
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        var cCollection = comparisonCollection.ToList();
+        cCollection.Clear();
 
-        comparisonList.Add(1);
-        collection.Add(1);
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
-
-        comparisonList.Add(2);
-        collection.Add(2);
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
-
-        comparisonList.Add(3);
-        collection.Add(3);
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        cCollection.Add(newItem);
+        collection.Add(newItem);
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
 
         collection.Clear();
     }
 
-    public static void Remove(ICollection<int> collection)
+    public static void Remove<T>(ICollection<T> collection, ICollection<T> comparisonCollection)
     {
         collection.Clear();
-        var comparisonList = Enumerable.Range(1, 10).ToList();
-        collection.AddRange(comparisonList);
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        var cCollection = comparisonCollection.ToList();
+        collection.AddRange(cCollection);
 
-        comparisonList.Remove(comparisonList.First());
-        collection.Remove(collection.First());
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
-
-        comparisonList.Remove(comparisonList.Last());
-        collection.Remove(collection.Last());
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        var removeItem = cCollection.Random();
+        cCollection.Remove(removeItem);
+        collection.Remove(removeItem);
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
 
         collection.Clear();
     }
 
-    public static void Clear(ICollection<int> collection)
+    public static void Clear<T>(ICollection<T> collection, ICollection<T> comparisonCollection)
     {
         collection.Clear();
-        var comparisonList = Enumerable.Range(1, 10).ToList();
-        collection.AddRange(comparisonList);
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        var cCollection = comparisonCollection.ToList();
+        collection.AddRange(cCollection);
 
-        comparisonList.Clear();
+        cCollection.Clear();
         collection.Clear();
-        Assert.IsTrue(collection.Count == comparisonList.Count);
-        Assert.IsTrue(collection.SequenceEqual(comparisonList));
+        Assert.IsTrue(collection.Count == cCollection.Count);
+        Assert.IsTrue(collection.SequenceEqual(cCollection));
 
         collection.Clear();
     }

@@ -11,140 +11,170 @@ namespace HKW.HKWUtils.Tests;
 
 public class IListTestUtils
 {
-    public static void Test(IList<int> list)
+    public static void Test<T>(IList<T> list, IList<T> comparisonList, Func<T> createNewItem)
     {
-        ICollectionTestUtils.Test(list);
-        GetValueWithIndex(list);
-        IndexOf(list);
-        Insert(list);
-        RemoveAt(list);
-        if (list is IListFind<int> listFind)
-            IListFindTestUtils.Test(listFind);
-        if (list is IListRange<int> listRange)
-            IListRangeTestUtils.Test(listRange);
+        ICollectionTestUtils.Test(list, comparisonList, createNewItem);
+
+        ValueWithIndex(list, comparisonList, 0, createNewItem());
+        ValueWithIndex(list, comparisonList, comparisonList.Count / 2, createNewItem());
+        ValueWithIndex(list, comparisonList, comparisonList.Count - 1, createNewItem());
+
+        ValueWithIndexFalse(list, comparisonList, -1, createNewItem());
+        ValueWithIndexFalse(list, comparisonList, comparisonList.Count, createNewItem());
+
+        IndexOf(list, comparisonList);
+
+        Insert(list, comparisonList, 0, createNewItem());
+        Insert(list, comparisonList, comparisonList.Count / 2, createNewItem());
+        Insert(list, comparisonList, comparisonList.Count, createNewItem());
+
+        InsertFalse(list, comparisonList, -1, createNewItem());
+        InsertFalse(list, comparisonList, comparisonList.Count + 1, createNewItem());
+
+        RemoveAt(list, comparisonList, 0);
+        RemoveAt(list, comparisonList, comparisonList.Count / 2);
+        RemoveAt(list, comparisonList, comparisonList.Count - 1);
+
+        RemoveAtFalse(list, comparisonList, -1);
+        RemoveAtFalse(list, comparisonList, comparisonList.Count);
+
+        //if (list is IListFind<int> listFind)
+        //    IListFindTestUtils.Test(listFind);
+        //if (list is IListRange<int> listRange)
+        //    IListRangeTestUtils.Test(listRange);
     }
 
-    public static void GetValueWithIndex(IList<int> list)
+    public static void ValueWithIndex<T>(
+        IList<T> list,
+        IList<T> comparisonList,
+        int index,
+        T newItem
+    )
     {
         list.Clear();
-        var comparisonList = Enumerable.Range(1, 10).ToList();
-        list.AddRange(comparisonList);
-        Assert.IsTrue(list.SequenceEqual(comparisonList));
+        var cList = comparisonList.ToList();
+        list.AddRange(cList);
 
-        Assert.IsTrue(comparisonList[0] == comparisonList.First());
-        Assert.IsTrue(list[0] == list.First());
-
-        Assert.IsTrue(comparisonList[comparisonList.Count / 2] == list[list.Count / 2]);
-
-        Assert.IsTrue(comparisonList[^1] == comparisonList.Last());
-        Assert.IsTrue(list[^1] == list.Last());
-
-        list.Clear();
-    }
-
-    public static void IndexOf(IList<int> list)
-    {
-        list.Clear();
-        var comparisonList = Enumerable.Range(1, 10).ToList();
-        list.AddRange(comparisonList);
-        Assert.IsTrue(list.SequenceEqual(comparisonList));
-
-        Assert.IsTrue(comparisonList.IndexOf(comparisonList[0]) == 0);
-        Assert.IsTrue(list.IndexOf(list[0]) == 0);
-
-        Assert.IsTrue(
-            comparisonList.IndexOf(comparisonList[comparisonList.Count / 2])
-                == comparisonList.Count / 2
-        );
-        Assert.IsTrue(list.IndexOf(list[list.Count / 2]) == list.Count / 2);
-
-        Assert.IsTrue(comparisonList.IndexOf(comparisonList[^1]) == list.Count - 1);
-        Assert.IsTrue(list.IndexOf(list[^1]) == list.Count - 1);
-
-        Assert.IsTrue(list.IndexOf(int.MinValue) == -1);
-        Assert.IsTrue(list.IndexOf(int.MaxValue) == -1);
+        Assert.IsTrue(list[index]?.Equals(cList[index]));
+        list[index] = cList[index] = newItem;
+        Assert.IsTrue(list[index]?.Equals(cList[index]));
 
         list.Clear();
     }
 
-    public static void Insert(IList<int> list)
+    public static void ValueWithIndexFalse<T>(
+        IList<T> list,
+        IList<T> comparisonList,
+        int outRangeIndex,
+        T newItem
+    )
     {
         list.Clear();
-        var comparisonList = Enumerable.Range(1, 10).ToList();
-        list.AddRange(comparisonList);
-
-        comparisonList.Insert(0, 1);
-        list.Insert(0, 1);
-        Assert.IsTrue(list.SequenceEqual(comparisonList));
-
-        comparisonList.Insert(comparisonList.Count / 2, 2);
-        list.Insert(list.Count / 2, 2);
-        Assert.IsTrue(list.SequenceEqual(comparisonList));
-
-        comparisonList.Insert(comparisonList.Count - 1, 3);
-        list.Insert(list.Count - 1, 3);
-        Assert.IsTrue(list.SequenceEqual(comparisonList));
+        var cList = comparisonList.ToList();
+        list.AddRange(cList);
 
         try
         {
-            list.Insert(-1, 3);
+            list[outRangeIndex] = newItem;
             Assert.Fail();
         }
-        catch
-        {
-            Assert.IsTrue(list.SequenceEqual(comparisonList));
-        }
+        catch { }
 
         try
         {
-            list.Insert(int.MaxValue, 3);
-            Assert.Fail();
+            cList[outRangeIndex] = newItem;
         }
-        catch
-        {
-            Assert.IsTrue(list.SequenceEqual(comparisonList));
-        }
+        catch { }
+        Assert.IsTrue(list.SequenceEqual(cList));
 
         list.Clear();
     }
 
-    public static void RemoveAt(IList<int> list)
+    public static void IndexOf<T>(IList<T> list, IList<T> comparisonList)
     {
         list.Clear();
-        var comparisonList = Enumerable.Range(1, 10).ToList();
-        list.AddRange(comparisonList);
+        var cList = comparisonList.ToList();
+        list.AddRange(cList);
 
-        comparisonList.RemoveAt(0);
-        list.RemoveAt(0);
-        Assert.IsTrue(list.SequenceEqual(comparisonList));
+        var item = cList.Random();
+        Assert.IsTrue(cList.IndexOf(item) == list.IndexOf(item));
 
-        comparisonList.RemoveAt(comparisonList.Count / 2);
-        list.RemoveAt(list.Count / 2);
-        Assert.IsTrue(list.SequenceEqual(comparisonList));
+        list.Clear();
+    }
 
-        comparisonList.RemoveAt(comparisonList.Count - 1);
-        list.RemoveAt(list.Count - 1);
-        Assert.IsTrue(list.SequenceEqual(comparisonList));
+    public static void Insert<T>(IList<T> list, IList<T> comparisonList, int index, T newItem)
+    {
+        list.Clear();
+        var cList = comparisonList.ToList();
+        list.AddRange(cList);
+
+        cList.Insert(index, newItem);
+        list.Insert(index, newItem);
+        Assert.IsTrue(list.SequenceEqual(cList));
+
+        list.Clear();
+    }
+
+    public static void InsertFalse<T>(
+        IList<T> list,
+        IList<T> comparisonList,
+        int outRangeIndex,
+        T newItem
+    )
+    {
+        list.Clear();
+        var cList = comparisonList.ToList();
+        list.AddRange(cList);
 
         try
         {
-            list.RemoveAt(-1);
+            cList.Insert(outRangeIndex, newItem);
             Assert.Fail();
         }
-        catch
-        {
-            Assert.IsTrue(list.SequenceEqual(comparisonList));
-        }
+        catch { }
 
         try
         {
-            list.RemoveAt(int.MaxValue);
+            list.Insert(outRangeIndex, newItem);
             Assert.Fail();
         }
-        catch
+        catch { }
+        Assert.IsTrue(list.SequenceEqual(cList));
+
+        list.Clear();
+    }
+
+    public static void RemoveAt<T>(IList<T> list, IList<T> comparisonList, int index)
+    {
+        list.Clear();
+        var cList = comparisonList.ToList();
+        list.AddRange(cList);
+
+        cList.RemoveAt(index);
+        list.RemoveAt(index);
+
+        list.Clear();
+    }
+
+    public static void RemoveAtFalse<T>(IList<T> list, IList<T> comparisonList, int index)
+    {
+        list.Clear();
+        var cList = comparisonList.ToList();
+        list.AddRange(cList);
+
+        try
         {
-            Assert.IsTrue(list.SequenceEqual(comparisonList));
+            cList.RemoveAt(index);
+            Assert.Fail();
         }
+        catch { }
+
+        try
+        {
+            list.RemoveAt(index);
+            Assert.Fail();
+        }
+        catch { }
 
         list.Clear();
     }

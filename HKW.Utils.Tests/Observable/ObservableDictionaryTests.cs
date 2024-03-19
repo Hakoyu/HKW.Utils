@@ -22,61 +22,52 @@ public class ObservableDictionaryTests
 
     public static void Test<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
+        IDictionary<TKey, TValue> comparisonDictionary,
         Func<KeyValuePair<TKey, TValue>> createNewPair
     )
         where TKey : notnull
     {
-        if (comparisonDictionary.HasValue() is false)
-            throw new ArgumentException(
-                "ComparisonDictionary must has value",
-                nameof(comparisonDictionary)
-            );
-        //ObservableCollectionTests.Test(dictionary);
-        Adding(dictionary, comparisonDictionary, createNewPair());
-        Adding(dictionary, comparisonDictionary, createNewPair().Key, createNewPair().Value);
-        Adding_False(dictionary, comparisonDictionary, comparisonDictionary.Random());
-        Adding_Cancel(dictionary, comparisonDictionary, createNewPair());
-        TryAdding(dictionary, comparisonDictionary, createNewPair());
-        TryAdding_False(dictionary, comparisonDictionary, comparisonDictionary.Random());
-        TryAdding_Cancel(dictionary, comparisonDictionary, createNewPair());
-        Removing(dictionary, comparisonDictionary);
-        Removing_False(dictionary, comparisonDictionary, createNewPair());
-        Removing_Cancel(dictionary, comparisonDictionary);
-        Clearing(dictionary, comparisonDictionary);
-        Clearing_Cancel(dictionary, comparisonDictionary);
-        Replacing(
+        ObservableCollectionTests.Test(dictionary, comparisonDictionary, createNewPair);
+        DictionaryChangingOnAdd(dictionary, comparisonDictionary, createNewPair());
+        DictionaryChangingOnAdd(
             dictionary,
             comparisonDictionary,
-            comparisonDictionary.Random().Key,
+            createNewPair().Key,
             createNewPair().Value
         );
-        Replacing_Cancel(
-            dictionary,
-            comparisonDictionary,
-            comparisonDictionary.Random().Key,
-            createNewPair().Value
-        );
+        DictionaryChangingOnAddFalse(dictionary, comparisonDictionary);
+        DictionaryChangingOnAddCancel(dictionary, comparisonDictionary, createNewPair());
+        DictionaryChangingOnTryAdd(dictionary, comparisonDictionary, createNewPair());
+        DictionaryChangingOnTryAddFalse(dictionary, comparisonDictionary);
+        DictionaryChangingOnTryAddCancel(dictionary, comparisonDictionary, createNewPair());
+        DictionaryChangingOnRemove(dictionary, comparisonDictionary);
+        DictionaryChangingOnRemoveFalse(dictionary, comparisonDictionary, createNewPair());
+        DictionaryChangingOnRemoveCancel(dictionary, comparisonDictionary);
+        DictionaryChangingOnClear(dictionary, comparisonDictionary);
+        DictionaryChangingOnClearCancel(dictionary, comparisonDictionary);
+        DictionaryChangingOnReplace(dictionary, comparisonDictionary, createNewPair().Value);
+        DictionaryChangingOnReplaceCancel(dictionary, comparisonDictionary, createNewPair().Value);
 
-        Added(dictionary, comparisonDictionary, createNewPair());
-        Added_False(dictionary, comparisonDictionary, comparisonDictionary.Random());
-        TryAdded(dictionary, comparisonDictionary, createNewPair());
-        TryAdded_False(dictionary, comparisonDictionary, comparisonDictionary.Random());
-        Removed(dictionary, comparisonDictionary);
-        Removed_False(dictionary, comparisonDictionary, createNewPair());
-        Cleared(dictionary, comparisonDictionary);
-        Replaced(
+        DictionaryChangedOnAdd(dictionary, comparisonDictionary, createNewPair());
+        DictionaryChangedOnAdd(
             dictionary,
             comparisonDictionary,
-            comparisonDictionary.Random().Key,
+            createNewPair().Key,
             createNewPair().Value
         );
+        DictionaryChangedOnAddFalse(dictionary, comparisonDictionary);
+        DictionaryChangedOnTryAdd(dictionary, comparisonDictionary, createNewPair());
+        DictionaryChangedOnTryAddFalse(dictionary, comparisonDictionary);
+        DictionaryChangedOnRemove(dictionary, comparisonDictionary);
+        DictionaryChangedOnRemoveFalse(dictionary, comparisonDictionary, createNewPair());
+        DictionaryChangedOnClear(dictionary, comparisonDictionary);
+        DictionaryChangedOnReplace(dictionary, comparisonDictionary, createNewPair().Value);
     }
 
     #region DictionaryChanging
-    public static void Adding<TKey, TValue>(
+    public static void DictionaryChangingOnAdd<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
+        IDictionary<TKey, TValue> comparisonDictionary,
         KeyValuePair<TKey, TValue> newPair
     )
         where TKey : notnull
@@ -108,9 +99,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void Adding<TKey, TValue>(
+    public static void DictionaryChangingOnAdd<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
+        IDictionary<TKey, TValue> comparisonDictionary,
         TKey newKey,
         TValue newValue
     )
@@ -144,10 +135,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void Adding_False<TKey, TValue>(
+    public static void DictionaryChangingOnAddFalse<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
-        KeyValuePair<TKey, TValue> existPair
+        IDictionary<TKey, TValue> comparisonDictionary
     )
         where TKey : notnull
     {
@@ -155,6 +145,7 @@ public class ObservableDictionaryTests
         var cDictionary = comparisonDictionary.ToDictionary();
         dictionary.AddRange(cDictionary);
 
+        var existPair = cDictionary.Random();
         dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
         try
         {
@@ -183,9 +174,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void Adding_Cancel<TKey, TValue>(
+    public static void DictionaryChangingOnAddCancel<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
+        IDictionary<TKey, TValue> comparisonDictionary,
         KeyValuePair<TKey, TValue> newPair
     )
         where TKey : notnull
@@ -219,9 +210,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void TryAdding<TKey, TValue>(
+    public static void DictionaryChangingOnTryAdd<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
+        IDictionary<TKey, TValue> comparisonDictionary,
         KeyValuePair<TKey, TValue> newPair
     )
         where TKey : notnull
@@ -253,10 +244,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void TryAdding_False<TKey, TValue>(
+    public static void DictionaryChangingOnTryAddFalse<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
-        KeyValuePair<TKey, TValue> existPair
+        IDictionary<TKey, TValue> comparisonDictionary
     )
         where TKey : notnull
     {
@@ -264,6 +254,7 @@ public class ObservableDictionaryTests
         var cDictionary = comparisonDictionary.ToDictionary();
         dictionary.AddRange(cDictionary);
 
+        var existPair = cDictionary.Random();
         dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
         Assert.IsTrue(dictionary.TryAdd(existPair.Key, existPair.Value) is false);
         Assert.IsTrue(cDictionary.TryAdd(existPair.Key, existPair.Value) is false);
@@ -281,9 +272,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void TryAdding_Cancel<TKey, TValue>(
+    public static void DictionaryChangingOnTryAddCancel<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
+        IDictionary<TKey, TValue> comparisonDictionary,
         KeyValuePair<TKey, TValue> newPair
     )
         where TKey : notnull
@@ -317,9 +308,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void Removing<TKey, TValue>(
+    public static void DictionaryChangingOnRemove<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary
+        IDictionary<TKey, TValue> comparisonDictionary
     )
         where TKey : notnull
     {
@@ -351,9 +342,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void Removing_False<TKey, TValue>(
+    public static void DictionaryChangingOnRemoveFalse<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
+        IDictionary<TKey, TValue> comparisonDictionary,
         KeyValuePair<TKey, TValue> nonExeistPair
     )
         where TKey : notnull
@@ -379,9 +370,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void Removing_Cancel<TKey, TValue>(
+    public static void DictionaryChangingOnRemoveCancel<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary
+        IDictionary<TKey, TValue> comparisonDictionary
     )
         where TKey : notnull
     {
@@ -413,9 +404,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void Clearing<TKey, TValue>(
+    public static void DictionaryChangingOnClear<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary
+        IDictionary<TKey, TValue> comparisonDictionary
     )
         where TKey : notnull
     {
@@ -446,9 +437,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void Clearing_Cancel<TKey, TValue>(
+    public static void DictionaryChangingOnClearCancel<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary
+        IDictionary<TKey, TValue> comparisonDictionary
     )
         where TKey : notnull
     {
@@ -479,10 +470,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void Replacing<TKey, TValue>(
+    public static void DictionaryChangingOnReplace<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
-        TKey existKey,
+        IDictionary<TKey, TValue> comparisonDictionary,
         TValue newValue
     )
         where TKey : notnull
@@ -492,10 +482,10 @@ public class ObservableDictionaryTests
         dictionary.AddRange(cDictionary);
 
         var triggered = false;
-        var oldPair = cDictionary.GetPair(existKey);
+        var oldPair = cDictionary.Random();
         dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
-        dictionary[existKey] = newValue;
-        cDictionary[existKey] = newValue;
+        dictionary[oldPair.Key] = newValue;
+        cDictionary[oldPair.Key] = newValue;
 
         Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         Assert.IsTrue(triggered);
@@ -509,16 +499,15 @@ public class ObservableDictionaryTests
         {
             triggered = true;
             Assert.IsTrue(e.Action is DictionaryChangeAction.Replace);
-            Assert.IsTrue(e.NewPair.EqualsContent(new(existKey, newValue)));
+            Assert.IsTrue(e.NewPair.EqualsContent(new(oldPair.Key, newValue)));
             Assert.IsTrue(e.OldPair.EqualsContent(oldPair));
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
 
-    public static void Replacing_Cancel<TKey, TValue>(
+    public static void DictionaryChangingOnReplaceCancel<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
-        TKey existKey,
+        IDictionary<TKey, TValue> comparisonDictionary,
         TValue newValue
     )
         where TKey : notnull
@@ -528,10 +517,10 @@ public class ObservableDictionaryTests
         dictionary.AddRange(cDictionary);
 
         var triggered = false;
-        var oldPair = cDictionary.GetPair(existKey);
+        var oldPair = cDictionary.Random();
         dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
-        dictionary[existKey] = newValue;
-        Assert.IsTrue(dictionary[existKey]?.Equals(cDictionary[existKey]));
+        dictionary[oldPair.Key] = newValue;
+        Assert.IsTrue(dictionary[oldPair.Key]?.Equals(cDictionary[oldPair.Key]));
 
         Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         Assert.IsTrue(triggered);
@@ -545,7 +534,7 @@ public class ObservableDictionaryTests
         {
             triggered = true;
             Assert.IsTrue(e.Action is DictionaryChangeAction.Replace);
-            Assert.IsTrue(e.NewPair.EqualsContent(new(existKey, newValue)));
+            Assert.IsTrue(e.NewPair.EqualsContent(new(oldPair.Key, newValue)));
             Assert.IsTrue(e.OldPair.EqualsContent(oldPair));
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
             e.Cancel = true;
@@ -554,9 +543,9 @@ public class ObservableDictionaryTests
     #endregion
 
     #region DictionaryChanged
-    public static void Added<TKey, TValue>(
+    public static void DictionaryChangedOnAdd<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
+        IDictionary<TKey, TValue> comparisonDictionary,
         KeyValuePair<TKey, TValue> newPair
     )
         where TKey : notnull
@@ -588,9 +577,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void Added<TKey, TValue>(
+    public static void DictionaryChangedOnAdd<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
+        IDictionary<TKey, TValue> comparisonDictionary,
         TKey newKey,
         TValue newValue
     )
@@ -603,8 +592,8 @@ public class ObservableDictionaryTests
         var triggered = false;
         var newPair = KeyValuePair.Create(newKey, newValue);
         dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
-        dictionary[newKey] = newValue;
         cDictionary[newKey] = newValue;
+        dictionary[newKey] = newValue;
 
         Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         Assert.IsTrue(triggered);
@@ -624,10 +613,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void Added_False<TKey, TValue>(
+    public static void DictionaryChangedOnAddFalse<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
-        KeyValuePair<TKey, TValue> existPair
+        IDictionary<TKey, TValue> comparisonDictionary
     )
         where TKey : notnull
     {
@@ -635,6 +623,7 @@ public class ObservableDictionaryTests
         var cDictionary = comparisonDictionary.ToDictionary();
         dictionary.AddRange(cDictionary);
 
+        var existPair = cDictionary.Random();
         dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
         try
         {
@@ -663,9 +652,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void TryAdded<TKey, TValue>(
+    public static void DictionaryChangedOnTryAdd<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
+        IDictionary<TKey, TValue> comparisonDictionary,
         KeyValuePair<TKey, TValue> newPair
     )
         where TKey : notnull
@@ -697,10 +686,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void TryAdded_False<TKey, TValue>(
+    public static void DictionaryChangedOnTryAddFalse<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
-        KeyValuePair<TKey, TValue> existPair
+        IDictionary<TKey, TValue> comparisonDictionary
     )
         where TKey : notnull
     {
@@ -708,6 +696,7 @@ public class ObservableDictionaryTests
         var cDictionary = comparisonDictionary.ToDictionary();
         dictionary.AddRange(cDictionary);
 
+        var existPair = cDictionary.Random();
         dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
         Assert.IsTrue(cDictionary.TryAdd(existPair.Key, existPair.Value) is false);
         Assert.IsTrue(dictionary.TryAdd(existPair.Key, existPair.Value) is false);
@@ -725,9 +714,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void Removed<TKey, TValue>(
+    public static void DictionaryChangedOnRemove<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary
+        IDictionary<TKey, TValue> comparisonDictionary
     )
         where TKey : notnull
     {
@@ -759,9 +748,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void Removed_False<TKey, TValue>(
+    public static void DictionaryChangedOnRemoveFalse<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
+        IDictionary<TKey, TValue> comparisonDictionary,
         KeyValuePair<TKey, TValue> newPair
     )
         where TKey : notnull
@@ -787,9 +776,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void Cleared<TKey, TValue>(
+    public static void DictionaryChangedOnClear<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary
+        IDictionary<TKey, TValue> comparisonDictionary
     )
         where TKey : notnull
     {
@@ -820,10 +809,9 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void Replaced<TKey, TValue>(
+    public static void DictionaryChangedOnReplace<TKey, TValue>(
         IObservableDictionary<TKey, TValue> dictionary,
-        Dictionary<TKey, TValue> comparisonDictionary,
-        TKey existKey,
+        IDictionary<TKey, TValue> comparisonDictionary,
         TValue newValue
     )
         where TKey : notnull
@@ -833,10 +821,10 @@ public class ObservableDictionaryTests
         dictionary.AddRange(cDictionary);
 
         var triggered = false;
-        var oldPair = cDictionary.GetPair(existKey);
+        var oldPair = cDictionary.Random();
         dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
-        cDictionary[existKey] = newValue;
-        dictionary[existKey] = newValue;
+        cDictionary[oldPair.Key] = newValue;
+        dictionary[oldPair.Key] = newValue;
 
         Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         Assert.IsTrue(triggered);
@@ -850,7 +838,7 @@ public class ObservableDictionaryTests
         {
             triggered = true;
             Assert.IsTrue(e.Action is DictionaryChangeAction.Replace);
-            Assert.IsTrue(e.NewPair.EqualsContent(new(existKey, newValue)));
+            Assert.IsTrue(e.NewPair.EqualsContent(new(oldPair.Key, newValue)));
             Assert.IsTrue(e.OldPair.EqualsContent(oldPair));
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
