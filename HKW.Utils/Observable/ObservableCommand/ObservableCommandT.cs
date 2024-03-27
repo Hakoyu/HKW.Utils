@@ -13,6 +13,8 @@ namespace HKW.HKWUtils.Observable;
 [DebuggerDisplay("\\{ObservableCommand, CanExecute = {IsCanExecute.Value}\\}")]
 public class ObservableCommand<T> : ObservableObjectX<ObservableCommand>, ICommand
 {
+    #region IsCanExecute
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     bool _isCanExecute = true;
 
     /// <summary>
@@ -23,7 +25,10 @@ public class ObservableCommand<T> : ObservableObjectX<ObservableCommand>, IComma
         get => _isCanExecute;
         set => SetProperty(ref _isCanExecute, value);
     }
+    #endregion
 
+    #region
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     bool _currentCanExecute = true;
 
     /// <summary>
@@ -37,6 +42,7 @@ public class ObservableCommand<T> : ObservableObjectX<ObservableCommand>, IComma
         get => _currentCanExecute;
         private set => SetProperty(ref _currentCanExecute, value);
     }
+    #endregion
 
     /// <inheritdoc/>
     public ObservableCommand()

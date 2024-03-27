@@ -30,6 +30,7 @@ public class ObservablePoint<T>
     }
 
     #region X
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _x = default!;
 
     /// <summary>
@@ -43,6 +44,7 @@ public class ObservablePoint<T>
     #endregion
 
     #region Y
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _y = default!;
 
     /// <summary>
@@ -68,7 +70,6 @@ public class ObservablePoint<T>
     /// <inheritdoc/>
     public override int GetHashCode()
     {
-        var p = new Point();
         return HashCode.Combine(X, Y);
     }
 

@@ -32,8 +32,22 @@ public class ObservableRectangleLocation<T>
         Y = location.Y;
     }
 
+    /// <inheritdoc/>
+    /// <param name="width">宽</param>
+    /// <param name="height">高</param>
+    /// <param name="x">X坐标</param>
+    /// <param name="y">Y坐标</param>
+    public ObservableRectangleLocation(T width, T height, T x, T y)
+    {
+        Width = width;
+        Height = height;
+        X = x;
+        Y = y;
+    }
+
     #region Rectangle
     #region Width
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _width = default!;
 
     /// <summary>
@@ -51,6 +65,7 @@ public class ObservableRectangleLocation<T>
     #endregion
 
     #region Height
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _height = default!;
 
     /// <summary>
@@ -70,6 +85,7 @@ public class ObservableRectangleLocation<T>
 
     #region Location
     #region X
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _x = default!;
 
     /// <summary>
@@ -87,6 +103,7 @@ public class ObservableRectangleLocation<T>
     #endregion
 
     #region Y
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _y = default!;
 
     /// <summary>
@@ -106,6 +123,7 @@ public class ObservableRectangleLocation<T>
 
     #region EndLocation
     #region EndX
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _endX = default!;
 
     /// <summary>
@@ -119,6 +137,7 @@ public class ObservableRectangleLocation<T>
     #endregion
 
     #region EndY
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _endY = default!;
 
     /// <summary>

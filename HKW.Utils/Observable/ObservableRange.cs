@@ -28,6 +28,7 @@ public class ObservableRange<T>
     }
 
     #region Min
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _min = default!;
 
     /// <summary>
@@ -41,6 +42,7 @@ public class ObservableRange<T>
     #endregion
 
     #region Max
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _max = default!;
 
     /// <summary>

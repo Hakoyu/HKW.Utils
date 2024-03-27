@@ -72,6 +72,7 @@ public class ObservableFilterSet<T, TFilteredSet>
         {
             _filteredSet = value;
             Refresh();
+            OnPropertyChanged(nameof(FilteredSet));
         }
     }
     TFilteredSet IFilterCollection<T, TFilteredSet>.FilteredCollection => FilteredSet;

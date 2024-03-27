@@ -28,6 +28,7 @@ public class ObservableRectangle<T>
     }
 
     #region Width
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _width = default!;
 
     /// <summary>
@@ -41,6 +42,7 @@ public class ObservableRectangle<T>
     #endregion
 
     #region Height
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _height = default!;
 
     /// <summary>

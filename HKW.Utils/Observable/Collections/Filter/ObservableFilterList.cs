@@ -1,4 +1,5 @@
-﻿using HKW.HKWUtils.Collections;
+﻿using System.ComponentModel;
+using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Observable.Collections;
@@ -56,6 +57,7 @@ public class ObservableFilterList<T, TFilteredList>
         {
             _filteredList = value;
             Refresh();
+            OnPropertyChanged(nameof(FilteredList));
         }
     }
     TFilteredList IFilterCollection<T, TFilteredList>.FilteredCollection => FilteredList;

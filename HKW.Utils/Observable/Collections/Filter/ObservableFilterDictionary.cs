@@ -71,6 +71,7 @@ public class ObservableFilterDictionary<TKey, TValue, TFilteredDictionary>
         {
             _filteredDictionary = value;
             Refresh();
+            OnPropertyChanged(nameof(FilteredDictionary));
         }
     }
     TFilteredDictionary IFilterCollection<
