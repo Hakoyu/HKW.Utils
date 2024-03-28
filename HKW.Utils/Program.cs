@@ -16,10 +16,10 @@ internal class Program
 
     private static void Main(string[] args)
     {
-        var test = new TestModel();
-        Console.WriteLine(test.Name);
-        I18nCore.CurrentCulture = CultureInfo.GetCultureInfo("en");
-        Console.WriteLine(test.Name);
+        //var test = new TestModel();
+        //Console.WriteLine(test.Name);
+        //I18nCore.CurrentCulture = CultureInfo.GetCultureInfo("en");
+        //Console.WriteLine(test.Name);
         //res.I18nResource.
     }
 

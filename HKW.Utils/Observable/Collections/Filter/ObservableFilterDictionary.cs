@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Extensions;
 
-namespace HKW.HKWUtils.Observable.Collections;
+namespace HKW.HKWUtils.Observable;
 
 /// <summary>
 /// 可观察过滤字典
+/// <para>维护一个基于 <see cref="Filter"/> 的 <see cref="FilteredDictionary"/></para>
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>

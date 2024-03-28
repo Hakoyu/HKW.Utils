@@ -1,10 +1,11 @@
 ﻿using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Extensions;
 
-namespace HKW.HKWUtils.Observable.Collections;
+namespace HKW.HKWUtils.Observable;
 
 /// <summary>
 /// 可观察过滤集合
+/// <para>维护一个基于 <see cref="Filter"/> 的 <see cref="FilteredSet"/></para>
 /// </summary>
 /// <typeparam name="T">项目类型</typeparam>
 /// <typeparam name="TFilteredSet">过滤集合类型</typeparam>

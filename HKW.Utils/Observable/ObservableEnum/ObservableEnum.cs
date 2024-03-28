@@ -114,16 +114,6 @@ public class ObservableEnum<TEnum>
     /// </summary>
     public Action<ObservableEnum<TEnum>> RefreshAction { get; set; } = DefaultRefreshAction;
 
-    ///// <summary>
-    ///// 或行动
-    ///// </summary>
-    //public Action<ObservableEnum<TEnum>, ObservableEnum<TEnum>> OrAction { get; set; }
-
-    ///// <summary>
-    ///// 与行动
-    ///// </summary>
-    //public Action<ObservableEnum<TEnum>, ObservableEnum<TEnum>> AndAction { get; set; }
-
     /// <summary>
     /// 枚举信息
     /// <para>

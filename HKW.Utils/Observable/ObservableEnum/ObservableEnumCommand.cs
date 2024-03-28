@@ -43,6 +43,7 @@ public class ObservableEnumCommand<TEnum> : ObservableEnum<TEnum>
 
     private void RemoveFlagCommand_ExecuteCommand(TEnum flag)
     {
-        Value = Value.RemoveFlag(flag);
+        if (Value.Equals(flag) is false)
+            Value = Value.RemoveFlag(flag);
     }
 }
