@@ -10,7 +10,7 @@ namespace HKW.HKWUtils.Observable;
 /// 可观察点
 /// </summary>
 /// <typeparam name="T">数据类型</typeparam>
-[DebuggerDisplay("X = {X}, Y = {Y}")]
+[DebuggerDisplay("({X}, {Y})")]
 public class ObservablePoint<T>
     : ObservableObjectX<ObservablePoint<T>>,
         IEquatable<ObservablePoint<T>>,

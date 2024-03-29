@@ -8,7 +8,7 @@ namespace HKW.HKWUtils.Observable;
 /// 可观察范围
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
-[DebuggerDisplay("Min = {Min}, Max = {Max}")]
+[DebuggerDisplay("({Min}, {Max})")]
 public class ObservableRange<T>
     : ObservableObjectX<ObservableRange<T>>,
         IEquatable<ObservableRange<T>>,

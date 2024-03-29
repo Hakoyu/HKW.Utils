@@ -8,7 +8,7 @@ namespace HKW.HKWUtils.Observable;
 /// 可观察矩形位置
 /// </summary>
 /// <typeparam name="T">数据类型</typeparam>
-[DebuggerDisplay("X = {X}, Y = {Y}, Width = {Width}, Height = {Height}")]
+[DebuggerDisplay("({X}, {Y}, {Width}, {Height})")]
 public class ObservableRectangleLocation<T>
     : ObservableObjectX<ObservableRectangleLocation<T>>,
         IEquatable<ObservableRectangleLocation<T>>,
@@ -33,16 +33,16 @@ public class ObservableRectangleLocation<T>
     }
 
     /// <inheritdoc/>
-    /// <param name="width">宽</param>
-    /// <param name="height">高</param>
     /// <param name="x">X坐标</param>
     /// <param name="y">Y坐标</param>
-    public ObservableRectangleLocation(T width, T height, T x, T y)
+    /// <param name="width">宽</param>
+    /// <param name="height">高</param>
+    public ObservableRectangleLocation(T x, T y, T width, T height)
     {
-        Width = width;
-        Height = height;
         X = x;
         Y = y;
+        Width = width;
+        Height = height;
     }
 
     #region Rectangle

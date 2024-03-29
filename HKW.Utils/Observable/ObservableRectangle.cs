@@ -8,7 +8,7 @@ namespace HKW.HKWUtils.Observable;
 /// 可观察矩形
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
-[DebuggerDisplay("Width = {Width}, Height = {Height}")]
+[DebuggerDisplay("({Width}, {Height})")]
 public class ObservableRectangle<T>
     : ObservableObjectX<ObservableRectangle<T>>,
         IEquatable<ObservableRectangle<T>>,
