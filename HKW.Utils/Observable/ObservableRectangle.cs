@@ -10,7 +10,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("({Width}, {Height})")]
 public class ObservableRectangle<T>
-    : ObservableObjectX<ObservableRectangle<T>>,
+    : ObservableObjectX,
         IEquatable<ObservableRectangle<T>>,
         ICloneable<ObservableRectangle<T>>
     where T : INumber<T>

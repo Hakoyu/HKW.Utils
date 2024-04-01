@@ -12,7 +12,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="T">数据类型</typeparam>
 [DebuggerDisplay("({X}, {Y})")]
 public class ObservablePoint<T>
-    : ObservableObjectX<ObservablePoint<T>>,
+    : ObservableObjectX,
         IEquatable<ObservablePoint<T>>,
         ICloneable<ObservablePoint<T>>
     where T : INumber<T>

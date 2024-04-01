@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -22,12 +16,11 @@ namespace HKW.HKWUtils.Observable;
 ///     }
 /// }]]></code></para>
 /// </summary>
-public abstract class ObservableObjectX<TObject>
+public abstract class ObservableObjectX
     : INotifyPropertyChanging,
         INotifyPropertyChanged,
-        INotifyPropertyChangingX<TObject>,
-        INotifyPropertyChangedX<TObject>
-    where TObject : ObservableObjectX<TObject>
+        INotifyPropertyChangingX,
+        INotifyPropertyChangedX
 {
     #region OnPropertyChange
     /// <summary>
@@ -72,7 +65,7 @@ public abstract class ObservableObjectX<TObject>
         if (PropertyChangingX is null)
             return false;
         var e = new PropertyChangingXEventArgs(propertyName, oldValue, newValue);
-        PropertyChangingX?.Invoke((TObject)this, e);
+        PropertyChangingX?.Invoke(this, e);
         if (e.Cancel)
             PropertyChanged?.Invoke(this, new(propertyName));
         return e.Cancel;
@@ -92,7 +85,7 @@ public abstract class ObservableObjectX<TObject>
     )
     {
         PropertyChanged?.Invoke(this, new(propertyName));
-        PropertyChangedX?.Invoke((TObject)this, new(propertyName, oldValue, newValue));
+        PropertyChangedX?.Invoke(this, new(propertyName, oldValue, newValue));
     }
     #endregion
 
@@ -104,9 +97,9 @@ public abstract class ObservableObjectX<TObject>
     public event PropertyChangedEventHandler? PropertyChanged;
 
     /// <inheritdoc/>
-    public event PropertyChangingXEventHandler<TObject>? PropertyChangingX;
+    public event PropertyChangingXEventHandler? PropertyChangingX;
 
     /// <inheritdoc/>
-    public event PropertyChangedXEventHandler<TObject>? PropertyChangedX;
+    public event PropertyChangedXEventHandler? PropertyChangedX;
     #endregion
 }

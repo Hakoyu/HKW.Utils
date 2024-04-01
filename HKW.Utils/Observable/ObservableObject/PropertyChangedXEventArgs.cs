@@ -31,7 +31,6 @@ public class PropertyChangedXEventArgs : EventArgs
         NewValue = newValue;
     }
 
-#if  NETCOREAPP2_0_OR_GREATER
     /// <summary>
     /// 获取值
     /// </summary>
@@ -41,15 +40,4 @@ public class PropertyChangedXEventArgs : EventArgs
     {
         return ((T)OldValue!, (T)NewValue!)!;
     }
-#else
-    /// <summary>
-    /// 获取值
-    /// </summary>
-    /// <typeparam name="T">类型</typeparam>
-    /// <returns>(旧值, 新值)</returns>
-    public ValueInfo<T> GetValue<T>()
-    {
-        return new((T)OldValue!, (T)NewValue!)!;
-    }
-#endif
 }

@@ -3,10 +3,10 @@
 /// <summary>
 /// 通知属性改变前接口
 /// </summary>
-public interface INotifyPropertyChangingX<TSender>
+public interface INotifyPropertyChangingX
 {
     /// <summary>
     /// 属性改变前事件
     /// </summary>
-    public event PropertyChangingXEventHandler<TSender>? PropertyChangingX;
+    public event PropertyChangingXEventHandler? PropertyChangingX;
 }

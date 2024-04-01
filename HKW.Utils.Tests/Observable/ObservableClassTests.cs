@@ -67,9 +67,14 @@ public class ObservableClassTests
         var newValue = 1;
         example.PropertyChangingX += (s, e) =>
         {
+            if (s is not ObservableClassExample m)
+            {
+                Assert.Fail();
+                return;
+            }
             Assert.IsTrue(s!.Equals(example));
             Assert.IsTrue(e.PropertyName == nameof(ObservableClassExample.Value1));
-            Assert.IsTrue(s.Value1 != newValue);
+            Assert.IsTrue(m.Value1 != newValue);
             Assert.IsTrue(e.OldValue!.Equals(oldValue));
             Assert.IsTrue(e.NewValue!.Equals(newValue));
             triggerEvent = true;
@@ -88,9 +93,14 @@ public class ObservableClassTests
         var newValue = 1;
         example.PropertyChangingX += (s, e) =>
         {
+            if (s is not ObservableClassExample m)
+            {
+                Assert.Fail();
+                return;
+            }
             Assert.IsTrue(s!.Equals(example));
             Assert.IsTrue(e.PropertyName == nameof(ObservableClassExample.Value1));
-            Assert.IsTrue(s.Value1 != newValue);
+            Assert.IsTrue(m.Value1 != newValue);
             Assert.IsTrue(e.OldValue!.Equals(oldValue));
             Assert.IsTrue(e.NewValue!.Equals(newValue));
             triggerEvent = true;
@@ -110,9 +120,14 @@ public class ObservableClassTests
         var newValue = 1;
         example.PropertyChangedX += (s, e) =>
         {
+            if (s is not ObservableClassExample m)
+            {
+                Assert.Fail();
+                return;
+            }
             Assert.IsTrue(s!.Equals(example));
             Assert.IsTrue(e.PropertyName == nameof(ObservableClassExample.Value1));
-            Assert.IsTrue(s.Value1 == newValue);
+            Assert.IsTrue(m.Value1 == newValue);
             Assert.IsTrue(e.OldValue!.Equals(oldValue));
             Assert.IsTrue(e.NewValue!.Equals(newValue));
             triggerEvent = true;
@@ -123,7 +138,7 @@ public class ObservableClassTests
     }
 }
 
-public class ObservableClassExample : ObservableObjectX<ObservableClassExample>
+public class ObservableClassExample : ObservableObjectX
 {
     int _value1 = 0;
     public int Value1

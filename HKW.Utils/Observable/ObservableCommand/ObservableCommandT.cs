@@ -11,7 +11,7 @@ namespace HKW.HKWUtils.Observable;
 /// 具有参数的可观察命令
 /// </summary>
 [DebuggerDisplay("\\{ObservableCommand, CanExecute = {IsCanExecute.Value}\\}")]
-public class ObservableCommand<T> : ObservableObjectX<ObservableCommand>, ICommand
+public class ObservableCommand<T> : ObservableObjectX, ICommand
 {
     #region IsCanExecute
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]

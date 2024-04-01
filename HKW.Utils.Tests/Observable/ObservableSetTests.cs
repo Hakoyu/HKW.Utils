@@ -13,203 +13,214 @@ public class ObservableSetTests
         //Test(new ObservableSet<int>());
     }
 
-    public static void Test(IObservableSet<int> set)
+    public static void Test<T>(IObservableSet<T> set, ISet<T> comparisonSet, Func<T> createNewItem)
     {
         //ObservableCollectionTests.Test(set);
     }
 
     [TestMethod]
-    public void Adding()
+    public void SetChangingOnAdd<T>(IObservableSet<T> set, ISet<T> comparisonSet, T newItem)
     {
+        set.Clear();
         var triggered = false;
-        var set = Enumerable.Range(0, 10).ToHashSet();
-        var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (s, e) =>
+        var cSet = comparisonSet.ToHashSet();
+        set.AddRange(cSet);
+
+        set.SetChanging += Set_SetChanging;
+        set.Add(newItem);
+        cSet.Add(newItem);
+
+        Assert.IsTrue(set.SequenceEqual(cSet));
+        Assert.IsTrue(triggered);
+        set.SetChanging -= Set_SetChanging;
+        set.Clear();
+
+        void Set_SetChanging(IObservableSet<T> sender, NotifySetChangingEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action == SetChangeAction.Add);
-            Assert.IsTrue(e.NewItems![0] == 10);
-            Assert.IsTrue(e.OldItems == null);
-            Assert.IsTrue(e.OtherItems == null);
-        };
-        observableSet.Add(10);
-        Assert.IsTrue(observableSet.Count == 11);
-        Assert.IsTrue(triggered);
+            Assert.IsTrue(e.Action is SetChangeAction.Add);
+            Assert.IsTrue(e.NewItems!.First()!.Equals(newItem));
+            Assert.IsTrue(e.OldItems is null);
+            Assert.IsTrue(e.OtherItems is null);
+            Assert.IsTrue(set.SequenceEqual(cSet));
+        }
     }
 
     [TestMethod]
-    public void Adding_Cancel()
+    public void SetChangingOnAddCancel<T>(IObservableSet<T> set, ISet<T> comparisonSet, T newItem)
     {
+        set.Clear();
         var triggered = false;
-        var set = Enumerable.Range(0, 10).ToHashSet();
-        var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (s, e) =>
+        var cSet = comparisonSet.ToHashSet();
+        set.AddRange(cSet);
+
+        set.SetChanging += Set_SetChanging;
+        set.Add(newItem);
+        //cSet.Add(newItem);
+
+        Assert.IsTrue(set.SequenceEqual(cSet));
+        Assert.IsTrue(triggered);
+        set.SetChanging -= Set_SetChanging;
+        set.Clear();
+
+        void Set_SetChanging(IObservableSet<T> sender, NotifySetChangingEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action == SetChangeAction.Add);
-            Assert.IsTrue(e.NewItems![0] == 10);
-            Assert.IsTrue(e.OldItems == null);
-            Assert.IsTrue(e.OtherItems == null);
+            Assert.IsTrue(e.Action is SetChangeAction.Add);
+            Assert.IsTrue(e.NewItems!.First()!.Equals(newItem));
+            Assert.IsTrue(e.OldItems is null);
+            Assert.IsTrue(e.OtherItems is null);
+            Assert.IsTrue(set.SequenceEqual(cSet));
             e.Cancel = true;
-        };
-        observableSet.Add(10);
-        Assert.IsTrue(observableSet.Count == 10);
-        Assert.IsTrue(triggered);
+        }
     }
 
     [TestMethod]
-    public void Added()
+    public void SetChangingOnRemove<T>(IObservableSet<T> set, ISet<T> comparisonSet)
     {
+        set.Clear();
         var triggered = false;
-        var set = Enumerable.Range(0, 10).ToHashSet();
-        var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanged += (s, e) =>
+        var cSet = comparisonSet.ToHashSet();
+        set.AddRange(cSet);
+
+        var removeItem = cSet.Random();
+        set.SetChanging += Set_SetChanging;
+        set.Remove(removeItem);
+        cSet.Remove(removeItem);
+
+        Assert.IsTrue(set.SequenceEqual(cSet));
+        Assert.IsTrue(triggered);
+        set.SetChanging -= Set_SetChanging;
+        set.Clear();
+
+        void Set_SetChanging(IObservableSet<T> sender, NotifySetChangingEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action == SetChangeAction.Add);
-            Assert.IsTrue(e.NewItems![0] == 10);
-            Assert.IsTrue(e.OldItems == null);
-            Assert.IsTrue(e.OtherItems == null);
-        };
-        observableSet.Add(10);
-        Assert.IsTrue(observableSet.Count == 11);
-        Assert.IsTrue(triggered);
+            Assert.IsTrue(e.Action is SetChangeAction.Remove);
+            Assert.IsTrue(e.NewItems is null);
+            Assert.IsTrue(e.OldItems!.First()!.Equals(removeItem));
+            Assert.IsTrue(e.OtherItems is null);
+            Assert.IsTrue(set.SequenceEqual(cSet));
+        }
     }
 
     [TestMethod]
-    public void Removing()
+    public void SetChangingOnRemoveCancel<T>(IObservableSet<T> set, ISet<T> comparisonSet)
     {
+        set.Clear();
         var triggered = false;
-        var set = Enumerable.Range(0, 10).ToHashSet();
-        var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (s, e) =>
-        {
-            triggered = true;
-            Assert.IsTrue(e.Action == SetChangeAction.Remove);
-            Assert.IsTrue(e.NewItems == null);
-            Assert.IsTrue(e.OldItems![0] == 0);
-            Assert.IsTrue(e.OtherItems == null);
-        };
-        observableSet.Remove(0);
-        Assert.IsTrue(observableSet.Count == 9);
-        Assert.IsTrue(triggered);
-    }
+        var cSet = comparisonSet.ToHashSet();
+        set.AddRange(cSet);
 
-    [TestMethod]
-    public void Removing_Cancel()
-    {
-        var triggered = false;
-        var set = Enumerable.Range(0, 10).ToHashSet();
-        var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (s, e) =>
+        var removeItem = cSet.Random();
+        set.SetChanging += Set_SetChanging;
+        set.Remove(removeItem);
+        //cSet.Remove(removeItem);
+
+        Assert.IsTrue(set.SequenceEqual(cSet));
+        Assert.IsTrue(triggered);
+        set.SetChanging -= Set_SetChanging;
+        set.Clear();
+
+        void Set_SetChanging(IObservableSet<T> sender, NotifySetChangingEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action == SetChangeAction.Remove);
-            Assert.IsTrue(e.NewItems == null);
-            Assert.IsTrue(e.OldItems![0] == 0);
-            Assert.IsTrue(e.OtherItems == null);
+            Assert.IsTrue(e.Action is SetChangeAction.Remove);
+            Assert.IsTrue(e.NewItems is null);
+            Assert.IsTrue(e.OldItems!.First()!.Equals(removeItem));
+            Assert.IsTrue(e.OtherItems is null);
+            Assert.IsTrue(set.SequenceEqual(cSet));
             e.Cancel = true;
-        };
-        observableSet.Remove(0);
-        Assert.IsTrue(observableSet.Count == 10);
-        Assert.IsTrue(triggered);
+        }
     }
 
     [TestMethod]
-    public void Removed()
+    public void SetChangingOnClear<T>(IObservableSet<T> set, ISet<T> comparisonSet)
     {
+        set.Clear();
         var triggered = false;
-        var set = Enumerable.Range(0, 10).ToHashSet();
-        var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanged += (s, e) =>
+        var cSet = comparisonSet.ToHashSet();
+        set.AddRange(cSet);
+
+        var removeItem = cSet.Random();
+        set.SetChanging += Set_SetChanging;
+        set.Clear();
+        cSet.Clear();
+
+        Assert.IsTrue(set.SequenceEqual(cSet));
+        Assert.IsTrue(triggered);
+        set.SetChanging -= Set_SetChanging;
+        set.Clear();
+
+        void Set_SetChanging(IObservableSet<T> sender, NotifySetChangingEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action == SetChangeAction.Remove);
-            Assert.IsTrue(e.NewItems == null);
-            Assert.IsTrue(e.OldItems![0] == 0);
-            Assert.IsTrue(e.OtherItems == null);
-        };
-        observableSet.Remove(0);
-        Assert.IsTrue(observableSet.Count == 9);
-        Assert.IsTrue(triggered);
+            Assert.IsTrue(e.Action is SetChangeAction.Clear);
+            Assert.IsTrue(e.NewItems is null);
+            Assert.IsTrue(e.OldItems!.First()!.Equals(removeItem));
+            Assert.IsTrue(e.OtherItems is null);
+            Assert.IsTrue(set.SequenceEqual(cSet));
+        }
     }
 
     [TestMethod]
-    public void Clearing()
+    public void SetChangingOnClearCancel<T>(IObservableSet<T> set, ISet<T> comparisonSet)
     {
+        set.Clear();
         var triggered = false;
-        var set = Enumerable.Range(0, 10).ToHashSet();
-        var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (s, e) =>
-        {
-            triggered = true;
-            Assert.IsTrue(e.Action == SetChangeAction.Clear);
-            Assert.IsTrue(e.NewItems == null);
-            Assert.IsTrue(e.OldItems == null);
-            Assert.IsTrue(e.OtherItems == null);
-        };
-        observableSet.Clear();
-        Assert.IsTrue(observableSet.Count == 0);
-        Assert.IsTrue(triggered);
-    }
+        var cSet = comparisonSet.ToHashSet();
+        set.AddRange(cSet);
 
-    [TestMethod]
-    public void Clearing_Cancel()
-    {
-        var triggered = false;
-        var set = Enumerable.Range(0, 10).ToHashSet();
-        var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanging += (s, e) =>
+        var removeItem = cSet.Random();
+        set.SetChanging += Set_SetChanging;
+        set.Clear();
+        //cSet.Clear();
+
+        Assert.IsTrue(set.SequenceEqual(cSet));
+        Assert.IsTrue(triggered);
+        set.SetChanging -= Set_SetChanging;
+        set.Clear();
+
+        void Set_SetChanging(IObservableSet<T> sender, NotifySetChangingEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action == SetChangeAction.Clear);
-            Assert.IsTrue(e.NewItems == null);
-            Assert.IsTrue(e.OldItems == null);
-            Assert.IsTrue(e.OtherItems == null);
+            Assert.IsTrue(e.Action is SetChangeAction.Clear);
+            Assert.IsTrue(e.NewItems is null);
+            Assert.IsTrue(e.OldItems!.First()!.Equals(removeItem));
+            Assert.IsTrue(e.OtherItems is null);
+            Assert.IsTrue(set.SequenceEqual(cSet));
             e.Cancel = true;
-        };
-        observableSet.Clear();
-        Assert.IsTrue(observableSet.Count == 10);
-        Assert.IsTrue(triggered);
+        }
     }
 
     [TestMethod]
-    public void Cleared()
+    public void SetChangingOnIntersectWith<T>(IObservableSet<T> set, ISet<T> comparisonSet)
     {
+        set.Clear();
         var triggered = false;
-        var set = Enumerable.Range(0, 10).ToHashSet();
-        var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        observableSet.SetChanged += (s, e) =>
-        {
-            triggered = true;
-            Assert.IsTrue(e.Action == SetChangeAction.Clear);
-            Assert.IsTrue(e.NewItems == null);
-            Assert.IsTrue(e.OldItems == null);
-            Assert.IsTrue(e.OtherItems == null);
-        };
-        observableSet.Clear();
-        Assert.IsTrue(observableSet.Count == 0);
-        Assert.IsTrue(triggered);
-    }
+        var cSet = comparisonSet.ToHashSet();
+        var otherSet = cSet.RandomOrder().Skip(cSet.Count / 2);
+        set.AddRange(cSet);
 
-    [TestMethod]
-    public void IntersectWith()
-    {
-        var triggered = false;
-        var set = Enumerable.Range(0, 10).ToHashSet();
-        var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        var ints = new int[] { 1, 3, 5, 7, 9, 11 };
-        observableSet.SetChanged += (s, e) =>
+        var removeItem = cSet.Random();
+        set.SetChanging += Set_SetChanging;
+        set.IntersectWith(otherSet);
+        cSet.IntersectWith(otherSet);
+
+        Assert.IsTrue(set.SequenceEqual(cSet));
+        Assert.IsTrue(triggered);
+        set.SetChanging -= Set_SetChanging;
+        set.Clear();
+
+        void Set_SetChanging(IObservableSet<T> sender, NotifySetChangingEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action == SetChangeAction.Intersect);
-            Assert.IsTrue(e.NewItems == null);
-            Assert.IsTrue(e.OldItems != null);
-            Assert.IsTrue(e.OtherItems?.SequenceEqual(ints));
-        };
-        observableSet.IntersectWith(ints);
-        Assert.IsTrue(observableSet.Count == 5);
-        Assert.IsTrue(triggered);
+            Assert.IsTrue(e.Action is SetChangeAction.Intersect);
+            Assert.IsTrue(e.NewItems is null);
+            Assert.IsTrue(e.OldItems!.SequenceEqual(set.Intersect(otherSet)));
+            Assert.IsTrue(e.OtherItems is null);
+            Assert.IsTrue(set.SequenceEqual(cSet));
+        }
     }
 
     [TestMethod]

@@ -13,9 +13,7 @@ namespace HKW.HKWUtils.Observable;
 /// 可观察枚举
 /// </summary>
 /// <typeparam name="TEnum">枚举类型</typeparam>
-public class ObservableEnum<TEnum>
-    : ObservableObjectX<ObservableEnum<TEnum>>,
-        IEquatable<ObservableEnum<TEnum>>
+public class ObservableEnum<TEnum> : ObservableObjectX, IEquatable<ObservableEnum<TEnum>>
     where TEnum : struct, Enum
 {
     /// <inheritdoc/>

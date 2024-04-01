@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Globalization;
@@ -16,17 +17,20 @@ internal class Program
 
     private static void Main(string[] args)
     {
-        //var test = new TestModel();
-        //Console.WriteLine(test.Name);
-        //I18nCore.CurrentCulture = CultureInfo.GetCultureInfo("en");
-        //Console.WriteLine(test.Name);
-        //res.I18nResource.
+#if DEBUG
+
+        var test = new TestModel();
+        test.PropertyChanged += Test_PropertyChanged;
+        var oo = (ObservableObjectX)test;
+        oo.PropertyChanged -= Test_PropertyChanged;
+#endif
     }
 
-    static bool Foo(int i)
+    private static void Test_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        return true;
+        return;
     }
+
     //var s = list.First()
     //s.Contains('a');
     //var enumInfo = new ObservableEnum<TestEnum>();
@@ -48,17 +52,8 @@ internal class Program
 }
 
 #if DEBUG
-internal class TestModel : ObservableObjectX<TestModel>, II18nResource<string>
+internal class TestModel : ObservableObjectX
 {
-    public I18nResource<string> I18nResource { get; } =
-        new(Program.I18nCore, Program.I18nCore.CurrentCulture);
-
-    public TestModel()
-    {
-        I18nResource.AddCultureData("zh-CN", nameof(Name), "名字");
-        I18nResource.AddCultureData("en", nameof(Name), "Name1");
-    }
-
     #region ID
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private string _id = string.Empty;
@@ -68,9 +63,6 @@ internal class TestModel : ObservableObjectX<TestModel>, II18nResource<string>
         get => _id;
         set => SetProperty(ref _id, value);
     }
-
     #endregion
-
-    public string Name => I18nResource.GetCurrentCultureData(nameof(Name));
 }
 #endif

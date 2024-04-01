@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Observable;
@@ -229,6 +230,8 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     }
 
     #endregion ISet
+    private readonly List<int> _addIndexs = new();
+    private readonly List<int> _removeIndexs = new();
 
     #region SetChanging
 
@@ -251,9 +254,23 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     protected virtual bool OnSetRemoving(IList<T> items)
     {
-        if (SetChanging is null)
+        if (SetChanging is null && CollectionChanged is null)
             return true;
-        return OnSetChanging(new(SetChangeAction.Remove, items));
+        var result = OnSetChanging(new(SetChangeAction.Remove, items));
+        if (result)
+        {
+            _removeIndexs.Clear();
+            var removeItems = new LinkedList<T>(items);
+            foreach ((var index, var item) in _set.EnumerateIndex())
+            {
+                if (removeItems.Contains(item))
+                {
+                    _removeIndexs.Add(index);
+                    removeItems.Remove(item);
+                }
+            }
+        }
+        return result;
     }
 
     /// <summary>
@@ -282,9 +299,25 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         IList<T>? oldItems
     )
     {
-        if (SetChanging is null)
+        if (SetChanging is null && CollectionChanged is null)
             return true;
-        return OnSetChanging(new(action, otherItems, newItems, oldItems));
+        var result = OnSetChanging(new(action, otherItems, newItems, oldItems));
+        if (result)
+        {
+            _removeIndexs.Clear();
+            // TODO
+            var removeItems = new LinkedList<T>(oldItems ?? []);
+            var addItems = new LinkedList<T>(newItems ?? []);
+            foreach ((var index, var item) in _set.EnumerateIndex())
+            {
+                if (removeItems.Contains(item))
+                {
+                    _removeIndexs.Add(index);
+                    removeItems.Remove(item);
+                }
+            }
+        }
+        return result;
     }
 
     /// <summary>
@@ -314,7 +347,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         if (SetChanged is not null)
             OnSetChanged(new(SetChangeAction.Add, items));
         if (CollectionChanged is not null)
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Add, (IList)items));
+            OnCollectionChanged(new(NotifyCollectionChangedAction.Add, (IList)items, Count - 1));
         OnCountChanged();
     }
 
@@ -327,7 +360,10 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         if (SetChanged is not null)
             OnSetChanged(new(SetChangeAction.Remove, items));
         if (CollectionChanged is not null)
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, (IList)items));
+        {
+            foreach ((var item, var index) in items.Zip(_removeIndexs))
+                OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, item, index));
+        }
         OnCountChanged();
     }
 

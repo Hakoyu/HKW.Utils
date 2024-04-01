@@ -11,7 +11,4 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <param name="sender">发送者</param>
 /// <param name="e">参数</param>
-public delegate void PropertyChangedXEventHandler<TSender>(
-    TSender sender,
-    PropertyChangedXEventArgs e
-);
+public delegate void PropertyChangedXEventHandler(object? sender, PropertyChangedXEventArgs e);
