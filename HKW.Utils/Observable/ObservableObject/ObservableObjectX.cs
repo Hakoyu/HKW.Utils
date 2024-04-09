@@ -37,10 +37,10 @@ public abstract class ObservableObjectX
         [CallerMemberName] string propertyName = null!
     )
     {
-        if (EqualityComparer<TValue>.Default.Equals(value, newValue) is true)
+        if (value?.Equals(newValue) is true)
             return false;
         var oldValue = value;
-        if (OnPropertyChanging(oldValue, newValue, propertyName))
+        if (OnPropertyChanging(oldValue, newValue, propertyName) is false)
             return false;
         value = newValue;
         OnPropertyChanged(oldValue, newValue, propertyName);
@@ -53,7 +53,7 @@ public abstract class ObservableObjectX
     /// <param name="oldValue">旧值</param>
     /// <param name="newValue">新值</param>
     /// <param name="propertyName">属性名称</param>
-    /// <returns>取消为 <see langword="true"/> 否则为 <see langword="false"/></returns>
+    /// <returns>取消为 <see langword="false"/> 否则为 <see langword="true"/></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected virtual bool OnPropertyChanging(
         object? oldValue,
@@ -63,12 +63,13 @@ public abstract class ObservableObjectX
     {
         PropertyChanging?.Invoke(this, new(propertyName));
         if (PropertyChangingX is null)
-            return false;
+            return true;
         var e = new PropertyChangingXEventArgs(propertyName, oldValue, newValue);
-        PropertyChangingX?.Invoke(this, e);
+        PropertyChangingX.Invoke(this, e);
+        // 如果取消, 则通知View恢复原值
         if (e.Cancel)
             PropertyChanged?.Invoke(this, new(propertyName));
-        return e.Cancel;
+        return e.Cancel is false;
     }
 
     /// <summary>
@@ -86,6 +87,17 @@ public abstract class ObservableObjectX
     {
         PropertyChanged?.Invoke(this, new(propertyName));
         PropertyChangedX?.Invoke(this, new(propertyName, oldValue, newValue));
+    }
+
+    /// <summary>
+    /// 属性改变后
+    /// </summary>
+    /// <param name="propertyName">属性名称</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null!)
+    {
+        PropertyChanged?.Invoke(this, new(propertyName));
+        PropertyChangedX?.Invoke(this, new(propertyName, null, null));
     }
     #endregion
 

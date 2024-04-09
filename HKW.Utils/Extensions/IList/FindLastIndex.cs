@@ -73,7 +73,7 @@ public static partial class HKWExtensions
         int endIndex = startIndex - count;
         if (endIndex > list.Count)
             throw new IndexOutOfRangeException(
-                "Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection."
+                "Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the Source collection."
             );
         for (int i = startIndex; i >= endIndex; i--)
         {

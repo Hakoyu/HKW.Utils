@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Globalization;
+using HKW.HKWUtils;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
@@ -12,17 +13,42 @@ namespace HKW;
 internal class Program
 {
     private static System.Diagnostics.Stopwatch stopWatch = new();
-
-    public static ObservableI18nCore I18nCore { get; } = new();
+    public static I18nCore I18nCore = new();
+    public static I18nResource<string, string> I18nResource = new(I18nCore);
 
     private static void Main(string[] args)
     {
 #if DEBUG
+        I18nResource.AddCulture("zh");
+        I18nResource.AddCulture("en");
+        I18nResource.SetCurrentCulture("zh");
+        var v1 = new TestModel();
+        v1.PropertyChangedX += (s, e) =>
+        {
+            Debug.WriteLine($"V1: {e.PropertyName} = {e.NewValue}");
+            return;
+        };
+        var v2 = new TestModel();
+        v2.PropertyChangedX += (s, e) =>
+        {
+            Debug.WriteLine($"V2: {e.PropertyName} = {e.NewValue}");
+            return;
+        };
+        v1.ID = "1";
+        v1.Name = "zh-1";
+        v2.ID = "2";
+        v2.Name = "zh-2";
+        v2.ID = "1";
+        v2.Name = "zh-11";
+        I18nResource.SetCurrentCulture("en");
+        v1.Name = "en-1";
+        v2.ID = "2";
+        v2.Name = "en-2";
+        v2.ID = "1";
+        v2.Name = "zh-22";
+        I18nResource.SetCurrentCulture("zh");
+        I18nCore.ClearI18nResources();
 
-        var test = new TestModel();
-        test.PropertyChanged += Test_PropertyChanged;
-        var oo = (ObservableObjectX)test;
-        oo.PropertyChanged -= Test_PropertyChanged;
 #endif
     }
 
@@ -54,6 +80,15 @@ internal class Program
 #if DEBUG
 internal class TestModel : ObservableObjectX
 {
+    public TestModel()
+    {
+        Program.I18nResource.RegisterNotify(
+            this,
+            OnPropertyChanged,
+            [(nameof(ID), ID, [nameof(Name)])]
+        );
+    }
+
     #region ID
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private string _id = string.Empty;
@@ -62,6 +97,14 @@ internal class TestModel : ObservableObjectX
     {
         get => _id;
         set => SetProperty(ref _id, value);
+    }
+    #endregion
+
+    #region Name
+    public string Name
+    {
+        get => Program.I18nResource.GetCurrentCultureDataOrDefault(ID, string.Empty);
+        set => Program.I18nResource.SetOrOverrideCurrentCultureData(ID, value);
     }
     #endregion
 }

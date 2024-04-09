@@ -77,7 +77,7 @@ public static partial class HKWExtensions
             throw new IndexOutOfRangeException("Non-negative number required.");
         if (count + index > list.Count)
             throw new IndexOutOfRangeException(
-                "Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection."
+                "Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the Source collection."
             );
         if (count == 0)
             return;
@@ -164,7 +164,7 @@ public static partial class HKWExtensions
             throw new IndexOutOfRangeException("Non-negative number required.");
         if (count + index > list.Count)
             throw new IndexOutOfRangeException(
-                "Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection."
+                "Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the Source collection."
             );
         if (count == 1)
             return;

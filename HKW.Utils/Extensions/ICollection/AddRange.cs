@@ -28,6 +28,17 @@ public static partial class HKWExtensions
         }
     }
 
+    /// <summary>
+    /// 范围添加
+    /// </summary>
+    /// <typeparam name="T">项目类型</typeparam>
+    /// <param name="collection">集合</param>
+    /// <param name="items">项目</param>
+    public static void AddRange<T>(this ICollection<T> collection, params T[] items)
+    {
+        AddRange(collection, (IEnumerable<T>)items);
+    }
+
     ///// <summary>
     ///// 删除全部符合条件的项目
     ///// </summary>

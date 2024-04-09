@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HKW.HKWUtils.Observable;
+namespace HKW.HKWUtils;
 
 /// <summary>
 /// 文化改变事件

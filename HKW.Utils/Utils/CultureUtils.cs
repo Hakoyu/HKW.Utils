@@ -11,7 +11,7 @@ public static class CultureUtils
     /// <summary>
     /// 未知文化标识符
     /// </summary>
-    public const string Unknown = nameof(Unknown);
+    public const string UnknownCulture = nameof(UnknownCulture);
 
     /// <summary>
     /// 检测文化是否存在
