@@ -54,13 +54,11 @@ public class ObservableDictionary<TKey, TValue>
             _dictionary = new(collection, comparer);
         else
             _dictionary = new(comparer);
+        _observableKeys.AddRange(_dictionary.Keys);
+        _observableValues.AddRange(_dictionary.Values);
+        ObservableKeys = new ReadOnlyObservableList<TKey>(_observableKeys);
+        ObservableValues = new ReadOnlyObservableList<TValue>(_observableValues);
     }
-    #endregion
-
-    #region IDisposable
-    void IReadOnlyObservableCollection<KeyValuePair<TKey, TValue>>.Close() { }
-
-    void IDisposable.Dispose() { }
     #endregion
 
     #region IDictionaryT
@@ -69,13 +67,25 @@ public class ObservableDictionary<TKey, TValue>
     public int Count => _dictionary.Count;
 
     /// <inheritdoc/>
+    public bool IsReadOnly => ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).IsReadOnly;
+
+    /// <inheritdoc/>
     public ICollection<TKey> Keys => _dictionary.Keys;
 
     /// <inheritdoc/>
     public ICollection<TValue> Values => _dictionary.Values;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private ObservableList<TKey> _observableKeys = new();
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private ObservableList<TValue> _observableValues = new();
+
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).IsReadOnly;
+    public IReadOnlyObservableCollection<TKey> ObservableKeys { get; }
+
+    /// <inheritdoc/>
+    public IReadOnlyObservableCollection<TValue> ObservableValues { get; }
 
     IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => _dictionary.Keys;
 
@@ -286,6 +296,8 @@ public class ObservableDictionary<TKey, TValue>
             var list = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(pair);
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, list));
         }
+        _observableKeys.Add(pair.Key);
+        _observableValues.Add(pair.Value);
         OnCountChanged();
     }
 
@@ -302,6 +314,8 @@ public class ObservableDictionary<TKey, TValue>
             var list = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(pair);
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, list));
         }
+        _observableKeys.Remove(pair.Key);
+        _observableValues.Remove(pair.Value);
         OnCountChanged();
     }
 
@@ -323,6 +337,7 @@ public class ObservableDictionary<TKey, TValue>
             var oldList = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(oldPair);
             OnCollectionChanged(new(NotifyCollectionChangedAction.Replace, newList, oldList));
         }
+        _observableValues[_observableKeys.IndexOf(oldPair.Key)] = newPair.Value;
     }
 
     /// <summary>
@@ -335,6 +350,8 @@ public class ObservableDictionary<TKey, TValue>
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Reset));
         OnCountChanged();
+        _observableKeys.Clear();
+        _observableValues.Clear();
     }
 
     /// <summary>

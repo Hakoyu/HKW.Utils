@@ -31,18 +31,15 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     public ReadOnlyObservableDictionary(IObservableDictionary<TKey, TValue> dictionary)
     {
         _dictionary = dictionary;
-        _dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
         _dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
         _dictionary.CollectionChanged += Dictionary_CollectionChanged;
         _dictionary.PropertyChanged += Dictionary_PropertyChanged;
-    }
-
-    private void Dictionary_DictionaryChanging(
-        IObservableDictionary<TKey, TValue> sender,
-        NotifyDictionaryChangingEventArgs<TKey, TValue> e
-    )
-    {
-        DictionaryChanging?.Invoke(this, e);
+        ObservableKeys = new ReadOnlyObservableList<TKey>(
+            (IObservableList<TKey>)_dictionary.ObservableKeys
+        );
+        ObservableValues = new ReadOnlyObservableList<TValue>(
+            (IObservableList<TValue>)_dictionary.ObservableValues
+        );
     }
 
     private void Dictionary_DictionaryChanged(
@@ -93,7 +90,6 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     /// <inheritdoc/>
     public void Close()
     {
-        _dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
         _dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
         _dictionary.CollectionChanged -= Dictionary_CollectionChanged;
         _dictionary.PropertyChanged -= Dictionary_PropertyChanged;
@@ -117,6 +113,12 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     ICollection<TKey> IDictionary<TKey, TValue>.Keys => _dictionary.Keys;
 
     ICollection<TValue> IDictionary<TKey, TValue>.Values => _dictionary.Values;
+
+    /// <inheritdoc/>
+    public IReadOnlyObservableCollection<TKey> ObservableKeys { get; }
+
+    /// <inheritdoc/>
+    public IReadOnlyObservableCollection<TValue> ObservableValues { get; }
 
     TValue IDictionary<TKey, TValue>.this[TKey key]
     {
@@ -187,9 +189,14 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     }
 
     #region Event
-    /// <inheritdoc/>
-    /// <remarks>!!!注意!!! 使用 <see cref="CancelEventArgs.Cancel"/> 不会产生效果</remarks>
-    public event ObservableDictionaryChangingEventHandler<TKey, TValue>? DictionaryChanging;
+    event ObservableDictionaryChangingEventHandler<TKey, TValue>? INotifyDictionaryChanging<
+        TKey,
+        TValue
+    >.DictionaryChanging
+    {
+        add => throw new NotImplementedException();
+        remove => throw new NotImplementedException();
+    }
 
     /// <inheritdoc/>
     public event ObservableDictionaryChangedEventHandler<TKey, TValue>? DictionaryChanged;

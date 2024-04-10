@@ -29,15 +29,9 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     public ReadOnlyObservableList(IObservableList<T> list)
     {
         _list = list;
-        _list.ListChanging += List_ListChanging;
         _list.ListChanged += List_ListChanged;
         _list.CollectionChanged += List_CollectionChanged;
         _list.PropertyChanged += List_PropertyChanged;
-    }
-
-    private void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
-    {
-        ListChanging?.Invoke(this, e);
     }
 
     private void List_ListChanged(IObservableList<T> sender, NotifyListChangedEventArgs<T> e)
@@ -85,7 +79,6 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     /// <inheritdoc/>
     public void Close()
     {
-        _list.ListChanging -= List_ListChanging;
         _list.ListChanged -= List_ListChanged;
         _list.CollectionChanged -= List_CollectionChanged;
         _list.PropertyChanged -= List_PropertyChanged;
@@ -306,10 +299,11 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     #endregion
 
     #region Event
-
-    /// <inheritdoc/>
-    /// <remarks>!!!注意!!! 使用 <see cref="CancelEventArgs.Cancel"/> 不会产生效果</remarks>
-    public event ObservableListChangingEventHandler<T>? ListChanging;
+    event ObservableListChangingEventHandler<T>? INotifyListChanging<T>.ListChanging
+    {
+        add => throw new NotImplementedException();
+        remove => throw new NotImplementedException();
+    }
 
     /// <inheritdoc/>
     public event ObservableListChangedEventHandler<T>? ListChanged;

@@ -48,12 +48,6 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
             _list = new();
     }
 
-    #region IDisposable
-    void IReadOnlyObservableCollection<T>.Close() { }
-
-    void IDisposable.Dispose() { }
-    #endregion
-
     #endregion Ctor
 
     #region IListT

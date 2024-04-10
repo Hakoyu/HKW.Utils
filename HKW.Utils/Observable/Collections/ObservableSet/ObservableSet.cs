@@ -65,12 +65,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     }
     #endregion
 
-    #region IDisposable
-    void IReadOnlyObservableCollection<T>.Close() { }
-
-    void IDisposable.Dispose() { }
-    #endregion
-
     #region ISet
 
     /// <inheritdoc/>
