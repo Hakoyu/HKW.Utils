@@ -1,24 +1,12 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
 
 namespace HKW.HKWUtils;
-
-/// <summary>
-/// 文化数据字典
-/// </summary>
-/// <typeparam name="TKey">键类型</typeparam>
-/// <typeparam name="TValue">值类型</typeparam>
-public class ObservableCultureDataDictionary<TKey, TValue> : ObservableDictionary<TKey, TValue>
-    where TKey : notnull
-{
-    /// <summary>
-    /// 文化
-    /// </summary>
-    public CultureInfo Culture { get; internal set; } = null!;
-}
 
 /// <summary>
 /// I18n资源
@@ -41,9 +29,47 @@ public class ObservableCultureDataDictionary<TKey, TValue> : ObservableDictionar
 /// </code>
 /// </para>
 /// </summary>
-public class I18nResource<TKey, TValue> : II18nResource
+public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     where TKey : notnull
 {
+    /// <inheritdoc/>
+    public I18nResource()
+    {
+        CultureDatas.DictionaryChanged += CultureDatas_DictionaryChanged;
+    }
+
+    /// <inheritdoc/>
+    /// <param name="core">I18n核心</param>
+    /// <param name="addCurrentCulture">为资源添加当前文化</param>
+    public I18nResource(I18nCore core, bool addCurrentCulture = false)
+        : this()
+    {
+        I18nCore = core;
+        if (addCurrentCulture)
+        {
+            AddCulture(core.CurrentCulture);
+            SetCurrentCulture(core.CurrentCulture);
+        }
+    }
+
+    /// <inheritdoc/>
+    /// <param name="core">本地化核心</param>
+    /// <param name="culture">文化</param>
+    public I18nResource(I18nCore core, CultureInfo culture)
+    {
+        I18nCore = core;
+        AddCulture(culture);
+        SetCurrentCulture(culture);
+    }
+
+    /// <inheritdoc/>
+    /// <param name="core">本地化核心</param>
+    /// <param name="cultureName">文化名称</param>
+    public I18nResource(I18nCore core, string cultureName)
+        : this(core, CultureInfo.GetCultureInfo(cultureName)) { }
+
+    #region I18nCore
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private I18nCore? _i18nCore = null!;
 
     /// <summary>
@@ -68,8 +94,31 @@ public class I18nResource<TKey, TValue> : II18nResource
             }
         }
     }
+    #endregion
 
-    #region I18nData
+    #region CurrentCulture
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private CultureInfo _currentCulture = null!;
+
+    /// <summary>
+    /// 当前文化
+    /// </summary>
+    public CultureInfo CurrentCulture
+    {
+        get => _currentCulture;
+        set
+        {
+            if (CultureDatas.TryGetValue(value, out var cultureData))
+            {
+                CurrentCultureDatas = cultureData;
+                _currentCulture = value;
+                OnPropertyChanged(nameof(CurrentCulture));
+            }
+        }
+    }
+    #endregion
+
+    #region I18nDatas
     /// <summary>
     /// 所有文化数据
     /// <para>(<see cref="CultureInfo"/>, <see cref="CurrentCultureDatas"/>)</para>
@@ -86,19 +135,6 @@ public class I18nResource<TKey, TValue> : II18nResource
     public ObservableCultureDataDictionary<TKey, TValue> CurrentCultureDatas { get; private set; } =
         null!;
     #endregion
-    /// <inheritdoc/>
-    public I18nResource()
-    {
-        CultureDatas.DictionaryChanged += CultureDatas_DictionaryChanged;
-    }
-
-    /// <inheritdoc/>
-    /// <param name="core">I18n核心</param>
-    public I18nResource(I18nCore core)
-        : this()
-    {
-        I18nCore = core;
-    }
 
     private void Core_CurrentCultureChanged(I18nCore sender, CultureChangedEventArgs e)
     {
@@ -199,22 +235,6 @@ public class I18nResource<TKey, TValue> : II18nResource
         }
     }
 
-    /// <inheritdoc/>
-    /// <param name="core">本地化核心</param>
-    /// <param name="currentCulture">当前文化</param>
-    public I18nResource(I18nCore core, CultureInfo currentCulture)
-        : this(core)
-    {
-        AddCulture(currentCulture);
-        SetCurrentCulture(currentCulture);
-    }
-
-    /// <inheritdoc/>
-    /// <param name="core">本地化核心</param>
-    /// <param name="currentCultureName">当前文化名称</param>
-    public I18nResource(I18nCore core, string currentCultureName)
-        : this(core, CultureInfo.GetCultureInfo(currentCultureName)) { }
-
     #region CurrentCultureData Operation
     /// <summary>
     /// 添加文化数据
@@ -233,7 +253,7 @@ public class I18nResource<TKey, TValue> : II18nResource
     /// <param name="key">键</param>
     /// <param name="value">值</param>
     /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
-    public void SetOrOverrideCurrentCultureData(TKey key, TValue value)
+    public void SetCurrentCultureData(TKey key, TValue value)
     {
         CurrentCultureDatas[key] = value;
     }
@@ -327,7 +347,7 @@ public class I18nResource<TKey, TValue> : II18nResource
     /// <param name="culture">文化</param>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    public void SetOrOverrideCultureData(CultureInfo culture, TKey key, TValue value)
+    public void SetCultureData(CultureInfo culture, TKey key, TValue value)
     {
         if (CultureDatas.TryGetValue(culture, out var data))
         {
@@ -346,8 +366,8 @@ public class I18nResource<TKey, TValue> : II18nResource
     /// <param name="key">键</param>
     /// <param name="value">值</param>
     /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
-    public void SetOrOverrideCultureData(string cultureName, TKey key, TValue value) =>
-        SetOrOverrideCultureData(CultureInfo.GetCultureInfo(cultureName), key, value);
+    public void SetCultureData(string cultureName, TKey key, TValue value) =>
+        SetCultureData(CultureInfo.GetCultureInfo(cultureName), key, value);
 
     /// <summary>
     /// 添加文化数据
@@ -522,9 +542,10 @@ public class I18nResource<TKey, TValue> : II18nResource
         if (CultureDatas.TryGetValue(culture, out var cultureData))
         {
             CurrentCultureDatas = cultureData;
+            _currentCulture = culture;
+            OnPropertyChanged(nameof(CurrentCulture));
             return true;
         }
-        CurrentCultureDatas = null!;
         return false;
     }
 
@@ -619,7 +640,7 @@ public class I18nResource<TKey, TValue> : II18nResource
     /// (IEquatable, I18nObjectInfo)
     /// </para>
     /// </summary>
-    protected Dictionary<INotifyPropertyChangedX, I18nObjectInfo<TKey>> I18nObjectInfos { get; } =
+    public Dictionary<INotifyPropertyChangedX, I18nObjectInfo<TKey>> I18nObjectInfos { get; } =
         new();
 
     /// <summary>
@@ -657,7 +678,22 @@ public class I18nResource<TKey, TValue> : II18nResource
     }
 
     /// <summary>
+    /// 属性改变后
+    /// </summary>
+    /// <param name="propertyName">属性名称</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null!)
+    {
+        PropertyChanged?.Invoke(this, new(propertyName));
+    }
+
+    /// <summary>
     /// 文化数据改变后事件
     /// </summary>
     public event CultureDataChangedHandler<TKey, TValue>? CultureDataChanged;
+
+    /// <summary>
+    /// 属性改变后事件
+    /// </summary>
+    public event PropertyChangedEventHandler? PropertyChanged;
 }

@@ -57,11 +57,12 @@ public class I18nCore
     /// </summary>
     /// <typeparam name="TKey">键</typeparam>
     /// <typeparam name="TValue">值</typeparam>
-    /// <returns></returns>
-    public I18nResource<TKey, TValue> CreateResource<TKey, TValue>()
+    /// <param name="addCurrentCulture">为资源添加当前文化</param>
+    /// <returns>I18n资源</returns>
+    public I18nResource<TKey, TValue> CreateResource<TKey, TValue>(bool addCurrentCulture = false)
         where TKey : notnull
     {
-        return new I18nResource<TKey, TValue>(this);
+        return new I18nResource<TKey, TValue>(this, addCurrentCulture);
     }
 
     /// <summary>

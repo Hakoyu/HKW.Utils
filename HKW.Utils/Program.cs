@@ -19,35 +19,37 @@ internal class Program
     private static void Main(string[] args)
     {
 #if DEBUG
+        Debug.WriteLine(CultureInfo.CurrentCulture);
         I18nResource.AddCulture("zh");
         I18nResource.AddCulture("en");
         I18nResource.SetCurrentCulture("zh");
-        var v1 = new TestModel();
-        v1.PropertyChangedX += (s, e) =>
-        {
-            Debug.WriteLine($"V1: {e.PropertyName} = {e.NewValue}");
-            return;
-        };
-        var v2 = new TestModel();
-        v2.PropertyChangedX += (s, e) =>
-        {
-            Debug.WriteLine($"V2: {e.PropertyName} = {e.NewValue}");
-            return;
-        };
-        v1.ID = "1";
-        v1.Name = "zh-1";
-        v2.ID = "2";
-        v2.Name = "zh-2";
-        v2.ID = "1";
-        v2.Name = "zh-11";
-        I18nResource.SetCurrentCulture("en");
-        v1.Name = "en-1";
-        v2.ID = "2";
-        v2.Name = "en-2";
-        v2.ID = "1";
-        v2.Name = "zh-22";
-        I18nResource.SetCurrentCulture("zh");
-        I18nCore.ClearI18nResources();
+        I18nResource.CurrentCulture = CultureInfo.GetCultureInfo("zh");
+        //var v1 = new TestModel();
+        //v1.PropertyChangedX += (s, e) =>
+        //{
+        //    Debug.WriteLine($"V1: {e.PropertyName} = {e.NewValue}");
+        //    return;
+        //};
+        //var v2 = new TestModel();
+        //v2.PropertyChangedX += (s, e) =>
+        //{
+        //    Debug.WriteLine($"V2: {e.PropertyName} = {e.NewValue}");
+        //    return;
+        //};
+        //v1.ID = "1";
+        //v1.Name = "zh-1";
+        //v2.ID = "2";
+        //v2.Name = "zh-2";
+        //v2.ID = "1";
+        //v2.Name = "zh-11";
+        //I18nResource.SetCurrentCulture("en");
+        //v1.Name = "en-1";
+        //v2.ID = "2";
+        //v2.Name = "en-2";
+        //v2.ID = "1";
+        //v2.Name = "zh-22";
+        //I18nResource.SetCurrentCulture("zh");
+        //I18nCore.ClearI18nResources();
 
 #endif
     }
@@ -104,7 +106,7 @@ internal class TestModel : ObservableObjectX
     public string Name
     {
         get => Program.I18nResource.GetCurrentCultureDataOrDefault(ID, string.Empty);
-        set => Program.I18nResource.SetOrOverrideCurrentCultureData(ID, value);
+        set => Program.I18nResource.SetCurrentCultureData(ID, value);
     }
     #endregion
 }
