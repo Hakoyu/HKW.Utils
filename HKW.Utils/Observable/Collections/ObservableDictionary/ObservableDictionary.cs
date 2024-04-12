@@ -91,6 +91,9 @@ public class ObservableDictionary<TKey, TValue>
 
     IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => _dictionary.Values;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private int _removeIndex = -1;
+
     #region Change
 
     /// <inheritdoc/>
@@ -231,9 +234,14 @@ public class ObservableDictionary<TKey, TValue>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     protected virtual bool OnDictionaryRemoving(KeyValuePair<TKey, TValue> pair)
     {
-        if (DictionaryChanging is null)
-            return true;
-        return OnDictionaryChanging(new(DictionaryChangeAction.Remove, pair));
+        var result = true;
+        if (DictionaryChanging is not null)
+            result = OnDictionaryChanging(new(DictionaryChangeAction.Remove, pair));
+        if (result && CollectionChanged is not null)
+        {
+            _removeIndex = _dictionary.IndexOf(pair);
+        }
+        return result;
     }
 
     /// <summary>
@@ -294,7 +302,7 @@ public class ObservableDictionary<TKey, TValue>
         if (CollectionChanged is not null)
         {
             var list = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(pair);
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Add, list));
+            OnCollectionChanged(new(NotifyCollectionChangedAction.Add, list, Count - 1));
         }
         _observableKeys.Add(pair.Key);
         _observableValues.Add(pair.Value);
@@ -310,10 +318,7 @@ public class ObservableDictionary<TKey, TValue>
         if (DictionaryChanged is not null)
             OnDictionaryChanged(new(DictionaryChangeAction.Remove, pair));
         if (CollectionChanged is not null)
-        {
-            var list = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(pair);
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, list));
-        }
+            OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, pair, _removeIndex));
         _observableKeys.Remove(pair.Key);
         _observableValues.Remove(pair.Value);
         OnCountChanged();
@@ -333,9 +338,10 @@ public class ObservableDictionary<TKey, TValue>
             OnDictionaryChanged(new(DictionaryChangeAction.Replace, newPair, oldPair));
         if (CollectionChanged is not null)
         {
-            var newList = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(newPair);
-            var oldList = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(oldPair);
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Replace, newList, oldList));
+            var index = _dictionary.IndexOf(oldPair, (i1, i2) => i1.EqualsContent(i2));
+            OnCollectionChanged(
+                new(NotifyCollectionChangedAction.Replace, newPair, oldPair, index)
+            );
         }
         _observableValues[_observableKeys.IndexOf(oldPair.Key)] = newPair.Value;
     }

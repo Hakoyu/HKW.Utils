@@ -59,7 +59,7 @@ public class ObservableCollectionTests
             Assert.IsTrue(e.Action is NotifyCollectionChangedAction.Add);
             Assert.IsTrue(e.OldItems?[0] is null);
             Assert.IsTrue(e.NewItems?[0]?.Equals(cCollection.Last()));
-            Assert.IsTrue(e.NewStartingIndex == -1 || e.NewStartingIndex == collection.Count - 1);
+            Assert.IsTrue(e.NewStartingIndex == collection.Count - 1);
             Assert.IsTrue(e.OldStartingIndex == -1);
             Assert.IsTrue(collection.SequenceEqual(cCollection));
         }
@@ -95,7 +95,7 @@ public class ObservableCollectionTests
             Assert.IsTrue(e.OldItems?[0]?.Equals(removeItem));
             Assert.IsTrue(e.NewItems?[0] is null);
             Assert.IsTrue(e.NewStartingIndex == -1);
-            Assert.IsTrue(e.OldStartingIndex == removeIndex || e.OldStartingIndex == -1);
+            Assert.IsTrue(e.OldStartingIndex == removeIndex);
             Assert.IsTrue(collection.SequenceEqual(cCollection));
         }
     }

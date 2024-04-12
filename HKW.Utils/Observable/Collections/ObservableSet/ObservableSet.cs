@@ -254,8 +254,8 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         if (result)
         {
             _removeIndexs.Clear();
-            var removeItems = new LinkedList<T>(items);
-            foreach ((var index, var item) in _set.EnumerateIndex())
+            var removeItems = items.ToHashSet();
+            foreach ((var index, var item) in _set.ReverseEnumerateIndex())
             {
                 if (removeItems.Contains(item))
                 {
@@ -293,21 +293,21 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         IList<T>? oldItems
     )
     {
-        if (SetChanging is null && CollectionChanged is null)
+        if (SetChanging is null)
             return true;
         var result = OnSetChanging(new(action, otherItems, newItems, oldItems));
-        if (result)
+        if (CollectionChanged is null && result && oldItems is not null)
         {
             _removeIndexs.Clear();
-            // TODO
-            var removeItems = new LinkedList<T>(oldItems ?? []);
-            var addItems = new LinkedList<T>(newItems ?? []);
-            foreach ((var index, var item) in _set.EnumerateIndex())
+            var removeItems = oldItems.ToHashSet();
+            foreach ((var index, var item) in _set.ReverseEnumerateIndex())
             {
                 if (removeItems.Contains(item))
                 {
                     _removeIndexs.Add(index);
                     removeItems.Remove(item);
+                    if (removeItems.HasValue() is false)
+                        break;
                 }
             }
         }
@@ -379,22 +379,37 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <param name="action">行动</param>
     /// <param name="otherItems">其它集合</param>
     /// <param name="newItems">新项目</param>
-    /// <param name="oldTiems">旧项目</param>
+    /// <param name="oldItems">旧项目</param>
     protected virtual void OnSetOperated(
         SetChangeAction action,
         IList<T> otherItems,
         IList<T>? newItems,
-        IList<T>? oldTiems
+        IList<T>? oldItems
     )
     {
         if (SetChanged is not null)
-            OnSetChanged(new(action, otherItems, newItems, oldTiems));
+            OnSetChanged(new(action, otherItems, newItems, oldItems));
         if (CollectionChanged is not null)
         {
+            if (oldItems is not null)
+            {
+                foreach ((var item, var index) in oldItems.Zip(_removeIndexs))
+                    OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, item, index));
+            }
             if (newItems is not null)
-                OnCollectionChanged(new(NotifyCollectionChangedAction.Add, (IList)newItems));
-            if (oldTiems is not null)
-                OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, (IList)oldTiems));
+            {
+                var addItems = newItems.ToHashSet();
+                foreach ((var index, var item) in _set.ReverseEnumerateIndex())
+                {
+                    if (addItems.Contains(item))
+                    {
+                        OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item, index));
+                        addItems.Remove(item);
+                        if (addItems.HasValue() is false)
+                            break;
+                    }
+                }
+            }
         }
         OnCountChanged();
     }
@@ -431,16 +446,12 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
 
     #region PropertyChanged
 
-    private int _lastCount = 0;
-
     /// <summary>
     /// 数量改变后
     /// </summary>
     private void OnCountChanged()
     {
-        if (_lastCount != Count)
-            OnPropertyChanged(nameof(Count));
-        _lastCount = Count;
+        OnPropertyChanged(nameof(Count));
     }
 
     /// <summary>

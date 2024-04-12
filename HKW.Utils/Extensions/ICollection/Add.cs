@@ -15,6 +15,7 @@ public static partial class HKWExtensions
     /// <typeparam name="TCollection">集合类型</typeparam>
     /// <param name="collection">集合</param>
     /// <param name="item">项目</param>
+    /// <returns>集合</returns>
     public static TCollection Add<TItem, TCollection>(this TCollection collection, TItem item)
         where TCollection : ICollection<TItem>
     {

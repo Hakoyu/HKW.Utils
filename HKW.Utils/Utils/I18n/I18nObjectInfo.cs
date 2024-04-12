@@ -1,4 +1,6 @@
-﻿using HKW.HKWUtils.Observable;
+﻿using HKW.HKWUtils.Extensions;
+using HKW.HKWUtils.Observable;
+using HKW.HKWUtils.Utils;
 
 namespace HKW.HKWUtils;
 
@@ -9,6 +11,102 @@ namespace HKW.HKWUtils;
 public sealed class I18nObjectInfo<TKey>
     where TKey : notnull
 {
+    /// <inheritdoc/>
+    /// <param name="source">源</param>
+    /// <param name="onPropertyChanged">属性改变后事件</param>
+    private I18nObjectInfo(INotifyPropertyChangedX source, Action<string> onPropertyChanged)
+    {
+        Source = source;
+        Source.PropertyChangedX -= Source_PropertyChangedX;
+        Source.PropertyChangedX += Source_PropertyChangedX;
+        OnPropertyChanged = onPropertyChanged;
+    }
+
+    /// <inheritdoc/>
+    /// <param name="source">源</param>
+    /// <param name="onPropertyChanged">属性改变后事件</param>
+    /// <param name="propertyDatas">属性数据 (键属性名, 键值, 目标属性名)</param>
+    public I18nObjectInfo(
+        INotifyPropertyChangedX source,
+        Action<string> onPropertyChanged,
+        IEnumerable<(
+            string KeyPropertyName,
+            TKey KeyValue,
+            IEnumerable<string> TargetPropertyNames
+        )> propertyDatas
+    )
+        : this(source, onPropertyChanged)
+    {
+        foreach (var data in propertyDatas)
+        {
+            if (
+                TargetPropertyNamesWithKeyPropertyName.TryGetValue(
+                    data.KeyPropertyName,
+                    out var targetPropertyNames
+                )
+                is false
+            )
+            {
+                targetPropertyNames = TargetPropertyNamesWithKeyPropertyName[data.KeyPropertyName] =
+                    new();
+            }
+            targetPropertyNames.UnionWith(data.TargetPropertyNames);
+
+            if (
+                TargetPropertyNamesWithKey.TryGetValue(data.KeyValue, out targetPropertyNames)
+                is false
+            )
+            {
+                targetPropertyNames = TargetPropertyNamesWithKey[data.KeyValue] = new();
+            }
+            targetPropertyNames.UnionWith(data.TargetPropertyNames);
+        }
+    }
+
+    /// <inheritdoc/>
+    /// <param name="source">源</param>
+    /// <param name="onPropertyChanged">属性改变后事件</param>
+    /// <param name="propertyDatas">属性数据 (键属性名, 键值, 目标属性名, 在键改变时保留值)</param>
+    public I18nObjectInfo(
+        INotifyPropertyChangedX source,
+        Action<string> onPropertyChanged,
+        IEnumerable<(
+            string KeyPropertyName,
+            TKey KeyValue,
+            IEnumerable<string> TargetPropertyNames,
+            bool retentionValueOnKeyChange
+        )> propertyDatas
+    )
+        : this(source, onPropertyChanged)
+    {
+        foreach (var data in propertyDatas)
+        {
+            if (data.retentionValueOnKeyChange)
+                RetentionValueOnKeyChangePropertyNames.Add(data.KeyPropertyName);
+            if (
+                TargetPropertyNamesWithKeyPropertyName.TryGetValue(
+                    data.KeyPropertyName,
+                    out var targetPropertyNames
+                )
+                is false
+            )
+            {
+                targetPropertyNames = TargetPropertyNamesWithKeyPropertyName[data.KeyPropertyName] =
+                    new();
+            }
+            targetPropertyNames.UnionWith(data.TargetPropertyNames);
+
+            if (
+                TargetPropertyNamesWithKey.TryGetValue(data.KeyValue, out targetPropertyNames)
+                is false
+            )
+            {
+                targetPropertyNames = TargetPropertyNamesWithKey[data.KeyValue] = new();
+            }
+            targetPropertyNames.UnionWith(data.TargetPropertyNames);
+        }
+    }
+
     /// <summary>
     /// 源
     /// </summary>
@@ -36,49 +134,10 @@ public sealed class I18nObjectInfo<TKey>
     /// </summary>
     public Dictionary<TKey, HashSet<string>> TargetPropertyNamesWithKey { get; } = new();
 
-    /// <inheritdoc/>
-    /// <param name="source">源</param>
-    /// <param name="onPropertyChanged">属性改变后事件</param>
-    /// <param name="propertyDatas">属性数据</param>
-    public I18nObjectInfo(
-        INotifyPropertyChangedX source,
-        Action<string> onPropertyChanged,
-        IEnumerable<(
-            string KeyPropertyName,
-            TKey KeyValue,
-            IEnumerable<string> TargetPropertyNames
-        )> propertyDatas
-    )
-    {
-        Source = source;
-        Source.PropertyChangedX -= Source_PropertyChangedX;
-        Source.PropertyChangedX += Source_PropertyChangedX;
-        OnPropertyChanged = onPropertyChanged;
-        foreach (var data in propertyDatas)
-        {
-            if (
-                TargetPropertyNamesWithKeyPropertyName.TryGetValue(
-                    data.KeyPropertyName,
-                    out var targetPropertyNames
-                )
-                is false
-            )
-            {
-                targetPropertyNames = TargetPropertyNamesWithKeyPropertyName[data.KeyPropertyName] =
-                    new();
-            }
-            targetPropertyNames.UnionWith(data.TargetPropertyNames);
-
-            if (
-                TargetPropertyNamesWithKey.TryGetValue(data.KeyValue, out targetPropertyNames)
-                is false
-            )
-            {
-                targetPropertyNames = TargetPropertyNamesWithKey[data.KeyValue] = new();
-            }
-            targetPropertyNames.UnionWith(data.TargetPropertyNames);
-        }
-    }
+    /// <summary>
+    /// 在键改变时保留值的属性名
+    /// </summary>
+    public HashSet<string> RetentionValueOnKeyChangePropertyNames { get; } = new();
 
     private void Source_PropertyChangedX(object? sender, PropertyChangedXEventArgs e)
     {
@@ -93,21 +152,29 @@ public sealed class I18nObjectInfo<TKey>
             // 则向属性名对应的I18n资源属性发送修改通知
             NotifyPropertyChangedWithKeyPropertyName(e.PropertyName);
             (var oldValue, var newValue) = e.GetValue<TKey>();
+            var oldTargetPropertyNamesWithKey = TargetPropertyNamesWithKey[oldValue];
             if (
-                TargetPropertyNamesWithKey.TryGetValue(newValue, out var targetPropertyNamesWithKey)
+                TargetPropertyNamesWithKey.TryGetValue(
+                    newValue,
+                    out var newTargetPropertyNamesWithKey
+                )
             )
             {
-                // 从旧键中去除ID对应的属性名
-                TargetPropertyNamesWithKey[oldValue]
-                    .ExceptWith(targetPropertyNamesWithKeyPropertyName);
                 // 将ID对应的属性名添加至新建对应的属性名中
-                targetPropertyNamesWithKey.UnionWith(targetPropertyNamesWithKeyPropertyName);
+                newTargetPropertyNamesWithKey.UnionWith(targetPropertyNamesWithKeyPropertyName);
             }
             else
             {
                 TargetPropertyNamesWithKey[newValue] =
                     targetPropertyNamesWithKeyPropertyName.ToHashSet();
             }
+            // 从旧键中去除ID对应的属性名
+            oldTargetPropertyNamesWithKey.ExceptWith(targetPropertyNamesWithKeyPropertyName);
+            // 如果旧键不存在值则删除
+            if (oldTargetPropertyNamesWithKey.HasValue() is false)
+                TargetPropertyNamesWithKey.Remove(oldValue);
+            if (RetentionValueOnKeyChangePropertyNames.Contains(e.PropertyName))
+                KeyChanged?.Invoke(this, (oldValue, newValue));
         }
     }
 
@@ -158,4 +225,9 @@ public sealed class I18nObjectInfo<TKey>
     {
         Source.PropertyChangedX -= Source_PropertyChangedX;
     }
+
+    /// <summary>
+    /// 键改变
+    /// </summary>
+    public event KeyChangedEventHandler<TKey>? KeyChanged;
 }

@@ -15,7 +15,7 @@ public class ObservableSetTests
 
     public static void Test<T>(IObservableSet<T> set, ISet<T> comparisonSet, Func<T> createNewItem)
     {
-        //ObservableCollectionTests.Test(set);
+        ObservableCollectionTests.Test(set, comparisonSet, createNewItem);
     }
 
     [TestMethod]
