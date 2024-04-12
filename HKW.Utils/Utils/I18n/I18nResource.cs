@@ -300,9 +300,12 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
             else
             {
                 // 添加失败则替换新键数据, 但不删除旧键数据
-                // 如果为null则不替换
                 if (data is not null)
-                    datas[e.NewKey] = data;
+                {
+                    // 如果为null则不替换
+                    if (data is not string str || string.IsNullOrWhiteSpace(str) is false)
+                        datas[e.NewKey] = data;
+                }
             }
         }
     }
