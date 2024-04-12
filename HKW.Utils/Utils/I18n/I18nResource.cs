@@ -286,10 +286,9 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         {
             if (datas.TryGetValue(e.OldKey, out var data) is false)
                 continue;
-            // 如果旧键存在数据
+            // 尝试添加新键数据
             if (datas.TryAdd(e.NewKey, data))
             {
-                // 新键不存在数据
                 // 如果在所有引用中未被使用,则删除
                 if (
                     I18nObjectInfos.All(i =>
@@ -300,8 +299,10 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
             }
             else
             {
-                // 替换新键数据, 但不删除旧键数据
-                datas[e.NewKey] = data;
+                // 添加失败则替换新键数据, 但不删除旧键数据
+                // 如果为null则不替换
+                if (data is not null)
+                    datas[e.NewKey] = data;
             }
         }
     }

@@ -338,7 +338,7 @@ public class ObservableDictionary<TKey, TValue>
             OnDictionaryChanged(new(DictionaryChangeAction.Replace, newPair, oldPair));
         if (CollectionChanged is not null)
         {
-            var index = _dictionary.IndexOf(oldPair, (i1, i2) => i1.EqualsContent(i2));
+            var index = _dictionary.IndexOf((p => p.Key.Equals(oldPair.Key)));
             OnCollectionChanged(
                 new(NotifyCollectionChangedAction.Replace, newPair, oldPair, index)
             );

@@ -30,14 +30,13 @@ public static partial class HKWExtensions
     /// </summary>
     /// <typeparam name="T">项目类型</typeparam>
     /// <param name="source">源</param>
-    /// <param name="item">项目</param>
     /// <param name="match">匹配</param>
     /// <returns>项目的索引, 若项目不存在则为 <see langword="-1"/> </returns>
-    public static int IndexOf<T>(this IEnumerable<T> source, T item, Func<T, T, bool> match)
+    public static int IndexOf<T>(this IEnumerable<T> source, Func<T, bool> match)
     {
-        foreach ((var index, var i) in source.EnumerateIndex())
+        foreach ((var index, var item) in source.EnumerateIndex())
         {
-            if (match(i, item) is true)
+            if (match(item) is true)
                 return index;
         }
         return -1;

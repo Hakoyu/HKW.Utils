@@ -19,7 +19,6 @@ internal class Program
     private static void Main(string[] args)
     {
 #if DEBUG
-        Debug.WriteLine(CultureInfo.CurrentCulture);
         I18nResource.AddCulture("zh");
         I18nResource.AddCulture("en");
         I18nResource.SetCurrentCulture("zh");
@@ -37,18 +36,20 @@ internal class Program
         };
         v1.ID = "1";
         v1.Name = "zh-1";
-        v2.ID = "2";
-        v2.Name = "zh-2";
         v2.ID = "1";
-        v2.Name = "zh-11";
-        I18nResource.SetCurrentCulture("en");
-        v1.Name = "en-1";
         v2.ID = "2";
-        v2.Name = "en-2";
-        v2.ID = "1";
-        v2.Name = "zh-22";
-        I18nResource.SetCurrentCulture("zh");
-        I18nCore.ClearI18nResources();
+
+        //v2.Name = "zh-2";
+        //v2.ID = "1";
+        //v2.Name = "zh-11";
+        //I18nResource.SetCurrentCulture("en");
+        //v1.Name = "en-1";
+        //v2.ID = "2";
+        //v2.Name = "en-2";
+        //v2.ID = "1";
+        //v2.Name = "zh-22";
+        //I18nResource.SetCurrentCulture("zh");
+        //I18nCore.ClearI18nResources();
 
 #endif
     }

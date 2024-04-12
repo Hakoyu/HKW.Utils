@@ -32,6 +32,99 @@ public sealed class I18nObjectInfo<TKey>
         IEnumerable<(
             string KeyPropertyName,
             TKey KeyValue,
+            string TargetPropertyName
+        )> propertyDatas
+    )
+        : this(source, onPropertyChanged)
+    {
+        foreach (var data in propertyDatas)
+        {
+            if (
+                TargetPropertyNamesWithKeyPropertyName.TryGetValue(
+                    data.KeyPropertyName,
+                    out var targetPropertyNamesWithKeyPropertyName
+                )
+                is false
+            )
+            {
+                targetPropertyNamesWithKeyPropertyName = TargetPropertyNamesWithKeyPropertyName[
+                    data.KeyPropertyName
+                ] = new();
+            }
+            targetPropertyNamesWithKeyPropertyName.Add(data.TargetPropertyName);
+
+            if (
+                TargetPropertyNamesWithKey.TryGetValue(
+                    data.KeyValue,
+                    out var targetPropertyNamesWithKey
+                )
+                is false
+            )
+            {
+                targetPropertyNamesWithKey = TargetPropertyNamesWithKey[data.KeyValue] = new();
+            }
+            targetPropertyNamesWithKey.Add(data.TargetPropertyName);
+        }
+    }
+
+    /// <inheritdoc/>
+    /// <param name="source">源</param>
+    /// <param name="onPropertyChanged">属性改变后事件</param>
+    /// <param name="propertyDatas">属性数据 (键属性名, 键值, 目标属性名)</param>
+    public I18nObjectInfo(
+        INotifyPropertyChangedX source,
+        Action<string> onPropertyChanged,
+        IEnumerable<(
+            string KeyPropertyName,
+            TKey KeyValue,
+            string TargetPropertyName,
+            bool RetentionValueOnKeyChange
+        )> propertyDatas
+    )
+        : this(source, onPropertyChanged)
+    {
+        foreach (var data in propertyDatas)
+        {
+            if (data.RetentionValueOnKeyChange)
+                RetentionValueOnKeyChangePropertyNames.Add(data.KeyPropertyName);
+            if (
+                TargetPropertyNamesWithKeyPropertyName.TryGetValue(
+                    data.KeyPropertyName,
+                    out var targetPropertyNamesWithKeyPropertyName
+                )
+                is false
+            )
+            {
+                targetPropertyNamesWithKeyPropertyName = TargetPropertyNamesWithKeyPropertyName[
+                    data.KeyPropertyName
+                ] = new();
+            }
+            targetPropertyNamesWithKeyPropertyName.Add(data.TargetPropertyName);
+
+            if (
+                TargetPropertyNamesWithKey.TryGetValue(
+                    data.KeyValue,
+                    out var targetPropertyNamesWithKey
+                )
+                is false
+            )
+            {
+                targetPropertyNamesWithKey = TargetPropertyNamesWithKey[data.KeyValue] = new();
+            }
+            targetPropertyNamesWithKey.Add(data.TargetPropertyName);
+        }
+    }
+
+    /// <inheritdoc/>
+    /// <param name="source">源</param>
+    /// <param name="onPropertyChanged">属性改变后事件</param>
+    /// <param name="propertyDatas">属性数据 (键属性名, 键值, 目标属性名)</param>
+    public I18nObjectInfo(
+        INotifyPropertyChangedX source,
+        Action<string> onPropertyChanged,
+        IEnumerable<(
+            string KeyPropertyName,
+            TKey KeyValue,
             IEnumerable<string> TargetPropertyNames
         )> propertyDatas
     )
@@ -42,24 +135,28 @@ public sealed class I18nObjectInfo<TKey>
             if (
                 TargetPropertyNamesWithKeyPropertyName.TryGetValue(
                     data.KeyPropertyName,
-                    out var targetPropertyNames
+                    out var targetPropertyNamesWithKeyPropertyName
                 )
                 is false
             )
             {
-                targetPropertyNames = TargetPropertyNamesWithKeyPropertyName[data.KeyPropertyName] =
-                    new();
+                targetPropertyNamesWithKeyPropertyName = TargetPropertyNamesWithKeyPropertyName[
+                    data.KeyPropertyName
+                ] = new();
             }
-            targetPropertyNames.UnionWith(data.TargetPropertyNames);
+            targetPropertyNamesWithKeyPropertyName.UnionWith(data.TargetPropertyNames);
 
             if (
-                TargetPropertyNamesWithKey.TryGetValue(data.KeyValue, out targetPropertyNames)
+                TargetPropertyNamesWithKey.TryGetValue(
+                    data.KeyValue,
+                    out var targetPropertyNamesWithKey
+                )
                 is false
             )
             {
-                targetPropertyNames = TargetPropertyNamesWithKey[data.KeyValue] = new();
+                targetPropertyNamesWithKey = TargetPropertyNamesWithKey[data.KeyValue] = new();
             }
-            targetPropertyNames.UnionWith(data.TargetPropertyNames);
+            targetPropertyNamesWithKey.UnionWith(data.TargetPropertyNames);
         }
     }
 
@@ -74,36 +171,40 @@ public sealed class I18nObjectInfo<TKey>
             string KeyPropertyName,
             TKey KeyValue,
             IEnumerable<string> TargetPropertyNames,
-            bool retentionValueOnKeyChange
+            bool RetentionValueOnKeyChange
         )> propertyDatas
     )
         : this(source, onPropertyChanged)
     {
         foreach (var data in propertyDatas)
         {
-            if (data.retentionValueOnKeyChange)
+            if (data.RetentionValueOnKeyChange)
                 RetentionValueOnKeyChangePropertyNames.Add(data.KeyPropertyName);
             if (
                 TargetPropertyNamesWithKeyPropertyName.TryGetValue(
                     data.KeyPropertyName,
-                    out var targetPropertyNames
+                    out var targetPropertyNamesWithKeyPropertyName
                 )
                 is false
             )
             {
-                targetPropertyNames = TargetPropertyNamesWithKeyPropertyName[data.KeyPropertyName] =
-                    new();
+                targetPropertyNamesWithKeyPropertyName = TargetPropertyNamesWithKeyPropertyName[
+                    data.KeyPropertyName
+                ] = new();
             }
-            targetPropertyNames.UnionWith(data.TargetPropertyNames);
+            targetPropertyNamesWithKeyPropertyName.UnionWith(data.TargetPropertyNames);
 
             if (
-                TargetPropertyNamesWithKey.TryGetValue(data.KeyValue, out targetPropertyNames)
+                TargetPropertyNamesWithKey.TryGetValue(
+                    data.KeyValue,
+                    out var targetPropertyNamesWithKey
+                )
                 is false
             )
             {
-                targetPropertyNames = TargetPropertyNamesWithKey[data.KeyValue] = new();
+                targetPropertyNamesWithKey = TargetPropertyNamesWithKey[data.KeyValue] = new();
             }
-            targetPropertyNames.UnionWith(data.TargetPropertyNames);
+            targetPropertyNamesWithKey.UnionWith(data.TargetPropertyNames);
         }
     }
 
@@ -213,9 +314,11 @@ public sealed class I18nObjectInfo<TKey>
     /// </summary>
     public void NotifyAllPropertyChanged()
     {
-        foreach (var p in TargetPropertyNamesWithKey)
-        foreach (var name in p.Value)
-            OnPropertyChanged(name);
+        foreach (var propertyNames in TargetPropertyNamesWithKeyPropertyName.Values)
+        {
+            foreach (var name in propertyNames)
+                OnPropertyChanged(name);
+        }
     }
 
     /// <summary>
