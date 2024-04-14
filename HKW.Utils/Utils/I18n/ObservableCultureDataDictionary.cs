@@ -8,11 +8,12 @@ namespace HKW.HKWUtils;
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
-public class ObservableCultureDataDictionary<TKey, TValue> : ObservableDictionary<TKey, TValue>
+public class ObservableCultureDataDictionary<TKey, TValue>
+    : ObservableDictionary<CultureInfo, TValue>
     where TKey : notnull
 {
     /// <summary>
-    /// 文化
+    /// 键
     /// </summary>
-    public CultureInfo Culture { get; internal set; } = null!;
+    public TKey Key { get; internal set; } = default!;
 }

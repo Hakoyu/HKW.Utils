@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Natives;
 
@@ -91,6 +92,39 @@ public class NotifyDictionaryChangingEventArgs<TKey, TValue> : CancelEventArgs
     }
 
     #endregion
+
+    /// <summary>
+    /// 尝试获取新键值对
+    /// </summary>
+    /// <param name="newPair"></param>
+    /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    public bool TryGetNewPair([MaybeNullWhen(false)] out KeyValuePair<TKey, TValue> newPair)
+    {
+        if (NewPair.HasValue)
+        {
+            newPair = NewPair!.Value;
+            return true;
+        }
+        newPair = default;
+        return false;
+    }
+
+    /// <summary>
+    /// 尝试获取旧键值对
+    /// </summary>
+    /// <param name="oldPair"></param>
+    /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    public bool TryGetOldPair([MaybeNullWhen(false)] out KeyValuePair<TKey, TValue> oldPair)
+    {
+        if (OldPair.HasValue)
+        {
+            oldPair = OldPair!.Value;
+            return true;
+        }
+        oldPair = default;
+        return false;
+    }
+
     /// <inheritdoc/>
     public override string ToString()
     {
