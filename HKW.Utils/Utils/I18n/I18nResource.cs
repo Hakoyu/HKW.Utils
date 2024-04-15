@@ -146,6 +146,8 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         if (e.Action is SetChangeAction.Clear)
         {
             CurrentCulture = null!;
+            foreach (var datas in CultureDatas.Values)
+                datas.Clear();
         }
         else
         {
