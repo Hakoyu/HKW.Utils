@@ -14,7 +14,8 @@ internal class Program
 {
     private static System.Diagnostics.Stopwatch stopWatch = new();
     public static I18nCore I18nCore = new();
-    public static I18nResource<string, string> I18nResource = new(I18nCore);
+    public static I18nResource<string, string> I18nResource =
+        new(I18nCore) { DefaultValue = string.Empty, FillDefaultValueForNewCulture = true };
 
     private static void Main(string[] args)
     {

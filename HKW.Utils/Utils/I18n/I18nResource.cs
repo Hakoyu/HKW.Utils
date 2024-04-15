@@ -524,7 +524,7 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         }
         else
         {
-            CultureDatas.Add(key, new() { [culture] = value });
+            CultureDatas.Add(key, new() { Key = key, [culture] = value });
         }
     }
 
