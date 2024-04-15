@@ -250,8 +250,6 @@ public sealed class I18nObjectInfo<TKey>
         )
         {
             // 如果触发事件的是已记录的键属性名
-            // 则向属性名对应的I18n资源属性发送修改通知
-            NotifyPropertyChangedWithKeyPropertyName(e.PropertyName);
             (var oldValue, var newValue) = e.GetValue<TKey>();
             var oldTargetPropertyNamesWithKey = TargetPropertyNamesWithKey[oldValue];
             if (

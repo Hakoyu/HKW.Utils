@@ -317,10 +317,11 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         }
         if (CultureDatas.TryGetValue(e.NewKey, out var newDatas) is false)
         {
-            newDatas = new() { Key = e.NewKey };
-            newDatas.AddRange(oldDatas);
             // 如果新值不存在数据
+            newDatas = new() { Key = e.NewKey };
+            // 先添加, 否则不会注册事件
             CultureDatas.TryAdd(e.NewKey, newDatas);
+            newDatas.AddRange(oldDatas);
             // 如果在所有引用中未被使用,则删除
             if (
                 I18nObjectInfos.All(i =>
