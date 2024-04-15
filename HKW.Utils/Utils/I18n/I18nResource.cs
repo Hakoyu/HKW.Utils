@@ -753,6 +753,8 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
             if (datas.Remove(oldCulture, out var data))
                 datas[newCulture] = data;
         }
+        Cultures.Remove(oldCulture);
+        Cultures.Add(newCulture);
         return true;
     }
 

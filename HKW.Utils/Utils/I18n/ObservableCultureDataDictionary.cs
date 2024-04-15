@@ -16,4 +16,15 @@ public class ObservableCultureDataDictionary<TKey, TValue>
     /// 键
     /// </summary>
     public TKey Key { get; internal set; } = default!;
+
+    /// <summary>
+    /// 通过文化名称获取值
+    /// </summary>
+    /// <param name="cultureName">文化名称</param>
+    /// <returns>值</returns>
+    public TValue this[string cultureName]
+    {
+        get => this[CultureInfo.GetCultureInfo(cultureName)];
+        set => this[CultureInfo.GetCultureInfo(cultureName)] = value;
+    }
 }
