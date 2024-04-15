@@ -435,8 +435,11 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// <returns>文化数据</returns>
     public TValue GetCurrentCultureDataOrDefault(TKey key, TValue defaultValue = default!)
     {
-        if (CultureDatas[key].TryGetValue(CurrentCulture, out var value))
-            return value;
+        if (CultureDatas.TryGetValue(key, out var datas))
+        {
+            if (datas.TryGetValue(CurrentCulture, out var value))
+                return value;
+        }
         return defaultValue;
     }
 
@@ -456,7 +459,10 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
     public bool TryGetCurrentCultureData(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
-        return CultureDatas[key].TryGetValue(CurrentCulture, out value);
+        if (CultureDatas.TryGetValue(key, out var datas))
+            return datas.TryGetValue(CurrentCulture, out value);
+        value = default;
+        return false;
     }
     #endregion
 
