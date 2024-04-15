@@ -71,6 +71,19 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     public I18nResource(I18nCore core, string cultureName)
         : this(core, CultureInfo.GetCultureInfo(cultureName)) { }
 
+    /// <summary>
+    /// 为新文化填写默认值
+    /// <para>
+    /// 在添加新文化时,会向文化数据添加 <see cref="DefaultValue"/>
+    /// </para>
+    /// </summary>
+    public bool FillDefaultValueForNewCulture { get; set; } = false;
+
+    /// <summary>
+    /// 默认值
+    /// </summary>
+    public TValue DefaultValue { get; set; } = default!;
+
     #region I18nCore
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private I18nCore? _i18nCore = null!;
@@ -143,7 +156,20 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         NotifySetChangedEventArgs<CultureInfo> e
     )
     {
-        if (e.Action is SetChangeAction.Clear)
+        if (e.Action is SetChangeAction.Add)
+        {
+            if (e.NewItems is null)
+                return;
+            if (FillDefaultValueForNewCulture)
+            {
+                foreach (var item in e.NewItems)
+                {
+                    foreach (var datas in CultureDatas.Values)
+                        datas.TryAdd(item, DefaultValue);
+                }
+            }
+        }
+        else if (e.Action is SetChangeAction.Clear)
         {
             CurrentCulture = null!;
             foreach (var datas in CultureDatas.Values)
@@ -406,13 +432,21 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// </summary>
     /// <param name="key">键</param>
     /// <param name="defaultValue">默认值</param>
-    /// <returns>数据</returns>
+    /// <returns>文化数据</returns>
     public TValue GetCurrentCultureDataOrDefault(TKey key, TValue defaultValue = default!)
     {
         if (CultureDatas[key].TryGetValue(CurrentCulture, out var value))
             return value;
         return defaultValue;
     }
+
+    /// <summary>
+    /// 获取当前文化数据或 <see cref="DefaultValue"/>
+    /// </summary>
+    /// <param name="key">键</param>
+    /// <returns>文化数据</returns>
+    public TValue GetCurrentCultureDataOrDefault(TKey key) =>
+        GetCurrentCultureDataOrDefault(key, DefaultValue);
 
     /// <summary>
     /// 尝试获取当前文化数据
@@ -473,11 +507,8 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// </summary>
     /// <param name="cultureName">文化名称</param>
     /// <param name="items">项目 (键, 值)</param>
-    public void AddCultureDatas(string cultureName, IEnumerable<(TKey Key, TValue Value)> items)
-    {
-        foreach (var item in items)
-            AddCultureData(CultureInfo.GetCultureInfo(cultureName), item.Key, item.Value);
-    }
+    public void AddCultureDatas(string cultureName, IEnumerable<(TKey Key, TValue Value)> items) =>
+        AddCultureDatas(CultureInfo.GetCultureInfo(cultureName), items);
 
     /// <summary>
     /// 设置或覆盖文化数据
@@ -551,7 +582,7 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// </summary>
     /// <param name="culture">文化</param>
     /// <param name="key">键</param>
-    /// <returns>数据</returns>
+    /// <returns>文化数据</returns>
     public TValue GetCultureData(CultureInfo culture, TKey key)
     {
         return CultureDatas[key][culture];
@@ -562,7 +593,7 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// </summary>
     /// <param name="cultureName">文化名称</param>
     /// <param name="key">键</param>
-    /// <returns>数据</returns>
+    /// <returns>文化数据</returns>
     public TValue GetCultureData(string cultureName, TKey key) =>
         GetCultureData(CultureInfo.GetCultureInfo(cultureName), key);
 
@@ -572,7 +603,7 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// <param name="culture">文化</param>
     /// <param name="key">键</param>
     /// <param name="defaultValue">默认值</param>
-    /// <returns>数据</returns>
+    /// <returns>文化数据</returns>
     public TValue GetCultureDataOrDefault(
         CultureInfo culture,
         TKey key,
@@ -588,17 +619,35 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     }
 
     /// <summary>
+    /// 获取文化数据或 <see cref="DefaultValue"/>
+    /// </summary>
+    /// <param name="culture">文化</param>
+    /// <param name="key">键</param>
+    /// <returns>文化数据</returns>
+    public TValue GetCultureDataOrDefault(CultureInfo culture, TKey key) =>
+        GetCultureDataOrDefault(culture, key, DefaultValue);
+
+    /// <summary>
     /// 获取文化数据或默认值
     /// </summary>
     /// <param name="cultureName">文化名称</param>
     /// <param name="key">键</param>
     /// <param name="defaultValue">默认值</param>
-    /// <returns>数据</returns>
+    /// <returns>文化数据</returns>
     public TValue GetCultureDataOrDefault(
         string cultureName,
         TKey key,
         TValue defaultValue = default!
     ) => GetCultureDataOrDefault(CultureInfo.GetCultureInfo(cultureName), key, defaultValue);
+
+    /// <summary>
+    /// 获取文化数据或 <see cref="DefaultValue"/>
+    /// </summary>
+    /// <param name="cultureName">文化名称</param>
+    /// <param name="key">键</param>
+    /// <returns>文化数据</returns>
+    public TValue GetCultureDataOrDefault(string cultureName, TKey key) =>
+        GetCultureDataOrDefault(cultureName, key, DefaultValue);
 
     /// <summary>
     /// 尝试获取当前文化数据
@@ -772,6 +821,23 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
             CultureInfo.GetCultureInfo(newCultureName)
         );
 
+    /// <summary>
+    /// 为所有空值填充默认值
+    /// </summary>
+    /// <param name="defaultValue">默认值</param>
+    public void FillDefaultValue(TValue defaultValue)
+    {
+        foreach (var datas in CultureDatas.Values)
+        {
+            foreach (var culture in Cultures)
+                datas.TryAdd(culture, defaultValue);
+        }
+    }
+
+    /// <summary>
+    /// 为所有空值填充 <see cref="DefaultValue"/>
+    /// </summary>
+    public void FillDefaultValue() => FillDefaultValue(DefaultValue);
     #endregion
     /// <summary>
     /// I18n对象信息
