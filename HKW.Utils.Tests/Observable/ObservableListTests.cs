@@ -28,51 +28,29 @@ public class ObservableListTests
         ObservableCollectionTests.Test(list, comparisonList, createNewItem);
 
         ListChangingOnAdd(list, comparisonList, createNewItem());
-        ListChangingOnAddCancel(list, comparisonList, createNewItem());
 
         ListChangingOnInsert(list, comparisonList, 0, createNewItem());
         ListChangingOnInsert(list, comparisonList, comparisonList.Count / 2, createNewItem());
         ListChangingOnInsert(list, comparisonList, comparisonList.Count - 1, createNewItem());
         ListChangingOnInsertFalse(list, comparisonList, -1, createNewItem());
         ListChangingOnInsertFalse(list, comparisonList, comparisonList.Count + 1, createNewItem());
-        ListChangingOnInsertCancel(list, comparisonList, 0, createNewItem());
-        ListChangingOnInsertCancel(list, comparisonList, comparisonList.Count / 2, createNewItem());
-        ListChangingOnInsertCancel(list, comparisonList, comparisonList.Count - 1, createNewItem());
 
         ListChangingOnRemove(list, comparisonList);
         ListChangingOnRemoveFalse(list, comparisonList, createNewItem());
-        ListChangingOnRemoveCancel(list, comparisonList);
 
         ListChangingOnRemoveAt(list, comparisonList, 0);
         ListChangingOnRemoveAt(list, comparisonList, comparisonList.Count / 2);
         ListChangingOnRemoveAt(list, comparisonList, comparisonList.Count - 1);
         ListChangingOnRemoveAtFalse(list, comparisonList, -1);
         ListChangingOnRemoveAtFalse(list, comparisonList, comparisonList.Count);
-        ListChangingOnRemoveAtCancel(list, comparisonList, 0);
-        ListChangingOnRemoveAtCancel(list, comparisonList, comparisonList.Count / 2);
-        ListChangingOnRemoveAtCancel(list, comparisonList, comparisonList.Count - 1);
 
         ListChangingOnClear(list, comparisonList);
-        ListChangingOnClearCancel(list, comparisonList);
 
         ListChangingOnReplace(list, comparisonList, 0, createNewItem());
         ListChangingOnReplace(list, comparisonList, comparisonList.Count / 2, createNewItem());
         ListChangingOnReplace(list, comparisonList, comparisonList.Count - 1, createNewItem());
         ListChangingOnReplaceFalse(list, comparisonList, -1, createNewItem());
         ListChangingOnReplaceFalse(list, comparisonList, comparisonList.Count, createNewItem());
-        ListChangingOnReplaceCancel(list, comparisonList, 0, createNewItem());
-        ListChangingOnReplaceCancel(
-            list,
-            comparisonList,
-            comparisonList.Count / 2,
-            createNewItem()
-        );
-        ListChangingOnReplaceCancel(
-            list,
-            comparisonList,
-            comparisonList.Count - 1,
-            createNewItem()
-        );
 
         ListChangedOnAdd(list, comparisonList, createNewItem());
 
@@ -120,7 +98,7 @@ public class ObservableListTests
         Assert.IsTrue(triggered);
         list.ListChanging -= List_ListChanging;
 
-        void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
+        void List_ListChanging(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
@@ -129,38 +107,6 @@ public class ObservableListTests
             Assert.IsTrue(e.NewItems?[0]?.Equals(newItem));
             Assert.IsTrue(e.Index == list.Count);
             Assert.IsTrue(list.SequenceEqual(cList));
-        }
-    }
-
-    public static void ListChangingOnAddCancel<T>(
-        IObservableList<T> list,
-        IList<T> comparisonList,
-        T newItem
-    )
-    {
-        list.Clear();
-        var cList = comparisonList.ToList();
-        list.AddRange(cList);
-
-        var triggered = false;
-        list.ListChanging += List_ListChanging;
-        list.Add(newItem);
-        //cList.Add(newItem);
-
-        Assert.IsTrue(list.SequenceEqual(cList));
-        Assert.IsTrue(triggered);
-        list.ListChanging -= List_ListChanging;
-
-        void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
-        {
-            triggered = true;
-            Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Add);
-            Assert.IsTrue(e.OldItems is null);
-            Assert.IsTrue(e.NewItems?[0]?.Equals(newItem));
-            Assert.IsTrue(e.Index == list.Count);
-            Assert.IsTrue(list.SequenceEqual(cList));
-            e.Cancel = true;
         }
     }
 
@@ -185,7 +131,7 @@ public class ObservableListTests
         list.ListChanging -= List_ListChanging;
         list.Clear();
 
-        void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
+        void List_ListChanging(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
@@ -227,43 +173,9 @@ public class ObservableListTests
         list.ListChanging -= List_ListChanging;
         list.Clear();
 
-        void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
+        void List_ListChanging(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             Assert.Fail();
-        }
-    }
-
-    public static void ListChangingOnInsertCancel<T>(
-        IObservableList<T> list,
-        IList<T> comparisonList,
-        int index,
-        T newItem
-    )
-    {
-        list.Clear();
-        var cList = comparisonList.ToList();
-        list.AddRange(cList);
-
-        var triggered = false;
-        list.ListChanging += List_ListChanging;
-        list.Insert(index, newItem);
-        //cList.Insert(index, newItem);
-
-        Assert.IsTrue(list.SequenceEqual(cList));
-        Assert.IsTrue(triggered);
-        list.ListChanging -= List_ListChanging;
-        list.Clear();
-
-        void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
-        {
-            triggered = true;
-            Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Add);
-            Assert.IsTrue(e.OldItems is null);
-            Assert.IsTrue(e.NewItems?[0]?.Equals(newItem));
-            Assert.IsTrue(e.Index == index);
-            Assert.IsTrue(list.SequenceEqual(cList));
-            e.Cancel = true;
         }
     }
 
@@ -285,7 +197,7 @@ public class ObservableListTests
         list.ListChanging -= List_ListChanging;
         list.Clear();
 
-        void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
+        void List_ListChanging(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
@@ -315,43 +227,9 @@ public class ObservableListTests
         list.ListChanging -= List_ListChanging;
         list.Clear();
 
-        void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
+        void List_ListChanging(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             Assert.Fail();
-        }
-    }
-
-    public static void ListChangingOnRemoveCancel<T>(
-        IObservableList<T> list,
-        IList<T> comparisonList
-    )
-    {
-        list.Clear();
-        var cList = comparisonList.ToList();
-        list.AddRange(cList);
-
-        var triggered = false;
-        var removeIndex = cList.RandomIndex();
-        var removeItem = cList[removeIndex];
-        list.ListChanging += List_ListChanging;
-        Assert.IsTrue(list.Remove(removeItem));
-        //Assert.IsTrue(cList.Remove(removeItem));
-
-        Assert.IsTrue(list.SequenceEqual(cList));
-        Assert.IsTrue(triggered);
-        list.ListChanging -= List_ListChanging;
-        list.Clear();
-
-        void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
-        {
-            triggered = true;
-            Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Remove);
-            Assert.IsTrue(e.OldItems?[0]?.Equals(removeItem));
-            Assert.IsTrue(e.NewItems is null);
-            Assert.IsTrue(e.Index == removeIndex);
-            Assert.IsTrue(list.SequenceEqual(cList));
-            e.Cancel = true;
         }
     }
 
@@ -377,7 +255,7 @@ public class ObservableListTests
         list.ListChanging -= List_ListChanging;
         list.Clear();
 
-        void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
+        void List_ListChanging(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
@@ -418,44 +296,9 @@ public class ObservableListTests
         list.ListChanging -= List_ListChanging;
         list.Clear();
 
-        void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
+        void List_ListChanging(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             Assert.Fail();
-        }
-    }
-
-    public static void ListChangingOnRemoveAtCancel<T>(
-        IObservableList<T> list,
-        IList<T> comparisonList,
-        int index
-    )
-    {
-        list.Clear();
-        var cList = comparisonList.ToList();
-        list.AddRange(cList);
-        Assert.IsTrue(list.SequenceEqual(cList));
-        var triggered = false;
-
-        var removeItem = cList[index];
-        list.ListChanging += List_ListChanging;
-        list.RemoveAt(index);
-        //cList.RemoveAt(index);
-
-        Assert.IsTrue(list.SequenceEqual(cList));
-        Assert.IsTrue(triggered);
-        list.ListChanging -= List_ListChanging;
-        list.Clear();
-
-        void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
-        {
-            triggered = true;
-            Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Remove);
-            Assert.IsTrue(e.OldItems?[0]?.Equals(removeItem));
-            Assert.IsTrue(e.NewItems is null);
-            Assert.IsTrue(e.Index == index);
-            Assert.IsTrue(list.SequenceEqual(cList));
-            e.Cancel = true;
         }
     }
 
@@ -475,7 +318,7 @@ public class ObservableListTests
         list.ListChanging -= List_ListChanging;
         list.Clear();
 
-        void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
+        void List_ListChanging(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
@@ -484,37 +327,6 @@ public class ObservableListTests
             Assert.IsTrue(e.NewItems is null);
             Assert.IsTrue(e.Index == -1);
             Assert.IsTrue(list.SequenceEqual(cList));
-        }
-    }
-
-    public static void ListChangingOnClearCancel<T>(
-        IObservableList<T> list,
-        IList<T> comparisonList
-    )
-    {
-        list.Clear();
-        var cList = comparisonList.ToList();
-        list.AddRange(cList);
-
-        var triggered = false;
-        list.ListChanging += List_ListChanging;
-        list.Clear();
-        //cList.Clear();
-
-        Assert.IsTrue(list.SequenceEqual(cList));
-        Assert.IsTrue(triggered);
-        list.ListChanging -= List_ListChanging;
-        list.Clear();
-
-        void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
-        {
-            triggered = true;
-            Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Clear);
-            Assert.IsTrue(e.OldItems is null);
-            Assert.IsTrue(e.NewItems is null);
-            Assert.IsTrue(e.Index == -1);
-            e.Cancel = true;
         }
     }
 
@@ -540,7 +352,7 @@ public class ObservableListTests
         list.ListChanging -= List_ListChanging;
         list.Clear();
 
-        void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
+        void List_ListChanging(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
@@ -582,46 +394,12 @@ public class ObservableListTests
         list.ListChanging -= List_ListChanging;
         list.Clear();
 
-        void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
+        void List_ListChanging(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             Assert.Fail();
         }
     }
 
-    public static void ListChangingOnReplaceCancel<T>(
-        IObservableList<T> list,
-        IList<T> comparisonList,
-        int index,
-        T newItem
-    )
-    {
-        list.Clear();
-        var cList = comparisonList.ToList();
-        list.AddRange(cList);
-
-        var triggered = false;
-        var oldItem = cList[index];
-        list.ListChanging += List_ListChanging;
-        list[index] = newItem;
-        //cList[index] = newItem;
-
-        Assert.IsTrue(list.SequenceEqual(cList));
-        Assert.IsTrue(triggered);
-        list.ListChanging -= List_ListChanging;
-        list.Clear();
-
-        void List_ListChanging(IObservableList<T> sender, NotifyListChangingEventArgs<T> e)
-        {
-            triggered = true;
-            Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Replace);
-            Assert.IsTrue(e.OldItems?[0]?.Equals(oldItem));
-            Assert.IsTrue(e.NewItems?[0]?.Equals(newItem));
-            Assert.IsTrue(e.Index == index);
-            Assert.IsTrue(list.SequenceEqual(cList));
-            e.Cancel = true;
-        }
-    }
     #endregion
 
     #region ListChanged
@@ -644,7 +422,7 @@ public class ObservableListTests
         Assert.IsTrue(triggered);
         list.ListChanged -= List_ListChanged;
 
-        void List_ListChanged(IObservableList<T> sender, NotifyListChangedEventArgs<T> e)
+        void List_ListChanged(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
@@ -677,7 +455,7 @@ public class ObservableListTests
         list.ListChanged -= List_ListChanged;
         list.Clear();
 
-        void List_ListChanged(IObservableList<T> sender, NotifyListChangedEventArgs<T> e)
+        void List_ListChanged(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
@@ -719,7 +497,7 @@ public class ObservableListTests
         list.ListChanged -= List_ListChanged;
         list.Clear();
 
-        void List_ListChanged(IObservableList<T> sender, NotifyListChangedEventArgs<T> e)
+        void List_ListChanged(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             Assert.Fail();
         }
@@ -743,7 +521,7 @@ public class ObservableListTests
         list.ListChanged -= List_ListChanged;
         list.Clear();
 
-        void List_ListChanged(IObservableList<T> sender, NotifyListChangedEventArgs<T> e)
+        void List_ListChanged(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
@@ -773,7 +551,7 @@ public class ObservableListTests
         list.ListChanged -= List_ListChanged;
         list.Clear();
 
-        void List_ListChanged(IObservableList<T> sender, NotifyListChangedEventArgs<T> e)
+        void List_ListChanged(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             Assert.Fail();
         }
@@ -801,7 +579,7 @@ public class ObservableListTests
         list.ListChanged -= List_ListChanged;
         list.Clear();
 
-        void List_ListChanged(IObservableList<T> sender, NotifyListChangedEventArgs<T> e)
+        void List_ListChanged(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
@@ -842,7 +620,7 @@ public class ObservableListTests
         list.ListChanged -= List_ListChanged;
         list.Clear();
 
-        void List_ListChanged(IObservableList<T> sender, NotifyListChangedEventArgs<T> e)
+        void List_ListChanged(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             Assert.Fail();
         }
@@ -864,7 +642,7 @@ public class ObservableListTests
         list.ListChanged -= List_ListChanged;
         list.Clear();
 
-        void List_ListChanged(IObservableList<T> sender, NotifyListChangedEventArgs<T> e)
+        void List_ListChanged(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
@@ -898,7 +676,7 @@ public class ObservableListTests
         list.ListChanged -= List_ListChanged;
         list.Clear();
 
-        void List_ListChanged(IObservableList<T> sender, NotifyListChangedEventArgs<T> e)
+        void List_ListChanged(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
@@ -940,7 +718,7 @@ public class ObservableListTests
         list.ListChanged -= List_ListChanged;
         list.Clear();
 
-        void List_ListChanged(IObservableList<T> sender, NotifyListChangedEventArgs<T> e)
+        void List_ListChanged(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
         {
             Assert.Fail();
         }

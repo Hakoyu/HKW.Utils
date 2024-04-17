@@ -251,7 +251,6 @@ public sealed class I18nObjectInfo<TKey>
         {
             // 如果触发事件的是已记录的键属性名
             (var oldValue, var newValue) = e.GetValue<TKey>();
-            var oldTargetPropertyNamesWithKey = TargetPropertyNamesWithKey[oldValue];
             if (
                 TargetPropertyNamesWithKey.TryGetValue(
                     newValue,
@@ -267,11 +266,19 @@ public sealed class I18nObjectInfo<TKey>
                 TargetPropertyNamesWithKey[newValue] =
                     targetPropertyNamesWithKeyPropertyName.ToHashSet();
             }
-            // 从旧键中去除ID对应的属性名
-            oldTargetPropertyNamesWithKey.ExceptWith(targetPropertyNamesWithKeyPropertyName);
-            // 如果旧键不存在值则删除
-            if (oldTargetPropertyNamesWithKey.HasValue() is false)
-                TargetPropertyNamesWithKey.Remove(oldValue);
+            if (
+                TargetPropertyNamesWithKey.TryGetValue(
+                    oldValue,
+                    out var oldTargetPropertyNamesWithKey
+                )
+            )
+            {
+                // 从旧键中去除ID对应的属性名
+                oldTargetPropertyNamesWithKey.ExceptWith(targetPropertyNamesWithKeyPropertyName);
+                // 如果旧键不存在值则删除
+                if (oldTargetPropertyNamesWithKey.HasValue() is false)
+                    TargetPropertyNamesWithKey.Remove(oldValue);
+            }
             if (RetentionValueOnKeyChangePropertyNames.Contains(e.PropertyName))
                 KeyChanged?.Invoke(this, (oldValue, newValue));
         }

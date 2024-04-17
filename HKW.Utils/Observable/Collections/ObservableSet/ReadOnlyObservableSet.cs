@@ -29,12 +29,12 @@ public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSe
         _set.PropertyChanged += Set_PropertyChanged;
     }
 
-    private void Set_SetChanging(IObservableSet<T> sender, NotifySetChangingEventArgs<T> e)
+    private void Set_SetChanging(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
     {
         SetChanging?.Invoke(this, e);
     }
 
-    private void Set_SetChanged(IObservableSet<T> sender, NotifySetChangedEventArgs<T> e)
+    private void Set_SetChanged(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
     {
         SetChanged?.Invoke(this, e);
     }
@@ -198,7 +198,6 @@ public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSe
 
     #region Event
     /// <inheritdoc/>
-    /// <remarks>!!!注意!!! 使用 <see cref="CancelEventArgs.Cancel"/> 不会产生效果</remarks>
     public event ObservableSetChangingEventHandler<T>? SetChanging;
 
     /// <inheritdoc/>

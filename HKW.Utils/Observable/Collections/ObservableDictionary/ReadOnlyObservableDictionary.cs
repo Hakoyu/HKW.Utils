@@ -31,6 +31,7 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     public ReadOnlyObservableDictionary(IObservableDictionary<TKey, TValue> dictionary)
     {
         _dictionary = dictionary;
+        _dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
         _dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
         _dictionary.CollectionChanged += Dictionary_CollectionChanged;
         _dictionary.PropertyChanged += Dictionary_PropertyChanged;
@@ -42,9 +43,17 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
         );
     }
 
+    private void Dictionary_DictionaryChanging(
+        IObservableDictionary<TKey, TValue> sender,
+        NotifyDictionaryChangeEventArgs<TKey, TValue> e
+    )
+    {
+        DictionaryChanging?.Invoke(this, e);
+    }
+
     private void Dictionary_DictionaryChanged(
         IObservableDictionary<TKey, TValue> sender,
-        NotifyDictionaryChangedEventArgs<TKey, TValue> e
+        NotifyDictionaryChangeEventArgs<TKey, TValue> e
     )
     {
         DictionaryChanged?.Invoke(this, e);
@@ -90,6 +99,7 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     /// <inheritdoc/>
     public void Close()
     {
+        _dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
         _dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
         _dictionary.CollectionChanged -= Dictionary_CollectionChanged;
         _dictionary.PropertyChanged -= Dictionary_PropertyChanged;
@@ -189,14 +199,8 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     }
 
     #region Event
-    event ObservableDictionaryChangingEventHandler<TKey, TValue>? INotifyDictionaryChanging<
-        TKey,
-        TValue
-    >.DictionaryChanging
-    {
-        add => throw new NotImplementedException();
-        remove => throw new NotImplementedException();
-    }
+    /// <inheritdoc/>
+    public event ObservableDictionaryChangingEventHandler<TKey, TValue>? DictionaryChanging;
 
     /// <inheritdoc/>
     public event ObservableDictionaryChangedEventHandler<TKey, TValue>? DictionaryChanged;

@@ -8,10 +8,8 @@ namespace HKW.HKWUtils.Observable;
 /// 通知集合已改变事件参数
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
-[DebuggerDisplay(
-    "SetChanged, Action = {Action}, NewCount = {NewPair.Count}, OldCount = {NewPair.Count}"
-)]
-public class NotifySetChangedEventArgs<T> : EventArgs
+[DebuggerDisplay("SetChanged, Action = {Action}")]
+public class NotifySetChangeEventArgs<T> : EventArgs
 {
     /// <summary>
     /// 改变行动
@@ -44,7 +42,7 @@ public class NotifySetChangedEventArgs<T> : EventArgs
     /// <inheritdoc/>
     /// <summary>仅用于: <see cref="SetChangeAction.Clear"/></summary>
     /// <param name="action">改变行动</param>
-    public NotifySetChangedEventArgs(SetChangeAction action)
+    public NotifySetChangeEventArgs(SetChangeAction action)
     {
         if (action != SetChangeAction.Clear)
             throw new ArgumentException(
@@ -62,7 +60,7 @@ public class NotifySetChangedEventArgs<T> : EventArgs
     /// </summary>
     /// <param name="action">改变行动</param>
     /// <param name="items">旧项目</param>
-    public NotifySetChangedEventArgs(SetChangeAction action, IList<T> items)
+    public NotifySetChangeEventArgs(SetChangeAction action, IList<T> items)
     {
         if (
             action != SetChangeAction.Add
@@ -96,7 +94,7 @@ public class NotifySetChangedEventArgs<T> : EventArgs
     /// <param name="otherItems">其它集合</param>
     /// <param name="newItems">新项目</param>
     /// <param name="oldItems">旧项目</param>
-    public NotifySetChangedEventArgs(
+    public NotifySetChangeEventArgs(
         SetChangeAction action,
         IList<T> otherItems,
         IList<T>? newItems,

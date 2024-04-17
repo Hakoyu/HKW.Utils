@@ -1,4 +1,5 @@
-﻿using HKW.HKWUtils.Observable;
+﻿using HKW.HKWUtils.Extensions;
+using HKW.HKWUtils.Observable;
 
 namespace HKW.HKWUtils.Tests.Observable;
 

@@ -20,37 +20,48 @@ internal class Program
     private static void Main(string[] args)
     {
 #if DEBUG
-        I18nResource.AddCulture("zh");
-        I18nResource.AddCulture("en");
-        I18nResource.SetCurrentCulture("zh");
-        var v1 = new TestModel();
-        v1.PropertyChangedX += (s, e) =>
-        {
-            Debug.WriteLine($"V1: {e.PropertyName} = {e.NewValue}");
-            return;
-        };
-        var v2 = new TestModel();
-        v2.PropertyChangedX += (s, e) =>
-        {
-            Debug.WriteLine($"V2: {e.PropertyName} = {e.NewValue}");
-            return;
-        };
-        v1.ID = "1";
-        v1.Name = "zh-1";
-        v1.Name = "zh-2";
-        v1.ID = "2";
-        v2.ID = "1";
-        v2.Name = "zh-2";
-        v2.ID = "1";
-        v2.Name = "zh-11";
-        I18nResource.SetCurrentCulture("en");
-        v1.Name = "en-1";
-        v2.ID = "2";
-        v2.Name = "en-2";
-        v2.ID = "1";
-        v2.Name = "zh-22";
-        I18nResource.SetCurrentCulture("zh");
-        I18nCore.ClearI18nResources();
+        var ol = new ObservableList<int>();
+        var l = new List<int>();
+        ol.BindingList(l);
+        ol.Add(1);
+        //ol.AddRange([2, 3, 4]);
+        //ol.RemoveAt(0);
+        //l.RemoveRange(0, 2);
+        ////ol.RemoveRange(0, 2);
+        //ol.Clear();
+        ol.BindingList(l, true);
+        ol.Add(1);
+        //I18nResource.AddCulture("zh");
+        //I18nResource.AddCulture("en");
+        //I18nResource.SetCurrentCulture("zh");
+        //var v1 = new TestModel();
+        //v1.PropertyChangedX += (s, e) =>
+        //{
+        //    Debug.WriteLine($"V1: {e.PropertyName} = {e.NewValue}");
+        //    return;
+        //};
+        //var v2 = new TestModel();
+        //v2.PropertyChangedX += (s, e) =>
+        //{
+        //    Debug.WriteLine($"V2: {e.PropertyName} = {e.NewValue}");
+        //    return;
+        //};
+        //v1.ID = "1";
+        //v1.Name = "zh-1";
+        //v1.Name = "zh-2";
+        //v1.ID = "2";
+        //v2.ID = "1";
+        //v2.Name = "zh-2";
+        //v2.ID = "1";
+        //v2.Name = "zh-11";
+        //I18nResource.SetCurrentCulture("en");
+        //v1.Name = "en-1";
+        //v2.ID = "2";
+        //v2.Name = "en-2";
+        //v2.ID = "1";
+        //v2.Name = "zh-22";
+        //I18nResource.SetCurrentCulture("zh");
+        //I18nCore.ClearI18nResources();
 
 #endif
     }
@@ -86,7 +97,7 @@ internal class TestModel : ObservableObjectX
     public TestModel()
     {
         Program.I18nResource.I18nObjectInfos.Add(
-            new(this, OnPropertyChanged, [(nameof(ID), ID, [nameof(Name)], true)])
+            this, new(this, OnPropertyChanged, [(nameof(ID), ID, [nameof(Name)], true)])
         );
     }
 

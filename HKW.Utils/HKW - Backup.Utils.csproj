@@ -40,4 +40,8 @@
 		<Folder Include="Exceptions\" />
 	</ItemGroup>
 
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	  <Exec Command="copy &quot;$(SolutionDir)$(AssemblyName)\bin\Debug\$(AssemblyName).$(Version).nupkg&quot; &quot;$(SolutionDir)..\NuGet\$(AssemblyName).$(Version).nupkg&quot;" />
+	</Target>
+
 </Project>

@@ -9,10 +9,8 @@ namespace HKW.HKWUtils.Observable;
 /// 通知列表已改变事件参数
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
-[DebuggerDisplay(
-    "ListChanged, Action = {Action}, Index = {Index}, NewCount = {NewPair.Count}, OldCount = {NewPair.Count}"
-)]
-public class NotifyListChangedEventArgs<T> : EventArgs
+[DebuggerDisplay("ListChange, Action = {Action}")]
+public class NotifyListChangeEventArgs<T> : EventArgs
 {
     /// <summary>
     /// 改变行动
@@ -39,7 +37,7 @@ public class NotifyListChangedEventArgs<T> : EventArgs
     /// <inheritdoc/>
     /// <summary>仅用于: <see cref="ListChangeAction.Clear"/></summary>
     /// <param name="action">改变行动</param>
-    public NotifyListChangedEventArgs(ListChangeAction action)
+    public NotifyListChangeEventArgs(ListChangeAction action)
     {
         if (action != ListChangeAction.Clear)
             throw new ArgumentException(
@@ -58,7 +56,7 @@ public class NotifyListChangedEventArgs<T> : EventArgs
     /// <param name="action">改变行动</param>
     /// <param name="items">项目</param>
     /// <param name="index">索引</param>
-    public NotifyListChangedEventArgs(ListChangeAction action, IList<T> items, int index)
+    public NotifyListChangeEventArgs(ListChangeAction action, IList<T> items, int index)
     {
         if (
             action != ListChangeAction.Add
@@ -90,7 +88,7 @@ public class NotifyListChangedEventArgs<T> : EventArgs
     /// <param name="newItems">新项目</param>
     /// <param name="oldItems">旧项目</param>
     /// <param name="index">索引</param>
-    public NotifyListChangedEventArgs(
+    public NotifyListChangeEventArgs(
         ListChangeAction action,
         IList<T> newItems,
         IList<T> oldItems,

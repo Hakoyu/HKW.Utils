@@ -10,7 +10,7 @@ namespace HKW.HKWUtils.Tests.Collections;
 
 public class IListFindTestUtils
 {
-    public static void Test(IListFind<int> list)
+    public static void Test(IList<int> list)
     {
         Find(list);
         FindIndex(list);
@@ -18,7 +18,7 @@ public class IListFindTestUtils
         FindLastIndex(list);
     }
 
-    public static void Find(IListFind<int> list)
+    public static void Find(IList<int> list)
     {
         list.Clear();
         var comparisonList = Enumerable.Range(1, 10).ToList();
@@ -35,7 +35,7 @@ public class IListFindTestUtils
         list.Clear();
     }
 
-    public static void FindIndex(IListFind<int> list)
+    public static void FindIndex(IList<int> list)
     {
         list.Clear();
         var comparisonList = Enumerable.Range(1, 10).ToList();
@@ -58,7 +58,7 @@ public class IListFindTestUtils
         list.Clear();
     }
 
-    public static void FindLast(IListFind<int> list)
+    public static void FindLast(IList<int> list)
     {
         list.Clear();
         var comparisonList = Enumerable.Range(1, 10).ToList();
@@ -79,7 +79,7 @@ public class IListFindTestUtils
         list.Clear();
     }
 
-    public static void FindLastIndex(IListFind<int> list)
+    public static void FindLastIndex(IList<int> list)
     {
         list.Clear();
         var comparisonList = Enumerable.Range(1, 10).ToList();

@@ -8,5 +8,5 @@
 /// <param name="e">参数</param>
 public delegate void ObservableListChangedEventHandler<T>(
     IObservableList<T> sender,
-    NotifyListChangedEventArgs<T> e
+    NotifyListChangeEventArgs<T> e
 );

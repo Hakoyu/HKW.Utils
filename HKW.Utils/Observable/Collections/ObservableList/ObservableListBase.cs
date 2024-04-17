@@ -69,23 +69,25 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
             var oldValue = _list[index];
             var oldList = new SimpleSingleItemReadOnlyList<T>(oldValue);
             var newList = new SimpleSingleItemReadOnlyList<T>(value);
-            if (
-                oldValue?.Equals(value) is true
-                || OnListReplacing(newList, oldList, index) is false
-            )
+            if (oldValue?.Equals(value) is true)
                 return;
+            OnListReplacing(newList, oldList, index);
             _list[index] = value;
             OnListReplaced(newList, oldList, index);
         }
     }
+
+    /// <summary>
+    /// 列表改变事件参数
+    /// </summary>
+    protected NotifyListChangeEventArgs<T>? ListChangeEventArgs { get; set; }
 
     /// <inheritdoc/>
     public void Add(T item)
     {
         var index = _list.Count;
         var list = new SimpleSingleItemReadOnlyList<T>(item);
-        if (OnListAdding(list, index) is false)
-            return;
+        OnListAdding(list, index);
         _list.Add(item);
         OnListAdded(list, index);
     }
@@ -96,8 +98,7 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
         if (index < 0 || index > _list.Count)
             _list.Insert(index, item);
         var list = new SimpleSingleItemReadOnlyList<T>(item);
-        if (OnListAdding(list, index) is false)
-            return;
+        OnListAdding(list, index);
         _list.Insert(index, item);
         OnListAdded(list, index);
     }
@@ -119,8 +120,7 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
     {
         var item = _list[index];
         var list = new SimpleSingleItemReadOnlyList<T>(item);
-        if (OnListRemoving(list, index) is false)
-            return;
+        OnListRemoving(list, index);
         _list.RemoveAt(index);
         OnListRemoved(list, index);
     }
@@ -128,8 +128,7 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
     /// <inheritdoc/>
     public void Clear()
     {
-        if (OnListClearing() is false)
-            return;
+        OnListClearing();
         _list.Clear();
         OnListCleared();
     }
@@ -311,12 +310,10 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
     /// </summary>
     /// <param name="items">项目</param>
     /// <param name="index">索引</param>
-    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    protected virtual bool OnListAdding(IList<T> items, int index)
+    protected virtual void OnListAdding(IList<T> items, int index)
     {
-        if (ListChanging is null)
-            return true;
-        return OnListChanging(new(ListChangeAction.Add, items, index));
+        if (ListChanging is not null)
+            OnListChanging(new(ListChangeAction.Add, items, index));
     }
 
     /// <summary>
@@ -324,23 +321,19 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
     /// </summary>
     /// <param name="items">项目</param>
     /// <param name="index">索引</param>
-    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    protected virtual bool OnListRemoving(IList<T> items, int index)
+    protected virtual void OnListRemoving(IList<T> items, int index)
     {
-        if (ListChanging is null)
-            return true;
-        return OnListChanging(new(ListChangeAction.Remove, items, index));
+        if (ListChanging is not null)
+            OnListChanging(new(ListChangeAction.Remove, items, index));
     }
 
     /// <summary>
     /// 列表清理前
     /// </summary>
-    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    protected virtual bool OnListClearing()
+    protected virtual void OnListClearing()
     {
-        if (ListChanging is null)
-            return true;
-        return OnListChanging(new(ListChangeAction.Clear));
+        if (ListChanging is not null)
+            OnListChanging(new(ListChangeAction.Clear));
     }
 
     /// <summary>
@@ -349,12 +342,10 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
     /// <param name="newItems">新项目</param>
     /// <param name="oldItems">旧项目</param>
     /// <param name="index"></param>
-    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    protected virtual bool OnListReplacing(IList<T> newItems, IList<T> oldItems, int index)
+    protected virtual void OnListReplacing(IList<T> newItems, IList<T> oldItems, int index)
     {
-        if (ListChanging is null)
-            return true;
-        return OnListChanging(new(ListChangeAction.Replace, newItems, oldItems, index));
+        if (ListChanging is not null)
+            OnListChanging(new(ListChangeAction.Replace, newItems, oldItems, index));
     }
 
     /// <summary>
@@ -362,10 +353,9 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
     /// </summary>
     /// <param name="args">参数</param>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    protected virtual bool OnListChanging(NotifyListChangingEventArgs<T> args)
+    protected virtual void OnListChanging(NotifyListChangeEventArgs<T> args)
     {
-        ListChanging?.Invoke(this, args);
-        return args.Cancel is false;
+        ListChanging?.Invoke(this, ListChangeEventArgs = args);
     }
 
     /// <inheritdoc/>
@@ -383,7 +373,7 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
     protected virtual void OnListAdded(IList<T> items, int index)
     {
         if (ListChanged is not null)
-            OnListChanged(new(ListChangeAction.Add, items, index));
+            OnListChanged(ListChangeEventArgs ?? new(ListChangeAction.Add, items, index));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, (IList)items, index));
         OnCountChanged();
@@ -397,7 +387,7 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
     protected virtual void OnListRemoved(IList<T> items, int index)
     {
         if (ListChanged is not null)
-            OnListChanged(new(ListChangeAction.Remove, items, index));
+            OnListChanged(ListChangeEventArgs ?? new(ListChangeAction.Remove, items, index));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, (IList)items, index));
         OnCountChanged();
@@ -409,7 +399,7 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
     protected virtual void OnListCleared()
     {
         if (ListChanged is not null)
-            OnListChanged(new(ListChangeAction.Clear));
+            OnListChanged(ListChangeEventArgs ?? new(ListChangeAction.Clear));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Reset));
         OnCountChanged();
@@ -424,7 +414,9 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
     protected virtual void OnListReplaced(IList<T> newItems, IList<T> oldItems, int index)
     {
         if (ListChanged is not null)
-            OnListChanged(new(ListChangeAction.Replace, newItems, oldItems, index));
+            OnListChanged(
+                ListChangeEventArgs ?? new(ListChangeAction.Replace, newItems, oldItems, index)
+            );
         if (CollectionChanged is not null)
             OnCollectionChanged(
                 new(NotifyCollectionChangedAction.Replace, (IList)newItems, (IList)oldItems, index)
@@ -435,7 +427,7 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
     /// 列表改变后
     /// </summary>
     /// <param name="args">参数</param>
-    protected virtual void OnListChanged(NotifyListChangedEventArgs<T> args)
+    protected virtual void OnListChanged(NotifyListChangeEventArgs<T> args)
     {
         ListChanged?.Invoke(this, args);
     }
@@ -463,16 +455,14 @@ public abstract class ObservableListBase<T> : IObservableList<T>, IReadOnlyObser
 
     #region PropertyChanged
 
-    private int _lastCount = 0;
 
     /// <summary>
     /// 数量改变后
     /// </summary>
     private void OnCountChanged()
     {
-        if (_lastCount != Count)
-            OnPropertyChanged(nameof(Count));
-        _lastCount = Count;
+        OnPropertyChanged(nameof(Count));
+        ListChangeEventArgs = null;
     }
 
     /// <summary>

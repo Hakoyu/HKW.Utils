@@ -8,5 +8,5 @@
 /// <param name="e">参数</param>
 public delegate void ObservableSetChangingEventHandler<T>(
     IObservableSet<T> sender,
-    NotifySetChangingEventArgs<T> e
+    NotifySetChangeEventArgs<T> e
 );

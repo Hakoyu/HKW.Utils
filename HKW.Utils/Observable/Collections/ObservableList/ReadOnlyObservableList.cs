@@ -29,12 +29,18 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     public ReadOnlyObservableList(IObservableList<T> list)
     {
         _list = list;
+        _list.ListChanging += List_ListChanging;
         _list.ListChanged += List_ListChanged;
         _list.CollectionChanged += List_CollectionChanged;
         _list.PropertyChanged += List_PropertyChanged;
     }
 
-    private void List_ListChanged(IObservableList<T> sender, NotifyListChangedEventArgs<T> e)
+    private void List_ListChanging(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
+    {
+        ListChanging?.Invoke(this, e);
+    }
+
+    private void List_ListChanged(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
     {
         ListChanged?.Invoke(this, e);
     }
@@ -79,6 +85,7 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     /// <inheritdoc/>
     public void Close()
     {
+        _list.ListChanging -= List_ListChanging;
         _list.ListChanged -= List_ListChanged;
         _list.CollectionChanged -= List_CollectionChanged;
         _list.PropertyChanged -= List_PropertyChanged;
@@ -162,148 +169,9 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
 
     #endregion
 
-    #region IListFind
-    /// <inheritdoc/>
-    public T? Find(Predicate<T> match)
-    {
-        return _list.Find(match);
-    }
-
-    /// <inheritdoc/>
-    public (int Index, T? Value) Find(int startIndex, Predicate<T> match)
-    {
-        var index = _list.FindIndex(startIndex, match);
-        return (index, _list.GetValueOrDefault(index));
-    }
-
-    /// <inheritdoc/>
-    public (int Index, T? Value) Find(int startIndex, int count, Predicate<T> match)
-    {
-        var index = _list.FindIndex(startIndex, count, match);
-        return (index, _list.GetValueOrDefault(index));
-    }
-
-    /// <inheritdoc/>
-    public bool TryFind(Predicate<T> match, [MaybeNullWhen(false)] out T item)
-    {
-        var index = _list.FindIndex(match);
-        item = _list.GetValueOrDefault(index);
-        return index == -1 ? false : true;
-    }
-
-    /// <inheritdoc/>
-    public bool TryFind(int startIndex, Predicate<T> match, out (int Index, T Value) item)
-    {
-        var index = _list.FindIndex(startIndex, match);
-        item = (index, _list.GetValueOrDefault(index)!);
-        return index == -1 ? false : true;
-    }
-
-    /// <inheritdoc/>
-    public bool TryFind(
-        int startIndex,
-        int count,
-        Predicate<T> match,
-        out (int Index, T Value) item
-    )
-    {
-        var index = _list.FindIndex(startIndex, count, match);
-        item = (index, _list.GetValueOrDefault(index)!);
-        return index == -1 ? false : true;
-    }
-
-    /// <inheritdoc/>
-    public int FindIndex(Predicate<T> match)
-    {
-        return _list.FindIndex(match);
-    }
-
-    /// <inheritdoc/>
-    public int FindIndex(int startIndex, Predicate<T> match)
-    {
-        return _list.FindIndex(startIndex, match);
-    }
-
-    /// <inheritdoc/>
-    public int FindIndex(int startIndex, int count, Predicate<T> match)
-    {
-        return _list.FindIndex(startIndex, count, match);
-    }
-
-    /// <inheritdoc/>
-    public T? FindLast(Predicate<T> match)
-    {
-        return _list.FindLast(match);
-    }
-
-    /// <inheritdoc/>
-    public (int Index, T? Value) FindLast(int startIndex, Predicate<T> match)
-    {
-        var index = _list.FindLastIndex(startIndex, match);
-        return (index, _list.GetValueOrDefault(index));
-    }
-
-    /// <inheritdoc/>
-    public (int Index, T? Value) FindLast(int startIndex, int count, Predicate<T> match)
-    {
-        var index = _list.FindLastIndex(startIndex, count, match);
-        return (index, _list.GetValueOrDefault(index));
-    }
-
-    /// <inheritdoc/>
-    public bool TryFindLast(Predicate<T> match, [MaybeNullWhen(false)] out T item)
-    {
-        var index = _list.FindLastIndex(match);
-        item = _list.GetValueOrDefault(index);
-        return index == -1 ? false : true;
-    }
-
-    /// <inheritdoc/>
-    public bool TryFindLast(int startIndex, Predicate<T> match, out (int Index, T Value) item)
-    {
-        var index = _list.FindLastIndex(startIndex, match);
-        item = (index, _list.GetValueOrDefault(index)!);
-        return index == -1 ? false : true;
-    }
-
-    /// <inheritdoc/>
-    public bool TryFindLast(
-        int startIndex,
-        int count,
-        Predicate<T> match,
-        out (int Index, T Value) item
-    )
-    {
-        var index = _list.FindLastIndex(startIndex, count, match);
-        item = (index, _list.GetValueOrDefault(index)!);
-        return index == -1 ? false : true;
-    }
-
-    /// <inheritdoc/>
-    public int FindLastIndex(Predicate<T> match)
-    {
-        return _list.FindLastIndex(match);
-    }
-
-    /// <inheritdoc/>
-    public int FindLastIndex(int startIndex, Predicate<T> match)
-    {
-        return _list.FindLastIndex(startIndex, match);
-    }
-
-    /// <inheritdoc/>
-    public int FindLastIndex(int startIndex, int count, Predicate<T> match)
-    {
-        return _list.FindLastIndex(startIndex, count, match);
-    }
-    #endregion
-
     #region Event
-    event ObservableListChangingEventHandler<T>? INotifyListChanging<T>.ListChanging
-    {
-        add => throw new NotImplementedException();
-        remove => throw new NotImplementedException();
-    }
+    /// <inheritdoc/>
+    public event ObservableListChangingEventHandler<T>? ListChanging;
 
     /// <inheritdoc/>
     public event ObservableListChangedEventHandler<T>? ListChanged;

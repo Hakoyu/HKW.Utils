@@ -75,12 +75,16 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
 
     #region Change
 
+    /// <summary>
+    /// 集合改变参数
+    /// </summary>
+    protected NotifySetChangeEventArgs<T>? SetChangeEventArgs { get; set; }
+
     /// <inheritdoc/>
     public bool Add(T item)
     {
         var list = new SimpleSingleItemReadOnlyList<T>(item);
-        if (OnSetAdding(list) is false)
-            return false;
+        OnSetAdding(list);
         var result = _set.Add(item);
         if (result)
             OnSetAdded(list);
@@ -91,8 +95,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     public bool Remove(T item)
     {
         var list = new SimpleSingleItemReadOnlyList<T>(item);
-        if (OnSetRemoving(list) is false)
-            return false;
+        OnSetRemoving(list);
         var result = _set.Remove(item);
         if (result)
             OnSetRemoved(list);
@@ -102,8 +105,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <inheritdoc/>
     public void Clear()
     {
-        if (OnSetClearing() is false)
-            return;
+        OnSetClearing();
         _set.Clear();
         OnSetCleared();
     }
@@ -113,8 +115,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     {
         var oldItems = new SimpleReadOnlyList<T>(_set.Except(other));
         var otherItems = new SimpleReadOnlyList<T>(other);
-        if (OnSetOperating(SetChangeAction.Intersect, otherItems, null, oldItems) is false)
-            return;
+        OnSetOperating(SetChangeAction.Intersect, otherItems, null, oldItems);
         _set.IntersectWith(otherItems);
         OnSetOperated(SetChangeAction.Intersect, otherItems, null, oldItems);
     }
@@ -124,8 +125,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     {
         var oldItems = new SimpleReadOnlyList<T>(_set.Intersect(other));
         var otherItems = new SimpleReadOnlyList<T>(other);
-        if (OnSetOperating(SetChangeAction.Except, otherItems, null, oldItems) is false)
-            return;
+        OnSetOperating(SetChangeAction.Except, otherItems, null, oldItems);
         _set.IntersectWith(otherItems);
         OnSetOperated(SetChangeAction.Except, otherItems, null, oldItems);
     }
@@ -136,10 +136,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         var otherItems = new SimpleReadOnlyList<T>(other);
         var oldItems = new SimpleReadOnlyList<T>(other.Intersect(_set));
         var newItems = new SimpleReadOnlyList<T>(_set.Union(other).Except(oldItems).Except(_set));
-        if (
-            OnSetOperating(SetChangeAction.SymmetricExcept, otherItems, newItems, oldItems) is false
-        )
-            return;
+        OnSetOperating(SetChangeAction.SymmetricExcept, otherItems, newItems, oldItems);
         _set.SymmetricExceptWith(otherItems);
         OnSetOperated(SetChangeAction.SymmetricExcept, otherItems, newItems, oldItems);
     }
@@ -149,8 +146,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     {
         var newItems = new SimpleReadOnlyList<T>(_set.Except(other));
         var otherItems = new SimpleReadOnlyList<T>(other);
-        if (OnSetOperating(SetChangeAction.Union, otherItems, newItems, null) is false)
-            return;
+        OnSetOperating(SetChangeAction.Union, otherItems, newItems, null);
         _set.UnionWith(otherItems);
         OnSetOperated(SetChangeAction.Union, otherItems, newItems, null);
     }
@@ -234,11 +230,10 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// </summary>
     /// <param name="items">键值对</param>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    protected virtual bool OnSetAdding(IList<T> items)
+    protected virtual void OnSetAdding(IList<T> items)
     {
-        if (SetChanging is null)
-            return true;
-        return OnSetChanging(new(SetChangeAction.Add, items));
+        if (SetChanging is not null)
+            OnSetChanging(new(SetChangeAction.Add, items));
     }
 
     /// <summary>
@@ -246,12 +241,11 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// </summary>
     /// <param name="items">键值对</param>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    protected virtual bool OnSetRemoving(IList<T> items)
+    protected virtual void OnSetRemoving(IList<T> items)
     {
-        if (SetChanging is null && CollectionChanged is null)
-            return true;
-        var result = OnSetChanging(new(SetChangeAction.Remove, items));
-        if (result)
+        if (SetChanging is not null)
+            OnSetChanging(new(SetChangeAction.Remove, items));
+        if (CollectionChanged is not null)
         {
             _removeIndexs.Clear();
             var removeItems = items.ToHashSet();
@@ -264,18 +258,16 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
                 }
             }
         }
-        return result;
     }
 
     /// <summary>
     /// 集合清理前
     /// </summary>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    protected virtual bool OnSetClearing()
+    protected virtual void OnSetClearing()
     {
-        if (SetChanging is null)
-            return true;
-        return OnSetChanging(new(SetChangeAction.Clear));
+        if (SetChanging is not null)
+            OnSetChanging(new(SetChangeAction.Clear));
     }
 
     /// <summary>
@@ -286,17 +278,16 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <param name="newItems">新项目</param>
     /// <param name="oldItems">旧项目</param>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    protected virtual bool OnSetOperating(
+    protected virtual void OnSetOperating(
         SetChangeAction action,
         IList<T> otherItems,
         IList<T>? newItems,
         IList<T>? oldItems
     )
     {
-        if (SetChanging is null)
-            return true;
-        var result = OnSetChanging(new(action, otherItems, newItems, oldItems));
-        if (CollectionChanged is null && result && oldItems is not null)
+        if (SetChanging is not null)
+            OnSetChanging(new(action, otherItems, newItems, oldItems));
+        if (CollectionChanged is not null && oldItems is not null)
         {
             _removeIndexs.Clear();
             var removeItems = oldItems.ToHashSet();
@@ -311,7 +302,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
                 }
             }
         }
-        return result;
     }
 
     /// <summary>
@@ -319,10 +309,9 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// </summary>
     /// <param name="args">参数</param>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    protected virtual bool OnSetChanging(NotifySetChangingEventArgs<T> args)
+    protected virtual void OnSetChanging(NotifySetChangeEventArgs<T> args)
     {
-        SetChanging?.Invoke(this, args);
-        return args.Cancel is false;
+        SetChanging?.Invoke(this, SetChangeEventArgs = args);
     }
 
     /// <inheritdoc/>
@@ -339,7 +328,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     protected virtual void OnSetAdded(IList<T> items)
     {
         if (SetChanged is not null)
-            OnSetChanged(new(SetChangeAction.Add, items));
+            OnSetChanged(SetChangeEventArgs ?? new(SetChangeAction.Add, items));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, (IList)items, Count - 1));
         OnCountChanged();
@@ -352,7 +341,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     protected virtual void OnSetRemoved(IList<T> items)
     {
         if (SetChanged is not null)
-            OnSetChanged(new(SetChangeAction.Remove, items));
+            OnSetChanged(SetChangeEventArgs ?? new(SetChangeAction.Remove, items));
         if (CollectionChanged is not null)
         {
             foreach ((var item, var index) in items.Zip(_removeIndexs))
@@ -367,7 +356,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     protected virtual void OnSetCleared()
     {
         if (SetChanged is not null)
-            OnSetChanged(new(SetChangeAction.Clear));
+            OnSetChanged(SetChangeEventArgs ?? new(SetChangeAction.Clear));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Reset));
         OnCountChanged();
@@ -388,7 +377,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     )
     {
         if (SetChanged is not null)
-            OnSetChanged(new(action, otherItems, newItems, oldItems));
+            OnSetChanged(SetChangeEventArgs ?? new(action, otherItems, newItems, oldItems));
         if (CollectionChanged is not null)
         {
             if (oldItems is not null)
@@ -418,7 +407,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// 集合改变后
     /// </summary>
     /// <param name="args">参数</param>
-    protected virtual void OnSetChanged(NotifySetChangedEventArgs<T> args)
+    protected virtual void OnSetChanged(NotifySetChangeEventArgs<T> args)
     {
         SetChanged?.Invoke(this, args);
     }
@@ -452,6 +441,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     private void OnCountChanged()
     {
         OnPropertyChanged(nameof(Count));
+        SetChangeEventArgs = null;
     }
 
     /// <summary>

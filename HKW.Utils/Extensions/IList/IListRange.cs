@@ -91,7 +91,7 @@ public static partial class HKWExtensions
         }
         else
         {
-            for (var i = index + count; i >= index; i--)
+            for (var i = index + count - 1; i >= index; i--)
                 list.RemoveAt(i);
         }
     }

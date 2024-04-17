@@ -9,6 +9,6 @@
 /// <param name="e">参数</param>
 public delegate void ObservableDictionaryChangingEventHandler<TKey, TValue>(
     IObservableDictionary<TKey, TValue> sender,
-    NotifyDictionaryChangingEventArgs<TKey, TValue> e
+    NotifyDictionaryChangeEventArgs<TKey, TValue> e
 )
     where TKey : notnull;

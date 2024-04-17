@@ -10,8 +10,8 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
-[DebuggerDisplay("DictionaryChanged, Action = {Action}, NewPair = {NewPair}, OldPair = {NewPair}")]
-public class NotifyDictionaryChangedEventArgs<TKey, TValue> : EventArgs
+[DebuggerDisplay("DictionaryChanged, Action = {Action}")]
+public class NotifyDictionaryChangeEventArgs<TKey, TValue> : EventArgs
     where TKey : notnull
 {
     /// <summary>
@@ -34,7 +34,7 @@ public class NotifyDictionaryChangedEventArgs<TKey, TValue> : EventArgs
     /// <inheritdoc/>
     /// <summary>仅用于: <see cref="DictionaryChangeAction.Clear"/></summary>
     /// <param name="action">改变行动</param>
-    public NotifyDictionaryChangedEventArgs(DictionaryChangeAction action)
+    public NotifyDictionaryChangeEventArgs(DictionaryChangeAction action)
     {
         if (action != DictionaryChangeAction.Clear)
             throw new ArgumentException(
@@ -51,7 +51,7 @@ public class NotifyDictionaryChangedEventArgs<TKey, TValue> : EventArgs
     /// </summary>
     /// <param name="action">改变行动</param>
     /// <param name="pair">键值对</param>
-    public NotifyDictionaryChangedEventArgs(
+    public NotifyDictionaryChangeEventArgs(
         DictionaryChangeAction action,
         KeyValuePair<TKey, TValue> pair
     )
@@ -73,7 +73,7 @@ public class NotifyDictionaryChangedEventArgs<TKey, TValue> : EventArgs
     /// <param name="action">改变行动</param>
     /// <param name="newPair">新键值对</param>
     /// <param name="oldPair">旧键值对</param>
-    public NotifyDictionaryChangedEventArgs(
+    public NotifyDictionaryChangeEventArgs(
         DictionaryChangeAction action,
         KeyValuePair<TKey, TValue> newPair,
         KeyValuePair<TKey, TValue> oldPair

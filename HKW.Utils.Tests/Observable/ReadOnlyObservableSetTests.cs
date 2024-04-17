@@ -28,27 +28,6 @@ public class ReadOnlyObservableSetTests
     }
 
     [TestMethod]
-    public void Adding_Cancel()
-    {
-        var triggered = false;
-        var set = Enumerable.Range(0, 10).ToHashSet();
-        var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
-        readOnlyObservableSet.SetChanging += (s, e) =>
-        {
-            triggered = true;
-            Assert.IsTrue(e.Action == SetChangeAction.Add);
-            Assert.IsTrue(e.NewItems![0] == 10);
-            Assert.IsTrue(e.OldItems == null);
-            Assert.IsTrue(e.OtherItems == null);
-            e.Cancel = true;
-        };
-        observableSet.Add(10);
-        Assert.IsTrue(readOnlyObservableSet.Count == 10);
-        Assert.IsTrue(triggered);
-    }
-
-    [TestMethod]
     public void Added()
     {
         var triggered = false;
@@ -89,27 +68,6 @@ public class ReadOnlyObservableSetTests
     }
 
     [TestMethod]
-    public void Removing_Cancel()
-    {
-        var triggered = false;
-        var set = Enumerable.Range(0, 10).ToHashSet();
-        var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
-        readOnlyObservableSet.SetChanging += (s, e) =>
-        {
-            triggered = true;
-            Assert.IsTrue(e.Action == SetChangeAction.Remove);
-            Assert.IsTrue(e.NewItems == null);
-            Assert.IsTrue(e.OldItems![0] == 0);
-            Assert.IsTrue(e.OtherItems == null);
-            e.Cancel = true;
-        };
-        observableSet.Remove(0);
-        Assert.IsTrue(readOnlyObservableSet.Count == 10);
-        Assert.IsTrue(triggered);
-    }
-
-    [TestMethod]
     public void Removed()
     {
         var triggered = false;
@@ -146,27 +104,6 @@ public class ReadOnlyObservableSetTests
         };
         observableSet.Clear();
         Assert.IsTrue(readOnlyObservableSet.Count == 0);
-        Assert.IsTrue(triggered);
-    }
-
-    [TestMethod]
-    public void Clearing_Cancel()
-    {
-        var triggered = false;
-        var set = Enumerable.Range(0, 10).ToHashSet();
-        var observableSet = new ObservableSet<int>(Enumerable.Range(0, 10));
-        var readOnlyObservableSet = new ReadOnlyObservableSet<int>(observableSet);
-        readOnlyObservableSet.SetChanging += (s, e) =>
-        {
-            triggered = true;
-            Assert.IsTrue(e.Action == SetChangeAction.Clear);
-            Assert.IsTrue(e.NewItems == null);
-            Assert.IsTrue(e.OldItems == null);
-            Assert.IsTrue(e.OtherItems == null);
-            e.Cancel = true;
-        };
-        observableSet.Clear();
-        Assert.IsTrue(readOnlyObservableSet.Count == 10);
         Assert.IsTrue(triggered);
     }
 

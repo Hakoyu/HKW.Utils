@@ -36,8 +36,10 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     public I18nResource()
     {
         Cultures.SetChanged += Cultures_SetChanged;
+        CultureDatas.DictionaryChanging += CultureDatas_DictionaryChanging;
         CultureDatas.DictionaryChanged += CultureDatas_DictionaryChanged;
-        I18nObjectInfos.ListChanged += I18nObjectInfos_ListChanged;
+        I18nObjectInfos.DictionaryChanging += I18nObjectInfos_DictionaryChanging;
+        I18nObjectInfos.DictionaryChanged += I18nObjectInfos_DictionaryChanged;
     }
 
     /// <inheritdoc/>
@@ -150,10 +152,20 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         ObservableCultureDataDictionary<TKey, TValue>
     > CultureDatas { get; } = new();
 
+    /// <summary>
+    /// I18n对象信息
+    /// <para>
+    /// (INotifyPropertyChangedX, I18nObjectInfo)
+    /// </para>
+    /// </summary>
+    public ObservableDictionary<
+        INotifyPropertyChangedX,
+        I18nObjectInfo<TKey>
+    > I18nObjectInfos { get; } = new();
     #endregion
     private void Cultures_SetChanged(
         IObservableSet<CultureInfo> sender,
-        NotifySetChangedEventArgs<CultureInfo> e
+        NotifySetChangeEventArgs<CultureInfo> e
     )
     {
         if (e.Action is SetChangeAction.Add)
@@ -190,9 +202,25 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         SetCurrentCulture(e.CultureInfo);
     }
 
+    private void CultureDatas_DictionaryChanging(
+        IObservableDictionary<TKey, ObservableCultureDataDictionary<TKey, TValue>> sender,
+        NotifyDictionaryChangeEventArgs<TKey, ObservableCultureDataDictionary<TKey, TValue>> e
+    )
+    {
+        if (sender is not ObservableCultureDataDictionary<TKey, TValue> cultureDatas)
+            return;
+        if (e.Action is DictionaryChangeAction.Clear)
+        {
+            foreach (var pair in CultureDatas)
+            {
+                pair.Value.DictionaryChanged -= CurrentCultureDatas_DictionaryChanged;
+            }
+        }
+    }
+
     private void CultureDatas_DictionaryChanged(
         IObservableDictionary<TKey, ObservableCultureDataDictionary<TKey, TValue>> sender,
-        NotifyDictionaryChangedEventArgs<TKey, ObservableCultureDataDictionary<TKey, TValue>> e
+        NotifyDictionaryChangeEventArgs<TKey, ObservableCultureDataDictionary<TKey, TValue>> e
     )
     {
         if (e.Action is DictionaryChangeAction.Add)
@@ -224,7 +252,7 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
 
     private void CurrentCultureDatas_DictionaryChanged(
         IObservableDictionary<CultureInfo, TValue> sender,
-        NotifyDictionaryChangedEventArgs<CultureInfo, TValue> e
+        NotifyDictionaryChangeEventArgs<CultureInfo, TValue> e
     )
     {
         if (sender is not ObservableCultureDataDictionary<TKey, TValue> cultureDatas)
@@ -242,10 +270,10 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
                     newPair.Value
                 )
             );
-            foreach (var source in I18nObjectInfos)
+            foreach (var pair in I18nObjectInfos)
             {
-                if (source.TargetPropertyNamesWithKey.ContainsKey(cultureDatas.Key))
-                    source.NotifyPropertyChangedWithKey(cultureDatas.Key);
+                if (pair.Value.TargetPropertyNamesWithKey.ContainsKey(cultureDatas.Key))
+                    pair.Value.NotifyPropertyChangedWithKey(cultureDatas.Key);
             }
         }
         else if (e.Action is DictionaryChangeAction.Remove)
@@ -257,10 +285,10 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
                 new(oldPair.Key, cultureDatas.Key, oldPair.Value, default)
             );
 
-            foreach (var source in I18nObjectInfos)
+            foreach (var pair in I18nObjectInfos)
             {
-                if (source.TargetPropertyNamesWithKey.ContainsKey(cultureDatas.Key))
-                    source.NotifyPropertyChangedWithKey(cultureDatas.Key);
+                if (pair.Value.TargetPropertyNamesWithKey.ContainsKey(cultureDatas.Key))
+                    pair.Value.NotifyPropertyChangedWithKey(cultureDatas.Key);
             }
         }
         else if (e.Action is DictionaryChangeAction.Replace)
@@ -273,52 +301,60 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
                 this,
                 new(oldPair.Key, cultureDatas.Key, oldPair.Value, newPair.Value)
             );
-            foreach (var source in I18nObjectInfos)
+            foreach (var pair in I18nObjectInfos)
             {
-                if (source.TargetPropertyNamesWithKey.ContainsKey(cultureDatas.Key))
-                    source.NotifyPropertyChangedWithKey(cultureDatas.Key);
+                if (pair.Value.TargetPropertyNamesWithKey.ContainsKey(cultureDatas.Key))
+                    pair.Value.NotifyPropertyChangedWithKey(cultureDatas.Key);
             }
         }
     }
 
-    private void I18nObjectInfos_ListChanged(
-        IObservableList<I18nObjectInfo<TKey>> sender,
-        NotifyListChangedEventArgs<I18nObjectInfo<TKey>> e
+    private void I18nObjectInfos_DictionaryChanging(
+        IObservableDictionary<INotifyPropertyChangedX, I18nObjectInfo<TKey>> sender,
+        NotifyDictionaryChangeEventArgs<INotifyPropertyChangedX, I18nObjectInfo<TKey>> e
     )
     {
-        if (e.Action is ListChangeAction.Add)
+        if (e.Action is DictionaryChangeAction.Clear)
         {
-            if (e.NewItems is null)
-                return;
-            foreach (var item in e.NewItems)
+            foreach (var item in sender)
             {
-                item.KeyChanged -= Item_KeyChanged;
-                item.KeyChanged += Item_KeyChanged;
+                item.Value.KeyChanged -= Item_KeyChanged;
             }
         }
-        else if (e.Action is ListChangeAction.Remove)
+    }
+
+    private void I18nObjectInfos_DictionaryChanged(
+        IObservableDictionary<INotifyPropertyChangedX, I18nObjectInfo<TKey>> sender,
+        NotifyDictionaryChangeEventArgs<INotifyPropertyChangedX, I18nObjectInfo<TKey>> e
+    )
+    {
+        if (e.Action is DictionaryChangeAction.Add)
         {
-            if (e.OldItems is null)
-                return;
-            foreach (var item in e.OldItems)
+            if (e.TryGetNewPair(out var newPair))
             {
-                item.KeyChanged -= Item_KeyChanged;
+                foreach (var key in newPair.Value.TargetPropertyNamesWithKey)
+                    AddCultureData(key.Key);
+                newPair.Value.KeyChanged -= Item_KeyChanged;
+                newPair.Value.KeyChanged += Item_KeyChanged;
             }
         }
-        else if (e.Action is ListChangeAction.Replace)
+        else if (e.Action is DictionaryChangeAction.Remove)
         {
-            if (e.OldItems is null)
-                return;
-            foreach (var item in e.OldItems)
+            if (e.TryGetOldPair(out var oldPair))
             {
-                item.KeyChanged -= Item_KeyChanged;
+                oldPair.Value.KeyChanged -= Item_KeyChanged;
             }
-            if (e.NewItems is null)
-                return;
-            foreach (var item in e.NewItems)
+        }
+        else if (e.Action is DictionaryChangeAction.Replace)
+        {
+            if (e.TryGetOldPair(out var oldPair))
             {
-                item.KeyChanged -= Item_KeyChanged;
-                item.KeyChanged += Item_KeyChanged;
+                oldPair.Value.KeyChanged -= Item_KeyChanged;
+            }
+            if (e.TryGetNewPair(out var newPair))
+            {
+                newPair.Value.KeyChanged -= Item_KeyChanged;
+                newPair.Value.KeyChanged += Item_KeyChanged;
             }
         }
     }
@@ -337,7 +373,7 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
             // 如果在所有引用中未被使用,则删除
             if (
                 I18nObjectInfos.All(i =>
-                    i.TargetPropertyNamesWithKey.ContainsKey(e.OldKey) is false
+                    i.Value.TargetPropertyNamesWithKey.ContainsKey(e.OldKey) is false
                 )
             )
                 CultureDatas.Remove(e.OldKey);
@@ -353,7 +389,7 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
             // 如果在所有引用中未被使用,则删除
             if (
                 I18nObjectInfos.All(i =>
-                    i.TargetPropertyNamesWithKey.ContainsKey(e.OldKey) is false
+                    i.Value.TargetPropertyNamesWithKey.ContainsKey(e.OldKey) is false
                 )
             )
                 CultureDatas.Remove(e.OldKey);
@@ -470,6 +506,16 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// <summary>
     /// 添加文化数据
     /// </summary>
+    /// <param name="key">键</param>
+    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    public bool AddCultureData(TKey key)
+    {
+        return CultureDatas.TryAdd(key, new() { Key = key });
+    }
+
+    /// <summary>
+    /// 添加文化数据
+    /// </summary>
     /// <param name="culture">文化</param>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
@@ -535,7 +581,7 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     }
 
     /// <summary>
-    /// 添加文化数据
+    /// 设置或覆盖文化数据
     /// </summary>
     /// <param name="cultureName">文化名称</param>
     /// <param name="key">键</param>
@@ -545,7 +591,17 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         SetCultureData(CultureInfo.GetCultureInfo(cultureName), key, value);
 
     /// <summary>
-    /// 添加文化数据
+    /// 删除文化数据
+    /// </summary>
+    /// <param name="key">键</param>
+    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    public bool RemoveCultureData(TKey key)
+    {
+        return CultureDatas.Remove(key);
+    }
+
+    /// <summary>
+    /// 删除文化数据
     /// </summary>
     /// <param name="culture">文化</param>
     /// <param name="key">键</param>
@@ -558,13 +614,21 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     }
 
     /// <summary>
-    /// 添加文化数据
+    /// 删除文化数据
     /// </summary>
     /// <param name="cultureName">文化名称</param>
     /// <param name="key">键</param>
     /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
     public bool RemoveCultureData(string cultureName, TKey key) =>
         RemoveCultureData(CultureInfo.GetCultureInfo(cultureName), key);
+
+    /// <summary>
+    /// 清空文化数据
+    /// </summary>
+    public void ClearCultureData()
+    {
+        CultureDatas.Clear();
+    }
 
     /// <summary>
     /// 清空文化数据
@@ -845,38 +909,6 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// </summary>
     public void FillDefaultValue() => FillDefaultValue(DefaultValue);
     #endregion
-    /// <summary>
-    /// I18n对象信息
-    /// <para>
-    /// (INotifyPropertyChangedX, I18nObjectInfo)
-    /// </para>
-    /// </summary>
-    public ObservableList<I18nObjectInfo<TKey>> I18nObjectInfos { get; } = new();
-
-    ///// <summary>
-    ///// 注册通知
-    ///// </summary>
-    ///// <param name="source">源</param>
-    ///// <param name="onPropertyChanged">属性改变行动</param>
-    ///// <param name="propertyDatas">属性数据</param>
-    //public I18nObjectInfo<TKey> RegisterNotify(
-    //    INotifyPropertyChangedX source,
-    //    Action<string> onPropertyChanged,
-    //    IEnumerable<(
-    //        string KeyPropertyName,
-    //        TKey KeyValue,
-    //        IEnumerable<string> TargetPropertyNames
-    //    )> propertyDatas
-    //)
-    //{
-    //    if (I18nObjectInfos.TryGetValue(source, out var info) is false)
-    //        info = I18nObjectInfos[source] = new I18nObjectInfo<TKey>(
-    //            source,
-    //            onPropertyChanged,
-    //            propertyDatas
-    //        );
-    //    return info;
-    //}
 
     /// <summary>
     /// 刷新所有I18nObject
@@ -884,7 +916,87 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     public void RefreshAllI18nObject()
     {
         foreach (var info in I18nObjectInfos)
-            info.NotifyAllPropertyChanged();
+            info.Value.NotifyAllPropertyChanged();
+    }
+
+    /// <summary>
+    /// 复制数据到另一个资源
+    /// </summary>
+    /// <param name="otherResource">另一个资源</param>
+    /// <param name="override">覆盖原始数据</param>
+    public void CopyDataTo(I18nResource<TKey, TValue> otherResource, bool @override = false)
+    {
+        foreach (var culture in Cultures)
+        {
+            otherResource.AddCulture(culture);
+        }
+        foreach (var pair in CultureDatas)
+        {
+            foreach (var dataInfo in pair.Value)
+            {
+                if (@override)
+                    otherResource.SetCultureData(dataInfo.Key, pair.Key, dataInfo.Value);
+                else
+                    otherResource.AddCultureData(dataInfo.Key, pair.Key, dataInfo.Value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 复制指定数据到另一个资源
+    /// </summary>
+    /// <param name="otherResource"></param>
+    /// <param name="key">键</param>
+    /// <param name="override">覆盖原始数据</param>
+    public void CopyDataTo(
+        I18nResource<TKey, TValue> otherResource,
+        TKey key,
+        bool @override = false
+    )
+    {
+        foreach (var culture in Cultures)
+        {
+            otherResource.AddCulture(culture);
+        }
+        if (CultureDatas.TryGetValue(key, out var pair) is false)
+            return;
+        foreach (var dataInfo in pair)
+        {
+            if (@override)
+                otherResource.SetCultureData(dataInfo.Key, key, dataInfo.Value);
+            else
+                otherResource.AddCultureData(dataInfo.Key, key, dataInfo.Value);
+        }
+    }
+
+    /// <summary>
+    /// 复制指定数据到另一个资源
+    /// </summary>
+    /// <param name="otherResource"></param>
+    /// <param name="keys">键</param>
+    /// <param name="override">覆盖原始数据</param>
+    public void CopyDataTo(
+        I18nResource<TKey, TValue> otherResource,
+        IEnumerable<TKey> keys,
+        bool @override = false
+    )
+    {
+        foreach (var culture in Cultures)
+        {
+            otherResource.AddCulture(culture);
+        }
+        foreach (var key in keys)
+        {
+            if (CultureDatas.TryGetValue(key, out var pair) is false)
+                return;
+            foreach (var dataInfo in pair)
+            {
+                if (@override)
+                    otherResource.SetCultureData(dataInfo.Key, key, dataInfo.Value);
+                else
+                    otherResource.AddCultureData(dataInfo.Key, key, dataInfo.Value);
+            }
+        }
     }
 
     /// <summary>

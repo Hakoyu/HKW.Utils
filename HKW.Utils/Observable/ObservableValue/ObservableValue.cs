@@ -41,16 +41,6 @@ public class ObservableValue<T>
     /// </summary>
     public bool HasValue => Value != null;
 
-    /// <summary>
-    /// 分组
-    /// </summary>
-    public ObservableValueGroup<T>? Group { get; internal set; }
-
-    /// <summary>
-    /// 唯一标识符
-    /// </summary>
-    public Guid Guid { get; } = Guid.NewGuid();
-
     #region Ctor
     /// <inheritdoc/>
     public ObservableValue() { }
@@ -90,73 +80,6 @@ public class ObservableValue<T>
     {
         PropertyChanged?.Invoke(this, new(nameof(Value)));
         ValueChanged?.Invoke(this, new(oldValue, newValue));
-    }
-    #endregion
-
-    #region NotifySender
-    /// <summary>
-    /// 通知发送者
-    /// </summary>
-    public IReadOnlyCollection<INotifyPropertyChanged> NotifySenders => _notifySenders;
-
-    private readonly HashSet<INotifyPropertyChanged> _notifySenders = new();
-
-    /// <summary>
-    /// 添加通知发送者
-    /// <para>
-    /// 添加的发送者改变后会执行 <see cref="SenderPropertyChanged"/>
-    /// </para>
-    /// <para>示例:
-    /// <code><![CDATA[
-    /// ObservableValue<string> value1 = new();
-    /// ObservableValue<string> value2 = new();
-    /// value2.AddNotifySender(value1);
-    /// value2.SenderPropertyChanged += (source, sender) =>
-    /// {
-    ///     source.Value = sender.Value;
-    /// };
-    /// value1.Value = "A";
-    /// // value1.Value == "A", value2.Value == "A"
-    /// ]]>
-    /// </code></para>
-    /// </summary>
-    /// <param name="items">发送者</param>
-    public void AddNotifySender(params INotifyPropertyChanged[] items)
-    {
-        foreach (var item in items)
-        {
-            item.PropertyChanged -= NotifySenderPropertyChanged;
-            item.PropertyChanged += NotifySenderPropertyChanged;
-            _notifySenders.Add(item);
-        }
-    }
-
-    /// <summary>
-    /// 删除通知发送者
-    /// </summary>
-    /// <param name="items">发送者</param>
-    public void RemoveNotifySender(params INotifyPropertyChanged[] items)
-    {
-        foreach (var item in items)
-        {
-            item.PropertyChanged -= NotifySenderPropertyChanged;
-            _notifySenders.Remove(item);
-        }
-    }
-
-    /// <summary>
-    /// 清空通知发送者
-    /// </summary>
-    public void ClearNotifySender()
-    {
-        foreach (var sender in _notifySenders)
-            sender.PropertyChanged -= NotifySenderPropertyChanged;
-        _notifySenders.Clear();
-    }
-
-    private void NotifySenderPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        SenderPropertyChanged?.Invoke(this, (INotifyPropertyChanged)sender!);
     }
     #endregion
 
@@ -221,10 +144,5 @@ public class ObservableValue<T>
     /// 值改变后事件
     /// </summary>
     public event ValueChangedEventHandler<T>? ValueChanged;
-
-    /// <summary>
-    /// 通知接收事件
-    /// </summary>
-    public event NotifySenderPropertyChangedHandler<T>? SenderPropertyChanged;
     #endregion
 }

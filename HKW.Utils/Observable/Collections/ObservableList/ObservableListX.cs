@@ -40,8 +40,7 @@ public class ObservableListX<T> : ObservableListBase<T>, IObservableListX<T>
     {
         var index = _list.Count;
         var list = new SimpleReadOnlyList<T>(collection);
-        if (OnListAdding(list, index) is false)
-            return;
+        OnListAdding(list, index);
         _list.AddRange(list);
         OnListAdded(list, index);
     }
@@ -50,8 +49,7 @@ public class ObservableListX<T> : ObservableListBase<T>, IObservableListX<T>
     public void InsertRange(int index, IEnumerable<T> collection)
     {
         var list = new SimpleReadOnlyList<T>(collection);
-        if (OnListAdding(list, index) is false)
-            return;
+        OnListAdding(list, index);
         _list.InsertRange(index, list);
         OnListAdded(list, index);
     }
@@ -60,8 +58,7 @@ public class ObservableListX<T> : ObservableListBase<T>, IObservableListX<T>
     public void RemoveRange(int index, int count)
     {
         var list = new SimpleReadOnlyList<T>(_list.Skip(index).Take(count));
-        if (OnListRemoving(list, index) is false)
-            return;
+        OnListRemoving(list, index);
         _list.RemoveRange(index, count);
         OnListRemoved(list, index);
     }
@@ -79,8 +76,7 @@ public class ObservableListX<T> : ObservableListBase<T>, IObservableListX<T>
         var tempList = _list.ToList();
         tempList.Reverse(index, count);
         var newList = new SimpleReadOnlyList<T>(tempList);
-        if (OnListReplacing(newList, oldList, index) is false)
-            return;
+        OnListReplacing(newList, oldList, index);
         _list.Reverse(index, count);
         OnListReplaced(newList, oldList, index);
     }

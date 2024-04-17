@@ -42,11 +42,9 @@ public class ObservableList<T> : ObservableListBase<T>, IList
             var oldValue = _list[index];
             var oldList = new SimpleSingleItemReadOnlyList<T>(oldValue);
             var newList = new SimpleSingleItemReadOnlyList<T>((T)value!);
-            if (
-                oldValue?.Equals(value) is true
-                || OnListReplacing(newList, oldList, index) is false
-            )
+            if (oldValue?.Equals(value) is true)
                 return;
+            OnListReplacing(newList, oldList, index);
             _list[index] = (T)value!;
             OnListReplaced(newList, oldList, index);
         }
@@ -64,8 +62,7 @@ public class ObservableList<T> : ObservableListBase<T>, IList
     {
         var item = (T)value!;
         var list = new SimpleSingleItemReadOnlyList<T>(item);
-        if (OnListAdding(list, index) is false)
-            return;
+        OnListAdding(list, index);
         _list.Insert(index, item);
         OnListAdded(list, index);
     }
@@ -77,8 +74,7 @@ public class ObservableList<T> : ObservableListBase<T>, IList
         if (index == -1)
             return;
         var list = new SimpleSingleItemReadOnlyList<T>(item);
-        if (OnListRemoving(list, index) is false)
-            return;
+        OnListRemoving(list, index);
         _list.RemoveAt(index);
         OnListRemoved(list, index);
     }
