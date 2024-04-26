@@ -14,6 +14,7 @@ public static partial class HKWExtensions
         this IDictionary<TKey, TValue> dictionary,
         TKey key
     )
+        where TKey : notnull
     {
         ArgumentNullException.ThrowIfNull(dictionary, nameof(dictionary));
         return new(key, dictionary[key]);

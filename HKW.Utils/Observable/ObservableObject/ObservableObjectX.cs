@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -34,6 +35,30 @@ public abstract class ObservableObjectX
     protected virtual bool SetProperty<TValue>(
         ref TValue value,
         TValue newValue,
+        [CallerMemberName] string propertyName = null!
+    )
+    {
+        if (value?.Equals(newValue) is true)
+            return false;
+        var oldValue = value;
+        if (OnPropertyChanging(oldValue, newValue, propertyName) is false)
+            return false;
+        value = newValue;
+        OnPropertyChanged(oldValue, newValue, propertyName);
+        return true;
+    }
+
+    /// <summary>
+    /// 设置属性值
+    /// </summary>
+    /// <param name="value">值</param>
+    /// <param name="newValue">新值</param>
+    /// <param name="propertyName">属性名称</param>
+    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected virtual bool SetProperty(
+        object? value,
+        object? newValue,
         [CallerMemberName] string propertyName = null!
     )
     {
@@ -101,6 +126,94 @@ public abstract class ObservableObjectX
     }
     #endregion
 
+    #region NotifyPropertyOnPropertyChanged
+    /// <summary>
+    /// 通知映射
+    /// <para>(TourcePropertyName, TargetPropertyNames)</para>
+    /// </summary>
+    protected Dictionary<string, HashSet<string>> NotifyMap { get; set; } = new();
+
+    /// <summary>
+    /// 在源属性已改变后通知目标属性改变
+    /// </summary>
+    /// <param name="sourcePropertyName">源属性名</param>
+    /// <param name="targetPropertyName">目标属性名</param>
+    public void NotifyPropertyOnPropertyChanged(
+        string sourcePropertyName,
+        string targetPropertyName
+    )
+    {
+        PropertyChanged -= ObservableObjectX_PropertyChanged;
+        PropertyChanged += ObservableObjectX_PropertyChanged;
+        var map = NotifyMap.GetOrCreateValue(sourcePropertyName);
+        map.Add(targetPropertyName);
+    }
+
+    /// <summary>
+    /// 在源属性已改变后通知目标属性改变
+    /// </summary>
+    /// <param name="sourcePropertyName">源属性名</param>
+    /// <param name="targetPropertyNames">目标属性名</param>
+    public void NotifyPropertyOnPropertyChanged(
+        string sourcePropertyName,
+        IEnumerable<string> targetPropertyNames
+    )
+    {
+        PropertyChanged -= ObservableObjectX_PropertyChanged;
+        PropertyChanged += ObservableObjectX_PropertyChanged;
+        var map = NotifyMap.GetOrCreateValue(sourcePropertyName);
+        map.UnionWith(targetPropertyNames);
+    }
+
+    /// <summary>
+    /// 在源属性已改变后通知目标属性改变
+    /// </summary>
+    /// <param name="sourcePropertyNames">源属性名</param>
+    /// <param name="targetPropertyName">目标属性名</param>
+    public void NotifyPropertyOnPropertyChanged(
+        IEnumerable<string> sourcePropertyNames,
+        string targetPropertyName
+    )
+    {
+        PropertyChanged -= ObservableObjectX_PropertyChanged;
+        PropertyChanged += ObservableObjectX_PropertyChanged;
+        foreach (var sourcePropertyName in sourcePropertyNames)
+        {
+            var map = NotifyMap.GetOrCreateValue(sourcePropertyName);
+            map.Add(targetPropertyName);
+        }
+    }
+
+    /// <summary>
+    /// 在源属性已改变后通知目标属性改变
+    /// </summary>
+    /// <param name="sourcePropertyNames">源属性名</param>
+    /// <param name="targetPropertyNames">目标属性名</param>
+    public void NotifyPropertyOnPropertyChanged(
+        IEnumerable<string> sourcePropertyNames,
+        IEnumerable<string> targetPropertyNames
+    )
+    {
+        PropertyChanged -= ObservableObjectX_PropertyChanged;
+        PropertyChanged += ObservableObjectX_PropertyChanged;
+        foreach (var sourcePropertyName in sourcePropertyNames)
+        {
+            var map = NotifyMap.GetOrCreateValue(sourcePropertyName);
+            map.UnionWith(targetPropertyNames);
+        }
+    }
+
+    private void ObservableObjectX_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is null)
+            return;
+        if (NotifyMap.TryGetValue(e.PropertyName, out var targetPropertyNames))
+        {
+            foreach (var name in targetPropertyNames)
+                OnPropertyChanged(name);
+        }
+    }
+    #endregion
     #region Event
     /// <inheritdoc/>
     public event PropertyChangingEventHandler? PropertyChanging;
@@ -114,4 +227,21 @@ public abstract class ObservableObjectX
     /// <inheritdoc/>
     public event PropertyChangedXEventHandler? PropertyChangedX;
     #endregion
+    /// <summary>
+    /// 值缓存
+    /// </summary>
+    /// <param name="oldValue">旧值</param>
+    /// <param name="newValue">新值</param>
+    protected class ValueBuffer(object? oldValue, object? newValue)
+    {
+        /// <summary>
+        /// 旧值
+        /// </summary>
+        public WeakReference OldValue { get; } = new(oldValue);
+
+        /// <summary>
+        /// 新值
+        /// </summary>
+        public WeakReference NewValue { get; } = new(newValue);
+    }
 }

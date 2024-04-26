@@ -14,7 +14,8 @@ namespace HKW.HKWUtils.Observable;
 public class ObservablePoint<T>
     : ObservableObjectX,
         IEquatable<ObservablePoint<T>>,
-        ICloneable<ObservablePoint<T>>
+        ICloneable<ObservablePoint<T>>,
+        IPoint<T>
     where T : INumber<T>
 {
     /// <inheritdoc/>
@@ -33,9 +34,7 @@ public class ObservablePoint<T>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _x = default!;
 
-    /// <summary>
-    /// 坐标X
-    /// </summary>
+    /// <inheritdoc/>
     public T X
     {
         get => _x;
@@ -47,9 +46,7 @@ public class ObservablePoint<T>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _y = default!;
 
-    /// <summary>
-    /// 坐标Y
-    /// </summary>
+    /// <inheritdoc/>
     public T Y
     {
         get => _y;

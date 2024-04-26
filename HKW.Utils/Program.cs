@@ -20,33 +20,33 @@ internal class Program
     private static void Main(string[] args)
     {
 #if DEBUG
-        var ol = new ObservableList<int>();
-        var l = new List<int>();
-        ol.BindingList(l);
-        ol.Add(1);
-        //ol.AddRange([2, 3, 4]);
-        //ol.RemoveAt(0);
-        //l.RemoveRange(0, 2);
-        ////ol.RemoveRange(0, 2);
-        //ol.Clear();
-        ol.BindingList(l, true);
-        ol.Add(1);
-        //I18nResource.AddCulture("zh");
-        //I18nResource.AddCulture("en");
-        //I18nResource.SetCurrentCulture("zh");
-        //var v1 = new TestModel();
-        //v1.PropertyChangedX += (s, e) =>
-        //{
-        //    Debug.WriteLine($"V1: {e.PropertyName} = {e.NewValue}");
-        //    return;
-        //};
-        //var v2 = new TestModel();
-        //v2.PropertyChangedX += (s, e) =>
-        //{
-        //    Debug.WriteLine($"V2: {e.PropertyName} = {e.NewValue}");
-        //    return;
-        //};
-        //v1.ID = "1";
+        //var ol = new ObservableList<int>();
+        //var l = new List<int>();
+        //ol.BindingList(l);
+        //ol.Add(1);
+        ////ol.AddRange([2, 3, 4]);
+        ////ol.RemoveAt(0);
+        ////l.RemoveRange(0, 2);
+        //////ol.RemoveRange(0, 2);
+        ////ol.Clear();
+        //ol.BindingList(l, true);
+        //ol.Add(1);
+        I18nResource.AddCulture("zh");
+        I18nResource.AddCulture("en");
+        I18nResource.SetCurrentCulture("zh");
+        var v1 = new TestModel();
+        v1.PropertyChangedX += (s, e) =>
+        {
+            Debug.WriteLine($"V1: {e.PropertyName} = {e.NewValue}");
+            return;
+        };
+        var v2 = new TestModel();
+        v2.PropertyChangedX += (s, e) =>
+        {
+            Debug.WriteLine($"V2: {e.PropertyName} = {e.NewValue}");
+            return;
+        };
+        v1.ID = "1";
         //v1.Name = "zh-1";
         //v1.Name = "zh-2";
         //v1.ID = "2";
@@ -96,9 +96,10 @@ internal class TestModel : ObservableObjectX
 {
     public TestModel()
     {
-        Program.I18nResource.I18nObjectInfos.Add(
-            this, new(this, OnPropertyChanged, [(nameof(ID), ID, [nameof(Name)], true)])
-        );
+        NotifyPropertyOnPropertyChanged(nameof(ID), nameof(IDX));
+        //Program.I18nResource.I18nObjectInfos.Add(
+        //    this, new(this, SetProperty)
+        //);
     }
 
     #region ID
@@ -112,12 +113,14 @@ internal class TestModel : ObservableObjectX
     }
     #endregion
 
-    #region Name
-    public string Name
-    {
-        get => Program.I18nResource.GetCurrentCultureDataOrDefault(ID, string.Empty);
-        set => Program.I18nResource.SetCurrentCultureData(ID, value);
-    }
-    #endregion
+    //#region Name
+    //public string Name
+    //{
+    //    get => Program.I18nResource.GetCurrentCultureDataOrDefault(ID, string.Empty);
+    //    set => Program.I18nResource.SetCurrentCultureData(ID, value);
+    //}
+    //#endregion
+
+    public string IDX => ID + "X";
 }
 #endif

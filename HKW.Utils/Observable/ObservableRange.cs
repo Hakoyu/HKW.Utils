@@ -12,7 +12,8 @@ namespace HKW.HKWUtils.Observable;
 public class ObservableRange<T>
     : ObservableObjectX,
         IEquatable<ObservableRange<T>>,
-        ICloneable<ObservableRange<T>>
+        ICloneable<ObservableRange<T>>,
+        IRange<T>
     where T : INumber<T>
 {
     /// <inheritdoc/>
@@ -31,9 +32,7 @@ public class ObservableRange<T>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _min = default!;
 
-    /// <summary>
-    /// 最小值
-    /// </summary>
+    /// <inheritdoc/>
     public T Min
     {
         get => _min;
@@ -45,9 +44,7 @@ public class ObservableRange<T>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _max = default!;
 
-    /// <summary>
-    /// 最大值
-    /// </summary>
+    /// <inheritdoc/>
     public T Max
     {
         get => _max;

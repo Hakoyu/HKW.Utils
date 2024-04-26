@@ -160,7 +160,7 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// </summary>
     public ObservableDictionary<
         INotifyPropertyChangedX,
-        I18nObjectInfo<TKey>
+        I18nObjectInfo<TKey, TValue>
     > I18nObjectInfos { get; } = new();
     #endregion
     private void Cultures_SetChanged(
@@ -263,17 +263,14 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
                 return;
             CultureDataChanged?.Invoke(
                 this,
-                new(
-                    newPair.Key,
-                    cultureDatas.Key,
-                    e.OldPair is null ? default : e.OldPair.Value.Value,
-                    newPair.Value
-                )
+                new(newPair.Key, cultureDatas.Key, default, newPair.Value)
             );
             foreach (var pair in I18nObjectInfos)
             {
-                if (pair.Value.TargetPropertyNamesWithKey.ContainsKey(cultureDatas.Key))
-                    pair.Value.NotifyPropertyChangedWithKey(cultureDatas.Key);
+                if (pair.Value.TargetPropertyNamesWithKey.ContainsKey(cultureDatas.Key) is false)
+                    continue;
+
+                pair.Value.NotifyPropertyChangedByKey(cultureDatas.Key);
             }
         }
         else if (e.Action is DictionaryChangeAction.Remove)
@@ -287,8 +284,9 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
 
             foreach (var pair in I18nObjectInfos)
             {
-                if (pair.Value.TargetPropertyNamesWithKey.ContainsKey(cultureDatas.Key))
-                    pair.Value.NotifyPropertyChangedWithKey(cultureDatas.Key);
+                if (pair.Value.TargetPropertyNamesWithKey.ContainsKey(cultureDatas.Key) is false)
+                    continue;
+                pair.Value.NotifyPropertyChangedByKey(cultureDatas.Key);
             }
         }
         else if (e.Action is DictionaryChangeAction.Replace)
@@ -303,15 +301,16 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
             );
             foreach (var pair in I18nObjectInfos)
             {
-                if (pair.Value.TargetPropertyNamesWithKey.ContainsKey(cultureDatas.Key))
-                    pair.Value.NotifyPropertyChangedWithKey(cultureDatas.Key);
+                if (pair.Value.TargetPropertyNamesWithKey.ContainsKey(cultureDatas.Key) is false)
+                    continue;
+                pair.Value.NotifyPropertyChangedByKey(cultureDatas.Key);
             }
         }
     }
 
     private void I18nObjectInfos_DictionaryChanging(
-        IObservableDictionary<INotifyPropertyChangedX, I18nObjectInfo<TKey>> sender,
-        NotifyDictionaryChangeEventArgs<INotifyPropertyChangedX, I18nObjectInfo<TKey>> e
+        IObservableDictionary<INotifyPropertyChangedX, I18nObjectInfo<TKey, TValue>> sender,
+        NotifyDictionaryChangeEventArgs<INotifyPropertyChangedX, I18nObjectInfo<TKey, TValue>> e
     )
     {
         if (e.Action is DictionaryChangeAction.Clear)
@@ -324,8 +323,8 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     }
 
     private void I18nObjectInfos_DictionaryChanged(
-        IObservableDictionary<INotifyPropertyChangedX, I18nObjectInfo<TKey>> sender,
-        NotifyDictionaryChangeEventArgs<INotifyPropertyChangedX, I18nObjectInfo<TKey>> e
+        IObservableDictionary<INotifyPropertyChangedX, I18nObjectInfo<TKey, TValue>> sender,
+        NotifyDictionaryChangeEventArgs<INotifyPropertyChangedX, I18nObjectInfo<TKey, TValue>> e
     )
     {
         if (e.Action is DictionaryChangeAction.Add)
@@ -359,7 +358,7 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         }
     }
 
-    private void Item_KeyChanged(I18nObjectInfo<TKey> sender, (TKey OldKey, TKey NewKey) e)
+    private void Item_KeyChanged(I18nObjectInfo<TKey, TValue> sender, (TKey OldKey, TKey NewKey) e)
     {
         if (CultureDatas.TryGetValue(e.OldKey, out var oldDatas) is false)
         {
@@ -916,7 +915,9 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     public void RefreshAllI18nObject()
     {
         foreach (var info in I18nObjectInfos)
+        {
             info.Value.NotifyAllPropertyChanged();
+        }
     }
 
     /// <summary>

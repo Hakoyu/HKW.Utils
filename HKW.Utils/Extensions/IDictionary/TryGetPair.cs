@@ -16,6 +16,7 @@ public static partial class HKWExtensions
         TKey key,
         out KeyValuePair<TKey, TValue> pair
     )
+        where TKey : notnull
     {
         ArgumentNullException.ThrowIfNull(dictionary, nameof(dictionary));
         var result = dictionary.TryGetValue(key, out var value);
