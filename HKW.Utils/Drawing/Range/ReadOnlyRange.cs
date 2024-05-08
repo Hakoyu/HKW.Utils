@@ -8,7 +8,7 @@ namespace HKW.HKWUtils.Drawing;
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("({Min}, {Max})")]
-public struct ReadOnlyRange<T> : IEquatable<ReadOnlyRange<T>>, IReadOnlyRange<T>
+public struct ReadOnlyRange<T> : IEquatable<IReadOnlyRange<T>>, IReadOnlyRange<T>
     where T : struct, INumber<T>
 {
     /// <summary>
@@ -44,13 +44,15 @@ public struct ReadOnlyRange<T> : IEquatable<ReadOnlyRange<T>>, IReadOnlyRange<T>
     {
         if (obj is null)
             return false;
-        return Equals((ReadOnlyRange<T>)obj);
+        return Equals((IReadOnlyRange<T>)obj);
     }
 
     /// <inheritdoc/>
-    public bool Equals(ReadOnlyRange<T> other)
+    public bool Equals(IReadOnlyRange<T>? other)
     {
-        return Min.Equals(other.Min) && Max.Equals(other.Max);
+        if (other is null)
+            return false;
+        return Min == other.Min && Max == other.Max;
     }
 
     /// <inheritdoc/>

@@ -1,27 +1,24 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
-using HKW.HKWUtils;
-using HKW.HKWUtils.Drawing;
-using HKW.HKWUtils.Observable;
 
 namespace HKW.HKWUtils.Drawing;
 
 /// <summary>
-/// 矩形
+/// 只读矩形
 /// </summary>
 /// <typeparam name="T">数据类型</typeparam>
 [DebuggerDisplay("({X}, {Y}, {Width}, {Height})")]
-public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
+public struct ReadOnlyRectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IReadOnlyRectangle<T>
     where T : struct, INumber<T>
 {
     /// <summary>
     /// 空
     /// </summary>
-    public static Rectangle<T> Empty = new(default, default, default, default);
+    public static ReadOnlyRectangle<T> Empty = new(default, default, default, default);
 
     /// <inheritdoc/>
     /// <param name="rectangle">矩形</param>
-    public Rectangle(IReadOnlyRectangle<T> rectangle)
+    public ReadOnlyRectangle(IReadOnlyRectangle<T> rectangle)
     {
         Width = rectangle.Width;
         Height = rectangle.Height;
@@ -32,7 +29,7 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
     /// <inheritdoc/>
     /// <param name="size">大小</param>
     /// <param name="point">位置</param>
-    public Rectangle(IReadOnlyPoint<T> point, IReadOnlySize<T> size)
+    public ReadOnlyRectangle(IReadOnlyPoint<T> point, IReadOnlySize<T> size)
     {
         Width = size.Width;
         Height = size.Height;
@@ -45,7 +42,7 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
     /// <param name="y">Y坐标</param>
     /// <param name="width">宽</param>
     /// <param name="height">高</param>
-    public Rectangle(T x, T y, T width, T height)
+    public ReadOnlyRectangle(T x, T y, T width, T height)
     {
         X = x;
         Y = y;
@@ -124,13 +121,13 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
     }
 
     /// <inheritdoc/>
-    public static bool operator ==(Rectangle<T> a, IReadOnlyRectangle<T> b)
+    public static bool operator ==(ReadOnlyRectangle<T> a, IReadOnlyRectangle<T> b)
     {
         return a.Equals(b);
     }
 
     /// <inheritdoc/>
-    public static bool operator !=(Rectangle<T> a, IReadOnlyRectangle<T> b)
+    public static bool operator !=(ReadOnlyRectangle<T> a, IReadOnlyRectangle<T> b)
     {
         return a.Equals(b) is not true;
     }

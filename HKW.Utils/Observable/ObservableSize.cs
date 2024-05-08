@@ -78,9 +78,9 @@ public class ObservableSize<T>
     /// <inheritdoc/>
     public bool Equals(ObservableSize<T>? other)
     {
-        return other is ObservableSize<T> temp
-            && Width.Equals(temp.Width)
-            && Height.Equals(temp.Height);
+        if (other is null)
+            return false;
+        return Width == other.Width && Height == other.Height;
     }
 
     /// <inheritdoc/>

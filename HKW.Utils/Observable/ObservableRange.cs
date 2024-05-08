@@ -79,7 +79,7 @@ public class ObservableRange<T>
     {
         if (other is null)
             return false;
-        return Min.Equals(other.Min) && Max.Equals(other.Max);
+        return Min == other.Min && Max == other.Max;
     }
 
     /// <inheritdoc/>

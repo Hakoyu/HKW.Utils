@@ -82,7 +82,7 @@ public class ObservablePoint<T>
     {
         if (other is null)
             return false;
-        return X.Equals(other.X) && Y.Equals(other.Y);
+        return X == other.X && Y == other.Y;
     }
 
     /// <inheritdoc/>

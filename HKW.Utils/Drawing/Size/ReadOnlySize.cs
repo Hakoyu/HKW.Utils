@@ -8,7 +8,7 @@ namespace HKW.HKWUtils.Drawing;
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("({Width}, {Height})")]
-public struct ReadOnlySize<T> : IEquatable<ReadOnlySize<T>>, IReadOnlySize<T>
+public struct ReadOnlySize<T> : IEquatable<IReadOnlySize<T>>, IReadOnlySize<T>
     where T : struct, INumber<T>
 {
     /// <summary>
@@ -44,13 +44,15 @@ public struct ReadOnlySize<T> : IEquatable<ReadOnlySize<T>>, IReadOnlySize<T>
     {
         if (obj is null)
             return false;
-        return Equals((ReadOnlySize<T>)obj);
+        return Equals((IReadOnlySize<T>)obj);
     }
 
     /// <inheritdoc/>
-    public bool Equals(ReadOnlySize<T> other)
+    public bool Equals(IReadOnlySize<T>? other)
     {
-        return Width.Equals(other.Width) && Height.Equals(other.Height);
+        if (other is null)
+            return false;
+        return Width == other.Width && Height == other.Height;
     }
 
     /// <inheritdoc/>

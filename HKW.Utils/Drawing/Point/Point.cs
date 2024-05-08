@@ -9,7 +9,7 @@ namespace HKW.HKWUtils.Drawing;
 /// </summary>
 /// <typeparam name="T">数据类型</typeparam>
 [DebuggerDisplay("({X}, {Y})")]
-public struct Point<T> : IEquatable<Point<T>>, ICloneable<Point<T>>, IPoint<T>
+public struct Point<T> : IEquatable<IReadOnlyPoint<T>>, IPoint<T>
     where T : struct, INumber<T>
 {
     /// <summary>
@@ -40,16 +40,6 @@ public struct Point<T> : IEquatable<Point<T>>, ICloneable<Point<T>>, IPoint<T>
     /// <inheritdoc/>
     public T Y { get; set; }
 
-    #region Clone
-    /// <inheritdoc/>
-    public Point<T> Clone()
-    {
-        return new(X, Y);
-    }
-
-    object ICloneable.Clone() => Clone();
-    #endregion
-
     #region Equals
 
     /// <inheritdoc/>
@@ -63,13 +53,15 @@ public struct Point<T> : IEquatable<Point<T>>, ICloneable<Point<T>>, IPoint<T>
     {
         if (obj is null)
             return false;
-        return Equals((Point<T>)obj);
+        return Equals((IReadOnlyPoint<T>)obj);
     }
 
     /// <inheritdoc/>
-    public bool Equals(Point<T> other)
+    public bool Equals(IReadOnlyPoint<T>? other)
     {
-        return X.Equals(other.X) && Y.Equals(other.Y);
+        if (other is null)
+            return false;
+        return X == other.X && Y == other.Y;
     }
 
     /// <inheritdoc/>

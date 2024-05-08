@@ -9,7 +9,7 @@ namespace HKW.HKWUtils.Drawing;
 /// </summary>
 /// <typeparam name="T">数据类型</typeparam>
 [DebuggerDisplay("({X}, {Y})")]
-public struct ReadOnlyPoint<T> : IEquatable<ReadOnlyPoint<T>>, IReadOnlyPoint<T>
+public struct ReadOnlyPoint<T> : IEquatable<IReadOnlyPoint<T>>, IReadOnlyPoint<T>
     where T : struct, INumber<T>
 {
     /// <summary>
@@ -53,13 +53,15 @@ public struct ReadOnlyPoint<T> : IEquatable<ReadOnlyPoint<T>>, IReadOnlyPoint<T>
     {
         if (obj is null)
             return false;
-        return Equals((ReadOnlyPoint<T>)obj);
+        return Equals((IReadOnlyPoint<T>)obj);
     }
 
     /// <inheritdoc/>
-    public bool Equals(ReadOnlyPoint<T> other)
+    public bool Equals(IReadOnlyPoint<T>? other)
     {
-        return X.Equals(other.X) && Y.Equals(other.Y);
+        if (other is null)
+            return false;
+        return X == other.X && Y == other.Y;
     }
 
     /// <inheritdoc/>
