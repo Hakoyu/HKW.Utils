@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Observable;
@@ -7,7 +8,7 @@ namespace HKW.HKWUtils.Observable;
 /// <summary>
 /// 可观察对象
 /// <para>示例:<code><![CDATA[
-/// public class ViewModelExample : ViewModelBase<ViewModelExample>
+/// public class ViewModelExample : ObservableObjectX
 /// {
 ///     int _value = 0;
 ///     public int Value
@@ -21,8 +22,16 @@ public abstract class ObservableObjectX
     : INotifyPropertyChanging,
         INotifyPropertyChanged,
         INotifyPropertyChangingX,
-        INotifyPropertyChangedX
+        INotifyPropertyChangedX,
+        INotifyMemberPropertyChangedX
 {
+    /// <inheritdoc/>
+    protected ObservableObjectX()
+    {
+        PropertyChanged -= ObservableObjectX_PropertyChanged;
+        PropertyChanged += ObservableObjectX_PropertyChanged;
+    }
+
     #region OnPropertyChange
     /// <summary>
     /// 设置属性值
@@ -112,6 +121,17 @@ public abstract class ObservableObjectX
     {
         PropertyChanged?.Invoke(this, new(propertyName));
         PropertyChangedX?.Invoke(this, new(propertyName, oldValue, newValue));
+        if (
+            NotifyMemberProperties.TryGetValue(propertyName, out var oldMember)
+            && newValue is INotifyPropertyChangedX newMember
+        )
+        {
+            oldMember.PropertyChangedX -= Member_PropertyChangedX;
+
+            NotifyMemberProperties[propertyName] = newMember;
+            newMember.PropertyChangedX -= Member_PropertyChangedX;
+            newMember.PropertyChangedX += Member_PropertyChangedX;
+        }
     }
 
     /// <summary>
@@ -126,26 +146,21 @@ public abstract class ObservableObjectX
     }
     #endregion
 
-    #region NotifyPropertyOnPropertyChanged
+    #region NotifyPropertyChanged
     /// <summary>
     /// 通知映射
-    /// <para>(TourcePropertyName, TargetPropertyNames)</para>
+    /// <para>(SourcePropertyName, TargetPropertyNames)</para>
     /// </summary>
-    protected Dictionary<string, HashSet<string>> NotifyMap { get; set; } = new();
+    protected Dictionary<string, HashSet<string>> NotifyProperties { get; set; } = null!;
 
     /// <summary>
     /// 在源属性已改变后通知目标属性改变
     /// </summary>
     /// <param name="sourcePropertyName">源属性名</param>
     /// <param name="targetPropertyName">目标属性名</param>
-    public void NotifyPropertyOnPropertyChanged(
-        string sourcePropertyName,
-        string targetPropertyName
-    )
+    protected void NotifyPropertyChanged(string sourcePropertyName, string targetPropertyName)
     {
-        PropertyChanged -= ObservableObjectX_PropertyChanged;
-        PropertyChanged += ObservableObjectX_PropertyChanged;
-        var map = NotifyMap.GetOrCreateValue(sourcePropertyName);
+        var map = NotifyProperties.GetOrCreateValue(sourcePropertyName);
         map.Add(targetPropertyName);
     }
 
@@ -154,14 +169,12 @@ public abstract class ObservableObjectX
     /// </summary>
     /// <param name="sourcePropertyName">源属性名</param>
     /// <param name="targetPropertyNames">目标属性名</param>
-    public void NotifyPropertyOnPropertyChanged(
+    protected void NotifyPropertyChanged(
         string sourcePropertyName,
         IEnumerable<string> targetPropertyNames
     )
     {
-        PropertyChanged -= ObservableObjectX_PropertyChanged;
-        PropertyChanged += ObservableObjectX_PropertyChanged;
-        var map = NotifyMap.GetOrCreateValue(sourcePropertyName);
+        var map = NotifyProperties.GetOrCreateValue(sourcePropertyName);
         map.UnionWith(targetPropertyNames);
     }
 
@@ -170,16 +183,14 @@ public abstract class ObservableObjectX
     /// </summary>
     /// <param name="sourcePropertyNames">源属性名</param>
     /// <param name="targetPropertyName">目标属性名</param>
-    public void NotifyPropertyOnPropertyChanged(
+    protected void NotifyPropertyChanged(
         IEnumerable<string> sourcePropertyNames,
         string targetPropertyName
     )
     {
-        PropertyChanged -= ObservableObjectX_PropertyChanged;
-        PropertyChanged += ObservableObjectX_PropertyChanged;
         foreach (var sourcePropertyName in sourcePropertyNames)
         {
-            var map = NotifyMap.GetOrCreateValue(sourcePropertyName);
+            var map = NotifyProperties.GetOrCreateValue(sourcePropertyName);
             map.Add(targetPropertyName);
         }
     }
@@ -189,16 +200,14 @@ public abstract class ObservableObjectX
     /// </summary>
     /// <param name="sourcePropertyNames">源属性名</param>
     /// <param name="targetPropertyNames">目标属性名</param>
-    public void NotifyPropertyOnPropertyChanged(
+    protected void NotifyPropertyChanged(
         IEnumerable<string> sourcePropertyNames,
         IEnumerable<string> targetPropertyNames
     )
     {
-        PropertyChanged -= ObservableObjectX_PropertyChanged;
-        PropertyChanged += ObservableObjectX_PropertyChanged;
         foreach (var sourcePropertyName in sourcePropertyNames)
         {
-            var map = NotifyMap.GetOrCreateValue(sourcePropertyName);
+            var map = NotifyProperties.GetOrCreateValue(sourcePropertyName);
             map.UnionWith(targetPropertyNames);
         }
     }
@@ -207,13 +216,72 @@ public abstract class ObservableObjectX
     {
         if (e.PropertyName is null)
             return;
-        if (NotifyMap.TryGetValue(e.PropertyName, out var targetPropertyNames))
+        if (NotifyProperties.TryGetValue(e.PropertyName, out var targetPropertyNames))
         {
             foreach (var name in targetPropertyNames)
                 OnPropertyChanged(name);
         }
     }
     #endregion
+
+    #region  MemberPropertyChanged
+    /// <summary>
+    /// 通知成员属性改变
+    /// <para>(PropertyName, PropertyValue)</para>
+    /// </summary>
+    protected BidirectionalDictionary<
+        string,
+        INotifyPropertyChangedX
+    > NotifyMemberProperties { get; set; } = null!;
+
+    /// <summary>
+    /// 通知成员属性改变
+    /// </summary>
+    /// <param name="memberName">成员名称</param>
+    /// <param name="member">成员</param>
+    protected void NotifyMemberPropertyChanged(string memberName, INotifyPropertyChangedX member)
+    {
+        NotifyMemberProperties ??= new();
+        NotifyMemberProperties.Add(memberName, member);
+        member.PropertyChangedX -= Member_PropertyChangedX;
+        member.PropertyChangedX += Member_PropertyChangedX;
+    }
+
+    /// <summary>
+    /// 删除通知成员属性改变
+    /// </summary>
+    /// <param name="memberName">成员名称</param>
+    protected bool RemoveNotifyMemberPropertyChanged(string memberName)
+    {
+        var result = NotifyMemberProperties.Remove(memberName, out var member);
+        if (result)
+            member!.PropertyChangedX -= Member_PropertyChangedX;
+        return result;
+    }
+
+    /// <summary>
+    /// 删除通知成员属性改变
+    /// </summary>
+    /// <param name="member">成员</param>
+    protected bool RemoveNotifyMemberPropertyChanged(INotifyPropertyChangedX member)
+    {
+        var result = NotifyMemberProperties.Remove(member);
+        if (result)
+            member.PropertyChangedX -= Member_PropertyChangedX;
+        return result;
+    }
+
+    private void Member_PropertyChangedX(object? sender, PropertyChangedXEventArgs e)
+    {
+        if (sender is not INotifyPropertyChangedX notify)
+            return;
+        MemberPropertyChangedX?.Invoke(
+            sender,
+            new(NotifyMemberProperties[notify], e.PropertyName, e.OldValue, e.NewValue)
+        );
+    }
+    #endregion
+
     #region Event
     /// <inheritdoc/>
     public event PropertyChangingEventHandler? PropertyChanging;
@@ -226,22 +294,8 @@ public abstract class ObservableObjectX
 
     /// <inheritdoc/>
     public event PropertyChangedXEventHandler? PropertyChangedX;
-    #endregion
-    /// <summary>
-    /// 值缓存
-    /// </summary>
-    /// <param name="oldValue">旧值</param>
-    /// <param name="newValue">新值</param>
-    protected class ValueBuffer(object? oldValue, object? newValue)
-    {
-        /// <summary>
-        /// 旧值
-        /// </summary>
-        public WeakReference OldValue { get; } = new(oldValue);
 
-        /// <summary>
-        /// 新值
-        /// </summary>
-        public WeakReference NewValue { get; } = new(newValue);
-    }
+    /// <inheritdoc/>
+    public event MemberPropertyChangedXEventHandler? MemberPropertyChangedX;
+    #endregion
 }

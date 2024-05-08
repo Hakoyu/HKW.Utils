@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
-using HKW.HKWUtils;
+using HKW.HKWUtils.Drawing;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -14,7 +14,7 @@ public class ObservableRange<T>
         IEquatable<ObservableRange<T>>,
         ICloneable<ObservableRange<T>>,
         IRange<T>
-    where T : INumber<T>
+    where T : struct, INumber<T>
 {
     /// <inheritdoc/>
     public ObservableRange() { }
@@ -79,18 +79,17 @@ public class ObservableRange<T>
     {
         if (other is null)
             return false;
-        return EqualityComparer<T>.Default.Equals(Min, other.Min)
-            && EqualityComparer<T>.Default.Equals(Max, other.Max);
+        return Min.Equals(other.Min) && Max.Equals(other.Max);
     }
 
     /// <inheritdoc/>
-    public static bool operator ==(ObservableRange<T> a, ObservableRange<T> b)
+    public static bool operator ==(ObservableRange<T> a, IReadOnlyRange<T> b)
     {
         return a.Equals(b);
     }
 
     /// <inheritdoc/>
-    public static bool operator !=(ObservableRange<T> a, ObservableRange<T> b)
+    public static bool operator !=(ObservableRange<T> a, IReadOnlyRange<T> b)
     {
         return a.Equals(b) is not true;
     }

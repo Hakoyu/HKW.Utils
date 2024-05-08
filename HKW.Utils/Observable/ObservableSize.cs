@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 using HKW.HKWUtils;
+using HKW.HKWUtils.Drawing;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -14,7 +15,7 @@ public class ObservableSize<T>
         IEquatable<ObservableSize<T>>,
         ICloneable<ObservableSize<T>>,
         ISize<T>
-    where T : INumber<T>
+    where T : struct, INumber<T>
 {
     /// <inheritdoc/>
     public ObservableSize() { }
@@ -83,13 +84,13 @@ public class ObservableSize<T>
     }
 
     /// <inheritdoc/>
-    public static bool operator ==(ObservableSize<T> a, ObservableSize<T> b)
+    public static bool operator ==(ObservableSize<T> a, IReadOnlySize<T> b)
     {
         return a.Equals(b);
     }
 
     /// <inheritdoc/>
-    public static bool operator !=(ObservableSize<T> a, ObservableSize<T> b)
+    public static bool operator !=(ObservableSize<T> a, IReadOnlySize<T> b)
     {
         return a.Equals(b) is not true;
     }

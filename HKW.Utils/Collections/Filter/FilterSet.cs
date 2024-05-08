@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Extensions;
 
-namespace HKW.HKWUtils.Collections.Filter;
+namespace HKW.HKWUtils.Collections;
 
 /// <summary>
 /// 过滤集合

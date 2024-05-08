@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace HKW.HKWUtils;
+namespace HKW.HKWUtils.Drawing;
 
 /// <summary>
 /// 三维大小接口

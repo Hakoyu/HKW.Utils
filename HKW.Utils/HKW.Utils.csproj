@@ -39,6 +39,7 @@
 
 	<ItemGroup>
 		<Folder Include="Exceptions\" />
+		<Folder Include="Utils\Interfaces\" />
 	</ItemGroup>
 
 </Project>

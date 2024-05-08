@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Drawing;
 using System.Globalization;
 using HKW.HKWUtils;
 using HKW.HKWUtils.Collections;
@@ -20,6 +21,8 @@ internal class Program
     private static void Main(string[] args)
     {
 #if DEBUG
+        var p1 = new ObservablePoint<int>();
+        //var p2 = new ReadOnlyObservablePoint<int>();
         //var ol = new ObservableList<int>();
         //var l = new List<int>();
         //ol.BindingList(l);
@@ -31,22 +34,22 @@ internal class Program
         ////ol.Clear();
         //ol.BindingList(l, true);
         //ol.Add(1);
-        I18nResource.AddCulture("zh");
-        I18nResource.AddCulture("en");
-        I18nResource.SetCurrentCulture("zh");
-        var v1 = new TestModel();
-        v1.PropertyChangedX += (s, e) =>
-        {
-            Debug.WriteLine($"V1: {e.PropertyName} = {e.NewValue}");
-            return;
-        };
-        var v2 = new TestModel();
-        v2.PropertyChangedX += (s, e) =>
-        {
-            Debug.WriteLine($"V2: {e.PropertyName} = {e.NewValue}");
-            return;
-        };
-        v1.ID = "1";
+        //I18nResource.AddCulture("zh");
+        //I18nResource.AddCulture("en");
+        //I18nResource.SetCurrentCulture("zh");
+        //var v1 = new TestModel();
+        //v1.PropertyChangedX += (s, e) =>
+        //{
+        //    Debug.WriteLine($"V1: {e.PropertyName} = {e.NewValue}");
+        //    return;
+        //};
+        //var v2 = new TestModel();
+        //v2.PropertyChangedX += (s, e) =>
+        //{
+        //    Debug.WriteLine($"V2: {e.PropertyName} = {e.NewValue}");
+        //    return;
+        //};
+        //v1.ID = "1";
         //v1.Name = "zh-1";
         //v1.Name = "zh-2";
         //v1.ID = "2";
@@ -96,10 +99,20 @@ internal class TestModel : ObservableObjectX
 {
     public TestModel()
     {
-        NotifyPropertyOnPropertyChanged(nameof(ID), nameof(IDX));
+        //NotifyPropertyOnPropertyChanged(nameof(ID), nameof(IDX));
+        NotifyMemberPropertyChanged(nameof(Size), Size);
+        MemberPropertyChangedX += TestModel_MemberPropertyChangedX;
+        Size.Width = 10;
+        RemoveNotifyMemberPropertyChanged(Size);
+        Size.Height = 10;
         //Program.I18nResource.I18nObjectInfos.Add(
         //    this, new(this, SetProperty)
         //);
+    }
+
+    private void TestModel_MemberPropertyChangedX(object? sender, MemberPropertyChangedXEventArgs e)
+    {
+        return;
     }
 
     #region ID
@@ -121,6 +134,6 @@ internal class TestModel : ObservableObjectX
     //}
     //#endregion
 
-    public string IDX => ID + "X";
+    public ObservableSize<int> Size { get; } = new();
 }
 #endif

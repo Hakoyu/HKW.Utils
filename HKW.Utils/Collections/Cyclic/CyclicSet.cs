@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HKW.HKWUtils.Collections.Cyclic;
+namespace HKW.HKWUtils.Collections;
 
 /// <summary>
 /// 循环集合

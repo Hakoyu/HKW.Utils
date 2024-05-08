@@ -1,21 +1,21 @@
 ﻿using System.Numerics;
 
-namespace HKW.HKWUtils;
+namespace HKW.HKWUtils.Drawing;
 
 /// <summary>
 /// 范围接口
 /// </summary>
 /// <typeparam name="T">数据类型</typeparam>
-public interface IRange<T>
-    where T : INumber<T>
+public interface IRange<T> : IReadOnlyRange<T>
+    where T : struct, INumber<T>
 {
     /// <summary>
     /// 最小值
     /// </summary>
-    public T Min { get; set; }
+    public new T Min { get; set; }
 
     /// <summary>
     /// 最大值
     /// </summary>
-    public T Max { get; set; }
+    public new T Max { get; set; }
 }

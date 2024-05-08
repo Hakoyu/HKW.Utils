@@ -17,7 +17,7 @@ public static partial class HKWExtensions
     /// <param name="item">项目</param>
     /// <returns>集合</returns>
     public static TCollection Add<TItem, TCollection>(this TCollection collection, TItem item)
-        where TCollection : ICollection<TItem>
+        where TCollection : class, ICollection<TItem>
     {
         collection.Add(item);
         return collection;

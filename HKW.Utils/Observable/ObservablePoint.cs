@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Numerics;
 using System.Windows;
 using HKW.HKWUtils;
+using HKW.HKWUtils.Drawing;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -16,7 +17,7 @@ public class ObservablePoint<T>
         IEquatable<ObservablePoint<T>>,
         ICloneable<ObservablePoint<T>>,
         IPoint<T>
-    where T : INumber<T>
+    where T : struct, INumber<T>
 {
     /// <inheritdoc/>
     public ObservablePoint() { }
@@ -81,18 +82,17 @@ public class ObservablePoint<T>
     {
         if (other is null)
             return false;
-        return EqualityComparer<T>.Default.Equals(X, other.X)
-            && EqualityComparer<T>.Default.Equals(Y, other.Y);
+        return X.Equals(other.X) && Y.Equals(other.Y);
     }
 
     /// <inheritdoc/>
-    public static bool operator ==(ObservablePoint<T> a, ObservablePoint<T> b)
+    public static bool operator ==(ObservablePoint<T> a, IReadOnlyPoint<T> b)
     {
         return a.Equals(b);
     }
 
     /// <inheritdoc/>
-    public static bool operator !=(ObservablePoint<T> a, ObservablePoint<T> b)
+    public static bool operator !=(ObservablePoint<T> a, IReadOnlyPoint<T> b)
     {
         return a.Equals(b) is not true;
     }
