@@ -1,6 +1,6 @@
-﻿using HKW.HKWUtils.Natives;
-using System.Collections;
+﻿using System.Collections;
 using System.Diagnostics;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -10,7 +10,6 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 public class ReadOnlySet<T> : ISet<T>, IReadOnlySet<T>
-    where T : notnull
 {
     /// <summary>
     /// 原始集合

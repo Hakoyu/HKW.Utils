@@ -212,7 +212,7 @@ public class FilterList<TItem, TFilteredList>
     }
     #endregion
 
-    #region IListX
+    #region IListRange
     /// <inheritdoc/>
     public void AddRange(IEnumerable<TItem> collection)
     {

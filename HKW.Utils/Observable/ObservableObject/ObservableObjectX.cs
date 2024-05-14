@@ -122,7 +122,7 @@ public abstract class ObservableObjectX
         PropertyChanged?.Invoke(this, new(propertyName));
         PropertyChangedX?.Invoke(this, new(propertyName, oldValue, newValue));
         if (
-            NotifyMemberProperties.TryGetValue(propertyName, out var oldMember)
+            NotifyMemberProperties?.TryGetValue(propertyName, out var oldMember) is true
             && newValue is INotifyPropertyChangedX newMember
         )
         {
@@ -160,6 +160,7 @@ public abstract class ObservableObjectX
     /// <param name="targetPropertyName">目标属性名</param>
     protected void NotifyPropertyChanged(string sourcePropertyName, string targetPropertyName)
     {
+        NotifyProperties ??= new();
         var map = NotifyProperties.GetOrCreateValue(sourcePropertyName);
         map.Add(targetPropertyName);
     }
@@ -174,6 +175,7 @@ public abstract class ObservableObjectX
         IEnumerable<string> targetPropertyNames
     )
     {
+        NotifyProperties ??= new();
         var map = NotifyProperties.GetOrCreateValue(sourcePropertyName);
         map.UnionWith(targetPropertyNames);
     }
@@ -188,6 +190,7 @@ public abstract class ObservableObjectX
         string targetPropertyName
     )
     {
+        NotifyProperties ??= new();
         foreach (var sourcePropertyName in sourcePropertyNames)
         {
             var map = NotifyProperties.GetOrCreateValue(sourcePropertyName);
@@ -205,6 +208,7 @@ public abstract class ObservableObjectX
         IEnumerable<string> targetPropertyNames
     )
     {
+        NotifyProperties ??= new();
         foreach (var sourcePropertyName in sourcePropertyNames)
         {
             var map = NotifyProperties.GetOrCreateValue(sourcePropertyName);
@@ -216,7 +220,7 @@ public abstract class ObservableObjectX
     {
         if (e.PropertyName is null)
             return;
-        if (NotifyProperties.TryGetValue(e.PropertyName, out var targetPropertyNames))
+        if (NotifyProperties?.TryGetValue(e.PropertyName, out var targetPropertyNames) is true)
         {
             foreach (var name in targetPropertyNames)
                 OnPropertyChanged(name);
