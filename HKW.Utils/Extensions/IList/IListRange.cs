@@ -21,10 +21,6 @@ public static partial class HKWExtensions
         {
             baseList.AddRange(collection);
         }
-        else if (list is IListRange<T> listRange)
-        {
-            listRange.AddRange(listRange);
-        }
         else
         {
             foreach (var item in collection)
@@ -48,10 +44,6 @@ public static partial class HKWExtensions
         if (list is List<T> baseList)
         {
             baseList.InsertRange(index, collection);
-        }
-        else if (list is IListRange<T> listRange)
-        {
-            listRange.InsertRange(index, listRange);
         }
         else
         {
@@ -85,10 +77,6 @@ public static partial class HKWExtensions
         {
             baseList.RemoveRange(index, count);
         }
-        else if (list is IListRange<T> listRange)
-        {
-            listRange.RemoveRange(index, count);
-        }
         else
         {
             for (var i = index + count - 1; i >= index; i--)
@@ -107,10 +95,6 @@ public static partial class HKWExtensions
         if (list is List<T> baseList)
         {
             baseList.RemoveAll(match);
-        }
-        else if (list is IListRange<T> listRange)
-        {
-            listRange.RemoveAll(match);
         }
         else
         {
@@ -132,10 +116,6 @@ public static partial class HKWExtensions
         if (list is List<T> baseList)
         {
             baseList.Reverse();
-        }
-        else if (list is IListRange<T> listRange)
-        {
-            listRange.Reverse();
         }
         else
         {
@@ -171,10 +151,6 @@ public static partial class HKWExtensions
         if (list is List<T> baseList)
         {
             baseList.Reverse(index, count);
-        }
-        else if (list is IListRange<T> listRange)
-        {
-            listRange.Reverse(index, count);
         }
         else
         {

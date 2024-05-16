@@ -12,10 +12,10 @@ namespace HKW.HKWUtils.Collections;
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
 public sealed class SimpleSingleItemReadOnlyList<T> : IList<T>, IList
 {
-    private readonly T _item;
-
     /// <inheritdoc/>
     public SimpleSingleItemReadOnlyList(T item) => _item = item;
+
+    private readonly T _item;
 
     #region IListT
     /// <inheritdoc/>
@@ -70,7 +70,7 @@ public sealed class SimpleSingleItemReadOnlyList<T> : IList<T>, IList
     /// <inheritdoc/>
     public bool Contains(T item)
     {
-        return _item is null ? item is null : _item.Equals(item);
+        return _item?.Equals(item) is true;
     }
 
     /// <inheritdoc/>
@@ -135,12 +135,12 @@ public sealed class SimpleSingleItemReadOnlyList<T> : IList<T>, IList
 
     bool IList.Contains(object? value)
     {
-        return _item is null ? value is null : _item.Equals(value);
+        return _item?.Equals(value) is true;
     }
 
     int IList.IndexOf(object? value)
     {
-        return (_item is null ? value is null : _item.Equals(value)) ? 0 : -1;
+        return _item?.Equals(value) is true ? 0 : -1;
     }
 
     void ICollection.CopyTo(Array array, int index)

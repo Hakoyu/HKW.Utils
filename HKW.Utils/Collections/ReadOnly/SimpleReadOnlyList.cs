@@ -13,14 +13,15 @@ namespace HKW.HKWUtils.Collections;
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
 public class SimpleReadOnlyList<T> : IList<T>, IList
 {
-    private readonly IList<T> _list;
-
+    /// <inheritdoc/>
     public SimpleReadOnlyList(IEnumerable<T> collection)
     {
         if (collection is IList && collection is IList<T> list)
             _list = list;
         _list = collection.ToList();
     }
+
+    private readonly IList<T> _list;
 
     #region IListT
     /// <inheritdoc/>

@@ -6,4 +6,4 @@ namespace HKW.HKWUtils.Observable;
 /// 高级可观测列表接口
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
-public interface IObservableListX<T> : IObservableList<T>, IListRange<T> { }
+public interface IObservableListX<T> : IObservableList<T> { }

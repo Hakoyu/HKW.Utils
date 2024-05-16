@@ -16,20 +16,39 @@ namespace HKW.HKWUtils.Collections;
 /// </summary>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
-public class FilterSet<TItem, TFilteredSet>
-    : ISet<TItem>,
-        IReadOnlySet<TItem>,
-        IFilterCollection<TItem, TFilteredSet>
-    where TFilteredSet : ISet<TItem>
+public class FilterSet<T, TSet, TFilteredSet>
+    : ISet<T>,
+        IReadOnlySet<T>,
+        IFilterCollection<T, TSet, TFilteredSet>
+    where TSet : ISet<T>
+    where TFilteredSet : ISet<T>
 {
-    private readonly HashSet<TItem> _set = new();
+    #region Ctor
+    /// <inheritdoc/>
+    /// <param name="set">集合</param>
+    /// <param name="filteredSet">过滤集合</param>
+    /// <param name="filter">过滤器</param>
+    public FilterSet(TSet set, TFilteredSet filteredSet, Predicate<T> filter)
+    {
+        Set = set;
+        FilteredSet = filteredSet;
+        Filter = filter;
+    }
 
-    private Predicate<TItem> _filter = null!;
+    /// <inheritdoc/>
+    /// <param name="set">集合</param>
+    /// <param name="getFilteredSet">获取过滤集合</param>
+    /// <param name="filter">过滤器</param>
+    public FilterSet(TSet set, Func<TSet, TFilteredSet> getFilteredSet, Predicate<T> filter)
+        : this(set, getFilteredSet(set), filter) { }
+    #endregion
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private Predicate<T> _filter = null!;
 
     /// <summary>
     /// 过滤器
     /// </summary>
-    public required Predicate<TItem> Filter
+    public required Predicate<T> Filter
     {
         get => _filter;
         set
@@ -39,94 +58,48 @@ public class FilterSet<TItem, TFilteredSet>
         }
     }
 
-    private TFilteredSet _filteredSet = default!;
+    /// <summary>
+    /// 集合
+    /// <para>使用此属性修改集合时不会同步至 <see cref="FilteredSet"/></para>
+    /// </summary>
+    public TSet Set { get; }
 
     /// <summary>
     /// 过滤完成的集合
     /// </summary>
-    public required TFilteredSet FilteredSet
-    {
-        get => _filteredSet;
-        init
-        {
-            _filteredSet = value;
-            Refresh();
-        }
-    }
-    TFilteredSet IFilterCollection<TItem, TFilteredSet>.FilteredCollection => FilteredSet;
+    public TFilteredSet FilteredSet { get; }
 
-    #region Ctor
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    TSet IFilterCollection<T, TSet, TFilteredSet>.Collection => Set;
 
-    /// <inheritdoc/>
-    public FilterSet()
-        : this(null, null, null) { }
-
-    /// <inheritdoc/>
-    /// <param name="capacity">容量</param>
-    public FilterSet(int capacity)
-        : this(capacity, null, null) { }
-
-    /// <inheritdoc/>
-    /// <param name="comparer">比较器</param>
-    public FilterSet(IEqualityComparer<TItem> comparer)
-        : this(null, null, comparer) { }
-
-    /// <inheritdoc/>
-    /// <param name="collection">集合</param>
-    public FilterSet(IEnumerable<TItem> collection)
-        : this(null, collection, null) { }
-
-    /// <inheritdoc/>
-    ///  <param name="collection">集合</param>
-    /// <param name="comparer">比较器</param>
-    public FilterSet(IEnumerable<TItem> collection, IEqualityComparer<TItem>? comparer)
-        : this(null, collection, comparer) { }
-
-    /// <inheritdoc/>
-    /// <param name="capacity">容量</param>
-    /// <param name="comparer">比较器</param>
-    public FilterSet(int capacity, IEqualityComparer<TItem>? comparer)
-        : this(capacity, null, comparer) { }
-
-    private FilterSet(
-        int? capacity,
-        IEnumerable<TItem>? collection,
-        IEqualityComparer<TItem>? comparer
-    )
-    {
-        if (capacity is not null)
-            _set = new(capacity.Value, comparer);
-        if (collection is not null)
-            _set = new(collection, comparer);
-        else
-            _set = new(comparer);
-    }
-    #endregion
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    TFilteredSet IFilterCollection<T, TSet, TFilteredSet>.FilteredCollection => FilteredSet;
 
     /// <summary>
     /// 刷新过滤集合
     /// </summary>
     public void Refresh()
     {
-        if (FilteredSet is null || Filter is null)
+        if (FilteredSet.IsReadOnly)
             return;
-        FilteredSet.Clear();
-        if (_set.HasValue())
-            FilteredSet.AddRange(_set.Where(i => Filter(i)));
+        if (Filter is null)
+            FilteredSet.AddRange(Set);
+        else if (Set.HasValue())
+            FilteredSet.AddRange(Set.Where(i => Filter(i)));
     }
 
     #region ISet
     /// <inheritdoc/>
-    public int Count => ((ICollection<TItem>)_set).Count;
+    public int Count => ((ICollection<T>)Set).Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<TItem>)_set).IsReadOnly;
+    public bool IsReadOnly => ((ICollection<T>)Set).IsReadOnly;
 
     /// <inheritdoc/>
-    public bool Add(TItem item)
+    public bool Add(T item)
     {
-        var result = ((ISet<TItem>)_set).Add(item);
-        if (result && Filter(item))
+        var result = ((ISet<T>)Set).Add(item);
+        if (result && Filter(item) && FilteredSet.IsReadOnly is false)
             FilteredSet.Add(item);
         return result;
     }
@@ -134,110 +107,122 @@ public class FilterSet<TItem, TFilteredSet>
     /// <inheritdoc/>
     public void Clear()
     {
-        ((ICollection<TItem>)_set).Clear();
+        ((ICollection<T>)Set).Clear();
+        if (FilteredSet.IsReadOnly)
+            return;
         FilteredSet.Clear();
     }
 
     /// <inheritdoc/>
-    public bool Contains(TItem item)
+    public bool Contains(T item)
     {
-        return ((ICollection<TItem>)_set).Contains(item);
+        return ((ICollection<T>)Set).Contains(item);
     }
 
     /// <inheritdoc/>
-    public void CopyTo(TItem[] array, int arrayIndex)
+    public void CopyTo(T[] array, int arrayIndex)
     {
-        ((ICollection<TItem>)_set).CopyTo(array, arrayIndex);
+        ((ICollection<T>)Set).CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
-    public void ExceptWith(IEnumerable<TItem> other)
+    public void ExceptWith(IEnumerable<T> other)
     {
-        ((ISet<TItem>)_set).ExceptWith(other);
+        ((ISet<T>)Set).ExceptWith(other);
+        if (FilteredSet.IsReadOnly)
+            return;
         FilteredSet.ExceptWith(other.Where(i => Filter(i)));
     }
 
     /// <inheritdoc/>
-    public IEnumerator<TItem> GetEnumerator()
+    public IEnumerator<T> GetEnumerator()
     {
-        return ((IEnumerable<TItem>)_set).GetEnumerator();
+        return ((IEnumerable<T>)Set).GetEnumerator();
     }
 
     /// <inheritdoc/>
-    public void IntersectWith(IEnumerable<TItem> other)
+    public void IntersectWith(IEnumerable<T> other)
     {
-        ((ISet<TItem>)_set).IntersectWith(other);
+        ((ISet<T>)Set).IntersectWith(other);
+        if (FilteredSet.IsReadOnly)
+            return;
         FilteredSet.IntersectWith(other.Where(i => Filter(i)));
     }
 
     /// <inheritdoc/>
-    public bool IsProperSubsetOf(IEnumerable<TItem> other)
+    public bool IsProperSubsetOf(IEnumerable<T> other)
     {
-        return ((ISet<TItem>)_set).IsProperSubsetOf(other);
+        return ((ISet<T>)Set).IsProperSubsetOf(other);
     }
 
     /// <inheritdoc/>
-    public bool IsProperSupersetOf(IEnumerable<TItem> other)
+    public bool IsProperSupersetOf(IEnumerable<T> other)
     {
-        return ((ISet<TItem>)_set).IsProperSupersetOf(other);
+        return ((ISet<T>)Set).IsProperSupersetOf(other);
     }
 
     /// <inheritdoc/>
-    public bool IsSubsetOf(IEnumerable<TItem> other)
+    public bool IsSubsetOf(IEnumerable<T> other)
     {
-        return ((ISet<TItem>)_set).IsSubsetOf(other);
+        return ((ISet<T>)Set).IsSubsetOf(other);
     }
 
     /// <inheritdoc/>
-    public bool IsSupersetOf(IEnumerable<TItem> other)
+    public bool IsSupersetOf(IEnumerable<T> other)
     {
-        return ((ISet<TItem>)_set).IsSupersetOf(other);
+        return ((ISet<T>)Set).IsSupersetOf(other);
     }
 
     /// <inheritdoc/>
-    public bool Overlaps(IEnumerable<TItem> other)
+    public bool Overlaps(IEnumerable<T> other)
     {
-        return ((ISet<TItem>)_set).Overlaps(other);
+        return ((ISet<T>)Set).Overlaps(other);
     }
 
     /// <inheritdoc/>
-    public bool Remove(TItem item)
+    public bool Remove(T item)
     {
-        var result = ((ICollection<TItem>)_set).Remove(item);
+        var result = ((ICollection<T>)Set).Remove(item);
         FilteredSet.Remove(item);
         return result;
     }
 
     /// <inheritdoc/>
-    public bool SetEquals(IEnumerable<TItem> other)
+    public bool SetEquals(IEnumerable<T> other)
     {
-        return ((ISet<TItem>)_set).SetEquals(other);
+        return ((ISet<T>)Set).SetEquals(other);
     }
 
     /// <inheritdoc/>
-    public void SymmetricExceptWith(IEnumerable<TItem> other)
+    public void SymmetricExceptWith(IEnumerable<T> other)
     {
-        ((ISet<TItem>)_set).SymmetricExceptWith(other);
+        ((ISet<T>)Set).SymmetricExceptWith(other);
+        if (FilteredSet.IsReadOnly)
+            return;
         FilteredSet.SymmetricExceptWith(other.Where(i => Filter(i)));
     }
 
     /// <inheritdoc/>
-    public void UnionWith(IEnumerable<TItem> other)
+    public void UnionWith(IEnumerable<T> other)
     {
-        ((ISet<TItem>)_set).UnionWith(other);
+        ((ISet<T>)Set).UnionWith(other);
+        if (FilteredSet.IsReadOnly)
+            return;
         FilteredSet.UnionWith(other.Where(i => Filter(i)));
     }
 
-    void ICollection<TItem>.Add(TItem item)
+    void ICollection<T>.Add(T item)
     {
-        ((ICollection<TItem>)_set).Add(item);
+        ((ICollection<T>)Set).Add(item);
+        if (FilteredSet.IsReadOnly)
+            return;
         if (Filter(item))
             FilteredSet.Add(item);
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)_set).GetEnumerator();
+        return ((IEnumerable)Set).GetEnumerator();
     }
     #endregion
 }

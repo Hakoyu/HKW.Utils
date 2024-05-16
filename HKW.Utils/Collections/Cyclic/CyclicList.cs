@@ -19,7 +19,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="T">项目类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
-public class CyclicList<T> : IListRange<T>, ICyclicCollection<T>, IReadOnlyList<T>, IList
+public class CyclicList<T> : IList<T>, ICyclicCollection<T>, IReadOnlyList<T>, IList
 {
     private readonly List<T> _list;
 
@@ -195,50 +195,6 @@ public class CyclicList<T> : IListRange<T>, ICyclicCollection<T>, IReadOnlyList<
     IEnumerator IEnumerable.GetEnumerator()
     {
         return ((IEnumerable)_list).GetEnumerator();
-    }
-    #endregion
-
-    #region IListX
-    /// <inheritdoc/>
-    public void AddRange(IEnumerable<T> collection)
-    {
-        _list.AddRange(collection);
-        Reset();
-    }
-
-    /// <inheritdoc/>
-    public void InsertRange(int index, IEnumerable<T> collection)
-    {
-        _list.InsertRange(index, collection);
-        Reset();
-    }
-
-    /// <inheritdoc/>
-    public void RemoveAll(Predicate<T> match)
-    {
-        _list.RemoveAll(match);
-        Reset();
-    }
-
-    /// <inheritdoc/>
-    public void RemoveRange(int index, int count)
-    {
-        _list.RemoveRange(index, count);
-        Reset();
-    }
-
-    /// <inheritdoc/>
-    public void Reverse()
-    {
-        _list.Reverse();
-        Reset();
-    }
-
-    /// <inheritdoc/>
-    public void Reverse(int index, int count)
-    {
-        _list.Reverse(index, count);
-        Reset();
     }
     #endregion
 

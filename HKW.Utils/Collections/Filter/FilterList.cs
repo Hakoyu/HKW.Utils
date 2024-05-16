@@ -15,25 +15,46 @@ namespace HKW.HKWUtils.Collections;
 /// 过滤列表
 /// <para>基于 <see cref="Filter"/> 维护一个实时过滤的 <see cref="FilteredList"/></para>
 /// </summary>
-/// <typeparam name="TItem">项目类型</typeparam>
+/// <typeparam name="T">项目类型</typeparam>
+/// <typeparam name="TList">列表类型</typeparam>
 /// <typeparam name="TFilteredList">已过滤列表类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
-public class FilterList<TItem, TFilteredList>
-    : IListRange<TItem>,
-        IReadOnlyList<TItem>,
-        IFilterCollection<TItem, TFilteredList>,
+public class FilterList<T, TList, TFilteredList>
+    : IList<T>,
+        IReadOnlyList<T>,
+        IFilterCollection<T, TList, TFilteredList>,
         IList
-    where TFilteredList : IList<TItem>
+    where TList : IList<T>
+    where TFilteredList : IList<T>
 {
-    private readonly List<TItem> _list;
+    #region Ctor
+    /// <inheritdoc/>
+    /// <param name="list">列表</param>
+    /// <param name="filteredList">过滤列表</param>
+    /// <param name="filter">过滤器</param>
+    public FilterList(TList list, TFilteredList filteredList, Predicate<T> filter)
+    {
+        List = list;
+        FilteredList = filteredList;
+        Filter = filter;
+    }
 
-    private Predicate<TItem> _filter = null!;
+    /// <inheritdoc/>
+    /// <param name="list">列表</param>
+    /// <param name="getFilteredList">获取过滤列表</param>
+    /// <param name="filter">过滤器</param>
+    public FilterList(TList list, Func<TList, TFilteredList> getFilteredList, Predicate<T> filter)
+        : this(list, getFilteredList(list), filter) { }
+    #endregion
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private Predicate<T> _filter = null!;
 
     /// <summary>
     /// 过滤器
     /// </summary>
-    public required Predicate<TItem> Filter
+    public Predicate<T> Filter
     {
         get => _filter;
         set
@@ -43,74 +64,47 @@ public class FilterList<TItem, TFilteredList>
         }
     }
 
-    private TFilteredList _filteredList = default!;
+    /// <summary>
+    /// 列表
+    /// <para>使用此属性修改列表时不会同步至 <see cref="FilteredList"/></para>
+    /// </summary>
+    public TList List { get; }
 
     /// <summary>
     /// 过滤完成的列表
     /// </summary>
-    public required TFilteredList FilteredList
-    {
-        get => _filteredList;
-        init
-        {
-            _filteredList = value;
-            Refresh();
-        }
-    }
+    public TFilteredList FilteredList { get; }
 
-    TFilteredList IFilterCollection<TItem, TFilteredList>.FilteredCollection => FilteredList;
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    TList IFilterCollection<T, TList, TFilteredList>.Collection => List;
 
-    #region Ctor
-    /// <inheritdoc/>
-    public FilterList()
-        : this(null, null) { }
-
-    /// <inheritdoc/>
-    /// <param name="capacity">容量</param>
-    public FilterList(int capacity)
-        : this(capacity, null) { }
-
-    /// <inheritdoc/>
-    /// <param name="collection">集合</param>
-    public FilterList(IEnumerable<TItem> collection)
-        : this(null, collection) { }
-
-    /// <inheritdoc/>
-    /// <param name="capacity">容量</param>
-    /// <param name="collection">集合</param>
-    private FilterList(int? capacity, IEnumerable<TItem>? collection)
-    {
-        if (capacity is not null)
-            _list = new(capacity.Value);
-        else if (collection is not null)
-            _list = new(collection);
-        else
-            _list = new();
-    }
-    #endregion
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    TFilteredList IFilterCollection<T, TList, TFilteredList>.FilteredCollection => FilteredList;
 
     /// <summary>
     /// 刷新过滤列表
     /// </summary>
     public void Refresh()
     {
-        if (FilteredList is null || Filter is null)
+        if (FilteredList.IsReadOnly)
             return;
         FilteredList.Clear();
-        if (_list.HasValue())
-            FilteredList.AddRange(_list.Where(i => Filter(i)));
+        if (Filter is null)
+            FilteredList.AddRange(List);
+        else if (List.HasValue())
+            FilteredList.AddRange(List.Where(i => Filter(i)));
     }
 
     #region IList
     /// <inheritdoc/>
-    public TItem this[int index]
+    public T this[int index]
     {
-        get => ((IList<TItem>)_list)[index];
+        get => ((IList<T>)List)[index];
         set
         {
-            var oldValue = _list[index];
-            ((IList<TItem>)_list)[index] = value;
-            if (Filter(value) is false)
+            var oldValue = List[index];
+            ((IList<T>)List)[index] = value;
+            if (Filter(value) is false || FilteredList.IsReadOnly)
                 return;
             var tempIndex = FilteredList.IndexOf(oldValue);
             if (tempIndex != -1)
@@ -121,30 +115,26 @@ public class FilterList<TItem, TFilteredList>
     }
 
     /// <inheritdoc/>
-    public int Count => ((ICollection<TItem>)_list).Count;
+    public int Count => ((ICollection<T>)List).Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<TItem>)_list).IsReadOnly;
+    public bool IsReadOnly => ((ICollection<T>)List).IsReadOnly;
 
     /// <inheritdoc/>
-    public bool IsFixedSize => ((IList)_list).IsFixedSize;
+    public bool IsFixedSize => ((IList)List).IsFixedSize;
 
     /// <inheritdoc/>
-    public bool IsSynchronized => ((ICollection)_list).IsSynchronized;
+    public bool IsSynchronized => ((ICollection)List).IsSynchronized;
 
     /// <inheritdoc/>
-    public object SyncRoot => ((ICollection)_list).SyncRoot;
+    public object SyncRoot => ((ICollection)List).SyncRoot;
 
-    object? IList.this[int index]
+    /// <inheritdoc/>
+    public void Add(T item)
     {
-        get => ((IList)_list)[index];
-        set => ((IList)_list)[index] = value;
-    }
-
-    /// <inheritdoc/>
-    public void Add(TItem item)
-    {
-        ((ICollection<TItem>)_list).Add(item);
+        ((ICollection<T>)List).Add(item);
+        if (FilteredList.IsReadOnly)
+            return;
         if (Filter(item))
             FilteredList.Add(item);
     }
@@ -152,46 +142,52 @@ public class FilterList<TItem, TFilteredList>
     /// <inheritdoc/>
     public void Clear()
     {
-        ((ICollection<TItem>)_list).Clear();
+        ((ICollection<T>)List).Clear();
+        if (FilteredList.IsReadOnly)
+            return;
         FilteredList.Clear();
     }
 
     /// <inheritdoc/>
-    public bool Contains(TItem item)
+    public bool Contains(T item)
     {
-        return ((ICollection<TItem>)_list).Contains(item);
+        return ((ICollection<T>)List).Contains(item);
     }
 
     /// <inheritdoc/>
-    public void CopyTo(TItem[] array, int arrayIndex)
+    public void CopyTo(T[] array, int arrayIndex)
     {
-        ((ICollection<TItem>)_list).CopyTo(array, arrayIndex);
+        ((ICollection<T>)List).CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
-    public IEnumerator<TItem> GetEnumerator()
+    public IEnumerator<T> GetEnumerator()
     {
-        return ((IEnumerable<TItem>)_list).GetEnumerator();
+        return ((IEnumerable<T>)List).GetEnumerator();
     }
 
     /// <inheritdoc/>
-    public int IndexOf(TItem item)
+    public int IndexOf(T item)
     {
-        return ((IList<TItem>)_list).IndexOf(item);
+        return ((IList<T>)List).IndexOf(item);
     }
 
     /// <inheritdoc/>
-    public void Insert(int index, TItem item)
+    public void Insert(int index, T item)
     {
-        ((IList<TItem>)_list).Insert(index, item);
+        ((IList<T>)List).Insert(index, item);
+        if (FilteredList.IsReadOnly)
+            return;
         if (Filter(item))
             FilteredList.Insert(index, item);
     }
 
     /// <inheritdoc/>
-    public bool Remove(TItem item)
+    public bool Remove(T item)
     {
-        var result = ((ICollection<TItem>)_list).Remove(item);
+        var result = ((ICollection<T>)List).Remove(item);
+        if (FilteredList.IsReadOnly)
+            return result;
         if (result)
             FilteredList.Remove(item);
         return result;
@@ -200,106 +196,63 @@ public class FilterList<TItem, TFilteredList>
     /// <inheritdoc/>
     public void RemoveAt(int index)
     {
-        if (_list.TryGetValue(index, out var item) is false)
+        if (List.TryGetValue(index, out var value) is false)
             return;
-        _list.RemoveAt(index);
-        FilteredList.Remove(item);
+        List.RemoveAt(index);
+        if (FilteredList.IsReadOnly)
+            return;
+        FilteredList.Remove(value);
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)_list).GetEnumerator();
-    }
-    #endregion
-
-    #region IListRange
-    /// <inheritdoc/>
-    public void AddRange(IEnumerable<TItem> collection)
-    {
-        _list.AddRange(collection);
-        FilteredList.AddRange(collection.Where(i => Filter(i)));
-    }
-
-    /// <inheritdoc/>
-    public void InsertRange(int index, IEnumerable<TItem> collection)
-    {
-        _list.InsertRange(index, collection);
-        FilteredList.InsertRange(index, collection.Where(i => Filter(i)));
-    }
-
-    /// <inheritdoc/>
-    public void RemoveAll(Predicate<TItem> match)
-    {
-        _list.RemoveAll(match);
-        FilteredList.RemoveAll(match);
-    }
-
-    /// <inheritdoc/>
-    public void RemoveRange(int index, int count)
-    {
-        _list.RemoveRange(index, count);
-        FilteredList.RemoveRange(index, count);
-    }
-
-    /// <inheritdoc/>
-    public void Reverse()
-    {
-        _list.Reverse();
-        FilteredList.Reverse();
-    }
-
-    /// <inheritdoc/>
-    public void Reverse(int index, int count)
-    {
-        _list.Reverse(index, count);
-        FilteredList.Reverse(index, count);
+        return ((IEnumerable)List).GetEnumerator();
     }
     #endregion
 
     #region IList
-    /// <inheritdoc/>
-    public int Add(object? value)
+    object? IList.this[int index]
     {
-        var result = ((IList)_list).Add(value);
-        if (result != -1)
-            FilteredList.Add((TItem)value!);
-        return result;
+        get => this[index];
+        set => this[index] = (T)value!;
+    }
+
+    /// <inheritdoc/>
+    int IList.Add(object? value)
+    {
+        Add((T)value!);
+        return Count - 1;
     }
 
     /// <inheritdoc/>
 
-    public bool Contains(object? value)
+    bool IList.Contains(object? value)
     {
-        return ((IList)_list).Contains(value);
+        return Contains((T)value!);
     }
 
     /// <inheritdoc/>
-    public int IndexOf(object? value)
+    int IList.IndexOf(object? value)
     {
-        return ((IList)_list).IndexOf(value);
+        return ((IList)List).IndexOf(value);
     }
 
     /// <inheritdoc/>
-    public void Insert(int index, object? value)
+    void IList.Insert(int index, object? value)
     {
-        ((IList)_list).Insert(index, value);
-        if (Filter((TItem)value!))
-            FilteredList.Insert(index, (TItem)value!);
+        Insert(index, (T)value!);
     }
 
     /// <inheritdoc/>
-    public void Remove(object? value)
+    void IList.Remove(object? value)
     {
-        var count = Count;
-        ((IList)_list).Remove(value);
-        if (count != Count)
-            FilteredList.Remove((TItem)value!);
+        Remove((T)value!);
     }
 
     /// <inheritdoc/>
-    public void CopyTo(Array array, int index)
+    void ICollection.CopyTo(Array array, int index)
     {
-        ((ICollection)_list).CopyTo(array, index);
+        ((ICollection)List).CopyTo(array, index);
     }
     #endregion
 }

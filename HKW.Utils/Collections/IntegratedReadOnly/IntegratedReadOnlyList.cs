@@ -25,10 +25,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TReadOnlyList">只读列表类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
-public class IntegratedReadOnlyList<T, TList, TReadOnlyList>
-    : IList<T>,
-        IReadOnlyList<T>,
-        IListRange<T>
+public class IntegratedReadOnlyList<T, TList, TReadOnlyList> : IList<T>, IReadOnlyList<T>
     where TList : IList<T>
     where TReadOnlyList : IReadOnlyList<T>
 {
@@ -128,44 +125,6 @@ public class IntegratedReadOnlyList<T, TList, TReadOnlyList>
     IEnumerator IEnumerable.GetEnumerator()
     {
         return ((IEnumerable)List).GetEnumerator();
-    }
-    #endregion
-
-    #region IListRange
-    /// <inheritdoc/>
-    public void AddRange(IEnumerable<T> collection)
-    {
-        List.AddRange(collection);
-    }
-
-    /// <inheritdoc/>
-    public void InsertRange(int index, IEnumerable<T> collection)
-    {
-        List.InsertRange(index, collection);
-    }
-
-    /// <inheritdoc/>
-    public void RemoveAll(Predicate<T> match)
-    {
-        List.RemoveAll(match);
-    }
-
-    /// <inheritdoc/>
-    public void RemoveRange(int index, int count)
-    {
-        List.RemoveRange(index, count);
-    }
-
-    /// <inheritdoc/>
-    public void Reverse()
-    {
-        List.Reverse();
-    }
-
-    /// <inheritdoc/>
-    public void Reverse(int index, int count)
-    {
-        List.Reverse(index, count);
     }
     #endregion
 }

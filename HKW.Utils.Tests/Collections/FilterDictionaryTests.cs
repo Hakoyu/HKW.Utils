@@ -14,11 +14,12 @@ public class FilterDictionaryTests
     [TestMethod]
     public void Add()
     {
-        var filterDictionary = new FilterDictionary<int, int, Dictionary<int, int>>()
-        {
-            Filter = Filter,
-            FilteredDictionary = new()
-        };
+        var filterDictionary = new FilterDictionary<
+            int,
+            int,
+            Dictionary<int, int>,
+            Dictionary<int, int>
+        >(new(), filteredDictionary: new(), Filter);
         Assert.IsTrue(filterDictionary.Count == filterDictionary.FilteredDictionary.Count);
         filterDictionary.Add(5, 5);
         Assert.IsTrue(0 == filterDictionary.FilteredDictionary.Count);
@@ -32,13 +33,12 @@ public class FilterDictionaryTests
     [TestMethod]
     public void Remove()
     {
-        var filterDictionary = new FilterDictionary<int, int, Dictionary<int, int>>(
-            Enumerable.Range(0, 10).ToDictionary(i => i, i => i)
-        )
-        {
-            Filter = Filter,
-            FilteredDictionary = new()
-        };
+        var filterDictionary = new FilterDictionary<
+            int,
+            int,
+            Dictionary<int, int>,
+            Dictionary<int, int>
+        >(Enumerable.Range(0, 10).ToDictionary(i => i, i => i), filteredDictionary: new(), Filter);
         Assert.IsTrue(
             filterDictionary.Where(Filter).Count() == filterDictionary.FilteredDictionary.Count
         );
@@ -55,13 +55,12 @@ public class FilterDictionaryTests
     [TestMethod]
     public void ValueChange()
     {
-        var filterDictionary = new FilterDictionary<int, int, Dictionary<int, int>>(
-            Enumerable.Range(0, 10).ToDictionary(i => i, i => i)
-        )
-        {
-            Filter = Filter,
-            FilteredDictionary = new()
-        };
+        var filterDictionary = new FilterDictionary<
+            int,
+            int,
+            Dictionary<int, int>,
+            Dictionary<int, int>
+        >(Enumerable.Range(0, 10).ToDictionary(i => i, i => i), filteredDictionary: new(), Filter);
         Assert.IsTrue(
             filterDictionary.Where(Filter).Count() == filterDictionary.FilteredDictionary.Count
         );
@@ -78,13 +77,12 @@ public class FilterDictionaryTests
     [TestMethod]
     public void Clear()
     {
-        var filterDictionary = new FilterDictionary<int, int, Dictionary<int, int>>(
-            Enumerable.Range(0, 10).ToDictionary(i => i, i => i)
-        )
-        {
-            Filter = Filter,
-            FilteredDictionary = new()
-        };
+        var filterDictionary = new FilterDictionary<
+            int,
+            int,
+            Dictionary<int, int>,
+            Dictionary<int, int>
+        >(Enumerable.Range(0, 10).ToDictionary(i => i, i => i), filteredDictionary: new(), Filter);
         Assert.IsTrue(
             filterDictionary.Where(Filter).Count() == filterDictionary.FilteredDictionary.Count
         );

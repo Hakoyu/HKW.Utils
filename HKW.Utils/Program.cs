@@ -17,14 +17,14 @@ internal class Program
     public static I18nCore I18nCore = new();
     public static I18nResource<string, string> I18nResource =
         new(I18nCore) { DefaultValue = string.Empty, FillDefaultValueForNewCulture = true };
-    public IntegratedReadOnlyList<int, List<int>, ReadOnlyCollection<int>> List { get; } = new(new (), l => new (l));
+    public IntegratedReadOnlyList<int, List<int>, ReadOnlyCollection<int>> List { get; } = new(new(), l => new(l));
     public ReadOnlyCollection<int> ReadOnlyList => List.ReadOnlyList;
     private static void Main(string[] args)
     {
 #if DEBUG
-        var list = new IntegratedReadOnlyList<int, List<int>, ReadOnlyCollection<int>>(new (), l => new(l));
+        var list = new FilterList<int, ObservableList<int>, IntegratedReadOnlyList<int, ObservableList<int>, ReadOnlyObservableList<int>>>(new(), filteredList: new(new(), l => new(l)), i => i > 0);
         list.Add(1);
-        list.Add(1);
+        list.Add(-1);
         list.Add(1);
         //var p2 = new ReadOnlyObservablePoint<int>();
         //var ol = new ObservableList<int>();

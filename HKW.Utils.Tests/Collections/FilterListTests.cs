@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HKW.HKWUtils.Collections;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Tests.Collections;
 
@@ -15,7 +16,11 @@ public class FilterListTests
     [TestMethod]
     public void Add()
     {
-        var filterList = new FilterList<int, List<int>>() { Filter = Filter, FilteredList = new() };
+        var filterList = new FilterList<int, List<int>, List<int>>(
+            new(),
+            filteredList: new(),
+            Filter
+        );
         Assert.IsTrue(filterList.Count == filterList.FilteredList.Count);
         filterList.AddRange(Enumerable.Range(0, 10));
         Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
@@ -24,11 +29,11 @@ public class FilterListTests
     [TestMethod]
     public void Remove()
     {
-        var filterList = new FilterList<int, List<int>>(Enumerable.Range(0, 10))
-        {
-            Filter = Filter,
-            FilteredList = new()
-        };
+        var filterList = new FilterList<int, List<int>, List<int>>(
+            Enumerable.Range(0, 10).ToList(),
+            filteredList: new(),
+            Filter
+        );
         Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
         var oldCount = filterList.FilteredList.Count;
         filterList.Remove(5);
@@ -41,11 +46,11 @@ public class FilterListTests
     [TestMethod]
     public void RemoveAll()
     {
-        var filterList = new FilterList<int, List<int>>(Enumerable.Range(0, 10))
-        {
-            Filter = Filter,
-            FilteredList = new()
-        };
+        var filterList = new FilterList<int, List<int>, List<int>>(
+            Enumerable.Range(0, 10).ToList(),
+            filteredList: new(),
+            Filter
+        );
         Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
         filterList.RemoveAll(Filter);
         Assert.IsTrue(filterList.FilteredList.Count == 0);
@@ -54,11 +59,11 @@ public class FilterListTests
     [TestMethod]
     public void RemoveAt()
     {
-        var filterList = new FilterList<int, List<int>>(Enumerable.Range(0, 10))
-        {
-            Filter = Filter,
-            FilteredList = new()
-        };
+        var filterList = new FilterList<int, List<int>, List<int>>(
+            Enumerable.Range(0, 10).ToList(),
+            filteredList: new(),
+            Filter
+        );
         Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
         var oldCount = filterList.FilteredList.Count;
         filterList.RemoveAt(0);
@@ -71,11 +76,11 @@ public class FilterListTests
     [TestMethod]
     public void ValueChange()
     {
-        var filterList = new FilterList<int, List<int>>(Enumerable.Range(0, 10))
-        {
-            Filter = Filter,
-            FilteredList = new()
-        };
+        var filterList = new FilterList<int, List<int>, List<int>>(
+            Enumerable.Range(0, 10).ToList(),
+            filteredList: new(),
+            Filter
+        );
         Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
         var oldCount = filterList.FilteredList.Count;
         filterList[0] = 5;
@@ -88,11 +93,11 @@ public class FilterListTests
     [TestMethod]
     public void Clear()
     {
-        var filterList = new FilterList<int, List<int>>(Enumerable.Range(0, 10))
-        {
-            Filter = Filter,
-            FilteredList = new()
-        };
+        var filterList = new FilterList<int, List<int>, List<int>>(
+            Enumerable.Range(0, 10).ToList(),
+            filteredList: new(),
+            Filter
+        );
         Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
         filterList.Clear();
         Assert.IsTrue(filterList.Count == filterList.FilteredList.Count);
