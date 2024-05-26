@@ -40,7 +40,7 @@ public static partial class HKWExtensions
         }
         sourceList.ListChanged -= SourceList_ListChanged;
         sourceList.ListChanged += SourceList_ListChanged;
-        _bindingLists.GetOrCreateValue(sourceList).Add(targetList);
+        _bindingLists.GetValueOrCreate(sourceList).Add(targetList);
 
         static void SourceList_ListChanged(
             INotifyListChanged<T> sender,
@@ -121,7 +121,7 @@ public static partial class HKWExtensions
         }
         sourceCollection.CollectionChanged -= SourceList_CollectionChanged;
         sourceCollection.CollectionChanged += SourceList_CollectionChanged;
-        _bindingLists.GetOrCreateValue(sourceCollection).Add(targetList);
+        _bindingLists.GetValueOrCreate(sourceCollection).Add(targetList);
 
         static void SourceList_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {

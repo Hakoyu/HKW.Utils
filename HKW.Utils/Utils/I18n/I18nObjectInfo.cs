@@ -42,10 +42,10 @@ public sealed class I18nObjectInfo<TKey, TValue>
             RetentionValueOnKeyChangePropertyNames.Add(keyPropertyName);
 
         TargetPropertyNamesWithKeyPropertyName
-            .GetOrCreateValue(keyPropertyName)
+            .GetValueOrCreate(keyPropertyName)
             .Add(targetPropertyName);
 
-        TargetPropertyNamesWithKey.GetOrCreateValue(keyValue).Add(targetPropertyName);
+        TargetPropertyNamesWithKey.GetValueOrCreate(keyValue).Add(targetPropertyName);
         return this;
     }
 
@@ -69,10 +69,10 @@ public sealed class I18nObjectInfo<TKey, TValue>
             if (retentionValueOnKeyChange)
                 RetentionValueOnKeyChangePropertyNames.Add(data.KeyPropertyName);
             TargetPropertyNamesWithKeyPropertyName
-                .GetOrCreateValue(data.KeyPropertyName)
+                .GetValueOrCreate(data.KeyPropertyName)
                 .Add(data.TargetPropertyName);
 
-            TargetPropertyNamesWithKey.GetOrCreateValue(data.KeyValue).Add(data.TargetPropertyName);
+            TargetPropertyNamesWithKey.GetValueOrCreate(data.KeyValue).Add(data.TargetPropertyName);
         }
         return this;
     }
@@ -121,7 +121,7 @@ public sealed class I18nObjectInfo<TKey, TValue>
             // 如果触发事件的是已记录的键属性名
             (var oldValue, var newValue) = e.GetValue<TKey>();
             if (
-                TargetPropertyNamesWithKey.TryGetOrCreateValue(
+                TargetPropertyNamesWithKey.TryGetValueOrCreate(
                     newValue,
                     out var newTargetPropertyNamesWithKey,
                     () => targetPropertyNamesWithKeyPropertyName.ToHashSet()

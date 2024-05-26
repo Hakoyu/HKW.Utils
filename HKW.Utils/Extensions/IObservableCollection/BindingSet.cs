@@ -39,7 +39,7 @@ public static partial class HKWExtensions
         }
         sourceSet.SetChanged -= SourceSet_SetChanged;
         sourceSet.SetChanged += SourceSet_SetChanged;
-        _bindingSets.GetOrCreateValue(sourceSet).Add(targetSet);
+        _bindingSets.GetValueOrCreate(sourceSet).Add(targetSet);
 
         static void SourceSet_SetChanged(INotifySetChanged<T> sender, NotifySetChangeEventArgs<T> e)
         {

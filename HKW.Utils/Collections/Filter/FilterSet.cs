@@ -48,7 +48,7 @@ public class FilterSet<T, TSet, TFilteredSet>
     /// <summary>
     /// 过滤器
     /// </summary>
-    public required Predicate<T> Filter
+    public Predicate<T> Filter
     {
         get => _filter;
         set

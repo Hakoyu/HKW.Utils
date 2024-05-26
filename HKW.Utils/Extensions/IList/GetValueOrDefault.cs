@@ -3,7 +3,7 @@
 public static partial class HKWExtensions
 {
     /// <summary>
-    /// 尝试使用索引获取列表的值
+    /// 使用索引获取列表的值或默认值
     /// </summary>
     /// <typeparam name="T">项目类型</typeparam>
     /// <param name="list">列表</param>

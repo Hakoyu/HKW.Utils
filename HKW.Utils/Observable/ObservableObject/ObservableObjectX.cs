@@ -161,7 +161,7 @@ public abstract class ObservableObjectX
     protected void NotifyPropertyChanged(string sourcePropertyName, string targetPropertyName)
     {
         NotifyProperties ??= new();
-        var map = NotifyProperties.GetOrCreateValue(sourcePropertyName);
+        var map = NotifyProperties.GetValueOrCreate(sourcePropertyName);
         map.Add(targetPropertyName);
     }
 
@@ -176,7 +176,7 @@ public abstract class ObservableObjectX
     )
     {
         NotifyProperties ??= new();
-        var map = NotifyProperties.GetOrCreateValue(sourcePropertyName);
+        var map = NotifyProperties.GetValueOrCreate(sourcePropertyName);
         map.UnionWith(targetPropertyNames);
     }
 
@@ -193,7 +193,7 @@ public abstract class ObservableObjectX
         NotifyProperties ??= new();
         foreach (var sourcePropertyName in sourcePropertyNames)
         {
-            var map = NotifyProperties.GetOrCreateValue(sourcePropertyName);
+            var map = NotifyProperties.GetValueOrCreate(sourcePropertyName);
             map.Add(targetPropertyName);
         }
     }
@@ -211,7 +211,7 @@ public abstract class ObservableObjectX
         NotifyProperties ??= new();
         foreach (var sourcePropertyName in sourcePropertyNames)
         {
-            var map = NotifyProperties.GetOrCreateValue(sourcePropertyName);
+            var map = NotifyProperties.GetValueOrCreate(sourcePropertyName);
             map.UnionWith(targetPropertyNames);
         }
     }

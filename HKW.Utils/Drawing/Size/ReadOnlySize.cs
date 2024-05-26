@@ -1,5 +1,7 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Numerics;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Drawing;
 
@@ -14,8 +16,9 @@ public struct ReadOnlySize<T> : IEquatable<IReadOnlySize<T>>, IReadOnlySize<T>
     /// <summary>
     /// 空
     /// </summary>
-    public static ReadOnlySize<T> Empty = new(default, default);
+    public static ReadOnlySize<T> Empty = new(default(T), default(T));
 
+    #region ctor
     /// <inheritdoc/>
     /// <param name="width">宽度</param>
     /// <param name="height">高度</param>
@@ -25,6 +28,23 @@ public struct ReadOnlySize<T> : IEquatable<IReadOnlySize<T>>, IReadOnlySize<T>
         Height = height;
     }
 
+    /// <inheritdoc/>
+    /// <param name="size">大小</param>
+    public ReadOnlySize(IReadOnlySize<T> size)
+        : this(size.Width, size.Height) { }
+
+    /// <inheritdoc/>
+    /// <param name="data">数据</param>
+    /// <param name="separator">分割符</param>
+    public ReadOnlySize(string data, char separator = ',')
+    {
+        var datas = data.AsSpan().Split(separator);
+        datas.MoveNext();
+        Width = T.Parse(datas.Current, null);
+        datas.MoveNext();
+        Height = T.Parse(datas.Current, null);
+    }
+    #endregion
     /// <inheritdoc/>
     public T Width { get; }
 

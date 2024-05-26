@@ -17,7 +17,7 @@ public static partial class HKWExtensions
     /// <param name="key">键</param>
     /// <param name="value">值</param>
     /// <returns>获取成功为 <see langword="true"/> 获取失败并创建为 <see langword="false"/></returns>
-    public static bool TryGetOrCreateValue<TKey, TValue>(
+    public static bool TryGetValueOrCreate<TKey, TValue>(
         this IDictionary<TKey, TValue> dictionary,
         TKey key,
         out TValue value
@@ -42,7 +42,7 @@ public static partial class HKWExtensions
     /// <param name="value">值</param>
     /// <param name="createValue">创建值</param>
     /// <returns>获取成功为 <see langword="true"/> 获取失败并创建为 <see langword="false"/></returns>
-    public static bool TryGetOrCreateValue<TKey, TValue>(
+    public static bool TryGetValueOrCreate<TKey, TValue>(
         this IDictionary<TKey, TValue> dictionary,
         TKey key,
         out TValue value,

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Drawing;
 
@@ -15,8 +16,9 @@ public struct ReadOnlyPoint<T> : IEquatable<IReadOnlyPoint<T>>, IReadOnlyPoint<T
     /// <summary>
     /// 空
     /// </summary>
-    public static readonly ReadOnlyPoint<T> Empty = new(default, default);
+    public static readonly ReadOnlyPoint<T> Empty = new(default(T), default(T));
 
+    #region ctor
     /// <inheritdoc/>
     /// <param name="x">坐标X</param>
     /// <param name="y">坐标Y</param>
@@ -28,11 +30,21 @@ public struct ReadOnlyPoint<T> : IEquatable<IReadOnlyPoint<T>>, IReadOnlyPoint<T
 
     /// <inheritdoc/>
     /// <param name="point">点接口</param>
-    public ReadOnlyPoint(IPoint<T> point)
+    public ReadOnlyPoint(IReadOnlyPoint<T> point)
+        : this(point.X, point.Y) { }
+
+    /// <inheritdoc/>
+    /// <param name="data">数据</param>
+    /// <param name="separator">分割符</param>
+    public ReadOnlyPoint(string data, char separator = ',')
     {
-        X = point.X;
-        Y = point.Y;
+        var datas = data.AsSpan().Split(separator);
+        datas.MoveNext();
+        X = T.Parse(datas.Current, null);
+        datas.MoveNext();
+        Y = T.Parse(datas.Current, null);
     }
+    #endregion
 
     /// <inheritdoc/>
     public T X { get; }

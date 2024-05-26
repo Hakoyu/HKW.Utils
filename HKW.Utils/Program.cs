@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Globalization;
 using HKW.HKWUtils;
 using HKW.HKWUtils.Collections;
+using HKW.HKWUtils.Drawing;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
 
@@ -22,53 +23,7 @@ internal class Program
     private static void Main(string[] args)
     {
 #if DEBUG
-        var list = new FilterList<int, ObservableList<int>, IntegratedReadOnlyList<int, ObservableList<int>, ReadOnlyObservableList<int>>>(new(), filteredList: new(new(), l => new(l)), i => i > 0);
-        list.Add(1);
-        list.Add(-1);
-        list.Add(1);
-        //var p2 = new ReadOnlyObservablePoint<int>();
-        //var ol = new ObservableList<int>();
-        //var l = new List<int>();
-        //ol.BindingList(l);
-        //ol.Add(1);
-        ////ol.AddRange([2, 3, 4]);
-        ////ol.RemoveAt(0);
-        ////l.RemoveRange(0, 2);
-        //////ol.RemoveRange(0, 2);
-        ////ol.Clear();
-        //ol.BindingList(l, true);
-        //ol.Add(1);
-        //I18nResource.AddCulture("zh");
-        //I18nResource.AddCulture("en");
-        //I18nResource.SetCurrentCulture("zh");
-        //var v1 = new TestModel();
-        //v1.PropertyChangedX += (s, e) =>
-        //{
-        //    Debug.WriteLine($"V1: {e.PropertyName} = {e.NewValue}");
-        //    return;
-        //};
-        //var v2 = new TestModel();
-        //v2.PropertyChangedX += (s, e) =>
-        //{
-        //    Debug.WriteLine($"V2: {e.PropertyName} = {e.NewValue}");
-        //    return;
-        //};
-        //v1.ID = "1";
-        //v1.Name = "zh-1";
-        //v1.Name = "zh-2";
-        //v1.ID = "2";
-        //v2.ID = "1";
-        //v2.Name = "zh-2";
-        //v2.ID = "1";
-        //v2.Name = "zh-11";
-        //I18nResource.SetCurrentCulture("en");
-        //v1.Name = "en-1";
-        //v2.ID = "2";
-        //v2.Name = "en-2";
-        //v2.ID = "1";
-        //v2.Name = "zh-22";
-        //I18nResource.SetCurrentCulture("zh");
-        //I18nCore.ClearI18nResources();
+        var size = new Size<int>("114, 514");
 
 #endif
     }
