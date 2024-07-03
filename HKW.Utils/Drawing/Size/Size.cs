@@ -92,6 +92,6 @@ public struct Size<T> : IEquatable<IReadOnlySize<T>>, ISize<T>
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"Width = {Width}, Height = {Height}";
+        return $"{{Width = {Width}, Height = {Height}}}";
     }
 }

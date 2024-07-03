@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Numerics;
 using System.Windows;
+using HKW.HKWReactiveUI;
 using HKW.HKWUtils;
 using HKW.HKWUtils.Drawing;
 
@@ -13,7 +14,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="T">数据类型</typeparam>
 [DebuggerDisplay("({X}, {Y})")]
 public class ObservablePoint<T>
-    : ObservableObjectX,
+    : ReactiveObjectX,
         IEquatable<ObservablePoint<T>>,
         ICloneable<ObservablePoint<T>>,
         IPoint<T>
@@ -31,30 +32,15 @@ public class ObservablePoint<T>
         Y = y;
     }
 
-    #region X
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private T _x = default!;
+    /// <inheritdoc/>
+    [ReactiveProperty]
+    public T X { get; set; } = default!;
 
     /// <inheritdoc/>
-    public T X
-    {
-        get => _x;
-        set => SetProperty(ref _x, value);
-    }
-    #endregion
+    [ReactiveProperty]
+    public T Y { get; set; } = default!;
 
-    #region Y
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private T _y = default!;
-
-    /// <inheritdoc/>
-    public T Y
-    {
-        get => _y;
-        set => SetProperty(ref _y, value);
-    }
-    #endregion
-
+    #region Clone
     /// <inheritdoc/>
     public ObservablePoint<T> Clone()
     {
@@ -62,6 +48,7 @@ public class ObservablePoint<T>
     }
 
     object ICloneable.Clone() => Clone();
+    #endregion
 
     #region Equals
 

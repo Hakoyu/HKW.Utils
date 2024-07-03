@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
+using HKW.HKWReactiveUI;
 using HKW.HKWUtils;
 using HKW.HKWUtils.Drawing;
 using HKW.HKWUtils.Observable;
@@ -12,20 +13,14 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="T">数据类型</typeparam>
 [DebuggerDisplay("({X}, {Y}, {Width}, {Height})")]
 public class ObservableRectangle<T>
-    : ObservableObjectX,
+    : ReactiveObjectX,
         IEquatable<ObservableRectangle<T>>,
         ICloneable<ObservableRectangle<T>>,
         IRectangle<T>
     where T : struct, INumber<T>
 {
     /// <inheritdoc/>
-    public ObservableRectangle()
-    {
-        NotifyPropertyChanged(
-            [nameof(Width), nameof(Height), nameof(X), nameof(Y)],
-            [nameof(Left), nameof(Right), nameof(Top), nameof(Bottom)]
-        );
-    }
+    public ObservableRectangle() { }
 
     /// <inheritdoc/>
     /// <param name="rectangle">矩形</param>
@@ -64,57 +59,69 @@ public class ObservableRectangle<T>
         Height = height;
     }
 
-    #region Size
-    #region Width
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private T _width = default!;
+    /// <inheritdoc/>
+    [ReactiveProperty]
+    [NotifyPropertyChangedFor(
+        [
+            nameof(Left),
+            nameof(Right),
+            nameof(Top),
+            nameof(Bottom),
+            nameof(LeftTop),
+            nameof(RightTop),
+            nameof(LeftBottom),
+            nameof(RightBottom)
+        ]
+    )]
+    public T Width { get; set; }
 
     /// <inheritdoc/>
-    public T Width
-    {
-        get => _width;
-        set => SetProperty(ref _width, value);
-    }
-    #endregion
-
-    #region Height
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private T _height = default!;
-
-    /// <inheritdoc/>
-    public T Height
-    {
-        get => _height;
-        set => SetProperty(ref _height, value);
-    }
-    #endregion
-    #endregion
-
-    #region Location
-    #region X
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private T _x = default!;
+    [ReactiveProperty]
+    [NotifyPropertyChangedFor(
+        [
+            nameof(Left),
+            nameof(Right),
+            nameof(Top),
+            nameof(Bottom),
+            nameof(LeftTop),
+            nameof(RightTop),
+            nameof(LeftBottom),
+            nameof(RightBottom)
+        ]
+    )]
+    public T Height { get; set; }
 
     /// <inheritdoc/>
-    public T X
-    {
-        get => _x;
-        set => SetProperty(ref _x, value);
-    }
-    #endregion
-
-    #region Y
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private T _y = default!;
+    [ReactiveProperty]
+    [NotifyPropertyChangedFor(
+        [
+            nameof(Left),
+            nameof(Right),
+            nameof(Top),
+            nameof(Bottom),
+            nameof(LeftTop),
+            nameof(RightTop),
+            nameof(LeftBottom),
+            nameof(RightBottom)
+        ]
+    )]
+    public T X { get; set; }
 
     /// <inheritdoc/>
-    public T Y
-    {
-        get => _y;
-        set => SetProperty(ref _y, value);
-    }
-    #endregion
-    #endregion
+    [ReactiveProperty]
+    [NotifyPropertyChangedFor(
+        [
+            nameof(Left),
+            nameof(Right),
+            nameof(Top),
+            nameof(Bottom),
+            nameof(LeftTop),
+            nameof(RightTop),
+            nameof(LeftBottom),
+            nameof(RightBottom)
+        ]
+    )]
+    public T Y { get; set; }
 
     /// <inheritdoc/>
     public T Left => X;
@@ -128,21 +135,19 @@ public class ObservableRectangle<T>
     /// <inheritdoc/>
     public T Bottom => unchecked(Y + Height);
 
-    /// <summary>
-    /// 坐标在矩形内
-    /// </summary>
-    /// <param name="x">坐标X</param>
-    /// <param name="y">坐标Y</param>
-    /// <returns>在矩形内为 <see langword="true"/> 不在为 <see langword="false"/></returns>
-    public bool Contains(T x, T y)
-    {
-        if (x < X || y < Y)
-            return false;
-        if (x > Right || y > Bottom)
-            return false;
-        return true;
-    }
+    /// <inheritdoc/>
+    public ReadOnlyPoint<T> LeftTop => new(Left, Top);
 
+    /// <inheritdoc/>
+    public ReadOnlyPoint<T> RightTop => new(Right, Top);
+
+    /// <inheritdoc/>
+    public ReadOnlyPoint<T> LeftBottom => new(Left, Bottom);
+
+    /// <inheritdoc/>
+    public ReadOnlyPoint<T> RightBottom => new(Right, Bottom);
+
+    #region Clone
     /// <inheritdoc/>
     public ObservableRectangle<T> Clone()
     {
@@ -156,6 +161,7 @@ public class ObservableRectangle<T>
     }
 
     object ICloneable.Clone() => Clone();
+    #endregion
 
     #region Equals
 

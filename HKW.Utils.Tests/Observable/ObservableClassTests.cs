@@ -138,7 +138,7 @@ public class ObservableClassTests
     }
 }
 
-public class ObservableClassExample : ObservableObjectX
+public class ObservableClassExample : ReactiveObjectX
 {
     int _value1 = 0;
     public int Value1

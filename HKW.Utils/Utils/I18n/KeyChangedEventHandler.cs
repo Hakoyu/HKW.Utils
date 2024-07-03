@@ -14,7 +14,7 @@ namespace HKW.HKWUtils.Utils;
 /// <param name="sender">发送者</param>
 /// <param name="e">参数</param>
 public delegate void KeyChangedEventHandler<TKey, TValue>(
-    I18nObjectInfo<TKey, TValue> sender,
+    I18nObject<TKey, TValue> sender,
     (TKey OldKey, TKey NewKey) e
 )
     where TKey : notnull;

@@ -54,7 +54,6 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
     }
 
     #region Size
-
     /// <inheritdoc/>
     public T Width { get; set; }
 
@@ -63,8 +62,6 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
     #endregion
 
     #region Location
-
-
     /// <inheritdoc/>
     public T X { get; set; }
 
@@ -84,20 +81,17 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
     /// <inheritdoc/>
     public T Bottom => unchecked(Y + Height);
 
-    /// <summary>
-    /// 坐标在矩形内
-    /// </summary>
-    /// <param name="x">坐标X</param>
-    /// <param name="y">坐标Y</param>
-    /// <returns>在矩形内为 <see langword="true"/> 不在为 <see langword="false"/></returns>
-    public bool Contains(T x, T y)
-    {
-        if (x < X || y < Y)
-            return false;
-        if (x > Right || y > Bottom)
-            return false;
-        return true;
-    }
+    /// <inheritdoc/>
+    public ReadOnlyPoint<T> LeftTop => new(Left, Top);
+
+    /// <inheritdoc/>
+    public ReadOnlyPoint<T> RightTop => new(Right, Top);
+
+    /// <inheritdoc/>
+    public ReadOnlyPoint<T> LeftBottom => new(Left, Bottom);
+
+    /// <inheritdoc/>
+    public ReadOnlyPoint<T> RightBottom => new(Right, Bottom);
 
     #region Equals
 
@@ -110,9 +104,7 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
     /// <inheritdoc/>
     public override bool Equals(object? obj)
     {
-        if (obj is null)
-            return false;
-        return Equals((IReadOnlyRectangle<T>)obj);
+        return Equals(obj as IReadOnlyRectangle<T>);
     }
 
     /// <inheritdoc/>
@@ -138,6 +130,6 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"X = {X}, Y = {Y}, Width = {Width}, Height = {Height}";
+        return $"{{X = {X}, Y = {Y}, Width = {Width}, Height = {Height}}}";
     }
 }

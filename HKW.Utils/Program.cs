@@ -4,11 +4,17 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Windows.Input;
+using DynamicData.Binding;
+using HKW.HKWReactiveUI;
 using HKW.HKWUtils;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Drawing;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
+using ReactiveUI;
 
 namespace HKW;
 
@@ -17,15 +23,46 @@ internal class Program
     private static System.Diagnostics.Stopwatch stopWatch = new();
     public static I18nCore I18nCore = new();
     public static I18nResource<string, string> I18nResource =
-        new(I18nCore) { DefaultValue = string.Empty, FillDefaultValueForNewCulture = true };
-    public IntegratedReadOnlyList<int, List<int>, ReadOnlyCollection<int>> List { get; } = new(new(), l => new(l));
+        new(I18nCore) { DefaultValue = string.Empty, FillDefaultValueToNewCulture = true };
+    public IntegratedReadOnlyList<int, List<int>, ReadOnlyCollection<int>> List { get; } =
+        new(new(), l => new(l));
     public ReadOnlyCollection<int> ReadOnlyList => List.ReadOnlyList;
+
     private static void Main(string[] args)
     {
-#if DEBUG
-        var size = new Size<int>("114, 514");
-
+#if !Release
+        Console.WriteLine(230 - 220 * 0.5);
+        //var size = new Size<int>("114, 514");
+        I18nResource.AddCulture("zh");
+        I18nResource.AddCulture("en");
+        I18nResource.AddCultureData("zh", "Name", "Name-CN");
+        I18nResource.AddCultureData("en", "Name", "Name-EN");
+        I18nResource.SetCurrentCulture("zh");
+        var t = new TestModel();
+        t.ID = "Name";
+        Console.WriteLine(t.Name);
+        I18nResource.SetCurrentCulture("en");
+        Console.WriteLine(t.Name);
+        t.ID = "Name2";
+        Console.WriteLine(t.Name);
+        //t.PropertyChanged += T_PropertyChanged;
+        //t.CanExecute = !t.CanExecute;
+        //var c = t.TestCommand as ICommand;
+        //c.CanExecuteChanged += C_CanExecuteChanged;
+        //c.CanExecute(null);
+        //c.Execute(null);
+        //var command = ReactiveCommand.Create(() => { });
 #endif
+    }
+
+    private static void T_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        return;
+    }
+
+    private static void C_CanExecuteChanged(object? sender, EventArgs e)
+    {
+        throw new NotImplementedException();
     }
 
     private static void Test_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -48,51 +85,56 @@ internal class Program
     //timer.Stop();
     //timer.Continue();
     //Task.Delay(1000).Wait();
-#if DEBUG
+#if !Release
 
 #endif
 }
 
-#if DEBUG
-internal class TestModel : ObservableObjectX
+#if !Release
+
+internal partial class TestModel : ReactiveObjectX
 {
     public TestModel()
     {
-        //NotifyPropertyOnPropertyChanged(nameof(ID), nameof(IDX));
-        NotifyMemberPropertyChanged(nameof(Size), Size);
-        MemberPropertyChangedX += TestModel_MemberPropertyChangedX;
-        Size.Width = 10;
-        RemoveNotifyMemberPropertyChanged(Size);
-        Size.Height = 10;
-        //Program.I18nResource.I18nObjectInfos.Add(
-        //    this, new(this, SetProperty)
-        //);
+        //this.WhenAnyValue(x => x.CanExecute)
+        //    .Buffer(2, 1)
+        //    .Select(b => (Previous: b[0], Current: b[1]))
+        //    .Subscribe(pair =>
+        //    {
+        //        var oldValue = pair.Previous;
+        //        var newValue = pair.Current;
+        //        Console.WriteLine($"ExampleProperty 的值已经改变，旧的值是：{oldValue}，新的值是：{newValue}");
+        //    });
+        //CanExecute = true;
+        Program.I18nResource.I18nObjects.Add(new(this));
+        var i18nObject = Program.I18nResource.I18nObjects.Last();
+        i18nObject.AddProperty(nameof(ID), x => ((TestModel)x).ID, nameof(Name), true);
     }
 
-    private void TestModel_MemberPropertyChangedX(object? sender, MemberPropertyChangedXEventArgs e)
+    [ReactiveProperty]
+    public string ID { get; set; } = string.Empty;
+
+    [I18nProperty("Program.I18nResource", nameof(ID), true)]
+    public string Name
     {
-        return;
+        get => Program.I18nResource.GetCurrentCultureDataOrDefault(ID);
+        set => Program.I18nResource.SetCurrentCultureData(ID, value);
     }
 
-    #region ID
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string _id = string.Empty;
+    [ReactiveProperty]
+    public bool CanExecute { get; set; }
 
-    public string ID
+    [ReactiveCommand(CanExecute = nameof(CanExecute))]
+    public void Test()
     {
-        get => _id;
-        set => SetProperty(ref _id, value);
+        Console.WriteLine(nameof(Test));
     }
-    #endregion
 
-    //#region Name
-    //public string Name
-    //{
-    //    get => Program.I18nResource.GetCurrentCultureDataOrDefault(ID, string.Empty);
-    //    set => Program.I18nResource.SetCurrentCultureData(ID, value);
-    //}
-    //#endregion
-
-    public ObservableSize<int> Size { get; } = new();
+    [ReactiveCommand]
+    public async Task Test1Async()
+    {
+        await Task.Delay(1000);
+        Console.WriteLine(nameof(Test1Async));
+    }
 }
 #endif

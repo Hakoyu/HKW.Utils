@@ -16,7 +16,7 @@ public static partial class HKWExtensions
     /// <param name="dictionary">字典</param>
     /// <param name="key">键</param>
     /// <returns>值</returns>
-    public static TValue GetValueOrCreate<TKey, TValue>(
+    public static TValue GetOrCreate<TKey, TValue>(
         this IDictionary<TKey, TValue> dictionary,
         TKey key
     )

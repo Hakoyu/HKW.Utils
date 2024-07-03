@@ -43,9 +43,7 @@ public struct Range<T> : IEquatable<IReadOnlyRange<T>>, IRange<T>
     /// <inheritdoc/>
     public override bool Equals(object? obj)
     {
-        if (obj is null)
-            return false;
-        return Equals((IReadOnlyRange<T>)obj);
+        return Equals(obj as IReadOnlyRange<T>);
     }
 
     /// <inheritdoc/>
@@ -71,6 +69,6 @@ public struct Range<T> : IEquatable<IReadOnlyRange<T>>, IRange<T>
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"Min = {Min}, Max = {Max}";
+        return $"{{Min = {Min}, Max = {Max}}}";
     }
 }

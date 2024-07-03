@@ -5,9 +5,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HKW.HKWReactiveUI;
 using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
+using ReactiveUI;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -18,7 +20,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TList">列表</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
-public class ObservableSelectableList<T, TList> : ObservableObjectX, IList<T>, IList
+public class ObservableSelectableList<T, TList> : ReactiveObjectX, IList<T>, IList
     where TList : IList<T>
 {
     /// <inheritdoc/>
@@ -66,16 +68,17 @@ public class ObservableSelectableList<T, TList> : ObservableObjectX, IList<T>, I
         get => _selectedIndex;
         set
         {
-            if (value < -1)
-                value = -1;
-            if (SetProperty(ref _selectedIndex, value))
-            {
-                if (changing)
-                    return;
-                changing = true;
-                SelectedItem = _selectedIndex == -1 ? default : List[_selectedIndex];
-                changing = false;
-            }
+            //TODO
+            //if (value < -1)
+            //    value = -1;
+            //if (this.RaiseAndSetIfChanged(ref _selectedIndex, value))
+            //{
+            //    if (changing)
+            //        return;
+            //    changing = true;
+            //    SelectedItem = _selectedIndex == -1 ? default : List[_selectedIndex];
+            //    changing = false;
+            //}
         }
     }
     #endregion
@@ -92,20 +95,21 @@ public class ObservableSelectableList<T, TList> : ObservableObjectX, IList<T>, I
         get => _selectedItem;
         set
         {
-            if (changing)
-            {
-                SetProperty(ref _selectedItem, value);
-                return;
-            }
-            var index = List.IndexOf(value!);
-            if (index == -1)
-                value = default;
-            if (SetProperty(ref _selectedItem, value))
-            {
-                changing = true;
-                SelectedIndex = index;
-                changing = false;
-            }
+            //TODO
+            //if (changing)
+            //{
+            //    SetProperty(ref _selectedItem, value);
+            //    return;
+            //}
+            //var index = List.IndexOf(value!);
+            //if (index == -1)
+            //    value = default;
+            //if (SetProperty(ref _selectedItem, value))
+            //{
+            //    changing = true;
+            //    SelectedIndex = index;
+            //    changing = false;
+            //}
         }
     }
     #endregion

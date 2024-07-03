@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
+using HKW.HKWReactiveUI;
 using HKW.HKWUtils;
 using HKW.HKWUtils.Drawing;
 
@@ -11,7 +12,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("({Width}, {Height})")]
 public class ObservableSize<T>
-    : ObservableObjectX,
+    : ReactiveObjectX,
         IEquatable<ObservableSize<T>>,
         ICloneable<ObservableSize<T>>,
         ISize<T>
@@ -29,30 +30,15 @@ public class ObservableSize<T>
         Height = height;
     }
 
-    #region Width
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private T _width = default!;
+    /// <inheritdoc/>
+    [ReactiveProperty]
+    public T Width { get; set; }
 
     /// <inheritdoc/>
-    public T Width
-    {
-        get => _width;
-        set => SetProperty(ref _width, value);
-    }
-    #endregion
+    [ReactiveProperty]
+    public T Height { get; set; }
 
-    #region Height
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private T _height = default!;
-
-    /// <inheritdoc/>
-    public T Height
-    {
-        get => _height;
-        set => SetProperty(ref _height, value);
-    }
-    #endregion
-
+    #region Clone
     /// <inheritdoc/>
     public ObservableSize<T> Clone()
     {
@@ -60,6 +46,7 @@ public class ObservableSize<T>
     }
 
     object ICloneable.Clone() => Clone();
+    #endregion
 
     #region Equals
 

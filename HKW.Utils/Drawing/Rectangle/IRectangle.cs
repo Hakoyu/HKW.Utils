@@ -7,7 +7,7 @@ namespace HKW.HKWUtils.Drawing;
 /// </summary>
 /// <typeparam name="T">数据类型</typeparam>
 public interface IRectangle<T> : IReadOnlyRectangle<T>
-    where T : INumber<T>
+    where T : struct, INumber<T>
 {
     /// <summary>
     /// 宽

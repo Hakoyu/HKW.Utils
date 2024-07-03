@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
+using HKW.HKWReactiveUI;
 using HKW.HKWUtils.Drawing;
 
 namespace HKW.HKWUtils.Observable;
@@ -10,7 +11,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("({Min}, {Max})")]
 public class ObservableRange<T>
-    : ObservableObjectX,
+    : ReactiveObjectX,
         IEquatable<ObservableRange<T>>,
         ICloneable<ObservableRange<T>>,
         IRange<T>
@@ -28,30 +29,15 @@ public class ObservableRange<T>
         Max = max;
     }
 
-    #region Min
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private T _min = default!;
+    /// <inheritdoc/>
+    [ReactiveProperty]
+    public T Min { get; set; }
 
     /// <inheritdoc/>
-    public T Min
-    {
-        get => _min;
-        set => SetProperty(ref _min, value);
-    }
-    #endregion
+    [ReactiveProperty]
+    public T Max { get; set; }
 
-    #region Max
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private T _max = default!;
-
-    /// <inheritdoc/>
-    public T Max
-    {
-        get => _max;
-        set => SetProperty(ref _max, value);
-    }
-    #endregion
-
+    #region Clone
     /// <inheritdoc/>
     public ObservableRange<T> Clone()
     {
@@ -59,6 +45,7 @@ public class ObservableRange<T>
     }
 
     object ICloneable.Clone() => Clone();
+    #endregion
 
     #region Equals
 

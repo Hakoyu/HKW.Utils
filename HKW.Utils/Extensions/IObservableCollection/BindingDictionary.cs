@@ -41,7 +41,7 @@ public static partial class HKWExtensions
         }
         sourceDictionary.DictionaryChanged -= SourceDictionary_DictionaryChanged;
         sourceDictionary.DictionaryChanged += SourceDictionary_DictionaryChanged;
-        _bindingDictionarys.GetValueOrCreate(sourceDictionary).Add(targetDictionary);
+        _bindingDictionarys.GetOrCreate(sourceDictionary).Add(targetDictionary);
 
         static void SourceDictionary_DictionaryChanged(
             INotifyDictionaryChanged<TKey, TValue> sender,

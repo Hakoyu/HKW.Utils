@@ -1,4 +1,5 @@
-﻿using HKW.HKWUtils.Extensions;
+﻿using HKW.HKWReactiveUI;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -14,8 +15,6 @@ public class ObservableEnumCommand<TEnum> : ObservableEnum<TEnum>
     {
         if (Attribute.IsDefined(EnumType, typeof(FlagsAttribute)) is false)
             throw new Exception($"此枚举类型未使用特性 \"{nameof(FlagsAttribute)}\"");
-        AddFlagCommand.ExecuteCommand += AddFlagCommand_ExecuteCommand;
-        RemoveFlagCommand.ExecuteCommand += RemoveFlagCommand_ExecuteCommand;
     }
 
     /// <inheritdoc/>
@@ -29,19 +28,17 @@ public class ObservableEnumCommand<TEnum> : ObservableEnum<TEnum>
     /// <summary>
     /// 添加枚举标签命令
     /// </summary>
-    public ObservableCommand<TEnum> AddFlagCommand { get; } = new();
-
-    /// <summary>
-    /// 删除枚举标签命令
-    /// </summary>
-    public ObservableCommand<TEnum> RemoveFlagCommand { get; } = new();
-
-    private void AddFlagCommand_ExecuteCommand(TEnum flag)
+    [ReactiveCommand]
+    private void AddFlag(TEnum flag)
     {
         Value = Value.AddFlag(flag);
     }
 
-    private void RemoveFlagCommand_ExecuteCommand(TEnum flag)
+    /// <summary>
+    /// 删除枚举标签命令
+    /// </summary>
+    [ReactiveCommand]
+    private void RemoveFlag(TEnum flag)
     {
         if (Value.Equals(flag) is false)
             Value = Value.RemoveFlag(flag);

@@ -41,7 +41,6 @@ public static partial class HKWExtensions
     /// <summary>
     /// 分割Span&lt;char&gt;
     /// </summary>
-    /// <typeparam name="T">类型</typeparam>
     /// <param name="span">源</param>
     /// <param name="stringSplitOptions">字符串分割设置</param>
     /// <param name="separator">分割符</param>

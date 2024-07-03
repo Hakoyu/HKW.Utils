@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using HKW.HKWReactiveUI;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -13,7 +15,7 @@ namespace HKW.HKWUtils.Observable;
 /// 可观察枚举
 /// </summary>
 /// <typeparam name="TEnum">枚举类型</typeparam>
-public class ObservableEnum<TEnum> : ObservableObjectX, IEquatable<ObservableEnum<TEnum>>
+public class ObservableEnum<TEnum> : ReactiveObjectX, IEquatable<ObservableEnum<TEnum>>
     where TEnum : struct, Enum
 {
     /// <inheritdoc/>
@@ -37,50 +39,28 @@ public class ObservableEnum<TEnum> : ObservableObjectX, IEquatable<ObservableEnu
         get => _value;
         set
         {
-            if (SetProperty(ref _value, value))
-                Refresh();
+            // TODO
+            //if (SetProperty(ref _value, value))
+            //    Refresh();
         }
     }
     #endregion
 
-    #region Name
-    private string _name = string.Empty;
-
     /// <summary>
     /// 名称
     /// </summary>
-    public string Name
-    {
-        get => _name;
-        private set => SetProperty(ref _name, value);
-    }
-    #endregion
-
-    #region ShortName
-    private string _shortName = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// 短名称
     /// </summary>
-    public string ShortName
-    {
-        get => _shortName;
-        private set => SetProperty(ref _shortName, value);
-    }
-    #endregion
-
-    #region Description
-    private string _description = string.Empty;
+    public string ShortName { get; set; } = string.Empty;
 
     /// <summary>
     /// 描述
     /// </summary>
-    public string Description
-    {
-        get => _description;
-        set => SetProperty(ref _description, value);
-    }
-    #endregion
+    public string Description { get; set; } = string.Empty;
+
     /// <summary>
     /// 全部名称
     /// </summary>
@@ -118,7 +98,7 @@ public class ObservableEnum<TEnum> : ObservableObjectX, IEquatable<ObservableEnu
     /// (EnumName, DisplayAttribute)
     /// </para>
     /// </summary>
-    public static FrozenDictionary<TEnum, DisplayAttribute>? EnumInfos { get; private set; } =
+    public static ImmutableDictionary<TEnum, DisplayAttribute>? EnumInfos { get; private set; } =
         null!;
 
     /// <summary>
@@ -149,14 +129,14 @@ public class ObservableEnum<TEnum> : ObservableObjectX, IEquatable<ObservableEnu
         return Value.HasFlag(observableEnum.Value);
     }
 
-    internal static FrozenDictionary<TEnum, DisplayAttribute> GetEnumInfo<T>()
+    internal static ImmutableDictionary<TEnum, DisplayAttribute> GetEnumInfo<T>()
     {
         return Values
             .Select(static v =>
                 (Value: v, FieldInfo: typeof(TEnum).GetField(Enum.GetName<TEnum>(v)!)!)
             )
             .Where(static v => v.FieldInfo.IsDefined(typeof(DisplayAttribute)))
-            .ToFrozenDictionary(
+            .ToImmutableDictionary(
                 v => v.Value,
                 v => v.FieldInfo.GetCustomAttribute<DisplayAttribute>()!
             );

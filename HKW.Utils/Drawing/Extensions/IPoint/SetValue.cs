@@ -6,9 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using HKW.HKWUtils.Drawing;
 
-namespace HKW.HKWUtils.Extensions;
+namespace HKW.HKWUtils.Drawing;
 
-public static partial class HKWExtensions
+public static partial class DrawingExtensions
 {
     /// <summary>
     /// 设置值

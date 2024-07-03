@@ -63,9 +63,7 @@ public struct ReadOnlyPoint<T> : IEquatable<IReadOnlyPoint<T>>, IReadOnlyPoint<T
     /// <inheritdoc/>
     public override bool Equals(object? obj)
     {
-        if (obj is null)
-            return false;
-        return Equals((IReadOnlyPoint<T>)obj);
+        return Equals(obj as IReadOnlyPoint<T>);
     }
 
     /// <inheritdoc/>
@@ -91,6 +89,6 @@ public struct ReadOnlyPoint<T> : IEquatable<IReadOnlyPoint<T>>, IReadOnlyPoint<T
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"X = {X}, Y = {Y}";
+        return $"{{X = {X}, Y = {Y}}}";
     }
 }
