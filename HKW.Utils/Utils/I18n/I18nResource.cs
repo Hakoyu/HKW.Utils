@@ -262,11 +262,12 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
                 this,
                 new(newPair.Key, cultureDatas.Key, default, newPair.Value)
             );
+            if (_keyChanging)
+                return;
             foreach (var obj in I18nObjects)
             {
                 if (obj.KeyToTargetNames.ContainsKey(cultureDatas.Key) is false)
                     continue;
-
                 obj.NotifyPropertyChangedByKey(cultureDatas.Key);
             }
         }
@@ -278,7 +279,8 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
                 this,
                 new(oldPair.Key, cultureDatas.Key, oldPair.Value, default)
             );
-
+            if (_keyChanging)
+                return;
             foreach (var obj in I18nObjects)
             {
                 if (obj.KeyToTargetNames.ContainsKey(cultureDatas.Key) is false)
@@ -296,11 +298,13 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
                 this,
                 new(oldPair.Key, cultureDatas.Key, oldPair.Value, newPair.Value)
             );
-            foreach (var pair in I18nObjects)
+            if (_keyChanging)
+                return;
+            foreach (var obj in I18nObjects)
             {
-                if (pair.KeyToTargetNames.ContainsKey(cultureDatas.Key) is false)
+                if (obj.KeyToTargetNames.ContainsKey(cultureDatas.Key) is false)
                     continue;
-                pair.NotifyPropertyChangedByKey(cultureDatas.Key);
+                obj.NotifyPropertyChangedByKey(cultureDatas.Key);
             }
         }
     }
@@ -347,30 +351,37 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         }
     }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private bool _keyChanging;
+
     private void Item_KeyChanged(I18nObject<TKey, TValue> sender, (TKey OldKey, TKey NewKey) e)
     {
+        // 如果没有旧值则直接添加新值
         if (CultureDatas.TryGetValue(e.OldKey, out var oldDatas) is false)
         {
             CultureDatas.TryAdd(e.NewKey, new() { Key = e.NewKey });
             return;
         }
+
+        // 如果旧值不存在数据,尝试新键新值
         if (oldDatas.HasValue() is false)
         {
-            // 如果旧值不存在数据,尝试新键新值
             CultureDatas.TryAdd(e.NewKey, new() { Key = e.NewKey });
-            // 如果在所有引用中未被使用,则删除
+            // 如果未被使用,则删除
             if (I18nObjects.All(i => i.KeyToTargetNames.ContainsKey(e.OldKey) is false))
                 CultureDatas.Remove(e.OldKey);
             return;
         }
+        _keyChanging = true;
+        // 如果新值不存在数据
         if (CultureDatas.TryGetValue(e.NewKey, out var newDatas) is false)
         {
-            // 如果新值不存在数据
             newDatas = new() { Key = e.NewKey };
-            // 先添加, 否则不会注册事件
+            // 添加(注册事件)
             CultureDatas.TryAdd(e.NewKey, newDatas);
+            // 添加并触发事件
             newDatas.AddRange(oldDatas);
-            // 如果在所有引用中未被使用,则删除
+            // 如果未被使用,则删除
             if (I18nObjects.All(i => i.KeyToTargetNames.ContainsKey(e.OldKey) is false))
                 CultureDatas.Remove(e.OldKey);
         }
@@ -387,6 +398,14 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
                 }
             }
         }
+        // 手动发送通知,以防重复触发
+        foreach (var obj in I18nObjects)
+        {
+            if (obj.KeyToTargetNames.ContainsKey(e.NewKey) is false)
+                continue;
+            obj.NotifyPropertyChangedByKey(e.NewKey);
+        }
+        _keyChanging = false;
     }
 
     #region CurrentCultureData

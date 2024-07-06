@@ -31,7 +31,6 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-        Console.WriteLine(230 - 220 * 0.5);
         //var size = new Size<int>("114, 514");
         I18nResource.AddCulture("zh");
         I18nResource.AddCulture("en");
@@ -39,13 +38,13 @@ internal class Program
         I18nResource.AddCultureData("en", "Name", "Name-EN");
         I18nResource.SetCurrentCulture("zh");
         var t = new TestModel();
+        t.PropertyChanged += T_PropertyChanged;
         t.ID = "Name";
         Console.WriteLine(t.Name);
         I18nResource.SetCurrentCulture("en");
         Console.WriteLine(t.Name);
         t.ID = "Name2";
         Console.WriteLine(t.Name);
-        //t.PropertyChanged += T_PropertyChanged;
         //t.CanExecute = !t.CanExecute;
         //var c = t.TestCommand as ICommand;
         //c.CanExecuteChanged += C_CanExecuteChanged;
@@ -57,16 +56,7 @@ internal class Program
 
     private static void T_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        return;
-    }
-
-    private static void C_CanExecuteChanged(object? sender, EventArgs e)
-    {
-        throw new NotImplementedException();
-    }
-
-    private static void Test_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
+        Console.WriteLine($"PropertyName: {e.PropertyName}");
         return;
     }
 
@@ -106,9 +96,9 @@ internal partial class TestModel : ReactiveObjectX
         //        Console.WriteLine($"ExampleProperty 的值已经改变，旧的值是：{oldValue}，新的值是：{newValue}");
         //    });
         //CanExecute = true;
-        Program.I18nResource.I18nObjects.Add(new(this));
-        var i18nObject = Program.I18nResource.I18nObjects.Last();
-        i18nObject.AddProperty(nameof(ID), x => ((TestModel)x).ID, nameof(Name), true);
+        //Program.I18nResource.I18nObjects.Add(new(this));
+        //var i18nObject = Program.I18nResource.I18nObjects.Last();
+        //i18nObject.AddProperty(nameof(ID), x => ((TestModel)x).ID, nameof(Name), true);
     }
 
     [ReactiveProperty]

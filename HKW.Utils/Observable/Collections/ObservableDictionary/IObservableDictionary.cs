@@ -24,4 +24,26 @@ public interface IObservableDictionary<TKey, TValue>
     /// 可观察的值集合
     /// </summary>
     public IReadOnlyObservableCollection<TValue> ObservableValues { get; }
+
+    ///// <summary>
+    ///// 添加多个
+    ///// </summary>
+    ///// <param name="items">项目</param>
+    //public void AddRange(IEnumerable<KeyValuePair<TKey, TValue>> items);
+
+    ///// <summary>
+    ///// 尝试添加多个
+    ///// </summary>
+    ///// <param name="items">项目</param>
+    //public void TryAddRange(IEnumerable<KeyValuePair<TKey, TValue>> items);
+
+    ///// <summary>
+    ///// 尝试添加多个
+    ///// </summary>
+    ///// <param name="items">项目</param>
+    ///// <param name="badItems">添加失败的项目</param>
+    //public void TryAddRange(
+    //    IEnumerable<KeyValuePair<TKey, TValue>> items,
+    //    out List<KeyValuePair<TKey, TValue>> badItems
+    //);
 }
