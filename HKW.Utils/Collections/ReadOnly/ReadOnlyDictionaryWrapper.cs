@@ -1,8 +1,9 @@
-﻿using HKW.HKWUtils.Extensions;
-using HKW.HKWUtils.Natives;
-using System.Collections;
+﻿using System.Collections;
+using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using HKW.HKWUtils.Extensions;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -63,7 +64,7 @@ public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
     TReadOnlyValue IDictionary<TKey, TReadOnlyValue>.this[TKey key]
     {
         get => _dictionary[key];
-        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+        set => throw new ReadOnlyException();
     }
 
     /// <inheritdoc/>
@@ -79,13 +80,13 @@ public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
     /// <inheritdoc/>
     void IDictionary<TKey, TReadOnlyValue>.Add(TKey key, TReadOnlyValue value)
     {
-        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     /// <inheritdoc/>
     bool IDictionary<TKey, TReadOnlyValue>.Remove(TKey key)
     {
-        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     /// <inheritdoc/>
@@ -93,13 +94,13 @@ public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
         KeyValuePair<TKey, TReadOnlyValue> item
     )
     {
-        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     /// <inheritdoc/>
     void ICollection<KeyValuePair<TKey, TReadOnlyValue>>.Clear()
     {
-        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     /// <inheritdoc/>
@@ -107,7 +108,7 @@ public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
         KeyValuePair<TKey, TReadOnlyValue> item
     )
     {
-        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     /// <inheritdoc/>

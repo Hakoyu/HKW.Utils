@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HKW.HKWUtils.DebugViews;
@@ -31,6 +32,10 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     public ReadOnlyObservableDictionary(IObservableDictionary<TKey, TValue> dictionary)
     {
         _dictionary = dictionary;
+        _dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
+        _dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
+        _dictionary.CollectionChanged -= Dictionary_CollectionChanged;
+        _dictionary.PropertyChanged -= Dictionary_PropertyChanged;
         _dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
         _dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
         _dictionary.CollectionChanged += Dictionary_CollectionChanged;
@@ -70,41 +75,59 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     }
     #endregion
 
-    #region Dispose
-    private bool _disposedValue;
 
-    /// <inheritdoc/>
-    ~ReadOnlyObservableDictionary() => Dispose(false);
+    #region IDisposable
+    private bool _disposed;
+
+    /// <summary>
+    /// 为了防止忘记显式的调用Dispose方法
+    /// </summary>
+    ~ReadOnlyObservableDictionary()
+    {
+        //必须为false
+        Dispose(false);
+    }
 
     /// <inheritdoc/>
     public void Dispose()
     {
+        //必须为true
         Dispose(true);
+        //通知垃圾回收器不再调用终结器
         GC.SuppressFinalize(this);
     }
 
     /// <summary>
-    ///
+    /// 关闭
     /// </summary>
-    /// <param name="disposing"></param>
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_disposedValue)
-            return;
-        if (disposing)
-            Close();
-        _disposedValue = true;
-    }
-
-    /// <inheritdoc/>
     public void Close()
     {
-        _dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
-        _dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
-        _dictionary.CollectionChanged -= Dictionary_CollectionChanged;
-        _dictionary.PropertyChanged -= Dictionary_PropertyChanged;
+        Dispose();
+    }
+
+    /// <summary>
+    /// 非密封类可重写的Dispose方法，方便子类继承时可重写
+    /// </summary>
+    /// <param name="disposing">释放中</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+        //清理托管资源
+        if (disposing)
+        {
+            _dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
+            _dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
+            _dictionary.CollectionChanged -= Dictionary_CollectionChanged;
+            _dictionary.PropertyChanged -= Dictionary_PropertyChanged;
+        }
+        //清理非托管资源
+
+        //告诉自己已经被释放
+        _disposed = true;
     }
     #endregion
+
     /// <inheritdoc/>
     public TValue this[TKey key] => ((IReadOnlyDictionary<TKey, TValue>)_dictionary)[key];
 
@@ -133,7 +156,7 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     TValue IDictionary<TKey, TValue>.this[TKey key]
     {
         get => _dictionary[key];
-        set => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        set => throw new ReadOnlyException();
     }
 
     /// <inheritdoc/>
@@ -162,22 +185,22 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
 
     void IDictionary<TKey, TValue>.Add(TKey key, TValue value)
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     bool IDictionary<TKey, TValue>.Remove(TKey key)
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     void ICollection<KeyValuePair<TKey, TValue>>.Clear()
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
@@ -195,7 +218,7 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
 
     bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     #region Event

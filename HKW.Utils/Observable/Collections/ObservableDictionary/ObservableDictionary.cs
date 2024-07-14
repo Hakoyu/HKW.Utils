@@ -76,10 +76,10 @@ public class ObservableDictionary<TKey, TValue>
     public ICollection<TValue> Values => _dictionary.Values;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private ObservableList<TKey> _observableKeys = new();
+    private ObservableList<TKey> _observableKeys = [];
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private ObservableList<TValue> _observableValues = new();
+    private ObservableList<TValue> _observableValues = [];
 
     /// <inheritdoc/>
     public IReadOnlyObservableCollection<TKey> ObservableKeys { get; }
@@ -112,10 +112,10 @@ public class ObservableDictionary<TKey, TValue>
             }
             else
             {
-                var newPair = KeyValuePair.Create(key, value);
-                var oldPair = KeyValuePair.Create(key, oldValue);
                 if (oldValue?.Equals(value) is true)
                     return;
+                var newPair = KeyValuePair.Create(key, value);
+                var oldPair = KeyValuePair.Create(key, oldValue);
                 OnDictionaryReplacing(newPair, oldPair);
                 _dictionary[key] = value;
                 OnDictionaryReplaced(newPair, oldPair);

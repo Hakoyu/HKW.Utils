@@ -126,7 +126,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         var oldItems = new SimpleReadOnlyList<T>(_set.Intersect(other));
         var otherItems = new SimpleReadOnlyList<T>(other);
         OnSetOperating(SetChangeAction.Except, otherItems, null, oldItems);
-        _set.IntersectWith(otherItems);
+        _set.ExceptWith(otherItems);
         OnSetOperated(SetChangeAction.Except, otherItems, null, oldItems);
     }
 
@@ -134,10 +134,13 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     public void SymmetricExceptWith(IEnumerable<T> other)
     {
         var otherItems = new SimpleReadOnlyList<T>(other);
-        var oldItems = new SimpleReadOnlyList<T>(other.Intersect(_set));
-        var newItems = new SimpleReadOnlyList<T>(_set.Union(other).Except(oldItems).Except(_set));
+        var oldItems = new SimpleReadOnlyList<T>(otherItems.Intersect(_set));
+        var newItems = new SimpleReadOnlyList<T>(otherItems.Except(oldItems));
         OnSetOperating(SetChangeAction.SymmetricExcept, otherItems, newItems, oldItems);
-        _set.SymmetricExceptWith(otherItems);
+        if (other is HashSet<T> otherSet)
+            _set.SymmetricExceptWith(otherSet);
+        else
+            _set.SymmetricExceptWith(otherItems);
         OnSetOperated(SetChangeAction.SymmetricExcept, otherItems, newItems, oldItems);
     }
 

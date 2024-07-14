@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -35,6 +36,8 @@ public class FilterList<T, TList, TFilteredList>
     /// <param name="filter">过滤器</param>
     public FilterList(TList list, TFilteredList filteredList, Predicate<T> filter)
     {
+        if (filteredList.IsReadOnly)
+            throw new ReadOnlyException("FilteredList is read only");
         List = list;
         FilteredList = filteredList;
         Filter = filter;
@@ -86,8 +89,6 @@ public class FilterList<T, TList, TFilteredList>
     /// </summary>
     public void Refresh()
     {
-        if (FilteredList.IsReadOnly)
-            return;
         FilteredList.Clear();
         if (Filter is null)
             FilteredList.AddRange(List);

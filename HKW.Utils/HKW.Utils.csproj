@@ -18,30 +18,17 @@
 		<PackageOutputPath>$(OutputPath)</PackageOutputPath>
 		<PathMap>$(SolutionDir)=$(MSBuildProjectName.Replace(" ", "_"))/</PathMap>
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-		<Configurations>Debug;Release;Test</Configurations>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DebugType>embedded</DebugType>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Test|AnyCPU'">
-		<DebugType>embedded</DebugType>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<DebugType>embedded</DebugType>
-	</PropertyGroup>
-
-	<ItemGroup Condition="'$(Configuration)'=='Test'">
+	<ItemGroup Condition="'$(Configuration)'=='Debug'">
 		<Reference Include="HKW.ReactiveUI">
 			<HintPath>..\..\HKW.ReactiveUI\HKW.ReactiveUI\bin\Debug\netstandard2.0\HKW.ReactiveUI.dll</HintPath>
 		</Reference>
 		<Analyzer Include="..\..\HKW.ReactiveUI\HKW.ReactiveUI\bin\Debug\netstandard2.0\HKW.ReactiveUI.dll" />
 		<WeaverFiles Include="..\..\HKW.ReactiveUI\HKW.ReactiveUI.Fody\bin\Debug\netstandard2.0\HKW.ReactiveUI.Fody.dll" />
 	</ItemGroup>
-	<ItemGroup Condition="'$(Configuration)'!='Test'">
-		<PackageReference Include="HKW.ReactiveUI" Version="0.1.1" />
+	<ItemGroup Condition="'$(Configuration)'=='Release'">
+		<PackageReference Include="HKW.ReactiveUI" Version="0.1.2" />
 	</ItemGroup>
 
 	<ItemGroup>

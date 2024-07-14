@@ -2,6 +2,7 @@
 using System.Numerics;
 using HKW.HKWUtils;
 using HKW.HKWUtils.Drawing;
+using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
 
 namespace HKW.HKWUtils.Drawing;
@@ -41,6 +42,15 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
     }
 
     /// <inheritdoc/>
+    /// <param name="width">宽</param>
+    /// <param name="height">高</param>
+    public Rectangle(T width, T height)
+    {
+        Width = width;
+        Height = height;
+    }
+
+    /// <inheritdoc/>
     /// <param name="x">X坐标</param>
     /// <param name="y">Y坐标</param>
     /// <param name="width">宽</param>
@@ -51,6 +61,22 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
         Y = y;
         Width = width;
         Height = height;
+    }
+
+    /// <inheritdoc/>
+    /// <param name="data">数据</param>
+    /// <param name="separator">分割符</param>
+    public Rectangle(string data, char separator = ',')
+    {
+        var datas = data.AsSpan().Split(separator);
+        datas.MoveNext();
+        X = T.Parse(datas.Current, null);
+        datas.MoveNext();
+        Y = T.Parse(datas.Current, null);
+        datas.MoveNext();
+        Width = T.Parse(datas.Current, null);
+        datas.MoveNext();
+        Height = T.Parse(datas.Current, null);
     }
 
     #region Size

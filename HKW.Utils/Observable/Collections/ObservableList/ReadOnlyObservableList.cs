@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HKW.HKWUtils.DebugViews;
@@ -15,7 +16,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
-public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>
+public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>, IList
 {
     /// <summary>
     /// 原始可观察列表
@@ -101,6 +102,24 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     public T this[int index] => ((IReadOnlyList<T>)_list)[index];
 
     /// <inheritdoc/>
+    public bool IsReadOnly => true;
+
+    /// <inheritdoc/>
+    bool IList.IsFixedSize => ((IList)_list).IsFixedSize;
+
+    /// <inheritdoc/>
+    bool ICollection.IsSynchronized => ((IList)_list).IsSynchronized;
+
+    /// <inheritdoc/>
+    object ICollection.SyncRoot => ((IList)_list).SyncRoot;
+
+    object? IList.this[int index]
+    {
+        get => ((IList)_list)[index];
+        set => throw new ReadOnlyException();
+    }
+
+    /// <inheritdoc/>
     public IEnumerator<T> GetEnumerator()
     {
         return _list.GetEnumerator();
@@ -119,32 +138,32 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     T IList<T>.this[int index]
     {
         get => ((IReadOnlyList<T>)_list)[index];
-        set => throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        set => throw new ReadOnlyException();
     }
 
     void IList<T>.Insert(int index, T item)
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     void IList<T>.RemoveAt(int index)
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     void ICollection<T>.Add(T item)
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     bool ICollection<T>.Remove(T item)
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     void ICollection<T>.Clear()
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     int IList<T>.IndexOf(T item)
@@ -162,12 +181,47 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
         _list.CopyTo(array, arrayIndex);
     }
 
+    int IList.Add(object? value)
+    {
+        throw new ReadOnlyException();
+    }
+
+    void IList.Clear()
+    {
+        throw new ReadOnlyException();
+    }
+
+    bool IList.Contains(object? value)
+    {
+        return _list.Contains((T)value!);
+    }
+
+    int IList.IndexOf(object? value)
+    {
+        return _list.IndexOf((T)value!);
+    }
+
+    void IList.Insert(int index, object? value)
+    {
+        throw new ReadOnlyException();
+    }
+
+    void IList.Remove(object? value)
+    {
+        throw new ReadOnlyException();
+    }
+
+    void IList.RemoveAt(int index)
+    {
+        throw new ReadOnlyException();
+    }
+
+    void ICollection.CopyTo(Array array, int index)
+    {
+        _list.CopyTo((T[])array, index);
+    }
+
     #endregion IObservableListT
-
-    #region IObservableList
-    bool ICollection<T>.IsReadOnly => true;
-
-    #endregion
 
     #region Event
     /// <inheritdoc/>

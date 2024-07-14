@@ -1,10 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Specialized;
+using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Extensions;
-using HKW.HKWUtils.Observable;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -38,6 +38,8 @@ public class FilterDictionary<TKey, TValue, TDictionary, TFilteredDictionary>
         Predicate<KeyValuePair<TKey, TValue>> filter
     )
     {
+        if (filteredDictionary.IsReadOnly)
+            throw new ReadOnlyException("FilteredDictionary is read only");
         Dictionary = dictionary;
         FilteredDictionary = filteredDictionary;
         Filter = filter;
@@ -97,8 +99,6 @@ public class FilterDictionary<TKey, TValue, TDictionary, TFilteredDictionary>
     /// <inheritdoc/>
     public void Refresh()
     {
-        if (FilteredDictionary.IsReadOnly)
-            return;
         FilteredDictionary.Clear();
         if (Filter is null)
             FilteredDictionary.AddRange(Dictionary);

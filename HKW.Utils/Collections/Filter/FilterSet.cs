@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -30,6 +31,8 @@ public class FilterSet<T, TSet, TFilteredSet>
     /// <param name="filter">过滤器</param>
     public FilterSet(TSet set, TFilteredSet filteredSet, Predicate<T> filter)
     {
+        if (filteredSet.IsReadOnly)
+            throw new ReadOnlyException("FilteredSet is read only");
         Set = set;
         FilteredSet = filteredSet;
         Filter = filter;
@@ -80,8 +83,6 @@ public class FilterSet<T, TSet, TFilteredSet>
     /// </summary>
     public void Refresh()
     {
-        if (FilteredSet.IsReadOnly)
-            return;
         if (Filter is null)
             FilteredSet.AddRange(Set);
         else if (Set.HasValue())

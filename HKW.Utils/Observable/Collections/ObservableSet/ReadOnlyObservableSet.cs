@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Natives;
@@ -152,42 +153,42 @@ public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSe
 
     bool ISet<T>.Add(T item)
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     void ICollection<T>.Add(T item)
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     void ICollection<T>.Clear()
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     void ISet<T>.ExceptWith(IEnumerable<T> other)
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     void ISet<T>.IntersectWith(IEnumerable<T> other)
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     bool ICollection<T>.Remove(T item)
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     void ISet<T>.SymmetricExceptWith(IEnumerable<T> other)
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     void ISet<T>.UnionWith(IEnumerable<T> other)
     {
-        throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
+        throw new ReadOnlyException();
     }
 
     void ICollection<T>.CopyTo(T[] array, int arrayIndex)

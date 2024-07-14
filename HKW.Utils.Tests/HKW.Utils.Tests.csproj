@@ -25,4 +25,12 @@
     <ProjectReference Include="..\HKW.Utils\HKW.Utils.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+	  <Reference Include="HKW.ReactiveUI">
+		  <HintPath>..\..\HKW.ReactiveUI\HKW.ReactiveUI\bin\Debug\netstandard2.0\HKW.ReactiveUI.dll</HintPath>
+	  </Reference>
+	  <Analyzer Include="..\..\HKW.ReactiveUI\HKW.ReactiveUI\bin\Debug\netstandard2.0\HKW.ReactiveUI.dll" />
+	  <WeaverFiles Include="..\..\HKW.ReactiveUI\HKW.ReactiveUI.Fody\bin\Debug\netstandard2.0\HKW.ReactiveUI.Fody.dll" />
+  </ItemGroup>
+
 </Project>

@@ -20,12 +20,12 @@ public class NotifyListChangeEventArgs<T> : EventArgs
     /// <summary>
     /// 新项目
     /// </summary>
-    public IList<T>? NewItems { get; }
+    public T? NewItem { get; }
 
     /// <summary>
     /// 旧项目
     /// </summary>
-    public IList<T>? OldItems { get; }
+    public T? OldItem { get; }
 
     /// <summary>
     /// 索引
@@ -39,11 +39,8 @@ public class NotifyListChangeEventArgs<T> : EventArgs
     /// <param name="action">改变行动</param>
     public NotifyListChangeEventArgs(ListChangeAction action)
     {
-        if (action != ListChangeAction.Clear)
-            throw new ArgumentException(
-                $"{ExceptionMessage.MustBe} {nameof(ListChangeAction.Clear)}",
-                nameof(action)
-            );
+        if (action is not ListChangeAction.Clear)
+            throw new ArgumentException(nameof(action));
         Action = action;
     }
 
@@ -54,30 +51,24 @@ public class NotifyListChangeEventArgs<T> : EventArgs
     /// <see cref="ListChangeAction.Clear"/>
     /// </summary>
     /// <param name="action">改变行动</param>
-    /// <param name="items">项目</param>
+    /// <param name="item">项目</param>
     /// <param name="index">索引</param>
-    public NotifyListChangeEventArgs(ListChangeAction action, IList<T> items, int index)
+    public NotifyListChangeEventArgs(ListChangeAction action, T item, int index)
     {
         if (
-            action != ListChangeAction.Add
-            && action != ListChangeAction.Remove
-            && action != ListChangeAction.Clear
+            action is not ListChangeAction.Add
+            && action is not ListChangeAction.Remove
+            && action is not ListChangeAction.Clear
         )
-            throw new ArgumentException(
-                $"{ExceptionMessage.MustBe} {nameof(ListChangeAction.Add)} or {nameof(ListChangeAction.Remove)} or {nameof(ListChangeAction.Clear)}",
-                nameof(action)
-            );
+            throw new ArgumentException(nameof(action));
+        if (index < 0)
+            throw new ArgumentOutOfRangeException(nameof(index));
         Action = action;
         Index = index;
-        IList<T> list;
-        if (items.IsReadOnly)
-            list = items;
-        else
-            list = new SimpleReadOnlyList<T>(items);
         if (action is ListChangeAction.Add)
-            NewItems = list;
+            NewItem = item;
         else
-            OldItems = list;
+            OldItem = item;
     }
 
     /// <inheritdoc/>
@@ -85,31 +76,19 @@ public class NotifyListChangeEventArgs<T> : EventArgs
     /// 仅用于: <see cref="ListChangeAction.Replace"/>
     /// </summary>
     /// <param name="action">改变行动</param>
-    /// <param name="newItems">新项目</param>
-    /// <param name="oldItems">旧项目</param>
+    /// <param name="newItem">新项目</param>
+    /// <param name="oldItem">旧项目</param>
     /// <param name="index">索引</param>
-    public NotifyListChangeEventArgs(
-        ListChangeAction action,
-        IList<T> newItems,
-        IList<T> oldItems,
-        int index
-    )
+    public NotifyListChangeEventArgs(ListChangeAction action, T newItem, T oldItem, int index)
     {
         if (action != ListChangeAction.Replace)
-            throw new ArgumentException(
-                $"{ExceptionMessage.MustBe} {nameof(ListChangeAction.Replace)}",
-                nameof(action)
-            );
+            throw new ArgumentException(nameof(action));
+        if (index < 0)
+            throw new ArgumentOutOfRangeException(nameof(index));
         Action = action;
         Index = index;
-        if (newItems.IsReadOnly)
-            NewItems = newItems;
-        else
-            NewItems = new SimpleReadOnlyList<T>(newItems);
-        if (oldItems.IsReadOnly)
-            OldItems = oldItems;
-        else
-            OldItems = new SimpleReadOnlyList<T>(oldItems);
+        NewItem = newItem;
+        OldItem = oldItem;
     }
     #endregion
 }

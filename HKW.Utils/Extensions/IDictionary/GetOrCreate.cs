@@ -30,6 +30,28 @@ public static partial class HKWExtensions
     }
 
     /// <summary>
+    /// 获取或返回默认值
+    /// </summary>
+    /// <typeparam name="TKey">键类型</typeparam>
+    /// <typeparam name="TValue">值类型</typeparam>
+    /// <param name="dictionary">字典</param>
+    /// <param name="key">键</param>
+    /// <param name="value">默认值</param>
+    /// <returns>值</returns>
+    public static TValue? GetOrCreate<TKey, TValue>(
+        this IDictionary<TKey, TValue> dictionary,
+        TKey key,
+        TValue value
+    )
+        where TKey : notnull
+    {
+        ArgumentNullException.ThrowIfNull(dictionary, nameof(dictionary));
+        if (dictionary.TryGetValue(key, out var oldValue) is false)
+            oldValue = dictionary[key] = value;
+        return oldValue;
+    }
+
+    /// <summary>
     /// 获取或创建值, 新值会被添加到字典中
     /// </summary>
     /// <typeparam name="TKey">键类型</typeparam>
@@ -38,7 +60,7 @@ public static partial class HKWExtensions
     /// <param name="key">键</param>
     /// <param name="createValue">创建值</param>
     /// <returns>值</returns>
-    public static TValue GetValueOrCreate<TKey, TValue>(
+    public static TValue GetOrCreate<TKey, TValue>(
         this IDictionary<TKey, TValue> dictionary,
         TKey key,
         Func<TValue> createValue
