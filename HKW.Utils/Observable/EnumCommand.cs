@@ -19,7 +19,7 @@ public partial class EnumCommand<TEnum> : ReactiveObjectX
             throw new Exception($"此枚举类型未使用特性 \"{nameof(FlagsAttribute)}\"");
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc cref="AddFlag(TEnum)"/>
     /// <param name="enum">枚举值</param>
     public EnumCommand(TEnum @enum)
     {
@@ -37,9 +37,9 @@ public partial class EnumCommand<TEnum> : ReactiveObjectX
     /// </summary>
     /// <param name="flag">标志</param>
     [ReactiveCommand]
-    public void AddFlag(TEnum flag)
+    public void AddFlag()
     {
-        Value = AddFlageFunc(Value, flag);
+        //Value = AddFlageFunc(Value, flag);
     }
 
     /// <summary>
@@ -55,33 +55,33 @@ public partial class EnumCommand<TEnum> : ReactiveObjectX
     /// <summary>
     /// 添加标志方法
     /// </summary>
-    public AddFlage<TEnum> AddFlageFunc { get; set; } = DefaultAddFlageFunc;
+    public AddFlag<TEnum> AddFlageFunc { get; set; } = DefaultAddFlageFunc;
 
     /// <summary>
     /// 删除标志方法
     /// </summary>
-    public RemoveFlage<TEnum> RemoveFlageFunc { get; set; } = DefaultRemoveFlageFunc;
+    public RemoveFlag<TEnum> RemoveFlageFunc { get; set; } = DefaultRemoveFlageFunc;
 
     /// <summary>
     /// 默认添加标志方法
     /// </summary>
-    public static AddFlage<TEnum> DefaultAddFlageFunc { get; set; } = GlobalDefaultAddFlageFunc!;
+    public static AddFlag<TEnum> DefaultAddFlageFunc { get; set; } = GlobalDefaultAddFlageFunc!;
 
     /// <summary>
     /// 默认删除标志方法
     /// </summary>
-    public static RemoveFlage<TEnum> DefaultRemoveFlageFunc { get; set; } =
+    public static RemoveFlag<TEnum> DefaultRemoveFlageFunc { get; set; } =
         GlobalDefaultRemoveFlageFunc!;
 
     /// <summary>
     /// 全局默认添加标志方法
     /// </summary>
-    public static AddFlage<TEnum> GlobalDefaultAddFlageFunc { get; } = (v, f) => v.AddFlag(f);
+    public static AddFlag<TEnum> GlobalDefaultAddFlageFunc { get; } = (v, f) => v.AddFlag(f);
 
     /// <summary>
     /// 全局默认删除标志方法
     /// </summary>
-    public static RemoveFlage<TEnum> GlobalDefaultRemoveFlageFunc { get; } =
+    public static RemoveFlag<TEnum> GlobalDefaultRemoveFlageFunc { get; } =
         (v, f) => v.RemoveFlag(f);
 }
 
@@ -92,7 +92,7 @@ public partial class EnumCommand<TEnum> : ReactiveObjectX
 /// <param name="value">值</param>
 /// <param name="flag">标志</param>
 /// <returns>添加标志的值</returns>
-public delegate TEnum AddFlage<TEnum>(TEnum value, TEnum flag)
+public delegate TEnum AddFlag<TEnum>(TEnum value, TEnum flag)
     where TEnum : struct, Enum;
 
 /// <summary>
@@ -102,5 +102,5 @@ public delegate TEnum AddFlage<TEnum>(TEnum value, TEnum flag)
 /// <param name="value">值</param>
 /// <param name="flag">标志</param>
 /// <returns>添加标志的值</returns>
-public delegate TEnum RemoveFlage<TEnum>(TEnum value, TEnum flag)
+public delegate TEnum RemoveFlag<TEnum>(TEnum value, TEnum flag)
     where TEnum : struct, Enum;

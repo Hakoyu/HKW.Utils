@@ -19,6 +19,9 @@ namespace HKW.HKWUtils;
 /// </summary>
 public static class EnumInfo
 {
+    /// <summary>
+    /// (EnumType, (EnumValue, EnumInfo))
+    /// </summary>
     internal static readonly Dictionary<Type, FrozenDictionary<Enum, IEnumInfo>> InfosByType = [];
 
     /// <summary>
@@ -48,15 +51,4 @@ public static class EnumInfo
         EnumInfo<TEnum>.Initialize();
         return (EnumInfo<TEnum>)InfosByType[typeof(TEnum)][@enum];
     }
-}
-
-/// <summary>
-/// 枚举信息接口
-/// </summary>
-/// <typeparam name="TEnum">枚举类型</typeparam>
-public interface IEnumInfo<TEnum> : IEnumInfo, IEquatable<IEnumInfo<TEnum>>, IEquatable<TEnum>
-    where TEnum : struct, Enum
-{
-    /// <inheritdoc/>
-    public new TEnum Value { get; }
 }

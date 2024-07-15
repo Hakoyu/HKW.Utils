@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils;
 
@@ -81,6 +82,30 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
         return Value.HasFlag(flag.Value);
     }
 
+    /// <summary>
+    /// 获取标志
+    /// </summary>
+    /// <returns>全部标志</returns>
+    /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
+    public IEnumerable<TEnum> GetFlags()
+    {
+        if (IsFlagable is false)
+            throw new Exception($"此枚举类型未使用特性 \"{nameof(FlagsAttribute)}\"");
+        return Values.Where(i => Value.HasFlag(i));
+    }
+
+    /// <summary>
+    /// 获取标志信息
+    /// </summary>
+    /// <returns>全部标志信息</returns>
+    /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
+    public IEnumerable<EnumInfo<TEnum>> GetFlagInfos()
+    {
+        if (IsFlagable is false)
+            throw new Exception($"此枚举类型未使用特性 \"{nameof(FlagsAttribute)}\"");
+        return Values.Cast<EnumInfo<TEnum>>().Where(i => Value.HasFlag(i));
+    }
+
     /// <inheritdoc/>
     public override string ToString()
     {
@@ -117,6 +142,12 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
 
     #region Operator
     /// <inheritdoc/>
+    public static implicit operator TEnum(EnumInfo<TEnum> info)
+    {
+        return info.Value;
+    }
+
+    /// <inheritdoc/>
     public static bool operator ==(EnumInfo<TEnum> a, TEnum b)
     {
         return a.Equals(b);
@@ -143,13 +174,13 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// <inheritdoc/>
     public static bool operator ==(EnumInfo<TEnum> a, EnumInfo<TEnum> b)
     {
-        return a.Equals(other: b) is true;
+        return a.Equals(other: b.Value) is true;
     }
 
     /// <inheritdoc/>
     public static bool operator !=(EnumInfo<TEnum> a, EnumInfo<TEnum> b)
     {
-        return a.Equals(other: b) is not true;
+        return a.Equals(other: b.Value) is not true;
     }
     #endregion
 
@@ -182,61 +213,6 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     {
         return (EnumInfo<TEnum>)Infos[@enum];
     }
-
-    #region Default
-
-    /// <summary>
-    /// 默认到字符串方法
-    /// </summary>
-    public static Func<EnumInfo<TEnum>, string> DefaultToStringFunc { get; set; } =
-        GlobalDefaultToStringFunc!;
-
-    /// <summary>
-    /// 默认获取名称方法
-    /// </summary>
-    public static Func<EnumInfo<TEnum>, string> DefaultGetName { get; set; } =
-        GlobalDefaultGetName!;
-
-    /// <summary>
-    /// 默认获取短名称方法
-    /// </summary>
-    public static Func<EnumInfo<TEnum>, string> DefaultGetShortName { get; set; } =
-        GlobalDefaultGetShortName!;
-
-    /// <summary>
-    /// 默认获取描述方法
-    /// </summary>
-    public static Func<EnumInfo<TEnum>, string> DefaultGetDescription { get; set; } =
-        DefaultGetDescription!;
-
-    #endregion
-
-    #region GlobalDefault
-    /// <summary>
-    /// 全局默认到字符串方法
-    /// </summary>
-    public static Func<EnumInfo<TEnum>, string> GlobalDefaultToStringFunc { get; } =
-        (v) => v.Value.ToString();
-
-    /// <summary>
-    /// 全局默认获取名称方法
-    /// </summary>
-    public static Func<EnumInfo<TEnum>, string> GlobalDefaultGetName { get; } =
-        (v) => v.Display?.Name ?? v.Value.ToString();
-
-    /// <summary>
-    /// 全局默认获取短名称方法
-    /// </summary>
-    public static Func<EnumInfo<TEnum>, string> GlobalDefaultGetShortName { get; } =
-        (v) => v.Display?.ShortName ?? v.Value.ToString();
-
-    /// <summary>
-    /// 全局默认获取描述方法
-    /// </summary>
-    public static Func<EnumInfo<TEnum>, string> GlobalDefaultGetDescription { get; } =
-        (v) => v.Display?.Description ?? v.Value.ToString();
-    #endregion
-
 
     #region Names
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -292,5 +268,105 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
             );
     }
     #endregion
+
+    #region Default
+
+    /// <summary>
+    /// 默认到字符串方法
+    /// </summary>
+    public static Func<EnumInfo<TEnum>, string> DefaultToStringFunc { get; set; } =
+        GlobalDefaultToStringFunc!;
+
+    /// <summary>
+    /// 默认获取名称方法
+    /// </summary>
+    public static Func<EnumInfo<TEnum>, string> DefaultGetName { get; set; } =
+        GlobalDefaultGetName!;
+
+    /// <summary>
+    /// 默认获取短名称方法
+    /// </summary>
+    public static Func<EnumInfo<TEnum>, string> DefaultGetShortName { get; set; } =
+        GlobalDefaultGetShortName!;
+
+    /// <summary>
+    /// 默认获取描述方法
+    /// </summary>
+    public static Func<EnumInfo<TEnum>, string> DefaultGetDescription { get; set; } =
+        DefaultGetDescription!;
+
+    #endregion
+
+    #region GlobalDefault
+
+    /// <summary>
+    /// 全局默认到字符串方法
+    /// </summary>
+    public static Func<EnumInfo<TEnum>, string> GlobalDefaultToStringFunc { get; } =
+        static (v) => v.Value.ToString();
+
+    /// <summary>
+    /// 全局默认获取名称方法
+    /// </summary>
+    public static Func<EnumInfo<TEnum>, string> GlobalDefaultGetName { get; } =
+        static (v) =>
+        {
+            if (IsFlagable)
+            {
+                if (EnumDisplays.HasValue())
+                {
+                    return string.Join(
+                        " | ",
+                        v.GetFlagInfos().Select(static i => i.Display?.Name ?? i.Value.ToString())
+                    );
+                }
+                return v.Value.ToString();
+            }
+            return v.Display?.Name ?? v.Value.ToString();
+        };
+
+    /// <summary>
+    /// 全局默认获取短名称方法
+    /// </summary>
+    public static Func<EnumInfo<TEnum>, string> GlobalDefaultGetShortName { get; } =
+        static (v) =>
+        {
+            if (IsFlagable)
+            {
+                if (EnumDisplays.HasValue())
+                {
+                    return string.Join(
+                        " | ",
+                        v.GetFlagInfos()
+                            .Select(static i => i.Display?.ShortName ?? i.Value.ToString())
+                    );
+                }
+                return v.Value.ToString();
+            }
+            return v.Display?.ShortName ?? v.Value.ToString();
+        };
+
+    /// <summary>
+    /// 全局默认获取描述方法
+    /// </summary>
+    public static Func<EnumInfo<TEnum>, string> GlobalDefaultGetDescription { get; } =
+        static (v) =>
+        {
+            if (IsFlagable)
+            {
+                if (EnumDisplays.HasValue())
+                {
+                    return string.Join(
+                        " | ",
+                        v.GetFlagInfos()
+                            .Select(static i => i.Display?.Description ?? i.Value.ToString())
+                    );
+                }
+                return v.Value.ToString();
+            }
+            return v.Display?.Description ?? v.Value.ToString();
+        };
+    #endregion
+
     #endregion
 }

@@ -51,6 +51,8 @@ internal class Program
         //c.CanExecute(null);
         //c.Execute(null);
         //var command = ReactiveCommand.Create(() => { });
+        var a = EnumInfo<TestEnum>.GetInfo(TestEnum.A);
+        var r = a == a;
 #endif
     }
 
