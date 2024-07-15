@@ -32,19 +32,19 @@ internal class Program
     {
 #if !Release
         //var size = new Size<int>("114, 514");
-        I18nResource.AddCulture("zh");
-        I18nResource.AddCulture("en");
-        I18nResource.AddCultureData("zh", "Name", "Name-CN");
-        I18nResource.AddCultureData("en", "Name", "Name-EN");
-        I18nResource.SetCurrentCulture("zh");
-        var t = new TestModel();
-        t.PropertyChanged += T_PropertyChanged;
-        t.ID = "Name";
-        Console.WriteLine(t.Name);
-        I18nResource.SetCurrentCulture("en");
-        Console.WriteLine(t.Name);
-        t.ID = "Name2";
-        Console.WriteLine(t.Name);
+        //I18nResource.AddCulture("zh");
+        //I18nResource.AddCulture("en");
+        //I18nResource.AddCultureData("zh", "Name", "Name-CN");
+        //I18nResource.AddCultureData("en", "Name", "Name-EN");
+        //I18nResource.SetCurrentCulture("zh");
+        //var t = new TestModel();
+        //t.PropertyChanged += T_PropertyChanged;
+        //t.ID = "Name";
+        //Console.WriteLine(t.Name);
+        //I18nResource.SetCurrentCulture("en");
+        //Console.WriteLine(t.Name);
+        //t.ID = "Name2";
+        //Console.WriteLine(t.Name);
         //t.CanExecute = !t.CanExecute;
         //var c = t.TestCommand as ICommand;
         //c.CanExecuteChanged += C_CanExecuteChanged;
@@ -101,6 +101,8 @@ internal partial class TestModel : ReactiveObjectX
         //i18nObject.AddProperty(nameof(ID), x => ((TestModel)x).ID, nameof(Name), true);
     }
 
+    public EnumInfo<TestEnum> Enum { get; set; } = EnumInfo<TestEnum>.GetInfo(TestEnum.A);
+
     [ReactiveProperty]
     public string ID { get; set; } = string.Empty;
 
@@ -127,5 +129,12 @@ internal partial class TestModel : ReactiveObjectX
         await Task.Delay(1000);
         Console.WriteLine(nameof(Test1Async));
     }
+}
+
+internal enum TestEnum
+{
+    A,
+    B,
+    C
 }
 #endif

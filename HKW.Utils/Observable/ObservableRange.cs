@@ -10,7 +10,7 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("({Min}, {Max})")]
-public class ObservableRange<T>
+public partial class ObservableRange<T>
     : ReactiveObjectX,
         IEquatable<ObservableRange<T>>,
         ICloneable<ObservableRange<T>>,

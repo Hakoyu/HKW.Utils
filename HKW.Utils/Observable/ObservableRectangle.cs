@@ -12,7 +12,7 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="T">数据类型</typeparam>
 [DebuggerDisplay("({X}, {Y}, {Width}, {Height})")]
-public class ObservableRectangle<T>
+public partial class ObservableRectangle<T>
     : ReactiveObjectX,
         IEquatable<ObservableRectangle<T>>,
         ICloneable<ObservableRectangle<T>>,
@@ -61,90 +61,50 @@ public class ObservableRectangle<T>
 
     /// <inheritdoc/>
     [ReactiveProperty]
-    [NotifyPropertyChangedFor(
-        [
-            nameof(Left),
-            nameof(Right),
-            nameof(Top),
-            nameof(Bottom),
-            nameof(LeftTop),
-            nameof(RightTop),
-            nameof(LeftBottom),
-            nameof(RightBottom)
-        ]
-    )]
     public T Width { get; set; }
 
     /// <inheritdoc/>
     [ReactiveProperty]
-    [NotifyPropertyChangedFor(
-        [
-            nameof(Left),
-            nameof(Right),
-            nameof(Top),
-            nameof(Bottom),
-            nameof(LeftTop),
-            nameof(RightTop),
-            nameof(LeftBottom),
-            nameof(RightBottom)
-        ]
-    )]
     public T Height { get; set; }
 
     /// <inheritdoc/>
     [ReactiveProperty]
-    [NotifyPropertyChangedFor(
-        [
-            nameof(Left),
-            nameof(Right),
-            nameof(Top),
-            nameof(Bottom),
-            nameof(LeftTop),
-            nameof(RightTop),
-            nameof(LeftBottom),
-            nameof(RightBottom)
-        ]
-    )]
     public T X { get; set; }
 
     /// <inheritdoc/>
     [ReactiveProperty]
-    [NotifyPropertyChangedFor(
-        [
-            nameof(Left),
-            nameof(Right),
-            nameof(Top),
-            nameof(Bottom),
-            nameof(LeftTop),
-            nameof(RightTop),
-            nameof(LeftBottom),
-            nameof(RightBottom)
-        ]
-    )]
     public T Y { get; set; }
 
     /// <inheritdoc/>
+    [NotifyPropertyChangedFrom(nameof(X), nameof(Y), nameof(Width), nameof(Height))]
     public T Left => X;
 
     /// <inheritdoc/>
+    [NotifyPropertyChangedFrom(nameof(X), nameof(Y), nameof(Width), nameof(Height))]
     public T Top => Y;
 
     /// <inheritdoc/>
+    [NotifyPropertyChangedFrom(nameof(X), nameof(Y), nameof(Width), nameof(Height))]
     public T Right => unchecked(X + Width);
 
     /// <inheritdoc/>
+    [NotifyPropertyChangedFrom(nameof(X), nameof(Y), nameof(Width), nameof(Height))]
     public T Bottom => unchecked(Y + Height);
 
     /// <inheritdoc/>
+    [NotifyPropertyChangedFrom(nameof(X), nameof(Y), nameof(Width), nameof(Height))]
     public ReadOnlyPoint<T> LeftTop => new(Left, Top);
 
     /// <inheritdoc/>
+    [NotifyPropertyChangedFrom(nameof(X), nameof(Y), nameof(Width), nameof(Height))]
     public ReadOnlyPoint<T> RightTop => new(Right, Top);
 
     /// <inheritdoc/>
+    [NotifyPropertyChangedFrom(nameof(X), nameof(Y), nameof(Width), nameof(Height))]
     public ReadOnlyPoint<T> LeftBottom => new(Left, Bottom);
 
     /// <inheritdoc/>
+    [NotifyPropertyChangedFrom(nameof(X), nameof(Y), nameof(Width), nameof(Height))]
     public ReadOnlyPoint<T> RightBottom => new(Right, Bottom);
 
     #region Clone

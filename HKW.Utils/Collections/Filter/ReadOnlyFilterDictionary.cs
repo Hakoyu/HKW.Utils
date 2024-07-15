@@ -17,7 +17,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TFilteredDictionary">已过滤字典类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
-public class ReadOnlyReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
+public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
     : IDictionary<TKey, TValue>,
         IReadOnlyDictionary<TKey, TValue>,
         IDictionary,
@@ -37,7 +37,7 @@ public class ReadOnlyReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
     /// <param name="dictionary">字典</param>
     /// <param name="filteredDictionary">过滤字典</param>
     /// <param name="filter">过滤器</param>
-    public ReadOnlyReadOnlyFilterDictionary(
+    public ReadOnlyFilterDictionary(
         IObservableDictionary<TKey, TValue> dictionary,
         TFilteredDictionary filteredDictionary,
         Predicate<KeyValuePair<TKey, TValue>> filter
@@ -90,7 +90,7 @@ public class ReadOnlyReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
     /// <summary>
     /// 为了防止忘记显式的调用Dispose方法
     /// </summary>
-    ~ReadOnlyReadOnlyFilterDictionary()
+    ~ReadOnlyFilterDictionary()
     {
         //必须为false
         Dispose(false);

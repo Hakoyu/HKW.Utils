@@ -11,7 +11,7 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("({Width}, {Height})")]
-public class ObservableSize<T>
+public partial class ObservableSize<T>
     : ReactiveObjectX,
         IEquatable<ObservableSize<T>>,
         ICloneable<ObservableSize<T>>,
