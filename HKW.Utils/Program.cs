@@ -51,8 +51,15 @@ internal class Program
         //c.CanExecute(null);
         //c.Execute(null);
         //var command = ReactiveCommand.Create(() => { });
-        var a = EnumInfo<TestEnum>.GetInfo(TestEnum.A);
-        var r = a == a;
+        //var e1 = EnumInfo<TestEnum1>.GetInfo(TestEnum1.A);
+        //e1.GetName = (v) => $"{v.Value}_1";
+        //var e2 = EnumInfo<TestEnum2>.GetInfo(TestEnum2.A);
+        //var n1 = e1.Name;
+        //var n2 = e2.Name;
+        var str = "123".AddToEnd("456");
+        var str1 = "123".AddToEnd("3");
+        var str2 = "123".AddToStart("321");
+        var str3 = "123".AddToStart("1");
 #endif
     }
 
@@ -103,7 +110,7 @@ internal partial class TestModel : ReactiveObjectX
         //i18nObject.AddProperty(nameof(ID), x => ((TestModel)x).ID, nameof(Name), true);
     }
 
-    public EnumInfo<TestEnum> Enum { get; set; } = EnumInfo<TestEnum>.GetInfo(TestEnum.A);
+    public EnumInfo<TestEnum1> Enum { get; set; } = EnumInfo<TestEnum1>.GetInfo(TestEnum1.A);
 
     [ReactiveProperty]
     public string ID { get; set; } = string.Empty;
@@ -133,10 +140,22 @@ internal partial class TestModel : ReactiveObjectX
     }
 }
 
-internal enum TestEnum
+internal enum TestEnum1
+{
+    //[Display(Name = "A_Name", ShortName = "A_ShortName", Description = "A_Description")]
+    A,
+
+    //[Display(Name = "B_Name", ShortName = "B_ShortName", Description = "B_Description")]
+    B,
+
+    //[Display(Name = "C_Name", ShortName = "C_ShortName", Description = "C_Description")]
+    C,
+}
+
+internal enum TestEnum2
 {
     A,
     B,
-    C
+    C,
 }
 #endif

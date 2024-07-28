@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using HKW.HKWReactiveUI;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -10,80 +11,31 @@ namespace HKW.HKWUtils.Observable;
 /// 可观察值
 /// </summary>
 /// <typeparam name="T"></typeparam>
-[DebuggerDisplay("\\{ObservableValue, Value = {Value}\\}")]
-public class ObservableValue<T>
-    : INotifyPropertyChanging,
-        INotifyPropertyChanged,
-        IEquatable<ObservableValue<T>>
+[DebuggerDisplay("{Value}")]
+public partial class ObservableValue<T> : ReactiveObjectX, IEquatable<ObservableValue<T>>
 {
-    private T _value = default!;
-
     /// <summary>
     /// 值
     /// </summary>
-    public T Value
-    {
-        get => _value;
-        set
-        {
-            if (_value?.Equals(value) is true)
-                return;
-            var oldValue = _value;
-            if (NotifyPropertyChanging(oldValue, value))
-                return;
-            _value = value;
-            NotifyPropertyChanged(oldValue, value);
-        }
-    }
-
-    /// <summary>
-    /// 包含值
-    /// </summary>
-    public bool HasValue => Value != null;
+    [ReactiveProperty]
+    public T Value { get; set; }
 
     #region Ctor
     /// <inheritdoc/>
-    public ObservableValue() { }
+    public ObservableValue()
+    {
+        Value = default!;
+    }
 
     /// <inheritdoc/>
     /// <param name="value">初始值</param>
     public ObservableValue(T value)
     {
-        _value = value;
+        Value = value;
     }
     #endregion
 
-    #region NotifyProperty
-    /// <summary>
-    /// 通知属性改变前
-    /// </summary>
-    /// <param name="oldValue">旧值</param>
-    /// <param name="newValue">新值</param>
-    /// <returns>取消改变</returns>
-    private bool NotifyPropertyChanging(T oldValue, T newValue)
-    {
-        PropertyChanging?.Invoke(this, new(nameof(Value)));
-        var args = new ValueChangingEventArgs<T>(oldValue, newValue);
-        ValueChanging?.Invoke(this, args);
-        // 取消改变后通知UI更改
-        if (args.Cancel)
-            PropertyChanged?.Invoke(this, new(nameof(Value)));
-        return args.Cancel;
-    }
-
-    /// <summary>
-    /// 通知属性改变后
-    /// </summary>
-    /// <param name="oldValue">旧值</param>
-    /// <param name="newValue">新值</param>
-    private void NotifyPropertyChanged(T oldValue, T newValue)
-    {
-        PropertyChanged?.Invoke(this, new(nameof(Value)));
-        ValueChanged?.Invoke(this, new(oldValue, newValue));
-    }
-    #endregion
-
-    #region Other
+    #region IEquatable
     /// <inheritdoc/>
     public override string ToString()
     {
@@ -121,28 +73,5 @@ public class ObservableValue<T>
     {
         return (a == b) is not true;
     }
-    #endregion
-
-    #region Event
-
-    /// <summary>
-    /// 属性改变前事件
-    /// </summary>
-    public event PropertyChangingEventHandler? PropertyChanging;
-
-    /// <summary>
-    /// 属性改变后事件
-    /// </summary>
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    /// <summary>
-    /// 值改变前事件
-    /// </summary>
-    public event ValueChangingEventHandler<T>? ValueChanging;
-
-    /// <summary>
-    /// 值改变后事件
-    /// </summary>
-    public event ValueChangedEventHandler<T>? ValueChanged;
     #endregion
 }

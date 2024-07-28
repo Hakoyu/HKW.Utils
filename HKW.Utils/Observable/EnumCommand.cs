@@ -19,7 +19,7 @@ public partial class EnumCommand<TEnum> : ReactiveObjectX
             throw new Exception($"此枚举类型未使用特性 \"{nameof(FlagsAttribute)}\"");
     }
 
-    /// <inheritdoc cref="AddFlag(TEnum)"/>
+    /// <inheritdoc/>
     /// <param name="enum">枚举值</param>
     public EnumCommand(TEnum @enum)
     {
@@ -37,9 +37,9 @@ public partial class EnumCommand<TEnum> : ReactiveObjectX
     /// </summary>
     /// <param name="flag">标志</param>
     [ReactiveCommand]
-    public void AddFlag()
+    public void AddFlag(TEnum flag)
     {
-        //Value = AddFlageFunc(Value, flag);
+        Value = AddFlageFunc(Value, flag);
     }
 
     /// <summary>

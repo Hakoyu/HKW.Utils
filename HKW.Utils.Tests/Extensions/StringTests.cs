@@ -6,10 +6,10 @@ namespace HKW.HKWUtils.Tests.Extensions;
 public class StringTests
 {
     [TestMethod]
-    public void FirstLetterCapital()
+    public void FirstToUpper()
     {
         string str1 = "red";
-        string str2 = str1.FirstLetterCapital();
+        string str2 = HKWExtensions.FirstToUpper(str1);
         Assert.IsTrue(str2 == "Red");
     }
 
@@ -17,9 +17,9 @@ public class StringTests
     public void FirstLetterCapital_OtherToLower()
     {
         string str1 = "rEd";
-        string str2 = str1.FirstLetterCapital();
+        string str2 = HKWExtensions.FirstToUpper(str1);
         Assert.IsTrue(str2 == "REd");
-        string str3 = str1.FirstLetterCapital(true);
+        string str3 = str1.FirstToUpper(true);
         Assert.IsTrue(str3 == "Red");
     }
 
