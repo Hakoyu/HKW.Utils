@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,6 +18,7 @@ public static partial class HKWExtensions
     /// <param name="range">范围</param>
     /// <param name="culture">文化</param>
     /// <returns>转换后的字符串</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string ToLower(this string str, Range range, CultureInfo? culture = null)
     {
         if (culture is null)
@@ -26,24 +28,24 @@ public static partial class HKWExtensions
                 str,
                 (chars, state) =>
                 {
-                    state.AsSpan().CopyTo(chars);
+                    state.CopyTo(chars);
                     var (index, count) = range.GetOffset(state.Length);
                     for (var i = index; i < count; i++)
                         chars[i] = char.ToLower(chars[i]);
                 }
             );
         }
-        else
-            return string.Create(
-                str.Length,
-                str,
-                (chars, state) =>
-                {
-                    state.AsSpan().CopyTo(chars);
-                    var (index, count) = range.GetOffset(state.Length);
-                    for (var i = index; i < count; i++)
-                        chars[i] = char.ToLower(chars[i], culture);
-                }
-            );
+
+        return string.Create(
+            str.Length,
+            str,
+            (chars, state) =>
+            {
+                state.CopyTo(chars);
+                var (index, count) = range.GetOffset(state.Length);
+                for (var i = index; i < count; i++)
+                    chars[i] = char.ToLower(chars[i], culture);
+            }
+        );
     }
 }

@@ -56,10 +56,8 @@ internal class Program
         //var e2 = EnumInfo<TestEnum2>.GetInfo(TestEnum2.A);
         //var n1 = e1.Name;
         //var n2 = e2.Name;
-        var str = "123".AddToEnd("456");
-        var str1 = "123".AddToEnd("3");
-        var str2 = "123".AddToStart("321");
-        var str3 = "123".AddToStart("1");
+        var list = new ObservableSelectableList<int, List<int>>(new() { 1, 2, 3, 4, 5 });
+        list.SelectedIndex = 0;
 #endif
     }
 
@@ -140,15 +138,16 @@ internal partial class TestModel : ReactiveObjectX
     }
 }
 
+[Flags]
 internal enum TestEnum1
 {
-    //[Display(Name = "A_Name", ShortName = "A_ShortName", Description = "A_Description")]
+    [Display(Name = "A_Name", ShortName = "A_ShortName", Description = "A_Description")]
     A,
 
-    //[Display(Name = "B_Name", ShortName = "B_ShortName", Description = "B_Description")]
+    [Display(Name = "B_Name", ShortName = "B_ShortName", Description = "B_Description")]
     B,
 
-    //[Display(Name = "C_Name", ShortName = "C_ShortName", Description = "C_Description")]
+    [Display(Name = "C_Name", ShortName = "C_ShortName", Description = "C_Description")]
     C,
 }
 

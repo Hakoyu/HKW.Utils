@@ -10,7 +10,7 @@ public ref struct CharSpanSplitEnumerator
     /// <summary>
     /// 分割项
     /// </summary>
-    private readonly char[] _separator;
+    private readonly ReadOnlySpan<char> _separator;
 
     /// <summary>
     /// 删除空项
@@ -24,7 +24,7 @@ public ref struct CharSpanSplitEnumerator
 
     internal CharSpanSplitEnumerator(
         ReadOnlySpan<char> span,
-        char[] separator,
+        ReadOnlySpan<char> separator,
         StringSplitOptions stringSplitOptions
     )
     {

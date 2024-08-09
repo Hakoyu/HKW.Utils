@@ -20,24 +20,6 @@ public static partial class HKWExtensions
         return new SpanSplitEnumerator<T>(span, separator, removeEmptyEntries);
     }
 
-    ///// <summary>
-    ///// 分割Span&lt;char&gt;
-    ///// </summary>
-    ///// <typeparam name="T">类型</typeparam>
-    ///// <param name="span">源</param>
-    ///// <param name="separator">用来分隔符</param>
-    ///// <param name="stringSplitOptions">字符串分割设置</param>
-    ///// <returns>枚举器</returns>
-    //public static CharSpanSplitEnumerator Split<T>(
-    //    this Span<char> span,
-    //    char separator,
-    //    StringSplitOptions stringSplitOptions = StringSplitOptions.None
-    //)
-    //    where T : IEquatable<T>
-    //{
-    //    return new CharSpanSplitEnumerator(span, [separator], stringSplitOptions);
-    //}
-
     /// <summary>
     /// 分割Span&lt;char&gt;
     /// </summary>

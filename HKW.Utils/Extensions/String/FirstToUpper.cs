@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace HKW.HKWUtils.Extensions;
 
@@ -14,6 +15,7 @@ public static partial class HKWExtensions
     /// <param name="str">字符串</param>
     /// <param name="otherToLower">将其余字符变为小写</param>
     /// <returns>首字母大写的字符串</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string FirstToUpper(this string str, bool otherToLower = false)
     {
         if (otherToLower)
@@ -50,6 +52,7 @@ public static partial class HKWExtensions
     /// <param name="culture">文化</param>
     /// <param name="otherToLower">将其余字符变为小写</param>
     /// <returns>首字母大写的字符串</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string FirstToUpper(
         this string str,
         CultureInfo culture,

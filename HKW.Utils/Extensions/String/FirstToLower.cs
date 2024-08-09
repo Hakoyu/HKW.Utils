@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,6 +16,7 @@ public static partial class HKWExtensions
     /// </summary>
     /// <param name="str">字符串</param>
     /// <returns>首字母小写的字符串</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string FirstToLower(this string str)
     {
         return string.Create(
@@ -35,11 +37,8 @@ public static partial class HKWExtensions
     /// <param name="str">字符串</param>
     /// <param name="culture">文化</param>
     /// <returns>首字母小写的字符串</returns>
-    public static string FirstToLower(
-        this string str,
-        CultureInfo culture,
-        bool otherToLower = false
-    )
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string FirstToLower(this string str, CultureInfo culture)
     {
         return string.Create(
             str.Length,

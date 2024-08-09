@@ -16,7 +16,7 @@ public partial class EnumCommand<TEnum> : ReactiveObjectX
     public EnumCommand()
     {
         if (Attribute.IsDefined(typeof(TEnum), typeof(FlagsAttribute)) is false)
-            throw new Exception($"此枚举类型未使用特性 \"{nameof(FlagsAttribute)}\"");
+            throw new Exception($"此枚举类型未使用特性 \"{nameof(FlagsAttribute)}\".");
     }
 
     /// <inheritdoc/>

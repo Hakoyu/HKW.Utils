@@ -43,25 +43,61 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     public DisplayAttribute? Display =>
         EnumDisplays is null ? null : EnumDisplays!.GetValueOrDefault(Value, defaultValue: null);
 
+    #region GetName
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private Func<EnumInfo<TEnum>, string>? _getName;
+
     /// <summary>
     /// 获取名称
     /// </summary>
-    public Func<EnumInfo<TEnum>, string> GetName { get; set; } = DefaultGetName;
+    public Func<EnumInfo<TEnum>, string> GetName
+    {
+        get => _getName ?? DefaultGetName;
+        set => _getName = value;
+    }
+    #endregion
+
+    #region GetShortName
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private Func<EnumInfo<TEnum>, string>? _getShortName;
 
     /// <summary>
     /// 获取短名称
     /// </summary>
-    public Func<EnumInfo<TEnum>, string> GetShortName { get; set; } = DefaultGetShortName;
+    public Func<EnumInfo<TEnum>, string> GetShortName
+    {
+        get => _getShortName ?? DefaultGetShortName;
+        set => _getShortName = value;
+    }
+    #endregion
+
+    #region GetDescription
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private Func<EnumInfo<TEnum>, string>? _getDescription;
 
     /// <summary>
     /// 获取描述
     /// </summary>
-    public Func<EnumInfo<TEnum>, string> GetDescription { get; set; } = DefaultGetDescription;
+    public Func<EnumInfo<TEnum>, string> GetDescription
+    {
+        get => _getDescription ?? DefaultGetDescription;
+        set => _getDescription = value;
+    }
+    #endregion
+
+    #region ToString
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private Func<EnumInfo<TEnum>, string>? _toStringFunc;
 
     /// <summary>
-    /// 到字符串行动
+    /// 到字符串方法
     /// </summary>
-    public Func<EnumInfo<TEnum>, string> ToStringFunc { get; set; } = DefaultToString;
+    public Func<EnumInfo<TEnum>, string> ToStringFunc
+    {
+        get => _toStringFunc ?? DefaultToString;
+        set => _toStringFunc = value;
+    }
+    #endregion
 
     /// <summary>
     /// 拥有标记
@@ -91,7 +127,7 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     public IEnumerable<TEnum> GetFlags()
     {
         if (IsFlagable is false)
-            throw new Exception($"此枚举类型未使用特性 \"{nameof(FlagsAttribute)}\"");
+            throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
         return Values.Where(i => Value.HasFlag(i));
     }
 
@@ -103,8 +139,8 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     public IEnumerable<EnumInfo<TEnum>> GetFlagInfos()
     {
         if (IsFlagable is false)
-            throw new Exception($"此枚举类型未使用特性 \"{nameof(FlagsAttribute)}\"");
-        return Values.Cast<EnumInfo<TEnum>>().Where(i => Value.HasFlag(i));
+            throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
+        return Infos.Values.Cast<EnumInfo<TEnum>>().Where(i => Value.HasFlag(i));
     }
 
     /// <inheritdoc/>
@@ -197,13 +233,13 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
         EnumInfo.InfosByType.TryAdd(EnumType, Infos);
     }
 
-    private static FrozenDictionary<Enum, IEnumInfo>? _infos;
+    private static Lazy<FrozenDictionary<Enum, IEnumInfo>> _infos =
+        new(() => Values.ToFrozenDictionary(v => (Enum)v, v => (IEnumInfo)new EnumInfo<TEnum>(v)));
 
     /// <summary>
     /// 信息
     /// </summary>
-    public static FrozenDictionary<Enum, IEnumInfo> Infos =>
-        _infos ??= Values.ToFrozenDictionary(v => (Enum)v, v => (IEnumInfo)new EnumInfo<TEnum>(v));
+    public static FrozenDictionary<Enum, IEnumInfo> Infos => _infos.Value;
 
     /// <summary>
     /// 获取信息
@@ -261,7 +297,7 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// </summary>
     public static FrozenDictionary<TEnum, DisplayAttribute> EnumDisplays => _enumDisplays.Value;
 
-    internal static FrozenDictionary<TEnum, DisplayAttribute> GetEnumInfo()
+    private static FrozenDictionary<TEnum, DisplayAttribute> GetEnumInfo()
     {
         return Values
             .Select(static v => (Value: v, FieldInfo: typeof(TEnum).GetField(v.ToString())!))
@@ -348,19 +384,17 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
             () =>
                 static v =>
                 {
-                    if (IsFlagable)
+                    if (IsFlagable is false)
+                        return v.Display?.Name ?? v.Value.ToString();
+                    if (EnumDisplays.HasValue())
                     {
-                        if (EnumDisplays.HasValue())
-                        {
-                            return string.Join(
-                                " | ",
-                                v.GetFlagInfos()
-                                    .Select(static i => i.Display?.Name ?? i.Value.ToString())
-                            );
-                        }
-                        return v.Value.ToString();
+                        return string.Join(
+                            " | ",
+                            v.GetFlagInfos()
+                                .Select(static i => i.Display?.Name ?? i.Value.ToString())
+                        );
                     }
-                    return v.Display?.Name ?? v.Value.ToString();
+                    return v.Value.ToString();
                 }
         );
 
@@ -376,19 +410,17 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
             () =>
                 static v =>
                 {
-                    if (IsFlagable)
+                    if (IsFlagable is false)
+                        return v.Display?.ShortName ?? v.Value.ToString();
+                    if (EnumDisplays.HasValue())
                     {
-                        if (EnumDisplays.HasValue())
-                        {
-                            return string.Join(
-                                " | ",
-                                v.GetFlagInfos()
-                                    .Select(static i => i.Display?.ShortName ?? i.Value.ToString())
-                            );
-                        }
-                        return v.Value.ToString();
+                        return string.Join(
+                            " | ",
+                            v.GetFlagInfos()
+                                .Select(static i => i.Display?.ShortName ?? i.Value.ToString())
+                        );
                     }
-                    return v.Display?.ShortName ?? v.Value.ToString();
+                    return v.Value.ToString();
                 }
         );
 
@@ -405,21 +437,17 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
             () =>
                 static v =>
                 {
-                    if (IsFlagable)
+                    if (IsFlagable is false)
+                        return v.Display?.Description ?? v.Value.ToString();
+                    if (EnumDisplays.HasValue())
                     {
-                        if (EnumDisplays.HasValue())
-                        {
-                            return string.Join(
-                                " | ",
-                                v.GetFlagInfos()
-                                    .Select(static i =>
-                                        i.Display?.Description ?? i.Value.ToString()
-                                    )
-                            );
-                        }
-                        return v.Value.ToString();
+                        return string.Join(
+                            " | ",
+                            v.GetFlagInfos()
+                                .Select(static i => i.Display?.Description ?? i.Value.ToString())
+                        );
                     }
-                    return v.Display?.Description ?? v.Value.ToString();
+                    return v.Value.ToString();
                 }
         );
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,19 +16,6 @@ public static class StringUtils
     /// 行分割符
     /// </summary>
     public static string[] LineSeparator { get; } = ["\r\n", "\r", "\n"];
-
-    /// <summary>
-    /// 添加文件扩展名
-    /// </summary>
-    /// <param name="fileName">文件名</param>
-    /// <param name="extension">扩展名</param>
-    /// <returns>带有扩展名的文件名</returns>
-    public static string AddFileExtension(this string fileName, string extension)
-    {
-        if (fileName.EndsWith(extension) is false)
-            fileName += extension;
-        return fileName;
-    }
 
     /// <summary>
     /// 添加后缀

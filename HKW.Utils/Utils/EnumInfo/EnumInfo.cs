@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,7 +24,10 @@ public static class EnumInfo
     /// <summary>
     /// (EnumType, (EnumValue, EnumInfo))
     /// </summary>
-    internal static readonly Dictionary<Type, FrozenDictionary<Enum, IEnumInfo>> InfosByType = [];
+    internal static ConcurrentDictionary<
+        Type,
+        FrozenDictionary<Enum, IEnumInfo>
+    > InfosByType { get; } = [];
 
     /// <summary>
     /// 获取枚举信息

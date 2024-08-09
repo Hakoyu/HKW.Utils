@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DynamicData.Binding;
 using HKW.HKWReactiveUI;
 using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Extensions;
@@ -28,6 +29,24 @@ public class ObservableSelectableList<T, TList> : ReactiveObjectX, IList<T>, ILi
     public ObservableSelectableList(TList list)
     {
         List = list;
+        this.WhenValueChanged(x => x.SelectedIndex)
+            .Subscribe(index =>
+            {
+                if (_changing)
+                    return;
+                _changing = true;
+                SelectedItem = index < 0 ? default : List[index];
+                _changing = false;
+            });
+        this.WhenValueChanged(x => x.SelectedItem)
+            .Subscribe(item =>
+            {
+                if (_changing)
+                    return;
+                _changing = true;
+                SelectedIndex = List.IndexOf(item!);
+                _changing = false;
+            });
     }
 
     /// <inheritdoc/>
@@ -48,71 +67,25 @@ public class ObservableSelectableList<T, TList> : ReactiveObjectX, IList<T>, ILi
         SelectedItem = seletedItem;
     }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private bool _changing = false;
+
     /// <summary>
     /// 列表 (使用此属性修改列表不会正确的修改 <see cref="SelectedIndex"/> 和 <see cref="SelectedItem"/>)
     /// </summary>
     public TList List { get; }
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private bool changing = false;
-
-    #region SelectedIndex
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private int _selectedIndex = -1;
-
     /// <summary>
     /// 选中的索引
     /// </summary>
-    public int SelectedIndex
-    {
-        get => _selectedIndex;
-        set
-        {
-            //TODO
-            //if (value < -1)
-            //    value = -1;
-            //if (this.RaiseAndSetIfChanged(ref _selectedIndex, value))
-            //{
-            //    if (changing)
-            //        return;
-            //    changing = true;
-            //    SelectedItem = _selectedIndex == -1 ? default : List[_selectedIndex];
-            //    changing = false;
-            //}
-        }
-    }
-    #endregion
-
-    #region SelectedItem
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private T? _selectedItem = default;
+    [ReactiveProperty]
+    public int SelectedIndex { get; set; }
 
     /// <summary>
     /// 选中的项目
     /// </summary>
-    public T? SelectedItem
-    {
-        get => _selectedItem;
-        set
-        {
-            //TODO
-            //if (changing)
-            //{
-            //    SetProperty(ref _selectedItem, value);
-            //    return;
-            //}
-            //var index = List.IndexOf(value!);
-            //if (index == -1)
-            //    value = default;
-            //if (SetProperty(ref _selectedItem, value))
-            //{
-            //    changing = true;
-            //    SelectedIndex = index;
-            //    changing = false;
-            //}
-        }
-    }
-    #endregion
+    [ReactiveProperty]
+    public T? SelectedItem { get; set; }
 
     #region IListT
     /// <inheritdoc/>
@@ -182,8 +155,14 @@ public class ObservableSelectableList<T, TList> : ReactiveObjectX, IList<T>, ILi
     public bool Remove(T item)
     {
         var result = List.Remove(item, out var index);
+        if (SelectedIndex == index)
+        {
+            SelectedIndex = -1;
+        }
         if (SelectedIndex >= index)
+        {
             SelectedIndex -= 1;
+        }
         return result;
     }
 
