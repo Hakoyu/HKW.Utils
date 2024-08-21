@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,6 +16,7 @@ public static partial class HKWExtensions
     /// <param name="trueAction">为真时行动</param>
     /// <param name="falseAction">为假时行动</param>
     /// <returns>值</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool Action(this bool value, Action trueAction, Action falseAction)
     {
         ArgumentNullException.ThrowIfNull(trueAction, nameof(trueAction));
@@ -32,6 +34,7 @@ public static partial class HKWExtensions
     /// <param name="value">值</param>
     /// <param name="action">行动</param>
     /// <returns>值</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool ActionWhenTrue(this bool value, Action action)
     {
         ArgumentNullException.ThrowIfNull(action, nameof(action));

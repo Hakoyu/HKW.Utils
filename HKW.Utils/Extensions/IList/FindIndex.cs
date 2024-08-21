@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,6 +16,7 @@ public static partial class HKWExtensions
     /// <param name="list">列表</param>
     /// <param name="match">条件</param>
     /// <returns>第一个找到的索引</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int FindIndex<T>(this IList<T> list, Predicate<T> match)
     {
         ArgumentNullException.ThrowIfNull(nameof(list));
@@ -35,6 +37,7 @@ public static partial class HKWExtensions
     /// <param name="startIndex">起始索引</param>
     /// <param name="match">条件</param>
     /// <returns>第一个找到的索引</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int FindIndex<T>(this IList<T> list, int startIndex, Predicate<T> match)
     {
         return FindIndex(list, startIndex, list.Count - startIndex, match);
@@ -49,6 +52,7 @@ public static partial class HKWExtensions
     /// <param name="count">数量</param>
     /// <param name="match">条件</param>
     /// <returns>第一个找到的索引</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int FindIndex<T>(
         this IList<T> list,
         int startIndex,

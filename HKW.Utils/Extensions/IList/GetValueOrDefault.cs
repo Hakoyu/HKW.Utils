@@ -1,4 +1,6 @@
-﻿namespace HKW.HKWUtils.Extensions;
+﻿using System.Runtime.CompilerServices;
+
+namespace HKW.HKWUtils.Extensions;
 
 public static partial class HKWExtensions
 {
@@ -10,6 +12,7 @@ public static partial class HKWExtensions
     /// <param name="index">索引值</param>
     /// <param name="defaultValue">默认值</param>
     /// <returns>获取成功则返回值, 获取失败则返回默认值</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T? GetValueOrDefault<T>(this IList<T> list, int index, T? defaultValue = default)
     {
         if (list.ContainsIndex(index))

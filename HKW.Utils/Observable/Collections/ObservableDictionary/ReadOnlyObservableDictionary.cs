@@ -160,6 +160,13 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     }
 
     /// <inheritdoc/>
+    TValue IObservableDictionary<TKey, TValue>.this[TKey key, bool skipCheck]
+    {
+        get => _dictionary[key];
+        set => throw new ReadOnlyException();
+    }
+
+    /// <inheritdoc/>
     public bool ContainsKey(TKey key)
     {
         return ((IReadOnlyDictionary<TKey, TValue>)_dictionary).ContainsKey(key);

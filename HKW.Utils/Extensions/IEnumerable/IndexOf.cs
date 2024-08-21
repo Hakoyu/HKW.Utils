@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,6 +16,7 @@ public static partial class HKWExtensions
     /// <param name="source">源</param>
     /// <param name="item">项目</param>
     /// <returns>项目的索引, 若项目不存在则为 <see langword="-1"/> </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int IndexOf<T>(this IEnumerable<T> source, T item)
     {
         foreach ((var index, var i) in source.EnumerateIndex())
@@ -32,6 +34,7 @@ public static partial class HKWExtensions
     /// <param name="source">源</param>
     /// <param name="match">匹配</param>
     /// <returns>项目的索引, 若项目不存在则为 <see langword="-1"/> </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int IndexOf<T>(this IEnumerable<T> source, Func<T, bool> match)
     {
         foreach ((var index, var item) in source.EnumerateIndex())

@@ -1,4 +1,5 @@
-﻿using HKW.HKWUtils.Collections;
+﻿using System.Runtime.CompilerServices;
+using HKW.HKWUtils.Collections;
 
 namespace HKW.HKWUtils.Extensions;
 
@@ -10,6 +11,7 @@ public static partial class HKWExtensions
     /// <typeparam name="T">类型</typeparam>
     /// <param name="set">集合</param>
     /// <returns>只读集合</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ReadOnlySet<T> AsReadOnly<T>(this ISet<T> set)
         where T : notnull
     {

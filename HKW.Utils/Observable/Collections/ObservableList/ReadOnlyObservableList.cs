@@ -140,6 +140,11 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
         get => ((IReadOnlyList<T>)_list)[index];
         set => throw new ReadOnlyException();
     }
+    T IObservableList<T>.this[int index, bool skipCheck]
+    {
+        get => ((IReadOnlyList<T>)_list)[index];
+        set => throw new ReadOnlyException();
+    }
 
     void IList<T>.Insert(int index, T item)
     {

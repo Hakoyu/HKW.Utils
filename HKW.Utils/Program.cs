@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Globalization;
 using System.Reactive;
@@ -27,10 +28,13 @@ internal class Program
     public IntegratedReadOnlyList<int, List<int>, ReadOnlyCollection<int>> List { get; } =
         new(new(), l => new(l));
     public ReadOnlyCollection<int> ReadOnlyList => List.ReadOnlyList;
+    public static Point<int> point { get; set; } = new(1, 2);
+    public static Point point1 { get; set; } = new(1, 2);
 
     private static void Main(string[] args)
     {
 #if !Release
+        var p = new Point<int>("(1,1)");
         //var size = new Size<int>("114, 514");
         //I18nResource.AddCulture("zh");
         //I18nResource.AddCulture("en");
@@ -56,8 +60,7 @@ internal class Program
         //var e2 = EnumInfo<TestEnum2>.GetInfo(TestEnum2.A);
         //var n1 = e1.Name;
         //var n2 = e2.Name;
-        var list = new ObservableSelectableList<int, List<int>>(new() { 1, 2, 3, 4, 5 });
-        list.SelectedIndex = 0;
+
 #endif
     }
 
@@ -88,6 +91,17 @@ internal class Program
 }
 
 #if !Release
+
+internal static class TestExtensions
+{
+    public static bool TryGetResult<T>(this T? value, [MaybeNullWhen(false)] out T result)
+    {
+        result = value;
+        if (result is null)
+            return false;
+        return true;
+    }
+}
 
 internal partial class TestModel : ReactiveObjectX
 {

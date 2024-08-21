@@ -48,10 +48,10 @@ public struct Size<T> : IEquatable<IReadOnlySize<T>>, ISize<T>
     #endregion
 
     /// <inheritdoc/>
-    public T Width { get; set; }
+    public T Width { readonly get; set; }
 
     /// <inheritdoc/>
-    public T Height { get; set; }
+    public T Height { readonly get; set; }
 
     #region Equals
 

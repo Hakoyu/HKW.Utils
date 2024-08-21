@@ -27,10 +27,10 @@ public struct Range<T> : IEquatable<IReadOnlyRange<T>>, IRange<T>
     }
 
     /// <inheritdoc/>
-    public T Min { get; set; }
+    public T Min { readonly get; set; }
 
     /// <inheritdoc/>
-    public T Max { get; set; }
+    public T Max { readonly get; set; }
 
     #region Equals
 

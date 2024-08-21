@@ -1,4 +1,6 @@
-﻿namespace HKW.HKWUtils.Extensions;
+﻿using System.Runtime.CompilerServices;
+
+namespace HKW.HKWUtils.Extensions;
 
 public static partial class HKWExtensions
 {
@@ -11,6 +13,7 @@ public static partial class HKWExtensions
     /// <param name="key">键</param>
     /// <param name="pair">键值对</param>
     /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryGetPair<TKey, TValue>(
         this IDictionary<TKey, TValue> dictionary,
         TKey key,

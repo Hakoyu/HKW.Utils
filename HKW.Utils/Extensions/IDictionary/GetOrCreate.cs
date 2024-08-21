@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,6 +17,7 @@ public static partial class HKWExtensions
     /// <param name="dictionary">字典</param>
     /// <param name="key">键</param>
     /// <returns>值</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TValue GetOrCreate<TKey, TValue>(
         this IDictionary<TKey, TValue> dictionary,
         TKey key
@@ -38,6 +40,7 @@ public static partial class HKWExtensions
     /// <param name="key">键</param>
     /// <param name="value">默认值</param>
     /// <returns>值</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TValue? GetOrCreate<TKey, TValue>(
         this IDictionary<TKey, TValue> dictionary,
         TKey key,
@@ -60,6 +63,7 @@ public static partial class HKWExtensions
     /// <param name="key">键</param>
     /// <param name="createValue">创建值</param>
     /// <returns>值</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TValue GetOrCreate<TKey, TValue>(
         this IDictionary<TKey, TValue> dictionary,
         TKey key,

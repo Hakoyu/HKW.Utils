@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace HKW.HKWUtils.Extensions;
 
@@ -15,6 +16,7 @@ public static partial class HKWExtensions
     /// <param name="second">第二个集合</param>
     /// <param name="comparer">比较器</param>
     /// <returns>相等为 <see langword="true"/> 不相等为 <see langword="false"/></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool SequenceEqual<TSource>(
         this IEnumerable<TSource> first,
         IEnumerable<TSource> second,
@@ -47,6 +49,7 @@ public static partial class HKWExtensions
     /// <param name="second">第二个集合</param>
     /// <param name="comparer">比较器</param>
     /// <returns>相等为 <see langword="true"/> 不相等为 <see langword="false"/></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool SequenceEqual(
         this IEnumerable first,
         IEnumerable second,

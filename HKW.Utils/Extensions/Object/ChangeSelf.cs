@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,6 +16,7 @@ public static partial class HKWExtensions
     /// <param name="source">源</param>
     /// <param name="func">方法</param>
     /// <returns>改变后的源</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T ChangeSelf<T>(this T source, Func<T, T> func)
     {
         return func(source);

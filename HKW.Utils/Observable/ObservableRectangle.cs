@@ -1,9 +1,11 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Numerics;
 using HKW.HKWReactiveUI;
 using HKW.HKWUtils;
 using HKW.HKWUtils.Drawing;
 using HKW.HKWUtils.Observable;
+using ReactiveUI;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -59,53 +61,116 @@ public partial class ObservableRectangle<T>
         Height = height;
     }
 
+    #region Size
+
+    #region Width
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private T _width;
+
     /// <inheritdoc/>
-    [ReactiveProperty]
-    public T Width { get; set; }
+    public T Width
+    {
+        get => _width;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _width, value);
+            Right = unchecked(X + Width);
+        }
+    }
+    #endregion
+
+    #region Height
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private T _height;
+
+    /// <inheritdoc/>
+    public T Height
+    {
+        get => _height;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _height, value);
+            Bottom = unchecked(Y + Height);
+        }
+    }
+    #endregion
+    #endregion
+
+    #region Location
+
+    #region X
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private T _x;
+
+    /// <inheritdoc/>
+    public T X
+    {
+        get => _x;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _x, value);
+            Left = X;
+            Right = unchecked(X + Width);
+            LeftTop = new(Left, Top);
+            LeftBottom = new(Left, Bottom);
+            RightBottom = new(Right, Bottom);
+        }
+    }
+    #endregion
+
+    #region Y
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private T _y;
+
+    /// <inheritdoc/>
+    public T Y
+    {
+        get => _y;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _y, value);
+            Top = Y;
+            Bottom = unchecked(Y + Height);
+            LeftTop = new(Left, Top);
+            RightTop = new(Right, Top);
+            RightBottom = new(Right, Bottom);
+        }
+    }
+    #endregion
+
+    #endregion
 
     /// <inheritdoc/>
     [ReactiveProperty]
-    public T Height { get; set; }
+    public T Left { get; private set; }
 
     /// <inheritdoc/>
     [ReactiveProperty]
-    public T X { get; set; }
+    public T Top { get; private set; }
 
     /// <inheritdoc/>
     [ReactiveProperty]
-    public T Y { get; set; }
+    public T Right { get; private set; }
 
     /// <inheritdoc/>
-    [NotifyPropertyChangedFrom(nameof(X), nameof(Y), nameof(Width), nameof(Height))]
-    public T Left => X;
+    [ReactiveProperty]
+    public T Bottom { get; private set; }
 
     /// <inheritdoc/>
-    [NotifyPropertyChangedFrom(nameof(X), nameof(Y), nameof(Width), nameof(Height))]
-    public T Top => Y;
+    [ReactiveProperty]
+    public Point<T> LeftTop { get; private set; }
 
     /// <inheritdoc/>
-    [NotifyPropertyChangedFrom(nameof(X), nameof(Y), nameof(Width), nameof(Height))]
-    public T Right => unchecked(X + Width);
+    [ReactiveProperty]
+    public Point<T> RightTop { get; private set; }
 
     /// <inheritdoc/>
-    [NotifyPropertyChangedFrom(nameof(X), nameof(Y), nameof(Width), nameof(Height))]
-    public T Bottom => unchecked(Y + Height);
+    [ReactiveProperty]
+    public Point<T> LeftBottom { get; private set; }
 
     /// <inheritdoc/>
-    [NotifyPropertyChangedFrom(nameof(X), nameof(Y), nameof(Width), nameof(Height))]
-    public ReadOnlyPoint<T> LeftTop => new(Left, Top);
-
-    /// <inheritdoc/>
-    [NotifyPropertyChangedFrom(nameof(X), nameof(Y), nameof(Width), nameof(Height))]
-    public ReadOnlyPoint<T> RightTop => new(Right, Top);
-
-    /// <inheritdoc/>
-    [NotifyPropertyChangedFrom(nameof(X), nameof(Y), nameof(Width), nameof(Height))]
-    public ReadOnlyPoint<T> LeftBottom => new(Left, Bottom);
-
-    /// <inheritdoc/>
-    [NotifyPropertyChangedFrom(nameof(X), nameof(Y), nameof(Width), nameof(Height))]
-    public ReadOnlyPoint<T> RightBottom => new(Right, Bottom);
+    [ReactiveProperty]
+    public Point<T> RightBottom { get; private set; }
 
     #region Clone
     /// <inheritdoc/>

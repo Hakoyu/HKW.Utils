@@ -47,10 +47,10 @@ public struct Point<T> : IEquatable<IReadOnlyPoint<T>>, IPoint<T>
     }
     #endregion
     /// <inheritdoc/>
-    public T X { get; set; }
+    public T X { readonly get; set; }
 
     /// <inheritdoc/>
-    public T Y { get; set; }
+    public T Y { readonly get; set; }
 
     #region Equals
 

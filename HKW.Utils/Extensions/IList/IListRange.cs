@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using HKW.HKWUtils.Collections;
@@ -15,6 +16,7 @@ public static partial class HKWExtensions
     /// <typeparam name="T">项目类型</typeparam>
     /// <param name="list">列表</param>
     /// <param name="collection">集合</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void AddRange<T>(this IList<T> list, IEnumerable<T> collection)
     {
         if (list is List<T> baseList)
@@ -35,6 +37,7 @@ public static partial class HKWExtensions
     /// <param name="list">列表</param>
     /// <param name="index">索引</param>
     /// <param name="collection">集合</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void InsertRange<T>(this IList<T> list, int index, IEnumerable<T> collection)
     {
         if (index <= 0)
@@ -59,6 +62,7 @@ public static partial class HKWExtensions
     /// <param name="list">列表</param>
     /// <param name="index">起始索引</param>
     /// <param name="count">数量</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void RemoveRange<T>(this IList<T> list, int index, int count)
     {
         if (index < 0)
@@ -90,6 +94,7 @@ public static partial class HKWExtensions
     /// <typeparam name="T">项目类型</typeparam>
     /// <param name="list">列表</param>
     /// <param name="match">条件</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void RemoveAll<T>(this IList<T> list, Predicate<T> match)
     {
         if (list is List<T> baseList)
@@ -111,6 +116,7 @@ public static partial class HKWExtensions
     /// </summary>
     /// <typeparam name="T">项目类型</typeparam>
     /// <param name="list">列表</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Reverse<T>(this IList<T> list)
     {
         if (list is List<T> baseList)
@@ -134,6 +140,7 @@ public static partial class HKWExtensions
     /// <param name="list">列表</param>
     /// <param name="index">起始索引</param>
     /// <param name="count">数量</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Reverse<T>(this IList<T> list, int index, int count)
     {
         if (index <= 0)

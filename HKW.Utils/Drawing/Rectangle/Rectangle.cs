@@ -80,19 +80,80 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
     }
 
     #region Size
-    /// <inheritdoc/>
-    public T Width { get; set; }
+
+    #region Width
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private T _width;
 
     /// <inheritdoc/>
-    public T Height { get; set; }
+    public T Width
+    {
+        readonly get => _width;
+        set
+        {
+            _width = value;
+            Right = unchecked(X + Width);
+        }
+    }
+    #endregion
+
+    #region Height
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private T _height;
+
+    /// <inheritdoc/>
+    public T Height
+    {
+        readonly get => _height;
+        set
+        {
+            _height = value;
+            Bottom = unchecked(Y + Height);
+        }
+    }
+    #endregion
     #endregion
 
     #region Location
-    /// <inheritdoc/>
-    public T X { get; set; }
+
+    #region X
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private T _x;
 
     /// <inheritdoc/>
-    public T Y { get; set; }
+    public T X
+    {
+        readonly get => _x;
+        set
+        {
+            _x = value;
+            Right = unchecked(X + Width);
+            LeftTop = new(Left, Top);
+            LeftBottom = new(Left, Bottom);
+            RightBottom = new(Right, Bottom);
+        }
+    }
+    #endregion
+
+    #region Y
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private T _y;
+
+    /// <inheritdoc/>
+    public T Y
+    {
+        readonly get => _y;
+        set
+        {
+            _y = value;
+            Bottom = unchecked(Y + Height);
+            LeftTop = new(Left, Top);
+            RightTop = new(Right, Top);
+            RightBottom = new(Right, Bottom);
+        }
+    }
+    #endregion
+
     #endregion
 
     /// <inheritdoc/>
@@ -102,22 +163,22 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
     public T Top => Y;
 
     /// <inheritdoc/>
-    public T Right => unchecked(X + Width);
+    public T Right { readonly get; private set; }
 
     /// <inheritdoc/>
-    public T Bottom => unchecked(Y + Height);
+    public T Bottom { readonly get; private set; }
 
     /// <inheritdoc/>
-    public ReadOnlyPoint<T> LeftTop => new(Left, Top);
+    public Point<T> LeftTop { readonly get; private set; }
 
     /// <inheritdoc/>
-    public ReadOnlyPoint<T> RightTop => new(Right, Top);
+    public Point<T> RightTop { readonly get; private set; }
 
     /// <inheritdoc/>
-    public ReadOnlyPoint<T> LeftBottom => new(Left, Bottom);
+    public Point<T> LeftBottom { readonly get; private set; }
 
     /// <inheritdoc/>
-    public ReadOnlyPoint<T> RightBottom => new(Right, Bottom);
+    public Point<T> RightBottom { readonly get; private set; }
 
     #region Equals
 

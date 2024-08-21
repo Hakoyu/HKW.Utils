@@ -1,4 +1,6 @@
-﻿namespace HKW.HKWUtils.Extensions;
+﻿using System.Runtime.CompilerServices;
+
+namespace HKW.HKWUtils.Extensions;
 
 public static partial class HKWExtensions
 {
@@ -10,6 +12,7 @@ public static partial class HKWExtensions
     /// <param name="dictionary">字典</param>
     /// <param name="key">键</param>
     /// <returns>获取的键值对</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static KeyValuePair<TKey, TValue> GetPair<TKey, TValue>(
         this IDictionary<TKey, TValue> dictionary,
         TKey key

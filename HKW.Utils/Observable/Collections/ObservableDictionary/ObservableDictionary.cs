@@ -123,6 +123,33 @@ public class ObservableDictionary<TKey, TValue>
         }
     }
 
+    /// <inheritdoc/>
+    public TValue this[TKey key, bool skipCheck]
+    {
+        get => _dictionary[key];
+        set
+        {
+            if (_dictionary.TryGetValue(key, out var oldValue) is false)
+            {
+                var pair = KeyValuePair.Create(key, value);
+                // 字典允许不存在的 key 作为键,会创建新的键值对
+                OnDictionaryAdding(pair);
+                _dictionary[key] = value;
+                OnDictionaryAdded(pair);
+            }
+            else
+            {
+                if (skipCheck is false && oldValue?.Equals(value) is true)
+                    return;
+                var newPair = KeyValuePair.Create(key, value);
+                var oldPair = KeyValuePair.Create(key, oldValue);
+                OnDictionaryReplacing(newPair, oldPair);
+                _dictionary[key] = value;
+                OnDictionaryReplaced(newPair, oldPair);
+            }
+        }
+    }
+
     /// <summary>
     /// 字典改变事件参数
     /// </summary>

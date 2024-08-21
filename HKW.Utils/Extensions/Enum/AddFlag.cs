@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,12 +13,14 @@ public static partial class HKWExtensions
     /// 添加标签
     /// </summary>
     /// <typeparam name="TEnum">枚举类型</typeparam>
-    /// <param name="enum">枚举</param>
+    /// <param name="value">值</param>
     /// <param name="flag">标签</param>
     /// <returns>添加标签的枚举</returns>
-    public static TEnum AddFlag<TEnum>(this TEnum @enum, TEnum flag)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TEnum AddFlag<TEnum>(this TEnum value, TEnum flag)
         where TEnum : struct, Enum
     {
-        return (TEnum)Enum.ToObject(typeof(TEnum), Convert.ToInt64(@enum) | Convert.ToInt64(flag));
+        Enum.GetUnderlyingType(typeof(TEnum));
+        return (TEnum)Enum.ToObject(typeof(TEnum), Convert.ToInt64(value) | Convert.ToInt64(flag));
     }
 }

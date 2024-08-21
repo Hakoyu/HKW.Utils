@@ -75,6 +75,21 @@ public class ObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>,
         }
     }
 
+    /// <inheritdoc/>
+    public T this[int index, bool skipCheck]
+    {
+        get => _list[index];
+        set
+        {
+            var oldValue = _list[index];
+            if (skipCheck is false && oldValue?.Equals(value) is true)
+                return;
+            OnListReplacing(value, oldValue, index);
+            _list[index] = value;
+            OnListReplaced(value, oldValue, index);
+        }
+    }
+
     /// <summary>
     /// 列表改变事件参数
     /// </summary>

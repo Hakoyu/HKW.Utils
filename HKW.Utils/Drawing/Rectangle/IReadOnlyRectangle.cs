@@ -52,20 +52,20 @@ public interface IReadOnlyRectangle<T>
     /// <summary>
     /// 左上角
     /// </summary>
-    public ReadOnlyPoint<T> LeftTop { get; }
+    public Point<T> LeftTop { get; }
 
     /// <summary>
     /// 右上角
     /// </summary>
-    public ReadOnlyPoint<T> RightTop { get; }
+    public Point<T> RightTop { get; }
 
     /// <summary>
     /// 左下角
     /// </summary>
-    public ReadOnlyPoint<T> LeftBottom { get; }
+    public Point<T> LeftBottom { get; }
 
     /// <summary>
     /// 右下角
     /// </summary>
-    public ReadOnlyPoint<T> RightBottom { get; }
+    public Point<T> RightBottom { get; }
 }

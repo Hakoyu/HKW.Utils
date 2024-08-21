@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,6 +18,7 @@ public static partial class HKWExtensions
     /// <param name="match">条件</param>
     /// <param name="item">项目</param>
     /// <returns>找到为 <see langword="true"/> 未找到为 <see langword="false"/></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryFindLast<T>(
         this IList<T> list,
         Predicate<T> match,
@@ -37,6 +39,7 @@ public static partial class HKWExtensions
     /// <param name="match">条件</param>
     /// <param name="item">项目和索引</param>
     /// <returns>找到为 <see langword="true"/> 未找到为 <see langword="false"/></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryFindLast<T>(
         this IList<T> list,
         int startIndex,
@@ -59,6 +62,7 @@ public static partial class HKWExtensions
     /// <param name="match">条件</param>
     /// <param name="item">项目和索引</param>
     /// <returns>找到为 <see langword="true"/> 未找到为 <see langword="false"/></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryFindLast<T>(
         this IList<T> list,
         int startIndex,

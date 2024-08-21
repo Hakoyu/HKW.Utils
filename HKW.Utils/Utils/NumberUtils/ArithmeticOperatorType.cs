@@ -29,4 +29,16 @@ public enum ArithmeticOperatorType
     /// 取余
     /// </summary>
     Modulus,
+
+    /// <summary>
+    /// 按位或
+    /// <para>只支持整数</para>
+    /// </summary>
+    BitwiseOr,
+
+    /// <summary>
+    /// 按位与
+    /// <para>只支持整数</para>
+    /// </summary>
+    BitwiseAnd
 }

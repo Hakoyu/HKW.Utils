@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,8 +16,9 @@ public static partial class HKWExtensions
     /// <param name="source">源</param>
     /// <param name="separator">分隔符</param>
     /// <returns>字符串</returns>
-    public static string ToStringX<T>(this IEnumerable<T> source, string separator = " ")
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string ToStringX<T>(this IEnumerable<T> source, string separator = ", ")
     {
-        return string.Join(", ", source);
+        return string.Join(separator, source);
     }
 }

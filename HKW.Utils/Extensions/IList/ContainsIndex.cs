@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,6 +17,7 @@ public static partial class HKWExtensions
     /// <param name="list">列表</param>
     /// <param name="index">索引</param>
     /// <returns>包含为 <see langword="true"/> 不包含为 <see langword="false"/></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool ContainsIndex<T>(this IList<T> list, int index)
     {
         ArgumentNullException.ThrowIfNull(list, nameof(list));

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,6 +15,7 @@ public static partial class HKWExtensions
     /// <typeparam name="T">值类型</typeparam>
     /// <param name="list">列表</param>
     /// <returns>随机的索引</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int RandomIndex<T>(this IList<T> list)
     {
         ArgumentNullException.ThrowIfNull(list, nameof(list));
@@ -27,6 +29,7 @@ public static partial class HKWExtensions
     /// <param name="list">列表</param>
     /// <param name="random">随机</param>
     /// <returns>随机的索引</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int RandomIndex<T>(this IList<T> list, Random random)
     {
         ArgumentNullException.ThrowIfNull(list, nameof(list));

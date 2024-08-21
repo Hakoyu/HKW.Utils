@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace HKW.HKWUtils.Extensions;
 
@@ -10,6 +11,7 @@ public static partial class HKWExtensions
     /// <typeparam name="T">项目类型</typeparam>
     /// <param name="source">源</param>
     /// <returns>带有索引的枚举值(索引, 枚举值)</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IEnumerable<(int Index, T Item)> EnumerateIndex<T>(this IEnumerable<T> source)
     {
         ArgumentNullException.ThrowIfNull(source, nameof(source));
@@ -23,6 +25,7 @@ public static partial class HKWExtensions
     /// </summary>
     /// <param name="source">源</param>
     /// <returns>带有索引的枚举值(索引, 枚举值)</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IEnumerable<(int Index, object Item)> EnumerateIndex(this IEnumerable source)
     {
         ArgumentNullException.ThrowIfNull(source, nameof(source));
