@@ -16,6 +16,34 @@ public interface IEnumInfo<TEnum> : IEnumInfo, IEquatable<IEnumInfo<TEnum>>, IEq
 {
     /// <inheritdoc/>
     public new TEnum Value { get; }
+
+    /// <summary>
+    /// 拥有标记
+    /// </summary>
+    /// <param name="flag">标记</param>
+    /// <returns>有标记为 <see langword="true"/> 没有为 <see langword="false"/></returns>
+    public bool HasFlag(TEnum flag);
+
+    /// <summary>
+    /// 拥有标记
+    /// </summary>
+    /// <param name="flag">标记</param>
+    /// <returns>有标记为 <see langword="true"/> 没有为 <see langword="false"/></returns>
+    public bool HasFlag(IEnumInfo<TEnum> flag);
+
+    /// <summary>
+    /// 获取标志
+    /// </summary>
+    /// <returns>全部标志</returns>
+    /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
+    public new IEnumerable<TEnum> GetFlags();
+
+    /// <summary>
+    /// 获取标志信息
+    /// </summary>
+    /// <returns>全部标志信息</returns>
+    /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
+    public new IEnumerable<IEnumInfo<TEnum>> GetFlagInfos();
 }
 
 /// <summary>
@@ -48,13 +76,41 @@ public interface IEnumInfo
     /// </summary>
     public DisplayAttribute? Display { get; }
 
-    ///// <summary>
-    ///// 枚举类型
-    ///// </summary>
-    //public Type EnumType { get; }
+    /// <summary>
+    /// 枚举类型
+    /// </summary>
+    public Type EnumType { get; }
 
-    ///// <summary>
-    ///// 是可标记的
-    ///// </summary>
-    //public bool IsFlagable { get; }
+    /// <summary>
+    /// 是可标记的
+    /// </summary>
+    public bool IsFlagable { get; }
+
+    /// <summary>
+    /// 拥有标记
+    /// </summary>
+    /// <param name="flag">标记</param>
+    /// <returns>有标记为 <see langword="true"/> 没有为 <see langword="false"/></returns>
+    public bool HasFlag(Enum flag);
+
+    /// <summary>
+    /// 拥有标记
+    /// </summary>
+    /// <param name="flag">标记</param>
+    /// <returns>有标记为 <see langword="true"/> 没有为 <see langword="false"/></returns>
+    public bool HasFlag(IEnumInfo flag);
+
+    /// <summary>
+    /// 获取标志
+    /// </summary>
+    /// <returns>全部标志</returns>
+    /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
+    public IEnumerable<Enum> GetFlags();
+
+    /// <summary>
+    /// 获取标志信息
+    /// </summary>
+    /// <returns>全部标志信息</returns>
+    /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
+    public IEnumerable<IEnumInfo> GetFlagInfos();
 }

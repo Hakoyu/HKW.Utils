@@ -12,7 +12,7 @@ using HKW.HKWUtils.Extensions;
 namespace HKW.HKWUtils;
 
 /// <summary>
-/// 可观察枚举
+/// 枚举信息
 /// </summary>
 /// <typeparam name="TEnum">枚举类型</typeparam>
 public class EnumInfo<TEnum> : IEnumInfo<TEnum>
@@ -42,6 +42,12 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// <inheritdoc/>
     public DisplayAttribute? Display =>
         EnumDisplays is null ? null : EnumDisplays!.GetValueOrDefault(Value, defaultValue: null);
+
+    /// <inheritdoc/>
+    Type IEnumInfo.EnumType => EnumInfo<TEnum>.EnumType;
+
+    /// <inheritdoc/>
+    bool IEnumInfo.IsFlagable => EnumInfo<TEnum>.IsFlagable;
 
     #region GetName
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -99,31 +105,51 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     }
     #endregion
 
-    /// <summary>
-    /// 拥有标记
-    /// </summary>
-    /// <param name="flag">标记</param>
-    /// <returns>有标记为 <see langword="true"/> 没有为 <see langword="false"/></returns>
+    #region IEnumInfo
+    /// <inheritdoc/>
+    bool IEnumInfo.HasFlag(Enum flag)
+    {
+        return Value.HasFlag(flag);
+    }
+
+    /// <inheritdoc/>
+    bool IEnumInfo.HasFlag(IEnumInfo flag)
+    {
+        return Value.HasFlag(flag.Value);
+    }
+
+    /// <inheritdoc/>
+    IEnumerable<Enum> IEnumInfo.GetFlags()
+    {
+        if (IsFlagable is false)
+            throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
+        return Values.Where(i => Value.HasFlag(i)).Cast<Enum>();
+    }
+
+    /// <inheritdoc/>
+    IEnumerable<IEnumInfo> IEnumInfo.GetFlagInfos()
+    {
+        if (IsFlagable is false)
+            throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
+        return Infos.Values.Where(i => Value.HasFlag(i.Value));
+    }
+
+    #endregion
+
+    #region IEnumInfoT
+    /// <inheritdoc/>
     public bool HasFlag(TEnum flag)
     {
         return Value.HasFlag(flag);
     }
 
-    /// <summary>
-    /// 拥有标记
-    /// </summary>
-    /// <param name="flag">可观察枚举</param>
-    /// <returns>有标记为 <see langword="true"/> 没有为 <see langword="false"/></returns>
-    public bool HasFlag(EnumInfo<TEnum> flag)
+    /// <inheritdoc/>
+    public bool HasFlag(IEnumInfo<TEnum> flag)
     {
         return Value.HasFlag(flag.Value);
     }
 
-    /// <summary>
-    /// 获取标志
-    /// </summary>
-    /// <returns>全部标志</returns>
-    /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
+    /// <inheritdoc/>
     public IEnumerable<TEnum> GetFlags()
     {
         if (IsFlagable is false)
@@ -131,18 +157,15 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
         return Values.Where(i => Value.HasFlag(i));
     }
 
-    /// <summary>
-    /// 获取标志信息
-    /// </summary>
-    /// <returns>全部标志信息</returns>
-    /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
-    public IEnumerable<EnumInfo<TEnum>> GetFlagInfos()
+    /// <inheritdoc/>
+    public IEnumerable<IEnumInfo<TEnum>> GetFlagInfos()
     {
         if (IsFlagable is false)
             throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
         return Infos.Values.Cast<EnumInfo<TEnum>>().Where(i => Value.HasFlag(i));
     }
 
+    #endregion
     /// <inheritdoc/>
     public override string ToString()
     {
@@ -221,8 +244,6 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     }
     #endregion
 
-
-
     #region static
 
     /// <summary>
@@ -230,7 +251,7 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// </summary>
     public static void Initialize()
     {
-        EnumInfo.InfosByType.TryAdd(EnumType, Infos);
+        EnumInfo.InfosByType[EnumType] = Infos;
     }
 
     private static Lazy<FrozenDictionary<Enum, IEnumInfo>> _infos =

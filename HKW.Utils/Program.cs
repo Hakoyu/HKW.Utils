@@ -135,7 +135,6 @@ internal partial class TestModel : ReactiveObjectX
     }
 
     [ReactiveProperty]
-    [NotifyPropertyChangedFrom(nameof(ID))]
     public bool CanExecute { get; set; }
 
     [ReactiveCommand(CanExecute = nameof(CanExecute))]
