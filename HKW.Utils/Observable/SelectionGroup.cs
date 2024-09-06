@@ -14,7 +14,7 @@ namespace HKW.HKWUtils.Observable;
 /// <summary>
 /// 选择组
 /// </summary>
-public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX
+public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX, IDisposable
     where TLeader : INotifyPropertyChanged
     where TMember : INotifyPropertyChanged
 {
@@ -37,8 +37,8 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX
         }
         RefreshLeader();
 
-        MemberWrapperByMember.DictionaryChanged -= Members_DictionaryChanged;
-        MemberWrapperByMember.DictionaryChanged += Members_DictionaryChanged;
+        MemberWrapperByMember.DictionaryChanged -= MemberWrapperByMember_DictionaryChanged;
+        MemberWrapperByMember.DictionaryChanged += MemberWrapperByMember_DictionaryChanged;
         Leader.PropertyChanged -= Leader_PropertyChanged;
         Leader.PropertyChanged += Leader_PropertyChanged;
     }
@@ -77,7 +77,7 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX
         _changing = false;
     }
 
-    private void Members_DictionaryChanged(
+    private void MemberWrapperByMember_DictionaryChanged(
         IObservableDictionary<TMember, ObservablePropertyWrapper<TMember, bool>> sender,
         NotifyDictionaryChangeEventArgs<TMember, ObservablePropertyWrapper<TMember, bool>> e
     )
@@ -236,6 +236,53 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX
         }
         _changing = false;
     }
+
+    #region IDisposable
+    private bool _disposed;
+
+    /// <inheritdoc/>
+    ~SelectionGroup()
+    {
+        //必须为false
+        Dispose(false);
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        //必须为true
+        Dispose(true);
+        //通知垃圾回收器不再调用终结器
+        GC.SuppressFinalize(this);
+    }
+
+    /// <inheritdoc/>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+
+        if (disposing) { }
+
+        Leader.Dispose();
+        Leader.PropertyChanged -= Leader_PropertyChanged;
+        foreach (var pair in MemberWrapperByMember)
+        {
+            pair.Value.Dispose();
+            pair.Value.PropertyChanged -= Member_PropertyChanged;
+        }
+        MemberWrapperByMember.DictionaryChanged -= MemberWrapperByMember_DictionaryChanged;
+        MemberWrapperByMember.Clear();
+
+        _disposed = true;
+    }
+
+    /// <inheritdoc cref="IDisposable.Dispose"/>
+    public void Close()
+    {
+        Dispose();
+    }
+    #endregion
 }
 
 /// <summary>
@@ -245,7 +292,8 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX
 /// <typeparam name="TValue">值类型</typeparam>
 public partial class ObservablePropertyWrapper<TSource, TValue>
     : ReactiveObjectX,
-        ICloneable<ObservablePropertyWrapper<TSource, TValue>>
+        ICloneable<ObservablePropertyWrapper<TSource, TValue>>,
+        IDisposable
     where TSource : INotifyPropertyChanged
 {
     /// <inheritdoc/>
@@ -323,6 +371,45 @@ public partial class ObservablePropertyWrapper<TSource, TValue>
     object ICloneable.Clone()
     {
         return Clone();
+    }
+    #endregion
+
+    #region IDisposable
+    private bool _disposed;
+
+    /// <inheritdoc/>
+    ~ObservablePropertyWrapper()
+    {
+        //必须为false
+        Dispose(false);
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        //必须为true
+        Dispose(true);
+        //通知垃圾回收器不再调用终结器
+        GC.SuppressFinalize(this);
+    }
+
+    /// <inheritdoc/>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+
+        if (disposing) { }
+
+        Source.PropertyChanged -= Source_PropertyChanged;
+
+        _disposed = true;
+    }
+
+    /// <inheritdoc cref="IDisposable.Dispose"/>
+    public void Close()
+    {
+        Dispose();
     }
     #endregion
 }
