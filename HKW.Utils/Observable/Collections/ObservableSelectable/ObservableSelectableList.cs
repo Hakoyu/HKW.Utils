@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -29,24 +30,30 @@ public class ObservableSelectableList<T, TList> : ReactiveObjectX, IList<T>, ILi
     public ObservableSelectableList(TList list)
     {
         List = list;
-        this.WhenValueChanged(x => x.SelectedIndex)
-            .Subscribe(index =>
-            {
-                if (_changing)
-                    return;
-                _changing = true;
-                SelectedItem = index < 0 ? default : List[index];
-                _changing = false;
-            });
-        this.WhenValueChanged(x => x.SelectedItem)
-            .Subscribe(item =>
-            {
-                if (_changing)
-                    return;
-                _changing = true;
-                SelectedIndex = List.IndexOf(item!);
-                _changing = false;
-            });
+        PropertyChanged += ObservableSelectableList_PropertyChanged;
+    }
+
+    private void ObservableSelectableList_PropertyChanged(
+        object? sender,
+        PropertyChangedEventArgs e
+    )
+    {
+        if (e.PropertyName == nameof(SelectedItem))
+        {
+            if (_changing)
+                return;
+            _changing = true;
+            SelectedIndex = List.IndexOf(SelectedItem!);
+            _changing = false;
+        }
+        else if (e.PropertyName == nameof(SelectedIndex))
+        {
+            if (_changing)
+                return;
+            _changing = true;
+            SelectedItem = SelectedIndex < 0 ? default : List[SelectedIndex];
+            _changing = false;
+        }
     }
 
     /// <inheritdoc/>

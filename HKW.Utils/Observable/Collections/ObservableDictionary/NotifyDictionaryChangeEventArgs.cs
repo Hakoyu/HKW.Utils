@@ -94,7 +94,7 @@ public class NotifyDictionaryChangeEventArgs<TKey, TValue> : EventArgs
     /// <summary>
     /// 尝试获取新键值对
     /// </summary>
-    /// <param name="newPair"></param>
+    /// <param name="newPair">键值对</param>
     /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
     public bool TryGetNewPair([MaybeNullWhen(false)] out KeyValuePair<TKey, TValue> newPair)
     {
@@ -108,9 +108,31 @@ public class NotifyDictionaryChangeEventArgs<TKey, TValue> : EventArgs
     }
 
     /// <summary>
+    /// 尝试获取新键值对
+    /// </summary>
+    /// <param name="key">键</param>
+    /// <param name="value">值</param>
+    /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    public bool TryGetNewPair(
+        [MaybeNullWhen(false)] out TKey key,
+        [MaybeNullWhen(false)] out TValue value
+    )
+    {
+        if (NewPair.HasValue)
+        {
+            key = NewPair!.Value.Key;
+            value = NewPair!.Value.Value;
+            return true;
+        }
+        key = default;
+        value = default;
+        return false;
+    }
+
+    /// <summary>
     /// 尝试获取旧键值对
     /// </summary>
-    /// <param name="oldPair"></param>
+    /// <param name="oldPair">键值对</param>
     /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
     public bool TryGetOldPair([MaybeNullWhen(false)] out KeyValuePair<TKey, TValue> oldPair)
     {
@@ -120,6 +142,28 @@ public class NotifyDictionaryChangeEventArgs<TKey, TValue> : EventArgs
             return true;
         }
         oldPair = default;
+        return false;
+    }
+
+    /// <summary>
+    /// 尝试获取新键值对
+    /// </summary>
+    /// <param name="key">键</param>
+    /// <param name="value">值</param>
+    /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    public bool TryGetOldPair(
+        [MaybeNullWhen(false)] out TKey key,
+        [MaybeNullWhen(false)] out TValue value
+    )
+    {
+        if (OldPair.HasValue)
+        {
+            key = OldPair!.Value.Key;
+            value = OldPair!.Value.Value;
+            return true;
+        }
+        key = default;
+        value = default;
         return false;
     }
 

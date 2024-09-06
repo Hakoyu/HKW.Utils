@@ -34,7 +34,7 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-        var p = new Point<int>("(1,1)");
+
         //var size = new Size<int>("114, 514");
         //I18nResource.AddCulture("zh");
         //I18nResource.AddCulture("en");
