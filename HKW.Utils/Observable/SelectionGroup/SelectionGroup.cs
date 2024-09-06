@@ -201,15 +201,20 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX, IDispos
                 Leader.Value = null;
             else if (
                 (MemberWrapperByMember.Count == 1)
-                || MemberWrapperByMember.Count == SelectedCount - 1
+                || (SelectedCount == MemberWrapperByMember.Count - 1)
             )
                 Leader.Value = true;
             SelectedCount++;
         }
         else if (wrapper.Value is false)
         {
-            if ((Leader.Value is true) || (SelectedCount == 1))
-                Leader.Value = false;
+            if (Leader.Value is true)
+            {
+                if (SelectedCount == 1)
+                    Leader.Value = false;
+                else
+                    Leader.Value = null;
+            }
             SelectedCount--;
         }
         _changing = false;
@@ -261,17 +266,18 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX, IDispos
         if (_disposed)
             return;
 
-        if (disposing) { }
-
-        Leader.Dispose();
-        Leader.PropertyChanged -= Leader_PropertyChanged;
-        foreach (var pair in MemberWrapperByMember)
+        if (disposing)
         {
-            pair.Value.Dispose();
-            pair.Value.PropertyChanged -= Member_PropertyChanged;
+            Leader.Dispose();
+            Leader.PropertyChanged -= Leader_PropertyChanged;
+            foreach (var pair in MemberWrapperByMember)
+            {
+                pair.Value.Dispose();
+                pair.Value.PropertyChanged -= Member_PropertyChanged;
+            }
+            MemberWrapperByMember.DictionaryChanged -= MemberWrapperByMember_DictionaryChanged;
+            MemberWrapperByMember.Clear();
         }
-        MemberWrapperByMember.DictionaryChanged -= MemberWrapperByMember_DictionaryChanged;
-        MemberWrapperByMember.Clear();
 
         _disposed = true;
     }

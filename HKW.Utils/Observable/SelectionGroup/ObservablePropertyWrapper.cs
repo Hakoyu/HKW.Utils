@@ -31,6 +31,8 @@ public partial class ObservablePropertyWrapper<TSource, TValue>
         PropertyName = propertyName;
         GetAction = getAction;
         SetAction = setAction;
+        if (Source is null)
+            return;
         Source.PropertyChanged -= Source_PropertyChanged;
         Source.PropertyChanged += Source_PropertyChanged;
     }
@@ -38,13 +40,13 @@ public partial class ObservablePropertyWrapper<TSource, TValue>
     private void Source_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == PropertyName)
-            this.RaisePropertyChanged(PropertyName);
+            this.RaisePropertyChanged(nameof(Value));
     }
 
     /// <summary>
     /// 源
     /// </summary>
-    public TSource Source { get; }
+    public TSource Source { get; } = default!;
 
     /// <summary>
     /// 属性名
@@ -118,13 +120,15 @@ public partial class ObservablePropertyWrapper<TSource, TValue>
         if (_disposed)
             return;
 
-        if (disposing) { }
+        if (disposing)
+        {
+            if (Source is not null)
+                Source.PropertyChanged -= Source_PropertyChanged;
+            GetAction = null!;
+            SetAction = null!;
 
-        Source.PropertyChanged -= Source_PropertyChanged;
-        GetAction = null!;
-        SetAction = null!;
-
-        _disposed = true;
+            _disposed = true;
+        }
     }
 
     /// <inheritdoc cref="IDisposable.Dispose"/>
