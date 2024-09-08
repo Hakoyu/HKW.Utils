@@ -136,7 +136,7 @@ public class SelectionGroupTests
     public void AddMemberWhenAllFalse()
     {
         var leader = new LeaderModel();
-        var members = Enumerable.Range(0, 3).Select(_ => new SelectableModel()).ToList();
+        var members = Enumerable.Range(0, 3).Select(_ => new SelectableModel()).ToObservableList();
         var group = new SelectionGroup<LeaderModel, SelectableModel>(
             new(
                 leader,
@@ -150,13 +150,10 @@ public class SelectionGroupTests
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
+            members,
             members
         );
         members.Add(new());
-        group.MemberWrapperByMember.Add(
-            members.Last(),
-            group.MemberWrapperByMember.Values.First().Clone(members.Last())
-        );
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
         Assert.IsTrue(
             members.Count(x => x.IsSelected)
@@ -165,10 +162,6 @@ public class SelectionGroupTests
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
 
         members.Add(new() { IsSelected = true });
-        group.MemberWrapperByMember.Add(
-            members.Last(),
-            group.MemberWrapperByMember.Values.First().Clone(members.Last())
-        );
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
         Assert.IsTrue(
             members.Count(x => x.IsSelected)
@@ -184,7 +177,7 @@ public class SelectionGroupTests
         var members = Enumerable
             .Range(0, 3)
             .Select(_ => new SelectableModel() { IsSelected = true })
-            .ToList();
+            .ToObservableList();
         var group = new SelectionGroup<LeaderModel, SelectableModel>(
             new(
                 leader,
@@ -198,13 +191,10 @@ public class SelectionGroupTests
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
+            members,
             members
         );
         members.Add(new());
-        group.MemberWrapperByMember.Add(
-            members.Last(),
-            group.MemberWrapperByMember.Values.First().Clone(members.Last())
-        );
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
         Assert.IsTrue(
             members.Count(x => x.IsSelected)
@@ -213,10 +203,6 @@ public class SelectionGroupTests
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
 
         members.Add(new() { IsSelected = true });
-        group.MemberWrapperByMember.Add(
-            members.Last(),
-            group.MemberWrapperByMember.Values.First().Clone(members.Last())
-        );
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
         Assert.IsTrue(
             members.Count(x => x.IsSelected)
@@ -232,7 +218,7 @@ public class SelectionGroupTests
         var members = Enumerable
             .Range(0, 3)
             .Select(_ => new SelectableModel() { IsSelected = true })
-            .ToList();
+            .ToObservableList();
         var group = new SelectionGroup<LeaderModel, SelectableModel>(
             new(
                 leader,
@@ -246,10 +232,10 @@ public class SelectionGroupTests
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
+            members,
             members
         );
         members.Remove(members.Last());
-        group.MemberWrapperByMember.Remove(group.MemberWrapperByMember.Last());
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
         Assert.IsTrue(
             members.Count(x => x.IsSelected)
@@ -258,7 +244,6 @@ public class SelectionGroupTests
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
 
         members.Remove(members.Last());
-        group.MemberWrapperByMember.Remove(group.MemberWrapperByMember.Last());
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
         Assert.IsTrue(
             members.Count(x => x.IsSelected)
@@ -267,7 +252,6 @@ public class SelectionGroupTests
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
 
         members.Remove(members.Last());
-        group.MemberWrapperByMember.Remove(group.MemberWrapperByMember.Last());
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
         Assert.IsTrue(
             members.Count(x => x.IsSelected)
