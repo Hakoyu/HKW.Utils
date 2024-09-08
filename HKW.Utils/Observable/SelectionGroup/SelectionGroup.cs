@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -21,18 +22,21 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX, IDispos
     /// <param name="leaderWrapper">队长包装器</param>
     /// <param name="memberWrapper">成员包装器</param>
     /// <param name="members">成员</param>
+    /// <param name="observableMembers">可观测成员</param>
     public SelectionGroup(
         ObservablePropertyWrapper<TLeader, bool?> leaderWrapper,
         ObservablePropertyWrapper<TMember, bool> memberWrapper,
-        IEnumerable<TMember> members
+        IEnumerable<TMember> members,
+        INotifyCollectionChanged? observableMembers = null
     )
     {
         Leader = leaderWrapper;
+        _memberWrapper = memberWrapper.Clone(default!);
         foreach (var member in members)
         {
             member.PropertyChanged -= Member_PropertyChanged;
             member.PropertyChanged += Member_PropertyChanged;
-            MemberWrapperByMember.Add(member, memberWrapper.Clone(member));
+            MemberWrapperByMember.Add(member, _memberWrapper.Clone(member));
         }
         RefreshLeader();
 
@@ -40,6 +44,13 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX, IDispos
         MemberWrapperByMember.DictionaryChanged += MemberWrapperByMember_DictionaryChanged;
         Leader.PropertyChanged -= Leader_PropertyChanged;
         Leader.PropertyChanged += Leader_PropertyChanged;
+
+        if (observableMembers is not null)
+        {
+            ObservableMembers = observableMembers;
+            observableMembers.CollectionChanged -= ObservableMembers_CollectionChanged;
+            observableMembers.CollectionChanged += ObservableMembers_CollectionChanged;
+        }
     }
 
     /// <summary>
@@ -48,7 +59,7 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX, IDispos
     public ObservablePropertyWrapper<TLeader, bool?> Leader { get; }
 
     /// <summary>
-    /// 成员
+    /// 成员 (Member, MemberWrapper)
     /// </summary>
     public ObservableDictionary<
         TMember,
@@ -56,10 +67,16 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX, IDispos
     > MemberWrapperByMember { get; } = [];
 
     /// <summary>
+    /// 可观察成员
+    /// </summary>
+    public INotifyCollectionChanged? ObservableMembers { get; }
+
+    /// <summary>
     /// 选中的数量
     /// </summary>
     public int SelectedCount { get; private set; }
 
+    private ObservablePropertyWrapper<TMember, bool> _memberWrapper;
     private bool _changing;
 
     /// <summary>
@@ -239,6 +256,40 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX, IDispos
             SelectedCount = 0;
         }
         _changing = false;
+    }
+
+    private void ObservableMembers_CollectionChanged(
+        object? sender,
+        NotifyCollectionChangedEventArgs e
+    )
+    {
+        if (e.Action == NotifyCollectionChangedAction.Add)
+        {
+            foreach (var item in e.NewItems!.Cast<TMember>())
+            {
+                MemberWrapperByMember.Add(item, _memberWrapper.Clone(item));
+            }
+        }
+        else if (e.Action == NotifyCollectionChangedAction.Remove)
+        {
+            foreach (var item in e.OldItems!.Cast<TMember>())
+            {
+                MemberWrapperByMember.Remove(item);
+            }
+        }
+        else if (e.Action is NotifyCollectionChangedAction.Replace)
+        {
+            for (var i = 0; i < e.OldItems!.Count; i++)
+            {
+                MemberWrapperByMember[(TMember)e.OldItems[i]!] = _memberWrapper.Clone(
+                    (TMember)e.NewItems![i]!
+                );
+            }
+        }
+        else if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            MemberWrapperByMember.Clear();
+        }
     }
 
     #region IDisposable
