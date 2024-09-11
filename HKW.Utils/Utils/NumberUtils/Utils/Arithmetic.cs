@@ -33,7 +33,7 @@ public static partial class NumberUtils
     /// 获取计算运算符类型
     /// </summary>
     /// <param name="operator">运算符字符</param>
-    /// <returns>运算符类型</returns>
+    /// <returns>运算符</returns>
     public static ArithmeticOperatorType GetArithmeticOperatorType(char @operator)
     {
         return ArithmeticOperatorTypeByChar[@operator];
@@ -44,7 +44,7 @@ public static partial class NumberUtils
     /// </summary>
     /// <param name="operator">运算符字符</param>
     /// <param name="operatorType">运算符类型</param>
-    /// <returns>运算符类型</returns>
+    /// <returns>运算符</returns>
     public static bool TryGetArithmeticOperatorType(
         char @operator,
         out ArithmeticOperatorType operatorType
@@ -71,20 +71,13 @@ public static partial class NumberUtils
     /// <summary>
     /// 计算
     /// </summary>
-    /// <typeparam name="T">目标类型</typeparam>
     /// <param name="value1">值1</param>
     /// <param name="value2">值2</param>
     /// <param name="numberType">数值类型</param>
     /// <param name="operator">运算符</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object Arithmetic<T>(
-        object? value1,
-        object? value2,
-        Type numberType,
-        char @operator
-    )
-        where T : struct, INumber<T>
+    public static object Arithmetic(object? value1, object? value2, Type numberType, char @operator)
     {
         return Arithmetic(value1, value2, numberType, GetArithmeticOperatorType(@operator));
     }
@@ -92,20 +85,18 @@ public static partial class NumberUtils
     /// <summary>
     /// 计算
     /// </summary>
-    /// <typeparam name="T">目标类型</typeparam>
     /// <param name="value1">值1</param>
     /// <param name="value2">值2</param>
     /// <param name="numberType">数值类型</param>
     /// <param name="operator">运算符</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object Arithmetic<T>(
+    public static object Arithmetic(
         object? value1,
         object? value2,
         NumberType numberType,
         char @operator
     )
-        where T : struct, INumber<T>
     {
         return Arithmetic(value1, value2, numberType, GetArithmeticOperatorType(@operator));
     }
@@ -116,18 +107,18 @@ public static partial class NumberUtils
     /// <typeparam name="T">目标类型</typeparam>
     /// <param name="value1">值1</param>
     /// <param name="value2">值2</param>
-    /// <param name="operator">运算符</param>
+    /// <param name="operatorType">运算符类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static object Arithmetic<T>(
         object? value1,
         object? value2,
-        ArithmeticOperatorType @operator
+        ArithmeticOperatorType operatorType
     )
         where T : struct, INumber<T>
     {
         var type = typeof(T);
-        if (@operator is ArithmeticOperatorType.Addition)
+        if (operatorType is ArithmeticOperatorType.Addition)
         {
             if (type == typeof(sbyte))
                 return Convert.ToSByte(value1) + Convert.ToSByte(value2);
@@ -154,7 +145,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.Subtraction)
+        else if (operatorType is ArithmeticOperatorType.Subtraction)
         {
             if (type == typeof(sbyte))
                 return Convert.ToSByte(value1) - Convert.ToSByte(value2);
@@ -181,7 +172,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.Multiply)
+        else if (operatorType is ArithmeticOperatorType.Multiply)
         {
             if (type == typeof(sbyte))
                 return Convert.ToSByte(value1) * Convert.ToSByte(value2);
@@ -208,7 +199,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.Division)
+        else if (operatorType is ArithmeticOperatorType.Division)
         {
             if (type == typeof(sbyte))
                 return Convert.ToSByte(value1) / Convert.ToSByte(value2);
@@ -235,7 +226,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.Modulus)
+        else if (operatorType is ArithmeticOperatorType.Modulus)
         {
             if (type == typeof(sbyte))
                 return Convert.ToSByte(value1) % Convert.ToSByte(value2);
@@ -262,7 +253,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.BitwiseOr)
+        else if (operatorType is ArithmeticOperatorType.BitwiseOr)
         {
             if (type == typeof(sbyte))
                 return Convert.ToSByte(value1) | Convert.ToSByte(value2);
@@ -283,7 +274,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.BitwiseAnd)
+        else if (operatorType is ArithmeticOperatorType.BitwiseAnd)
         {
             if (type == typeof(sbyte))
                 return Convert.ToSByte(value1) & Convert.ToSByte(value2);
@@ -314,17 +305,17 @@ public static partial class NumberUtils
     /// <param name="value1">值1</param>
     /// <param name="value2">值2</param>
     /// <param name="numberType">数值类型</param>
-    /// <param name="operator">运算符</param>
+    /// <param name="operatorType">运算符类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static object Arithmetic(
         object? value1,
         object? value2,
         Type numberType,
-        ArithmeticOperatorType @operator
+        ArithmeticOperatorType operatorType
     )
     {
-        if (@operator is ArithmeticOperatorType.Addition)
+        if (operatorType is ArithmeticOperatorType.Addition)
         {
             if (numberType == typeof(sbyte))
                 return Convert.ToSByte(value1) + Convert.ToSByte(value2);
@@ -351,7 +342,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.Subtraction)
+        else if (operatorType is ArithmeticOperatorType.Subtraction)
         {
             if (numberType == typeof(sbyte))
                 return Convert.ToSByte(value1) - Convert.ToSByte(value2);
@@ -378,7 +369,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.Multiply)
+        else if (operatorType is ArithmeticOperatorType.Multiply)
         {
             if (numberType == typeof(sbyte))
                 return Convert.ToSByte(value1) * Convert.ToSByte(value2);
@@ -405,7 +396,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.Division)
+        else if (operatorType is ArithmeticOperatorType.Division)
         {
             if (numberType == typeof(sbyte))
                 return Convert.ToSByte(value1) / Convert.ToSByte(value2);
@@ -432,7 +423,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.Modulus)
+        else if (operatorType is ArithmeticOperatorType.Modulus)
         {
             if (numberType == typeof(sbyte))
                 return Convert.ToSByte(value1) % Convert.ToSByte(value2);
@@ -459,7 +450,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.BitwiseOr)
+        else if (operatorType is ArithmeticOperatorType.BitwiseOr)
         {
             if (numberType == typeof(sbyte))
                 return Convert.ToSByte(value1) | Convert.ToSByte(value2);
@@ -480,7 +471,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.BitwiseAnd)
+        else if (operatorType is ArithmeticOperatorType.BitwiseAnd)
         {
             if (numberType == typeof(sbyte))
                 return Convert.ToSByte(value1) & Convert.ToSByte(value2);
@@ -511,17 +502,17 @@ public static partial class NumberUtils
     /// <param name="value1">值1</param>
     /// <param name="value2">值2</param>
     /// <param name="numberType">数值类型</param>
-    /// <param name="operator">运算符</param>
+    /// <param name="operatorType">运算符类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static object Arithmetic(
         object? value1,
         object? value2,
         NumberType numberType,
-        ArithmeticOperatorType @operator
+        ArithmeticOperatorType operatorType
     )
     {
-        if (@operator is ArithmeticOperatorType.Addition)
+        if (operatorType is ArithmeticOperatorType.Addition)
         {
             if (numberType is NumberType.SByte)
                 return Convert.ToSByte(value1) + Convert.ToSByte(value2);
@@ -548,7 +539,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.Subtraction)
+        else if (operatorType is ArithmeticOperatorType.Subtraction)
         {
             if (numberType is NumberType.SByte)
                 return Convert.ToSByte(value1) - Convert.ToSByte(value2);
@@ -575,7 +566,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.Multiply)
+        else if (operatorType is ArithmeticOperatorType.Multiply)
         {
             if (numberType is NumberType.SByte)
                 return Convert.ToSByte(value1) * Convert.ToSByte(value2);
@@ -602,7 +593,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.Division)
+        else if (operatorType is ArithmeticOperatorType.Division)
         {
             if (numberType is NumberType.SByte)
                 return Convert.ToSByte(value1) / Convert.ToSByte(value2);
@@ -629,7 +620,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.Modulus)
+        else if (operatorType is ArithmeticOperatorType.Modulus)
         {
             if (numberType is NumberType.SByte)
                 return Convert.ToSByte(value1) % Convert.ToSByte(value2);
@@ -656,7 +647,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.BitwiseOr)
+        else if (operatorType is ArithmeticOperatorType.BitwiseOr)
         {
             if (numberType is NumberType.SByte)
                 return Convert.ToSByte(value1) | Convert.ToSByte(value2);
@@ -677,7 +668,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ArithmeticOperatorType.BitwiseAnd)
+        else if (operatorType is ArithmeticOperatorType.BitwiseAnd)
         {
             if (numberType is NumberType.SByte)
                 return Convert.ToSByte(value1) & Convert.ToSByte(value2);

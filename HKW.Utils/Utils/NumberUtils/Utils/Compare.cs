@@ -33,7 +33,7 @@ public static partial class NumberUtils
     /// 获取比较运算符类型
     /// </summary>
     /// <param name="operator">运算符字符串</param>
-    /// <returns>运算符类型</returns>
+    /// <returns>运算符</returns>
     public static ComparisonOperatorType GetComparisonOperatorType(string @operator)
     {
         return ComparisonOperatorTypeByString[@operator];
@@ -44,7 +44,7 @@ public static partial class NumberUtils
     /// </summary>
     /// <param name="operator">运算符字符串</param>
     /// <param name="operatorType">运算符类型</param>
-    /// <returns>运算符类型</returns>
+    /// <returns>运算符</returns>
     public static bool TryGetComparisonOperatorType(
         string @operator,
         out ComparisonOperatorType operatorType
@@ -53,19 +53,117 @@ public static partial class NumberUtils
         return ComparisonOperatorTypeByString.TryGetValue(@operator, out operatorType);
     }
 
+    #region Compare
+
     /// <summary>
     /// 比较
     /// </summary>
     /// <typeparam name="T">目标类型</typeparam>
     /// <param name="value1">值1</param>
     /// <param name="value2">值2</param>
-    /// <param name="operator">运算符</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object CompareTo<T>(object? value1, object? value2, string @operator)
+    public static object Compare<T>(object? value1, object? value2)
         where T : struct, INumber<T>
     {
-        return CompareTo<T>(value1, value2, GetComparisonOperatorType(@operator));
+        var type = typeof(T);
+
+        if (type == typeof(sbyte))
+            return Convert.ToSByte(value1).CompareTo(Convert.ToSByte(value2));
+        else if (type == typeof(byte))
+            return Convert.ToByte(value1).CompareTo(Convert.ToByte(value2));
+        else if (type == typeof(short))
+            return Convert.ToInt16(value1).CompareTo(Convert.ToInt16(value2));
+        else if (type == typeof(ushort))
+            return Convert.ToUInt16(value1).CompareTo(Convert.ToUInt16(value2));
+        else if (type == typeof(int))
+            return Convert.ToInt32(value1).CompareTo(Convert.ToInt32(value2));
+        else if (type == typeof(uint))
+            return Convert.ToUInt32(value1).CompareTo(Convert.ToUInt32(value2));
+        else if (type == typeof(long))
+            return Convert.ToInt64(value1).CompareTo(Convert.ToInt64(value2));
+        else if (type == typeof(ulong))
+            return Convert.ToUInt64(value1).CompareTo(Convert.ToUInt64(value2));
+        else if (type == typeof(float))
+            return Convert.ToSingle(value1).CompareTo(Convert.ToSingle(value2));
+        else if (type == typeof(double))
+            return Convert.ToDouble(value1).CompareTo(Convert.ToDouble(value2));
+        else if (type == typeof(decimal))
+            return Convert.ToDecimal(value1).CompareTo(Convert.ToDecimal(value2));
+        else
+            throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// 比较
+    /// </summary>
+    /// <param name="value1">值1</param>
+    /// <param name="value2">值2</param>
+    /// <param name="numberType">类型</param>
+    /// <returns>结果</returns>
+    /// <exception cref="NotImplementedException">不支持的操作</exception>
+    public static object Compare(object? value1, object? value2, Type numberType)
+    {
+        if (numberType == typeof(sbyte))
+            return Convert.ToSByte(value1).CompareTo(Convert.ToSByte(value2));
+        else if (numberType == typeof(byte))
+            return Convert.ToByte(value1).CompareTo(Convert.ToByte(value2));
+        else if (numberType == typeof(short))
+            return Convert.ToInt16(value1).CompareTo(Convert.ToInt16(value2));
+        else if (numberType == typeof(ushort))
+            return Convert.ToUInt16(value1).CompareTo(Convert.ToUInt16(value2));
+        else if (numberType == typeof(int))
+            return Convert.ToInt32(value1).CompareTo(Convert.ToInt32(value2));
+        else if (numberType == typeof(uint))
+            return Convert.ToUInt32(value1).CompareTo(Convert.ToUInt32(value2));
+        else if (numberType == typeof(long))
+            return Convert.ToInt64(value1).CompareTo(Convert.ToInt64(value2));
+        else if (numberType == typeof(ulong))
+            return Convert.ToUInt64(value1).CompareTo(Convert.ToUInt64(value2));
+        else if (numberType == typeof(float))
+            return Convert.ToSingle(value1).CompareTo(Convert.ToSingle(value2));
+        else if (numberType == typeof(double))
+            return Convert.ToDouble(value1).CompareTo(Convert.ToDouble(value2));
+        else if (numberType == typeof(decimal))
+            return Convert.ToDecimal(value1).CompareTo(Convert.ToDecimal(value2));
+        else
+            throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// 比较
+    /// </summary>
+    /// <param name="value1">值1</param>
+    /// <param name="value2">值2</param>
+    /// <param name="numberType">类型</param>
+    /// <returns>结果</returns>
+    /// <exception cref="NotImplementedException">不支持的操作</exception>
+    public static object Compare(object? value1, object? value2, NumberType numberType)
+    {
+        if (numberType is NumberType.SByte)
+            return Convert.ToSByte(value1).CompareTo(Convert.ToSByte(value2));
+        else if (numberType is NumberType.Byte)
+            return Convert.ToByte(value1).CompareTo(Convert.ToByte(value2));
+        else if (numberType is NumberType.Int16)
+            return Convert.ToInt16(value1).CompareTo(Convert.ToInt16(value2));
+        else if (numberType is NumberType.UInt16)
+            return Convert.ToUInt16(value1).CompareTo(Convert.ToUInt16(value2));
+        else if (numberType is NumberType.Int32)
+            return Convert.ToInt32(value1).CompareTo(Convert.ToInt32(value2));
+        else if (numberType is NumberType.UInt32)
+            return Convert.ToUInt32(value1).CompareTo(Convert.ToUInt32(value2));
+        else if (numberType is NumberType.Int64)
+            return Convert.ToInt64(value1).CompareTo(Convert.ToInt64(value2));
+        else if (numberType is NumberType.UInt64)
+            return Convert.ToUInt64(value1).CompareTo(Convert.ToUInt64(value2));
+        else if (numberType is NumberType.Single)
+            return Convert.ToSingle(value1).CompareTo(Convert.ToSingle(value2));
+        else if (numberType is NumberType.Double)
+            return Convert.ToDouble(value1).CompareTo(Convert.ToDouble(value2));
+        else if (numberType is NumberType.Decimal)
+            return Convert.ToDecimal(value1).CompareTo(Convert.ToDecimal(value2));
+        else
+            throw new NotImplementedException();
     }
 
     /// <summary>
@@ -74,40 +172,46 @@ public static partial class NumberUtils
     /// <typeparam name="T">目标类型</typeparam>
     /// <param name="value1">值1</param>
     /// <param name="value2">值2</param>
-    /// <param name="numberType">数值类型</param>
     /// <param name="operator">运算符</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object CompareTo<T>(
-        object? value1,
-        object? value2,
-        Type numberType,
-        string @operator
-    )
+    public static bool Compare<T>(object? value1, object? value2, string @operator)
         where T : struct, INumber<T>
     {
-        return CompareTo(value1, value2, numberType, GetComparisonOperatorType(@operator));
+        return Compare<T>(value1, value2, GetComparisonOperatorType(@operator));
     }
 
     /// <summary>
     /// 比较
     /// </summary>
-    /// <typeparam name="T">目标类型</typeparam>
     /// <param name="value1">值1</param>
     /// <param name="value2">值2</param>
     /// <param name="numberType">数值类型</param>
     /// <param name="operator">运算符</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object CompareTo<T>(
+    public static bool Compare(object? value1, object? value2, Type numberType, string @operator)
+    {
+        return Compare(value1, value2, numberType, GetComparisonOperatorType(@operator));
+    }
+
+    /// <summary>
+    /// 比较
+    /// </summary>
+    /// <param name="value1">值1</param>
+    /// <param name="value2">值2</param>
+    /// <param name="numberType">数值类型</param>
+    /// <param name="operator">运算符</param>
+    /// <returns>结果</returns>
+    /// <exception cref="NotImplementedException">不支持的操作</exception>
+    public static bool Compare(
         object? value1,
         object? value2,
         NumberType numberType,
         string @operator
     )
-        where T : struct, INumber<T>
     {
-        return CompareTo(value1, value2, numberType, GetComparisonOperatorType(@operator));
+        return Compare(value1, value2, numberType, GetComparisonOperatorType(@operator));
     }
 
     /// <summary>
@@ -116,18 +220,18 @@ public static partial class NumberUtils
     /// <typeparam name="T">目标类型</typeparam>
     /// <param name="value1">值1</param>
     /// <param name="value2">值2</param>
-    /// <param name="operator">运算符</param>
+    /// <param name="operatorType">运算符类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object CompareTo<T>(
+    public static bool Compare<T>(
         object? value1,
         object? value2,
-        ComparisonOperatorType @operator
+        ComparisonOperatorType operatorType
     )
         where T : struct, INumber<T>
     {
         var type = typeof(T);
-        if (@operator is ComparisonOperatorType.Equality)
+        if (operatorType is ComparisonOperatorType.Equality)
         {
             if (type == typeof(sbyte))
                 return Convert.ToSByte(value1) == Convert.ToSByte(value2);
@@ -154,7 +258,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ComparisonOperatorType.Inequality)
+        else if (operatorType is ComparisonOperatorType.Inequality)
         {
             if (type == typeof(sbyte))
                 return Convert.ToSByte(value1) != Convert.ToSByte(value2);
@@ -181,7 +285,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ComparisonOperatorType.LessThan)
+        else if (operatorType is ComparisonOperatorType.LessThan)
         {
             if (type == typeof(sbyte))
                 return Convert.ToSByte(value1) < Convert.ToSByte(value2);
@@ -208,7 +312,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ComparisonOperatorType.GreaterThan)
+        else if (operatorType is ComparisonOperatorType.GreaterThan)
         {
             if (type == typeof(sbyte))
                 return Convert.ToSByte(value1) > Convert.ToSByte(value2);
@@ -235,7 +339,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ComparisonOperatorType.LessThanOrEqual)
+        else if (operatorType is ComparisonOperatorType.LessThanOrEqual)
         {
             if (type == typeof(sbyte))
                 return Convert.ToSByte(value1) <= Convert.ToSByte(value2);
@@ -262,7 +366,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ComparisonOperatorType.GreaterThanOrEqual)
+        else if (operatorType is ComparisonOperatorType.GreaterThanOrEqual)
         {
             if (type == typeof(sbyte))
                 return Convert.ToSByte(value1) >= Convert.ToSByte(value2);
@@ -293,17 +397,17 @@ public static partial class NumberUtils
     /// <param name="value1">值1</param>
     /// <param name="value2">值2</param>
     /// <param name="numberType">类型</param>
-    /// <param name="operator">运算符</param>
+    /// <param name="operatorType">运算符类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object CompareTo(
+    public static bool Compare(
         object? value1,
         object? value2,
         Type numberType,
-        ComparisonOperatorType @operator
+        ComparisonOperatorType operatorType
     )
     {
-        if (@operator is ComparisonOperatorType.Equality)
+        if (operatorType is ComparisonOperatorType.Equality)
         {
             if (numberType == typeof(sbyte))
                 return Convert.ToSByte(value1) == Convert.ToSByte(value2);
@@ -330,7 +434,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ComparisonOperatorType.Inequality)
+        else if (operatorType is ComparisonOperatorType.Inequality)
         {
             if (numberType == typeof(sbyte))
                 return Convert.ToSByte(value1) != Convert.ToSByte(value2);
@@ -357,7 +461,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ComparisonOperatorType.LessThan)
+        else if (operatorType is ComparisonOperatorType.LessThan)
         {
             if (numberType == typeof(sbyte))
                 return Convert.ToSByte(value1) < Convert.ToSByte(value2);
@@ -384,7 +488,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ComparisonOperatorType.GreaterThan)
+        else if (operatorType is ComparisonOperatorType.GreaterThan)
         {
             if (numberType == typeof(sbyte))
                 return Convert.ToSByte(value1) > Convert.ToSByte(value2);
@@ -411,7 +515,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ComparisonOperatorType.LessThanOrEqual)
+        else if (operatorType is ComparisonOperatorType.LessThanOrEqual)
         {
             if (numberType == typeof(sbyte))
                 return Convert.ToSByte(value1) <= Convert.ToSByte(value2);
@@ -438,7 +542,7 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ComparisonOperatorType.GreaterThanOrEqual)
+        else if (operatorType is ComparisonOperatorType.GreaterThanOrEqual)
         {
             if (numberType == typeof(sbyte))
                 return Convert.ToSByte(value1) >= Convert.ToSByte(value2);
@@ -468,169 +572,169 @@ public static partial class NumberUtils
     /// </summary>
     /// <param name="value1">值1</param>
     /// <param name="value2">值2</param>
-    /// <param name="type">类型</param>
-    /// <param name="operator">运算符</param>
+    /// <param name="numberType">类型</param>
+    /// <param name="operatorType">运算符类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object CompareTo(
+    public static bool Compare(
         object? value1,
         object? value2,
-        NumberType type,
-        ComparisonOperatorType @operator
+        NumberType numberType,
+        ComparisonOperatorType operatorType
     )
     {
-        if (@operator is ComparisonOperatorType.Equality)
+        if (operatorType is ComparisonOperatorType.Equality)
         {
-            if (type is NumberType.SByte)
+            if (numberType is NumberType.SByte)
                 return Convert.ToSByte(value1) == Convert.ToSByte(value2);
-            else if (type is NumberType.Byte)
+            else if (numberType is NumberType.Byte)
                 return Convert.ToByte(value1) == Convert.ToByte(value2);
-            else if (type is NumberType.Int16)
+            else if (numberType is NumberType.Int16)
                 return Convert.ToInt16(value1) == Convert.ToInt16(value2);
-            else if (type is NumberType.UInt16)
+            else if (numberType is NumberType.UInt16)
                 return Convert.ToUInt16(value1) == Convert.ToUInt16(value2);
-            else if (type is NumberType.Int32)
+            else if (numberType is NumberType.Int32)
                 return Convert.ToInt32(value1) == Convert.ToInt32(value2);
-            else if (type is NumberType.UInt32)
+            else if (numberType is NumberType.UInt32)
                 return Convert.ToUInt32(value1) == Convert.ToUInt32(value2);
-            else if (type is NumberType.Int64)
+            else if (numberType is NumberType.Int64)
                 return Convert.ToInt64(value1) == Convert.ToInt64(value2);
-            else if (type is NumberType.UInt64)
+            else if (numberType is NumberType.UInt64)
                 return Convert.ToUInt64(value1) == Convert.ToUInt64(value2);
-            else if (type is NumberType.Single)
+            else if (numberType is NumberType.Single)
                 return Convert.ToSingle(value1) == Convert.ToSingle(value2);
-            else if (type is NumberType.Double)
+            else if (numberType is NumberType.Double)
                 return Convert.ToDouble(value1) == Convert.ToDouble(value2);
-            else if (type is NumberType.Decimal)
+            else if (numberType is NumberType.Decimal)
                 return Convert.ToDecimal(value1) == Convert.ToDecimal(value2);
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ComparisonOperatorType.Inequality)
+        else if (operatorType is ComparisonOperatorType.Inequality)
         {
-            if (type is NumberType.SByte)
+            if (numberType is NumberType.SByte)
                 return Convert.ToSByte(value1) != Convert.ToSByte(value2);
-            else if (type is NumberType.Byte)
+            else if (numberType is NumberType.Byte)
                 return Convert.ToByte(value1) != Convert.ToByte(value2);
-            else if (type is NumberType.Int16)
+            else if (numberType is NumberType.Int16)
                 return Convert.ToInt16(value1) != Convert.ToInt16(value2);
-            else if (type is NumberType.UInt16)
+            else if (numberType is NumberType.UInt16)
                 return Convert.ToUInt16(value1) != Convert.ToUInt16(value2);
-            else if (type is NumberType.Int32)
+            else if (numberType is NumberType.Int32)
                 return Convert.ToInt32(value1) != Convert.ToInt32(value2);
-            else if (type is NumberType.UInt32)
+            else if (numberType is NumberType.UInt32)
                 return Convert.ToUInt32(value1) != Convert.ToUInt32(value2);
-            else if (type is NumberType.Int64)
+            else if (numberType is NumberType.Int64)
                 return Convert.ToInt64(value1) != Convert.ToInt64(value2);
-            else if (type is NumberType.UInt64)
+            else if (numberType is NumberType.UInt64)
                 return Convert.ToUInt64(value1) != Convert.ToUInt64(value2);
-            else if (type is NumberType.Single)
+            else if (numberType is NumberType.Single)
                 return Convert.ToSingle(value1) != Convert.ToSingle(value2);
-            else if (type is NumberType.Double)
+            else if (numberType is NumberType.Double)
                 return Convert.ToDouble(value1) != Convert.ToDouble(value2);
-            else if (type is NumberType.Decimal)
+            else if (numberType is NumberType.Decimal)
                 return Convert.ToDecimal(value1) != Convert.ToDecimal(value2);
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ComparisonOperatorType.LessThan)
+        else if (operatorType is ComparisonOperatorType.LessThan)
         {
-            if (type is NumberType.SByte)
+            if (numberType is NumberType.SByte)
                 return Convert.ToSByte(value1) < Convert.ToSByte(value2);
-            else if (type is NumberType.Byte)
+            else if (numberType is NumberType.Byte)
                 return Convert.ToByte(value1) < Convert.ToByte(value2);
-            else if (type is NumberType.Int16)
+            else if (numberType is NumberType.Int16)
                 return Convert.ToInt16(value1) < Convert.ToInt16(value2);
-            else if (type is NumberType.UInt16)
+            else if (numberType is NumberType.UInt16)
                 return Convert.ToUInt16(value1) < Convert.ToUInt16(value2);
-            else if (type is NumberType.Int32)
+            else if (numberType is NumberType.Int32)
                 return Convert.ToInt32(value1) < Convert.ToInt32(value2);
-            else if (type is NumberType.UInt32)
+            else if (numberType is NumberType.UInt32)
                 return Convert.ToUInt32(value1) < Convert.ToUInt32(value2);
-            else if (type is NumberType.Int64)
+            else if (numberType is NumberType.Int64)
                 return Convert.ToInt64(value1) < Convert.ToInt64(value2);
-            else if (type is NumberType.UInt64)
+            else if (numberType is NumberType.UInt64)
                 return Convert.ToUInt64(value1) < Convert.ToUInt64(value2);
-            else if (type is NumberType.Single)
+            else if (numberType is NumberType.Single)
                 return Convert.ToSingle(value1) < Convert.ToSingle(value2);
-            else if (type is NumberType.Double)
+            else if (numberType is NumberType.Double)
                 return Convert.ToDouble(value1) < Convert.ToDouble(value2);
-            else if (type is NumberType.Decimal)
+            else if (numberType is NumberType.Decimal)
                 return Convert.ToDecimal(value1) < Convert.ToDecimal(value2);
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ComparisonOperatorType.GreaterThan)
+        else if (operatorType is ComparisonOperatorType.GreaterThan)
         {
-            if (type is NumberType.SByte)
+            if (numberType is NumberType.SByte)
                 return Convert.ToSByte(value1) > Convert.ToSByte(value2);
-            else if (type is NumberType.Byte)
+            else if (numberType is NumberType.Byte)
                 return Convert.ToByte(value1) > Convert.ToByte(value2);
-            else if (type is NumberType.Int16)
+            else if (numberType is NumberType.Int16)
                 return Convert.ToInt16(value1) > Convert.ToInt16(value2);
-            else if (type is NumberType.UInt16)
+            else if (numberType is NumberType.UInt16)
                 return Convert.ToUInt16(value1) > Convert.ToUInt16(value2);
-            else if (type is NumberType.Int32)
+            else if (numberType is NumberType.Int32)
                 return Convert.ToInt32(value1) > Convert.ToInt32(value2);
-            else if (type is NumberType.UInt32)
+            else if (numberType is NumberType.UInt32)
                 return Convert.ToUInt32(value1) > Convert.ToUInt32(value2);
-            else if (type is NumberType.Int64)
+            else if (numberType is NumberType.Int64)
                 return Convert.ToInt64(value1) > Convert.ToInt64(value2);
-            else if (type is NumberType.UInt64)
+            else if (numberType is NumberType.UInt64)
                 return Convert.ToUInt64(value1) > Convert.ToUInt64(value2);
-            else if (type is NumberType.Single)
+            else if (numberType is NumberType.Single)
                 return Convert.ToSingle(value1) > Convert.ToSingle(value2);
-            else if (type is NumberType.Double)
+            else if (numberType is NumberType.Double)
                 return Convert.ToDouble(value1) > Convert.ToDouble(value2);
-            else if (type is NumberType.Decimal)
+            else if (numberType is NumberType.Decimal)
                 return Convert.ToDecimal(value1) > Convert.ToDecimal(value2);
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ComparisonOperatorType.LessThanOrEqual)
+        else if (operatorType is ComparisonOperatorType.LessThanOrEqual)
         {
-            if (type is NumberType.SByte)
+            if (numberType is NumberType.SByte)
                 return Convert.ToSByte(value1) <= Convert.ToSByte(value2);
-            else if (type is NumberType.Byte)
+            else if (numberType is NumberType.Byte)
                 return Convert.ToByte(value1) <= Convert.ToByte(value2);
-            else if (type is NumberType.Int16)
+            else if (numberType is NumberType.Int16)
                 return Convert.ToInt16(value1) <= Convert.ToInt16(value2);
-            else if (type is NumberType.UInt16)
+            else if (numberType is NumberType.UInt16)
                 return Convert.ToUInt16(value1) <= Convert.ToUInt16(value2);
-            else if (type is NumberType.Int32)
+            else if (numberType is NumberType.Int32)
                 return Convert.ToInt32(value1) <= Convert.ToInt32(value2);
-            else if (type is NumberType.UInt32)
+            else if (numberType is NumberType.UInt32)
                 return Convert.ToUInt32(value1) <= Convert.ToUInt32(value2);
-            else if (type is NumberType.Int64)
+            else if (numberType is NumberType.Int64)
                 return Convert.ToInt64(value1) <= Convert.ToInt64(value2);
-            else if (type is NumberType.UInt64)
+            else if (numberType is NumberType.UInt64)
                 return Convert.ToUInt64(value1) <= Convert.ToUInt64(value2);
-            else if (type is NumberType.Single)
+            else if (numberType is NumberType.Single)
                 return Convert.ToSingle(value1) <= Convert.ToSingle(value2);
-            else if (type is NumberType.Double)
+            else if (numberType is NumberType.Double)
                 return Convert.ToDouble(value1) <= Convert.ToDouble(value2);
-            else if (type is NumberType.Decimal)
+            else if (numberType is NumberType.Decimal)
                 return Convert.ToDecimal(value1) <= Convert.ToDecimal(value2);
             else
                 throw new NotImplementedException();
         }
-        else if (@operator is ComparisonOperatorType.GreaterThanOrEqual)
+        else if (operatorType is ComparisonOperatorType.GreaterThanOrEqual)
         {
-            if (type is NumberType.SByte)
+            if (numberType is NumberType.SByte)
                 return Convert.ToSByte(value1) >= Convert.ToSByte(value2);
-            else if (type is NumberType.Byte)
+            else if (numberType is NumberType.Byte)
                 return Convert.ToByte(value1) >= Convert.ToByte(value2);
-            else if (type is NumberType.Int16)
+            else if (numberType is NumberType.Int16)
                 return Convert.ToInt16(value1) >= Convert.ToInt16(value2);
-            else if (type is NumberType.UInt16)
+            else if (numberType is NumberType.UInt16)
                 return Convert.ToUInt16(value1) >= Convert.ToUInt16(value2);
-            else if (type is NumberType.Int32)
+            else if (numberType is NumberType.Int32)
                 return Convert.ToInt32(value1) >= Convert.ToInt32(value2);
-            else if (type is NumberType.UInt32)
+            else if (numberType is NumberType.UInt32)
                 return Convert.ToUInt32(value1) >= Convert.ToUInt32(value2);
-            else if (type is NumberType.Int64)
+            else if (numberType is NumberType.Int64)
                 return Convert.ToInt64(value1) >= Convert.ToInt64(value2);
-            else if (type is NumberType.UInt64)
+            else if (numberType is NumberType.UInt64)
                 return Convert.ToUInt64(value1) >= Convert.ToUInt64(value2);
             else
                 throw new NotImplementedException();
@@ -638,4 +742,5 @@ public static partial class NumberUtils
         else
             throw new NotImplementedException();
     }
+    #endregion
 }
