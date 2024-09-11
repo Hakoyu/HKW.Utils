@@ -215,12 +215,15 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX, IDispos
         if (wrapper.Value)
         {
             if (Leader.Value is false)
-                Leader.Value = null;
-            else if (
-                (MemberWrapperByMember.Count == 1)
-                || (SelectedCount == MemberWrapperByMember.Count - 1)
-            )
-                Leader.Value = true;
+            {
+                if (
+                    (MemberWrapperByMember.Count == 1)
+                    || (SelectedCount == MemberWrapperByMember.Count - 1)
+                )
+                    Leader.Value = true;
+                else
+                    Leader.Value = null;
+            }
             SelectedCount++;
         }
         else if (wrapper.Value is false)

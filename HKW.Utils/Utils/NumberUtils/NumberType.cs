@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HKW.HKWUtils.Utils;
+namespace HKW.HKWUtils;
 
 /// <summary>
 /// 数字类型

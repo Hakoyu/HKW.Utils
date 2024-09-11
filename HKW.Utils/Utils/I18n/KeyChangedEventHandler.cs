@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HKW.HKWUtils.Utils;
+namespace HKW.HKWUtils;
 
 /// <summary>
 /// 键改变后事件

@@ -2,9 +2,9 @@
 using System.Diagnostics;
 using System.Reactive.Linq;
 using DynamicData.Binding;
+using HKW.HKWUtils;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
-using HKW.HKWUtils.Utils;
 using ReactiveUI;
 
 namespace HKW.HKWUtils;

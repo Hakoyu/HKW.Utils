@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HKW.HKWUtils;
 using HKW.HKWUtils.Extensions;
-using HKW.HKWUtils.Utils;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Utilities;
 
 namespace HKW.HKWUtils.Tests.Utils;

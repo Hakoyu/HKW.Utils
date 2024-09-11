@@ -78,6 +78,23 @@ public static class EnumInfo
         return (EnumInfo<TEnum>)InfosByType[typeof(TEnum)][@enum];
     }
 
+    /// <summary>
+    /// 获取信息
+    /// </summary>
+    /// <param name="info">枚举信息</param>
+    /// <param name="target">目标</param>
+    /// <returns>目标信息</returns>
+    public static string GetInfo(this IEnumInfo info, EnumInfoTarget target)
+    {
+        return target switch
+        {
+            EnumInfoTarget.Name => info.Name,
+            EnumInfoTarget.ShortName => info.ShortName,
+            EnumInfoTarget.Description => info.Description,
+            _ => info.Name,
+        };
+    }
+
     //#region GlobalDefault
 
     //#region GlobalDefaultToString
