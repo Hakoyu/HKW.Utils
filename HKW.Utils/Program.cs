@@ -34,7 +34,8 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-
+        int.Parse("123".AsSpan());
+        var num = NumberUtils.ConvertTo<int>("123".AsSpan());
         //var size = new Size<int>("114, 514");
         //I18nResource.AddCulture("zh");
         //I18nResource.AddCulture("en");
