@@ -18,7 +18,7 @@ public static partial class HKWExtensions
     /// <param name="index">索引</param>
     /// <returns>包含为 <see langword="true"/> 不包含为 <see langword="false"/></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool ContainsIndex<T>(this IList<T> list, int index)
+    public static bool ContainsIndex<T>(this ICollection<T> list, int index)
     {
         ArgumentNullException.ThrowIfNull(list, nameof(list));
         if (index >= 0 && index < list.Count)

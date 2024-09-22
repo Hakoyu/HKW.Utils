@@ -1,37 +1,73 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HKW.HKWUtils.Collections;
+namespace HKW.HKWUtils;
 
 /// <summary>
-/// 双向字典
+/// 冻结双向字典
 /// </summary>
-public class BidirectionalDictionary<T1, T2> : IDictionary<T1, T2>
-    where T1 : notnull
-    where T2 : notnull
+public class FrozenBidirectionalDictionary
 {
-    private readonly Dictionary<T1, T2> _dictionary1 = new();
-    private readonly Dictionary<T2, T1> _dictionary2 = new();
-
     /// <inheritdoc/>
     /// <param name="keyValuePairs">键值对</param>
-    public BidirectionalDictionary(IEnumerable<KeyValuePair<T1, T2>> keyValuePairs)
+    public static FrozenBidirectionalDictionary<T1, T2> Create<T1, T2>(
+        IEnumerable<KeyValuePair<T1, T2>> keyValuePairs
+    )
+        where T1 : notnull
+        where T2 : notnull
     {
-        _dictionary1 = new(keyValuePairs);
-        _dictionary2 = new(keyValuePairs.Select(x => KeyValuePair.Create(x.Value, x.Key)));
+        return new(keyValuePairs);
     }
 
     /// <inheritdoc/>
     /// <param name="keyValuePairs">键值对</param>
-    public BidirectionalDictionary(IEnumerable<(T1, T2)> keyValuePairs)
+    public static FrozenBidirectionalDictionary<T1, T2> Create<T1, T2>(
+        IEnumerable<(T1, T2)> keyValuePairs
+    )
+        where T1 : notnull
+        where T2 : notnull
     {
-        _dictionary1 = new(keyValuePairs.Select(x => KeyValuePair.Create(x.Item1, x.Item2)));
-        _dictionary2 = new(keyValuePairs.Select(x => KeyValuePair.Create(x.Item2, x.Item1)));
+        return new(keyValuePairs);
+    }
+}
+
+/// <summary>
+/// 冻结双向字典
+/// </summary>
+public class FrozenBidirectionalDictionary<T1, T2> : IDictionary<T1, T2>
+    where T1 : notnull
+    where T2 : notnull
+{
+    private readonly FrozenDictionary<T1, T2> _dictionary1;
+    private readonly FrozenDictionary<T2, T1> _dictionary2;
+
+    /// <inheritdoc/>
+    /// <param name="keyValuePairs">键值对</param>
+    internal FrozenBidirectionalDictionary(IEnumerable<KeyValuePair<T1, T2>> keyValuePairs)
+    {
+        _dictionary1 = FrozenDictionary.ToFrozenDictionary(keyValuePairs);
+        _dictionary2 = FrozenDictionary.ToFrozenDictionary(
+            keyValuePairs.Select(x => KeyValuePair.Create(x.Value, x.Key))
+        );
+    }
+
+    /// <inheritdoc/>
+    /// <param name="keyValuePairs">键值对</param>
+    internal FrozenBidirectionalDictionary(IEnumerable<(T1, T2)> keyValuePairs)
+    {
+        _dictionary1 = FrozenDictionary.ToFrozenDictionary(
+            keyValuePairs.Select(x => KeyValuePair.Create(x.Item1, x.Item2))
+        );
+        _dictionary2 = FrozenDictionary.ToFrozenDictionary(
+            keyValuePairs.Select(x => KeyValuePair.Create(x.Item2, x.Item1))
+        );
     }
 
     /// <inheritdoc/>
@@ -61,51 +97,22 @@ public class BidirectionalDictionary<T1, T2> : IDictionary<T1, T2>
     public T2 this[T1 key]
     {
         get => ((IDictionary<T1, T2>)_dictionary1)[key];
-        set => ((IDictionary<T1, T2>)_dictionary1)[key] = value;
+        set => throw new ReadOnlyException();
     }
 
-    /// <inheritdoc/>
-    public void Add(T1 key, T2 value)
+    void IDictionary<T1, T2>.Add(T1 key, T2 value)
     {
-        ((IDictionary<T1, T2>)_dictionary1).Add(key, value);
-        ((IDictionary<T2, T1>)_dictionary2).Add(value, key);
+        throw new ReadOnlyException();
     }
 
-    /// <inheritdoc/>
-    public void Add(KeyValuePair<T1, T2> item)
+    void ICollection<KeyValuePair<T1, T2>>.Add(KeyValuePair<T1, T2> item)
     {
-        ((ICollection<KeyValuePair<T1, T2>>)_dictionary1).Add(item);
-        ((ICollection<KeyValuePair<T2, T1>>)_dictionary2).Add(
-            KeyValuePair.Create(item.Value, item.Key)
-        );
+        throw new ReadOnlyException();
     }
 
-    /// <inheritdoc/>
-    public bool TryAdd(T1 key, T2 value)
+    void ICollection<KeyValuePair<T1, T2>>.Clear()
     {
-        var result = ((IDictionary<T1, T2>)_dictionary1).TryAdd(key, value);
-        if (result)
-        {
-            if (((IDictionary<T2, T1>)_dictionary2).TryAdd(value, key) is false)
-            {
-                _dictionary1.Remove(key);
-                return false;
-            }
-        }
-        return result;
-    }
-
-    /// <inheritdoc/>
-    public bool TryAdd(KeyValuePair<T1, T2> item)
-    {
-        return TryAdd(item.Key, item.Value);
-    }
-
-    /// <inheritdoc/>
-    public void Clear()
-    {
-        ((ICollection<KeyValuePair<T1, T2>>)_dictionary1).Clear();
-        ((ICollection<KeyValuePair<T2, T1>>)_dictionary2).Clear();
+        throw new ReadOnlyException();
     }
 
     /// <inheritdoc/>
@@ -132,19 +139,14 @@ public class BidirectionalDictionary<T1, T2> : IDictionary<T1, T2>
         return ((IEnumerable<KeyValuePair<T1, T2>>)_dictionary1).GetEnumerator();
     }
 
-    /// <inheritdoc/>
-    public bool Remove(T1 key)
+    bool IDictionary<T1, T2>.Remove(T1 key)
     {
-        var result = ((IDictionary<T1, T2>)_dictionary1).TryGetValue(key, out var value);
-        if (result)
-            ((IDictionary<T2, T1>)_dictionary2).Remove(value!);
-        return result;
+        throw new ReadOnlyException();
     }
 
-    /// <inheritdoc/>
-    public bool Remove(KeyValuePair<T1, T2> item)
+    bool ICollection<KeyValuePair<T1, T2>>.Remove(KeyValuePair<T1, T2> item)
     {
-        return Remove(item.Key);
+        throw new ReadOnlyException();
     }
 
     /// <inheritdoc/>
@@ -164,19 +166,7 @@ public class BidirectionalDictionary<T1, T2> : IDictionary<T1, T2>
     public T1 this[T2 key]
     {
         get => ((IDictionary<T2, T1>)_dictionary2)[key];
-        set => ((IDictionary<T2, T1>)_dictionary2)[key] = value;
-    }
-
-    /// <inheritdoc/>
-    public void Add(T2 key, T1 value)
-    {
-        ((IDictionary<T2, T1>)_dictionary2).Add(key, value);
-    }
-
-    /// <inheritdoc/>
-    public void Add(KeyValuePair<T2, T1> item)
-    {
-        ((ICollection<KeyValuePair<T2, T1>>)_dictionary2).Add(item);
+        set => throw new ReadOnlyException();
     }
 
     /// <inheritdoc/>
@@ -195,21 +185,6 @@ public class BidirectionalDictionary<T1, T2> : IDictionary<T1, T2>
     public void CopyTo(KeyValuePair<T2, T1>[] array, int arrayIndex)
     {
         ((ICollection<KeyValuePair<T2, T1>>)_dictionary2).CopyTo(array, arrayIndex);
-    }
-
-    /// <inheritdoc/>
-    public bool Remove(T2 key)
-    {
-        var result = ((IDictionary<T2, T1>)_dictionary2).TryGetValue(key, out var value);
-        if (result)
-            ((IDictionary<T1, T2>)_dictionary1).Remove(value!);
-        return result;
-    }
-
-    /// <inheritdoc/>
-    public bool Remove(KeyValuePair<T2, T1> item)
-    {
-        return Remove(item);
     }
 
     /// <inheritdoc/>

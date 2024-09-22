@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -14,18 +15,18 @@ public static partial class NumberUtils
     /// 比较运算符类型
     /// <para>(OperatorChar, ComparisonOperatorType)</para>
     /// </summary>
-    public static FrozenDictionary<
+    public static FrozenBidirectionalDictionary<
         string,
         ComparisonOperatorType
     > ComparisonOperatorTypeByString { get; } =
-        FrozenDictionary.ToFrozenDictionary<string, ComparisonOperatorType>(
+        FrozenBidirectionalDictionary.Create<string, ComparisonOperatorType>(
             [
-                KeyValuePair.Create("==", ComparisonOperatorType.Equality),
-                KeyValuePair.Create("!=", ComparisonOperatorType.Inequality),
-                KeyValuePair.Create("<", ComparisonOperatorType.LessThan),
-                KeyValuePair.Create(">", ComparisonOperatorType.GreaterThan),
-                KeyValuePair.Create("<=", ComparisonOperatorType.LessThanOrEqual),
-                KeyValuePair.Create(">=", ComparisonOperatorType.GreaterThanOrEqual),
+                ("==", ComparisonOperatorType.Equality),
+                ("!=", ComparisonOperatorType.Inequality),
+                ("<", ComparisonOperatorType.LessThan),
+                (">", ComparisonOperatorType.GreaterThan),
+                ("<=", ComparisonOperatorType.LessThanOrEqual),
+                (">=", ComparisonOperatorType.GreaterThanOrEqual),
             ]
         );
 
@@ -36,7 +37,13 @@ public static partial class NumberUtils
     /// <returns>运算符</returns>
     public static ComparisonOperatorType GetComparisonOperatorType(string @operator)
     {
-        return ComparisonOperatorTypeByString[@operator];
+        if (@operator.Length <= 2)
+            return ComparisonOperatorTypeByString[@operator];
+
+        foreach (var pair in ComparisonOperatorTypeByString)
+            if (@operator.StartsWith(pair.Key))
+                return pair.Value;
+        throw new ArgumentException(nameof(@operator));
     }
 
     /// <summary>
@@ -47,10 +54,22 @@ public static partial class NumberUtils
     /// <returns>运算符</returns>
     public static bool TryGetComparisonOperatorType(
         string @operator,
-        out ComparisonOperatorType operatorType
+        [MaybeNullWhen(false)] out ComparisonOperatorType operatorType
     )
     {
-        return ComparisonOperatorTypeByString.TryGetValue(@operator, out operatorType);
+        if (@operator.Length <= 2)
+            return ComparisonOperatorTypeByString.TryGetValue(@operator, out operatorType);
+
+        foreach (var pair in ComparisonOperatorTypeByString)
+        {
+            if (@operator.StartsWith(pair.Key))
+            {
+                operatorType = pair.Value;
+                return true;
+            }
+        }
+        operatorType = default;
+        return false;
     }
 
     #region Compare
@@ -175,10 +194,10 @@ public static partial class NumberUtils
     /// <param name="operator">运算符</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static bool Compare<T>(object? value1, object? value2, string @operator)
+    public static bool CompareX<T>(object? value1, object? value2, string @operator)
         where T : struct, INumber<T>
     {
-        return Compare<T>(value1, value2, GetComparisonOperatorType(@operator));
+        return CompareX<T>(value1, value2, GetComparisonOperatorType(@operator));
     }
 
     /// <summary>
@@ -190,9 +209,9 @@ public static partial class NumberUtils
     /// <param name="operator">运算符</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static bool Compare(object? value1, object? value2, Type numberType, string @operator)
+    public static bool CompareX(object? value1, object? value2, Type numberType, string @operator)
     {
-        return Compare(value1, value2, numberType, GetComparisonOperatorType(@operator));
+        return CompareX(value1, value2, numberType, GetComparisonOperatorType(@operator));
     }
 
     /// <summary>
@@ -204,14 +223,14 @@ public static partial class NumberUtils
     /// <param name="operator">运算符</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static bool Compare(
+    public static bool CompareX(
         object? value1,
         object? value2,
         NumberType numberType,
         string @operator
     )
     {
-        return Compare(value1, value2, numberType, GetComparisonOperatorType(@operator));
+        return CompareX(value1, value2, numberType, GetComparisonOperatorType(@operator));
     }
 
     /// <summary>
@@ -223,7 +242,7 @@ public static partial class NumberUtils
     /// <param name="operatorType">运算符类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static bool Compare<T>(
+    public static bool CompareX<T>(
         object? value1,
         object? value2,
         ComparisonOperatorType operatorType
@@ -400,7 +419,7 @@ public static partial class NumberUtils
     /// <param name="operatorType">运算符类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static bool Compare(
+    public static bool CompareX(
         object? value1,
         object? value2,
         Type numberType,
@@ -576,7 +595,7 @@ public static partial class NumberUtils
     /// <param name="operatorType">运算符类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static bool Compare(
+    public static bool CompareX(
         object? value1,
         object? value2,
         NumberType numberType,

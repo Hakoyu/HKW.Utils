@@ -14,18 +14,18 @@ public static partial class NumberUtils
     /// 计算运算符类型
     /// <para>(OperatorChar, ArithmeticOperatorType)</para>
     /// </summary>
-    public static FrozenDictionary<
+    public static FrozenBidirectionalDictionary<
         char,
         ArithmeticOperatorType
     > ArithmeticOperatorTypeByChar { get; } =
-        FrozenDictionary.ToFrozenDictionary<char, ArithmeticOperatorType>(
+        FrozenBidirectionalDictionary.Create<char, ArithmeticOperatorType>(
             [
-                KeyValuePair.Create('+', ArithmeticOperatorType.Addition),
-                KeyValuePair.Create('-', ArithmeticOperatorType.Subtraction),
-                KeyValuePair.Create('*', ArithmeticOperatorType.Multiply),
-                KeyValuePair.Create('/', ArithmeticOperatorType.Division),
-                KeyValuePair.Create('|', ArithmeticOperatorType.BitwiseOr),
-                KeyValuePair.Create('&', ArithmeticOperatorType.BitwiseAnd),
+                ('+', ArithmeticOperatorType.Addition),
+                ('-', ArithmeticOperatorType.Subtraction),
+                ('*', ArithmeticOperatorType.Multiply),
+                ('/', ArithmeticOperatorType.Division),
+                ('|', ArithmeticOperatorType.BitwiseOr),
+                ('&', ArithmeticOperatorType.BitwiseAnd),
             ]
         );
 
