@@ -47,8 +47,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Fody" Version="6.8.1" PrivateAssets="all" />
-		<PackageReference Include="ReactiveUI" Version="20.1.1" />
+		<PackageReference Include="Fody" Version="6.8.2" PrivateAssets="all" />
+		<PackageReference Include="ReactiveUI" Version="20.1.63" />
 	</ItemGroup>
 
 </Project>
