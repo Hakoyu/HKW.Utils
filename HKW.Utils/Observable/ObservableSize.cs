@@ -7,7 +7,7 @@ using HKW.HKWUtils.Drawing;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可观察大小
+/// 可观测大小
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("({Width}, {Height})")]

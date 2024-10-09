@@ -10,7 +10,7 @@ using ReactiveUI;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可观察矩形位置
+/// 可观测矩形位置
 /// </summary>
 /// <typeparam name="T">数据类型</typeparam>
 [DebuggerDisplay("({X}, {Y}, {Width}, {Height})")]

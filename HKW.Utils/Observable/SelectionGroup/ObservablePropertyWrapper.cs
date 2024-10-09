@@ -5,7 +5,7 @@ using ReactiveUI;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可观察属性包装器
+/// 可观测属性包装器
 /// </summary>
 /// <typeparam name="TSource">源类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>

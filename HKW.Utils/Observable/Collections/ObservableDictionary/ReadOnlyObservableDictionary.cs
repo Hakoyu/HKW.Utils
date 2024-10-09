@@ -10,7 +10,7 @@ using HKW.HKWUtils.Natives;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 只读可观察字典接口
+/// 只读可观测字典接口
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>

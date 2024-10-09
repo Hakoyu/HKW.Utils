@@ -1,7 +1,7 @@
 ﻿namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可观察字典改变前事件
+/// 可观测字典改变前事件
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>

@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Diagnostics;
+using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils;
@@ -8,10 +10,13 @@ namespace HKW.HKWUtils;
 /// </summary>
 /// <typeparam name="TItem">项类型</typeparam>
 /// <typeparam name="TList">列表类型</typeparam>
+[DebuggerDisplay("Count = {Count}")]
+[DebuggerTypeProxy(typeof(CollectionDebugView))]
 public class UndoableListWrapper<TItem, TList>
     : IList<TItem>,
         IUndoableCollection<TItem>,
-        IRedoableCollection<TItem>
+        IRedoableCollection<TItem>,
+        IListWrapper<TItem, TList>
     where TList : IList<TItem>
 {
     /// <inheritdoc/>
@@ -23,7 +28,7 @@ public class UndoableListWrapper<TItem, TList>
     /// <summary>
     /// 基础列表
     /// </summary>
-    public IList<TItem> BaseList { get; set; }
+    public TList BaseList { get; }
 
     /// <summary>
     /// 撤销栈
@@ -145,15 +150,6 @@ public class UndoableListWrapper<TItem, TList>
         return true;
     }
 
-    /// <inheritdoc/>
-    public bool Undo(TItem item)
-    {
-        var lastIndex = BaseList.Count - BaseList.IndexOf(item);
-        if (lastIndex < 0)
-            return false;
-        return Undo(lastIndex);
-    }
-
     object IUndoableCollection.Undo()
     {
         return Undo()!;
@@ -178,22 +174,6 @@ public class UndoableListWrapper<TItem, TList>
         for (var i = 0; i < count; i++)
         {
             BaseList.Add(UndoStack.Pop());
-        }
-        return true;
-    }
-
-    /// <inheritdoc/>
-    public bool Redo(TItem item)
-    {
-        if (UndoStack.Contains(item) is false)
-            return false;
-        var count = UndoStack.Count;
-        for (var i = 0; i < count; i++)
-        {
-            var temp = UndoStack.Pop();
-            BaseList.Add(temp);
-            if (temp?.Equals(item) is true)
-                break;
         }
         return true;
     }

@@ -4,7 +4,7 @@ using System.ComponentModel;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可观察只读列表接口
+/// 可观测只读列表接口
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 public interface IReadOnlyObservableList<T>

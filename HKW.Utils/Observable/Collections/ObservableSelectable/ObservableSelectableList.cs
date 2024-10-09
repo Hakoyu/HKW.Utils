@@ -16,7 +16,7 @@ using ReactiveUI;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可观察可选中列表
+/// 可观测可选中列表
 /// </summary>
 /// <typeparam name="T">项目类型</typeparam>
 /// <typeparam name="TList">列表</typeparam>

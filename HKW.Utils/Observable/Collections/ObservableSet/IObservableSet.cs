@@ -4,7 +4,7 @@ using System.ComponentModel;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可观察集合接口
+/// 可观测集合接口
 /// </summary>
 public interface IObservableSet<T>
     : ISet<T>,

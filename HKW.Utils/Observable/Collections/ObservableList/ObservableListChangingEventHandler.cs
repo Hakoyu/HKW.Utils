@@ -1,7 +1,7 @@
 ﻿namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可观察列表改变前事件
+/// 可观测列表改变前事件
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 /// <param name="sender">发送者</param>

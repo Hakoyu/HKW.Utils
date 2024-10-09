@@ -18,11 +18,11 @@ public interface IRedoableCollection<T> : IRedoableCollection
     /// <param name="count">数量</param>
     new public bool Redo(int count);
 
-    /// <summary>
-    /// 重做到指定项
-    /// </summary>
-    /// <param name="item">项</param>
-    public bool Redo(T item);
+    ///// <summary>
+    ///// 重做到指定项
+    ///// </summary>
+    ///// <param name="item">项</param>
+    //public bool Redo(T item);
 }
 
 /// <summary>
@@ -41,4 +41,10 @@ public interface IRedoableCollection
     /// </summary>
     /// <param name="count">数量</param>
     public bool Redo(int count);
+
+    ///// <summary>
+    ///// 重做到指定项
+    ///// </summary>
+    ///// <param name="item">项</param>
+    //public bool Redo(object item);
 }

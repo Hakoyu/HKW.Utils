@@ -18,11 +18,11 @@ public interface IUndoableCollection<T> : IUndoableCollection
     /// <param name="count">数量</param>
     new public bool Undo(int count);
 
-    /// <summary>
-    /// 撤销到指定项
-    /// </summary>
-    /// <param name="item">项</param>
-    public bool Undo(T item);
+    ///// <summary>
+    ///// 撤销指定项
+    ///// </summary>
+    ///// <param name="item">项</param>
+    //public bool Undo(T item);
 }
 
 /// <summary>
@@ -41,4 +41,10 @@ public interface IUndoableCollection
     /// </summary>
     /// <param name="count">数量</param>
     public bool Undo(int count);
+
+    ///// <summary>
+    ///// 撤销指定项
+    ///// </summary>
+    ///// <param name="item">项</param>
+    //public bool Undo(object item);
 }

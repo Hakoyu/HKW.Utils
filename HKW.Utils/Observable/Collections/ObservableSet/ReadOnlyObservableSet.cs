@@ -9,7 +9,7 @@ using HKW.HKWUtils.Natives;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 只读可观察合集
+/// 只读可观测合集
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]

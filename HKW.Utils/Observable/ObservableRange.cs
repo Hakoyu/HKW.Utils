@@ -6,7 +6,7 @@ using HKW.HKWUtils.Drawing;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可观察范围
+/// 可观测范围
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("({Min}, {Max})")]

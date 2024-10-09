@@ -67,7 +67,7 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX, IDispos
     > MemberWrapperByMember { get; } = [];
 
     /// <summary>
-    /// 可观察成员
+    /// 可观测成员
     /// </summary>
     public INotifyCollectionChanged? ObservableMembers { get; }
 

@@ -14,7 +14,7 @@ public class CollectionDebugView
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
     public Array Array
     {
-        get => _collection.Cast<object>().ToArray();
+        get => _collection is Array array ? array : _collection.Cast<object>().ToArray();
     }
 
     private readonly IEnumerable _collection;

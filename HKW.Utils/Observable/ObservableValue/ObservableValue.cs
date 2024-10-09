@@ -8,7 +8,7 @@ using HKW.HKWReactiveUI;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可观察值
+/// 可观测值
 /// </summary>
 /// <typeparam name="T"></typeparam>
 [DebuggerDisplay("{Value}")]

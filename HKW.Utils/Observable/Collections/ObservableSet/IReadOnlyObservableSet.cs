@@ -4,7 +4,7 @@ using System.ComponentModel;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 只读可观察集合
+/// 只读可观测集合
 /// </summary>
 public interface IReadOnlyObservableSet<T>
     : IReadOnlySet<T>,

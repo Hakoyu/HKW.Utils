@@ -9,7 +9,7 @@ using HKW.HKWUtils.Drawing;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可观察点
+/// 可观测点
 /// </summary>
 /// <typeparam name="T">数据类型</typeparam>
 [DebuggerDisplay("({X}, {Y})")]

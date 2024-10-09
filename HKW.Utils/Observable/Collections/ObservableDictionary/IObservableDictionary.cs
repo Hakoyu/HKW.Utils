@@ -24,12 +24,12 @@ public interface IObservableDictionary<TKey, TValue>
     public TValue this[TKey key, bool skipCheck] { get; set; }
 
     /// <summary>
-    /// 可观察的键集合
+    /// 可观测的键集合
     /// </summary>
     public IReadOnlyObservableCollection<TKey> ObservableKeys { get; }
 
     /// <summary>
-    /// 可观察的值集合
+    /// 可观测的值集合
     /// </summary>
     public IReadOnlyObservableCollection<TValue> ObservableValues { get; }
 

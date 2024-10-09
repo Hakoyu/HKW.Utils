@@ -11,7 +11,7 @@ using HKW.HKWUtils.Natives;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 只读的可观察列表
+/// 只读的可观测列表
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
@@ -19,7 +19,7 @@ namespace HKW.HKWUtils.Observable;
 public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>, IList
 {
     /// <summary>
-    /// 原始可观察列表
+    /// 原始可观测列表
     /// </summary>
     public IObservableList<T> _list;
 

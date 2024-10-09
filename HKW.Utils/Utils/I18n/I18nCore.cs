@@ -5,7 +5,7 @@ using HKW.HKWUtils.Observable;
 namespace HKW.HKWUtils;
 
 /// <summary>
-/// 可观察本地化
+/// 可观测本地化
 /// <para>用例:
 /// <c>I18nCore.CurrentCulture = CultureInfo.GetCultureInfo("zh-CN")</c>
 /// </para>
