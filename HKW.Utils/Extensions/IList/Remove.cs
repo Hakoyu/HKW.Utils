@@ -12,7 +12,7 @@ public static partial class HKWExtensions
     /// <summary>
     /// 删除
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="list">列表</param>
     /// <param name="item">项目</param>
     /// <param name="index">索引</param>

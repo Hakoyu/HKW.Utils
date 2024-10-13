@@ -12,7 +12,7 @@ public static partial class HKWExtensions
     /// <summary>
     /// 获取索引
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="source">源</param>
     /// <param name="item">项目</param>
     /// <returns>项目的索引, 若项目不存在则为 <see langword="-1"/> </returns>
@@ -30,7 +30,7 @@ public static partial class HKWExtensions
     /// <summary>
     /// 获取索引
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="source">源</param>
     /// <param name="match">匹配</param>
     /// <returns>项目的索引, 若项目不存在则为 <see langword="-1"/> </returns>

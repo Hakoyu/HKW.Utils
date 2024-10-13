@@ -354,7 +354,6 @@ public class SelectionGroupTests
     }
 }
 
-[HKWReactiveUI.ReferenceType(typeof(ReactiveObject))]
 internal partial class LeaderModel : ReactiveObjectX
 {
     [ReactiveProperty]

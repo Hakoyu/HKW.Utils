@@ -5,7 +5,7 @@ namespace HKW.HKWUtils.Collections;
 /// <summary>
 /// 循环接口
 /// </summary>
-/// <typeparam name="T">项目类型</typeparam>
+/// <typeparam name="T">项类型</typeparam>
 public interface ICyclic<T>
 {
     /// <summary>

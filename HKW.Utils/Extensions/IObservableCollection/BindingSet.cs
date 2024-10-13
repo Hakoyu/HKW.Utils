@@ -20,7 +20,7 @@ public static partial class HKWExtensions
     /// 将源列表的修改同步至目标列表
     /// </para>
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="sourceSet">源列表</param>
     /// <param name="targetSet">目标列表</param>
     /// <param name="unBinding">解除绑定</param>

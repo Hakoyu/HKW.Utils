@@ -21,7 +21,7 @@
 //    /// 将源列表的修改同步至目标列表
 //    /// </para>
 //    /// </summary>
-//    /// <typeparam name="T">项目类型</typeparam>
+//    /// <typeparam name="T">项类型</typeparam>
 //    /// <param name="sourceList">源列表</param>
 //    /// <param name="targetList">目标列表</param>
 //    /// <param name="unBinding">解除绑定</param>
@@ -102,7 +102,7 @@
 //    /// 将源列表的修改同步至目标列表
 //    /// </para>
 //    /// </summary>
-//    /// <typeparam name="T">项目类型</typeparam>
+//    /// <typeparam name="T">项类型</typeparam>
 //    /// <param name="sourceCollection">源列表</param>
 //    /// <param name="targetList">目标列表</param>
 //    /// <param name="unBinding">解除绑定</param>

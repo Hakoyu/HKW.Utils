@@ -12,7 +12,7 @@ public static partial class HKWExtensions
     /// <summary>
     /// 倒序枚举出带有索引值的枚举值
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="source">源</param>
     /// <returns>带有索引的枚举值(索引, 枚举值)</returns>
     public static IEnumerable<(int Index, T Item)> ReverseEnumerateIndex<T>(

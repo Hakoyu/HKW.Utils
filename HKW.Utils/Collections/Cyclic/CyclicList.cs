@@ -16,7 +16,7 @@ namespace HKW.HKWUtils.Collections;
 /// 循环列表
 /// <para>任何修改列表数量的行为会导致循环重置</para>
 /// </summary>
-/// <typeparam name="T">项目类型</typeparam>
+/// <typeparam name="T">项类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
 public class CyclicList<T> : IList<T>, ICyclicCollection<T>, IReadOnlyList<T>, IList

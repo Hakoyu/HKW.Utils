@@ -11,7 +11,7 @@ namespace HKW.HKWUtils.Collections;
 /// 只读过滤列表
 /// <para>基于 <see cref="Filter"/> 维护一个实时过滤的 <see cref="FilteredList"/></para>
 /// </summary>
-/// <typeparam name="T">项目类型</typeparam>
+/// <typeparam name="T">项类型</typeparam>
 /// <typeparam name="TFilteredList">已过滤列表类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
@@ -122,7 +122,7 @@ public class ReadOnlyFilterList<T, TFilteredList>
     private List<int> _filteredListIndex = [];
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    IObservableList<T> IFilterCollection<T, IObservableList<T>, TFilteredList>.Collection =>
+    IObservableList<T> IFilterCollection<T, IObservableList<T>, TFilteredList>.BaseCollection =>
         throw new ReadOnlyException();
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]

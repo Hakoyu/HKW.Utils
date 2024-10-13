@@ -16,7 +16,7 @@ public class FilterListTests
     [TestMethod]
     public void Add()
     {
-        var filterList = new FilterList<int, List<int>, List<int>>(
+        var filterList = new FilterListWrapper<int, List<int>, List<int>>(
             new(),
             filteredList: new(),
             Filter
@@ -29,7 +29,7 @@ public class FilterListTests
     [TestMethod]
     public void Remove()
     {
-        var filterList = new FilterList<int, List<int>, List<int>>(
+        var filterList = new FilterListWrapper<int, List<int>, List<int>>(
             Enumerable.Range(0, 10).ToList(),
             filteredList: new(),
             Filter
@@ -46,7 +46,7 @@ public class FilterListTests
     [TestMethod]
     public void RemoveAll()
     {
-        var filterList = new FilterList<int, List<int>, List<int>>(
+        var filterList = new FilterListWrapper<int, List<int>, List<int>>(
             Enumerable.Range(0, 10).ToList(),
             filteredList: new(),
             Filter
@@ -59,7 +59,7 @@ public class FilterListTests
     [TestMethod]
     public void RemoveAt()
     {
-        var filterList = new FilterList<int, List<int>, List<int>>(
+        var filterList = new FilterListWrapper<int, List<int>, List<int>>(
             Enumerable.Range(0, 10).ToList(),
             filteredList: new(),
             Filter
@@ -76,7 +76,7 @@ public class FilterListTests
     [TestMethod]
     public void ValueChange()
     {
-        var filterList = new FilterList<int, List<int>, List<int>>(
+        var filterList = new FilterListWrapper<int, List<int>, List<int>>(
             Enumerable.Range(0, 10).ToList(),
             filteredList: new(),
             Filter
@@ -93,7 +93,7 @@ public class FilterListTests
     [TestMethod]
     public void Clear()
     {
-        var filterList = new FilterList<int, List<int>, List<int>>(
+        var filterList = new FilterListWrapper<int, List<int>, List<int>>(
             Enumerable.Range(0, 10).ToList(),
             filteredList: new(),
             Filter

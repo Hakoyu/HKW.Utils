@@ -12,7 +12,7 @@ public static partial class HKWExtensions
     /// <summary>
     /// 范围添加
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="collection">集合</param>
     /// <param name="items">项目</param>
     public static void AddRange<T>(this ICollection<T> collection, IEnumerable<T> items)
@@ -31,7 +31,7 @@ public static partial class HKWExtensions
     ///// <summary>
     ///// 删除全部符合条件的项目
     ///// </summary>
-    ///// <typeparam name="T">项目类型</typeparam>
+    ///// <typeparam name="T">项类型</typeparam>
     ///// <param name="collection">集合</param>
     ///// <param name="match">条件</param>
     //public static void RemoveAll<T>(this ICollection<T> collection, Predicate<T> match)

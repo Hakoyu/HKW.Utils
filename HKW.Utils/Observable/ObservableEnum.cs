@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using HKW.HKWReactiveUI;
 using HKW.HKWUtils.Extensions;
+using ReactiveUI;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -9,21 +10,28 @@ namespace HKW.HKWUtils.Observable;
 /// 枚举命令
 /// </summary>
 /// <typeparam name="TEnum">枚举类型</typeparam>
-public partial class EnumCommand<TEnum> : ReactiveObjectX
+public partial class ObservableEnum<TEnum> : ReactiveObjectX
     where TEnum : struct, Enum
 {
     /// <inheritdoc/>
-    public EnumCommand()
+    public ObservableEnum() { }
+
+    /// <inheritdoc/>
+    /// <param name="value">枚举值</param>
+    public ObservableEnum(TEnum value)
     {
-        if (Attribute.IsDefined(typeof(TEnum), typeof(FlagsAttribute)) is false)
-            throw new Exception($"此枚举类型未使用特性 \"{nameof(FlagsAttribute)}\".");
+        Value = value;
     }
 
     /// <inheritdoc/>
-    /// <param name="enum">枚举值</param>
-    public EnumCommand(TEnum @enum)
+    /// <param name="value">枚举值</param>
+    /// <param name="addFlag">添加枚举值</param>
+    /// <param name="removeFlag">删除枚举值</param>
+    public ObservableEnum(TEnum value, AddFlag<TEnum> addFlag, RemoveFlag<TEnum> removeFlag)
+        : this(value)
     {
-        Value = @enum;
+        AddFlageFunc = addFlag;
+        RemoveFlageFunc = removeFlag;
     }
 
     /// <summary>
@@ -32,6 +40,16 @@ public partial class EnumCommand<TEnum> : ReactiveObjectX
     [ReactiveProperty]
     public TEnum Value { get; set; }
 
+    #region IsFlagable
+    private static Lazy<bool> _isFlagable =
+        new(() => Attribute.IsDefined(typeof(TEnum), typeof(FlagsAttribute)));
+
+    /// <summary>
+    /// 是可标记的
+    /// </summary>
+    public static bool IsFlagable => _isFlagable.Value;
+    #endregion
+
     /// <summary>
     /// 添加标志
     /// </summary>
@@ -39,6 +57,8 @@ public partial class EnumCommand<TEnum> : ReactiveObjectX
     [ReactiveCommand]
     public void AddFlag(TEnum flag)
     {
+        if (IsFlagable is false)
+            throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
         Value = AddFlageFunc(Value, flag);
     }
 
@@ -49,6 +69,8 @@ public partial class EnumCommand<TEnum> : ReactiveObjectX
     [ReactiveCommand]
     public void RemoveFlage(TEnum flag)
     {
+        if (IsFlagable is false)
+            throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
         Value = RemoveFlageFunc(Value, flag);
     }
 

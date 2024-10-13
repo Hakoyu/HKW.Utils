@@ -19,7 +19,7 @@ namespace HKW.HKWUtils.Collections;
 /// ]]></code>
 /// </para>
 /// </summary>
-/// <typeparam name="T">项目类型</typeparam>
+/// <typeparam name="T">项类型</typeparam>
 /// <typeparam name="TSet">集合类型</typeparam>
 /// <typeparam name="TReadOnlySet">只读集合类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]

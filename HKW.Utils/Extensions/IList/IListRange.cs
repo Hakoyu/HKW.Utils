@@ -13,7 +13,7 @@ public static partial class HKWExtensions
     /// <summary>
     /// 范围添加
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="list">列表</param>
     /// <param name="collection">集合</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -33,7 +33,7 @@ public static partial class HKWExtensions
     /// <summary>
     /// 范围插入
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="list">列表</param>
     /// <param name="index">索引</param>
     /// <param name="collection">集合</param>
@@ -58,7 +58,7 @@ public static partial class HKWExtensions
     /// <summary>
     /// 删除范围
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="list">列表</param>
     /// <param name="index">起始索引</param>
     /// <param name="count">数量</param>
@@ -91,7 +91,7 @@ public static partial class HKWExtensions
     /// <summary>
     /// 删除全部符合条件的项目
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="list">列表</param>
     /// <param name="match">条件</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -114,7 +114,7 @@ public static partial class HKWExtensions
     /// <summary>
     /// 反转列表
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="list">列表</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Reverse<T>(this IList<T> list)
@@ -136,7 +136,7 @@ public static partial class HKWExtensions
     /// <summary>
     /// 反转列表
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="list">列表</param>
     /// <param name="index">起始索引</param>
     /// <param name="count">数量</param>

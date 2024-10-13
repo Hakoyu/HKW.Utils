@@ -12,7 +12,7 @@ public static partial class HKWExtensions
     /// <summary>
     /// 按条件从后往前寻找项目和索引
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="list">列表</param>
     /// <param name="match">条件</param>
     /// <returns>第一个找到的项目和索引</returns>
@@ -32,7 +32,7 @@ public static partial class HKWExtensions
     /// <summary>
     /// 按条件从后往前寻找项目和索引
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="list">列表</param>
     /// <param name="startIndex">起始索引</param>
     /// <param name="match">条件</param>
@@ -50,7 +50,7 @@ public static partial class HKWExtensions
     /// <summary>
     /// 按条件从后往前寻找项目和索引
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="list">列表</param>
     /// <param name="startIndex">起始索引</param>
     /// <param name="count">数量</param>

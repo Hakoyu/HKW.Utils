@@ -83,7 +83,6 @@ public sealed class I18nObject<TKey, TValue> : IEquatable<I18nObject<TKey, TValu
     /// <param name="getKey">获取键</param>
     /// <param name="targetPropertyName">目标属性名</param>
     /// <param name="retentionValueOnKeyChange">键更改时保留值</param>
-    /// <returns></returns>
     public void AddProperty(
         string keyPropertyName,
         Func<IReactiveObject, TKey> getKey,

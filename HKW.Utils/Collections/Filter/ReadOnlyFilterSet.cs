@@ -57,7 +57,7 @@ public class ReadOnlyFilterSet<T, TFilteredSet>
     public TFilteredSet FilteredSet { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    IObservableSet<T> IFilterCollection<T, IObservableSet<T>, TFilteredSet>.Collection =>
+    IObservableSet<T> IFilterCollection<T, IObservableSet<T>, TFilteredSet>.BaseCollection =>
         throw new ReadOnlyException();
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]

@@ -13,7 +13,7 @@ public static partial class HKWExtensions
     /// <summary>
     /// 包含索引值
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="span">内存</param>
     /// <param name="index">索引</param>
     /// <returns>包含为 <see langword="true"/> 不包含为 <see langword="false"/></returns>

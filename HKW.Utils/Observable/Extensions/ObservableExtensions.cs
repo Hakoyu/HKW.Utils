@@ -14,7 +14,7 @@ public static class ObservableExtensions
     /// <summary>
     /// 转换至可观测列表
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="source">源</param>
     /// <returns>可观测列表</returns>
     public static ObservableList<T> ToObservableList<T>(this IEnumerable<T> source)
@@ -25,7 +25,7 @@ public static class ObservableExtensions
     /// <summary>
     /// 转换至可观测集合
     /// </summary>
-    /// <typeparam name="T">项目类型</typeparam>
+    /// <typeparam name="T">项类型</typeparam>
     /// <param name="source">源</param>
     /// <returns>可观测集合</returns>
     public static ObservableSet<T> ToObservableSet<T>(this IEnumerable<T> source)

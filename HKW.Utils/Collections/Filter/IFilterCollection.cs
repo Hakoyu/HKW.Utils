@@ -10,7 +10,7 @@ namespace HKW.HKWUtils.Collections;
 /// <summary>
 /// 过滤集合
 /// </summary>
-/// <typeparam name="T">项目类型</typeparam>
+/// <typeparam name="T">项类型</typeparam>
 /// <typeparam name="TCollection">集合类型</typeparam>
 /// <typeparam name="TFilteredCollection">已过滤集合类型</typeparam>
 public interface IFilterCollection<T, TCollection, TFilteredCollection> : ICollection<T>
@@ -26,7 +26,7 @@ public interface IFilterCollection<T, TCollection, TFilteredCollection> : IColle
     /// 集合
     /// <para>使用此属性修改集合时不会同步至 <see cref="FilteredCollection"/></para>
     /// </summary>
-    public TCollection Collection { get; }
+    public TCollection BaseCollection { get; }
 
     /// <summary>
     /// 已过滤集合

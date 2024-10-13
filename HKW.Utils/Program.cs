@@ -34,9 +34,10 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-        var list = new UndoableList<int>();
-        var l = list.BaseList;
-        list.Add(1);
+
+        //var v = TestEnum1.A | TestEnum1.B;
+        //var e = new ObservableEnum<TestEnum1>(v);
+        var p = new ObservablePoint<int>(1, 1);
         //var size = new Size<int>("114, 514");
         //I18nResource.AddCulture("zh");
         //I18nResource.AddCulture("en");
@@ -157,13 +158,13 @@ internal partial class TestModel : ReactiveObjectX
 internal enum TestEnum1
 {
     [Display(Name = "A_Name", ShortName = "A_ShortName", Description = "A_Description")]
-    A,
+    A = 1 << 0,
 
     [Display(Name = "B_Name", ShortName = "B_ShortName", Description = "B_Description")]
-    B,
+    B = 1 << 1,
 
     [Display(Name = "C_Name", ShortName = "C_ShortName", Description = "C_Description")]
-    C,
+    C = 1 << 2,
 }
 
 internal enum TestEnum2

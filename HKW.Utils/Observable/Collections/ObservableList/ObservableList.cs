@@ -13,7 +13,7 @@ namespace HKW.HKWUtils.Observable;
 /// <summary>
 /// 可观测列表
 /// </summary>
-/// <typeparam name="T">项目类型</typeparam>
+/// <typeparam name="T">项类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
 public class ObservableList<T> : ObservableListWrapper<T, List<T>>

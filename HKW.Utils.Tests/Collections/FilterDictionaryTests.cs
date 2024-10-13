@@ -14,7 +14,7 @@ public class FilterDictionaryTests
     [TestMethod]
     public void Add()
     {
-        var filterDictionary = new FilterDictionary<
+        var filterDictionary = new FilterDictionaryWrapper<
             int,
             int,
             Dictionary<int, int>,
@@ -33,7 +33,7 @@ public class FilterDictionaryTests
     [TestMethod]
     public void Remove()
     {
-        var filterDictionary = new FilterDictionary<
+        var filterDictionary = new FilterDictionaryWrapper<
             int,
             int,
             Dictionary<int, int>,
@@ -55,7 +55,7 @@ public class FilterDictionaryTests
     [TestMethod]
     public void ValueChange()
     {
-        var filterDictionary = new FilterDictionary<
+        var filterDictionary = new FilterDictionaryWrapper<
             int,
             int,
             Dictionary<int, int>,
@@ -77,7 +77,7 @@ public class FilterDictionaryTests
     [TestMethod]
     public void Clear()
     {
-        var filterDictionary = new FilterDictionary<
+        var filterDictionary = new FilterDictionaryWrapper<
             int,
             int,
             Dictionary<int, int>,

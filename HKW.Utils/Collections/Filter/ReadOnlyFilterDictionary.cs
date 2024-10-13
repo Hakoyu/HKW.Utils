@@ -154,7 +154,7 @@ public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
         KeyValuePair<TKey, TValue>,
         IObservableDictionary<TKey, TValue>,
         TFilteredDictionary
-    >.Collection => throw new ReadOnlyException();
+    >.BaseCollection => throw new ReadOnlyException();
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     TFilteredDictionary IFilterCollection<

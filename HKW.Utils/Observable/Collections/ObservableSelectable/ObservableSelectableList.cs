@@ -18,11 +18,11 @@ namespace HKW.HKWUtils.Observable;
 /// <summary>
 /// 可观测可选中列表
 /// </summary>
-/// <typeparam name="T">项目类型</typeparam>
+/// <typeparam name="T">项类型</typeparam>
 /// <typeparam name="TList">列表</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(CollectionDebugView))]
-public class ObservableSelectableList<T, TList> : ReactiveObjectX, IList<T>, IList
+public partial class ObservableSelectableList<T, TList> : ReactiveObjectX, IList<T>, IList
     where TList : IList<T>
 {
     /// <inheritdoc/>

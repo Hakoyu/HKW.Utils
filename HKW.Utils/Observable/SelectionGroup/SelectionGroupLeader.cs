@@ -22,7 +22,7 @@ public partial class SelectionGroupLeader : ReactiveObjectX
     public bool? IsSelected { get; set; }
 
     /// <summary>
-    /// 转换器
+    /// 包装器
     /// </summary>
     public ObservablePropertyWrapper<SelectionGroupLeader, bool?> Wrapper { get; }
 }
