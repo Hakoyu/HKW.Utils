@@ -82,6 +82,11 @@ public interface IEnumInfo
     public Type EnumType { get; }
 
     /// <summary>
+    /// 基础类型
+    /// </summary>
+    public Type UnderlyingType { get; }
+
+    /// <summary>
     /// 是可标记的
     /// </summary>
     public bool IsFlagable { get; }

@@ -46,6 +46,8 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// <inheritdoc/>
     Type IEnumInfo.EnumType => EnumInfo<TEnum>.EnumType;
 
+    Type IEnumInfo.UnderlyingType => EnumInfo<TEnum>.UnderlyingType;
+
     /// <inheritdoc/>
     bool IEnumInfo.IsFlagable => EnumInfo<TEnum>.IsFlagable;
 
@@ -295,6 +297,11 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// 枚举类型
     /// </summary>
     public static Type EnumType { get; } = typeof(TEnum);
+
+    /// <summary>
+    /// 基础类型
+    /// </summary>
+    public static Type UnderlyingType { get; } = typeof(TEnum).GetEnumUnderlyingType();
 
     #region IsFlagable
     private static Lazy<bool> _isFlagable =

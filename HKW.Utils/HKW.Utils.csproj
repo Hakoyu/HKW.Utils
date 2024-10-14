@@ -28,7 +28,7 @@
 		<WeaverFiles Include="..\..\HKW.ReactiveUI\HKW.ReactiveUI.Fody\bin\Debug\netstandard2.0\HKW.ReactiveUI.Fody.dll" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(Configuration)'=='Release'">
-		<PackageReference Include="HKW.ReactiveUI" Version="0.1.5" />
+		<PackageReference Include="HKW.ReactiveUI" Version="0.2.3" />
 	</ItemGroup>
 
 	<ItemGroup>
