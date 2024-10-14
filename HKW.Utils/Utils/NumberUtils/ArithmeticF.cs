@@ -215,48 +215,6 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (operatorType is ArithmeticOperatorType.BitwiseOr)
-        {
-            if (type == typeof(sbyte))
-                return (SByte)value1! | (SByte)value2!;
-            else if (type == typeof(byte))
-                return (Byte)value1! | (Byte)value2!;
-            else if (type == typeof(short))
-                return (Int16)value1! | (Int16)value2!;
-            else if (type == typeof(ushort))
-                return (UInt16)value1! | (UInt16)value2!;
-            else if (type == typeof(int))
-                return (Int32)value1! | (Int32)value2!;
-            else if (type == typeof(uint))
-                return (UInt32)value1! | (UInt32)value2!;
-            else if (type == typeof(long))
-                return (Int64)value1! | (Int64)value2!;
-            else if (type == typeof(ulong))
-                return (UInt64)value1! | (UInt64)value2!;
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is ArithmeticOperatorType.BitwiseAnd)
-        {
-            if (type == typeof(sbyte))
-                return (SByte)value1! & (SByte)value2!;
-            else if (type == typeof(byte))
-                return (Byte)value1! & (Byte)value2!;
-            else if (type == typeof(short))
-                return (Int16)value1! & (Int16)value2!;
-            else if (type == typeof(ushort))
-                return (UInt16)value1! & (UInt16)value2!;
-            else if (type == typeof(int))
-                return (Int32)value1! & (Int32)value2!;
-            else if (type == typeof(uint))
-                return (UInt32)value1! & (UInt32)value2!;
-            else if (type == typeof(long))
-                return (Int64)value1! & (Int64)value2!;
-            else if (type == typeof(ulong))
-                return (UInt64)value1! & (UInt64)value2!;
-            else
-                throw new NotImplementedException();
-        }
         else
             throw new NotImplementedException();
     }
@@ -412,48 +370,6 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (operatorType is ArithmeticOperatorType.BitwiseOr)
-        {
-            if (numberType == typeof(sbyte))
-                return (SByte)value1! | (SByte)value2!;
-            else if (numberType == typeof(byte))
-                return (Byte)value1! | (Byte)value2!;
-            else if (numberType == typeof(short))
-                return (Int16)value1! | (Int16)value2!;
-            else if (numberType == typeof(ushort))
-                return (UInt16)value1! | (UInt16)value2!;
-            else if (numberType == typeof(int))
-                return (Int32)value1! | (Int32)value2!;
-            else if (numberType == typeof(uint))
-                return (UInt32)value1! | (UInt32)value2!;
-            else if (numberType == typeof(long))
-                return (Int64)value1! | (Int64)value2!;
-            else if (numberType == typeof(ulong))
-                return (UInt64)value1! | (UInt64)value2!;
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is ArithmeticOperatorType.BitwiseAnd)
-        {
-            if (numberType == typeof(sbyte))
-                return (SByte)value1! & (SByte)value2!;
-            else if (numberType == typeof(byte))
-                return (Byte)value1! & (Byte)value2!;
-            else if (numberType == typeof(short))
-                return (Int16)value1! & (Int16)value2!;
-            else if (numberType == typeof(ushort))
-                return (UInt16)value1! & (UInt16)value2!;
-            else if (numberType == typeof(int))
-                return (Int32)value1! & (Int32)value2!;
-            else if (numberType == typeof(uint))
-                return (UInt32)value1! & (UInt32)value2!;
-            else if (numberType == typeof(long))
-                return (Int64)value1! & (Int64)value2!;
-            else if (numberType == typeof(ulong))
-                return (UInt64)value1! & (UInt64)value2!;
-            else
-                throw new NotImplementedException();
-        }
         else
             throw new NotImplementedException();
     }
@@ -606,48 +522,6 @@ public static partial class NumberUtils
                 return (Double)value1! % (Double)value2!;
             else if (numberType is NumberType.Decimal)
                 return (Decimal)value1! % (Decimal)value2!;
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is ArithmeticOperatorType.BitwiseOr)
-        {
-            if (numberType is NumberType.SByte)
-                return (SByte)value1! | (SByte)value2!;
-            else if (numberType is NumberType.Byte)
-                return (Byte)value1! | (Byte)value2!;
-            else if (numberType is NumberType.Int16)
-                return (Int16)value1! | (Int16)value2!;
-            else if (numberType is NumberType.UInt16)
-                return (UInt16)value1! | (UInt16)value2!;
-            else if (numberType is NumberType.Int32)
-                return (Int32)value1! | (Int32)value2!;
-            else if (numberType is NumberType.UInt32)
-                return (UInt32)value1! | (UInt32)value2!;
-            else if (numberType is NumberType.Int64)
-                return (Int64)value1! | (Int64)value2!;
-            else if (numberType is NumberType.UInt64)
-                return (UInt64)value1! | (UInt64)value2!;
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is ArithmeticOperatorType.BitwiseAnd)
-        {
-            if (numberType is NumberType.SByte)
-                return (SByte)value1! & (SByte)value2!;
-            else if (numberType is NumberType.Byte)
-                return (Byte)value1! & (Byte)value2!;
-            else if (numberType is NumberType.Int16)
-                return (Int16)value1! & (Int16)value2!;
-            else if (numberType is NumberType.UInt16)
-                return (UInt16)value1! & (UInt16)value2!;
-            else if (numberType is NumberType.Int32)
-                return (Int32)value1! & (Int32)value2!;
-            else if (numberType is NumberType.UInt32)
-                return (UInt32)value1! & (UInt32)value2!;
-            else if (numberType is NumberType.Int64)
-                return (Int64)value1! & (Int64)value2!;
-            else if (numberType is NumberType.UInt64)
-                return (UInt64)value1! & (UInt64)value2!;
             else
                 throw new NotImplementedException();
         }

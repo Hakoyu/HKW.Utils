@@ -24,8 +24,7 @@ public static partial class NumberUtils
                 ('-', ArithmeticOperatorType.Subtraction),
                 ('*', ArithmeticOperatorType.Multiply),
                 ('/', ArithmeticOperatorType.Division),
-                ('|', ArithmeticOperatorType.BitwiseOr),
-                ('&', ArithmeticOperatorType.BitwiseAnd),
+                ('%', ArithmeticOperatorType.Modulus),
             ]
         );
 
@@ -253,48 +252,6 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (operatorType is ArithmeticOperatorType.BitwiseOr)
-        {
-            if (type == typeof(sbyte))
-                return Convert.ToSByte(value1) | Convert.ToSByte(value2);
-            else if (type == typeof(byte))
-                return Convert.ToByte(value1) | Convert.ToByte(value2);
-            else if (type == typeof(short))
-                return Convert.ToInt16(value1) | Convert.ToInt16(value2);
-            else if (type == typeof(ushort))
-                return Convert.ToUInt16(value1) | Convert.ToUInt16(value2);
-            else if (type == typeof(int))
-                return Convert.ToInt32(value1) | Convert.ToInt32(value2);
-            else if (type == typeof(uint))
-                return Convert.ToUInt32(value1) | Convert.ToUInt32(value2);
-            else if (type == typeof(long))
-                return Convert.ToInt64(value1) | Convert.ToInt64(value2);
-            else if (type == typeof(ulong))
-                return Convert.ToUInt64(value1) | Convert.ToUInt64(value2);
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is ArithmeticOperatorType.BitwiseAnd)
-        {
-            if (type == typeof(sbyte))
-                return Convert.ToSByte(value1) & Convert.ToSByte(value2);
-            else if (type == typeof(byte))
-                return Convert.ToByte(value1) & Convert.ToByte(value2);
-            else if (type == typeof(short))
-                return Convert.ToInt16(value1) & Convert.ToInt16(value2);
-            else if (type == typeof(ushort))
-                return Convert.ToUInt16(value1) & Convert.ToUInt16(value2);
-            else if (type == typeof(int))
-                return Convert.ToInt32(value1) & Convert.ToInt32(value2);
-            else if (type == typeof(uint))
-                return Convert.ToUInt32(value1) & Convert.ToUInt32(value2);
-            else if (type == typeof(long))
-                return Convert.ToInt64(value1) & Convert.ToInt64(value2);
-            else if (type == typeof(ulong))
-                return Convert.ToUInt64(value1) & Convert.ToUInt64(value2);
-            else
-                throw new NotImplementedException();
-        }
         else
             throw new NotImplementedException();
     }
@@ -450,48 +407,6 @@ public static partial class NumberUtils
             else
                 throw new NotImplementedException();
         }
-        else if (operatorType is ArithmeticOperatorType.BitwiseOr)
-        {
-            if (numberType == typeof(sbyte))
-                return Convert.ToSByte(value1) | Convert.ToSByte(value2);
-            else if (numberType == typeof(byte))
-                return Convert.ToByte(value1) | Convert.ToByte(value2);
-            else if (numberType == typeof(short))
-                return Convert.ToInt16(value1) | Convert.ToInt16(value2);
-            else if (numberType == typeof(ushort))
-                return Convert.ToUInt16(value1) | Convert.ToUInt16(value2);
-            else if (numberType == typeof(int))
-                return Convert.ToInt32(value1) | Convert.ToInt32(value2);
-            else if (numberType == typeof(uint))
-                return Convert.ToUInt32(value1) | Convert.ToUInt32(value2);
-            else if (numberType == typeof(long))
-                return Convert.ToInt64(value1) | Convert.ToInt64(value2);
-            else if (numberType == typeof(ulong))
-                return Convert.ToUInt64(value1) | Convert.ToUInt64(value2);
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is ArithmeticOperatorType.BitwiseAnd)
-        {
-            if (numberType == typeof(sbyte))
-                return Convert.ToSByte(value1) & Convert.ToSByte(value2);
-            else if (numberType == typeof(byte))
-                return Convert.ToByte(value1) & Convert.ToByte(value2);
-            else if (numberType == typeof(short))
-                return Convert.ToInt16(value1) & Convert.ToInt16(value2);
-            else if (numberType == typeof(ushort))
-                return Convert.ToUInt16(value1) & Convert.ToUInt16(value2);
-            else if (numberType == typeof(int))
-                return Convert.ToInt32(value1) & Convert.ToInt32(value2);
-            else if (numberType == typeof(uint))
-                return Convert.ToUInt32(value1) & Convert.ToUInt32(value2);
-            else if (numberType == typeof(long))
-                return Convert.ToInt64(value1) & Convert.ToInt64(value2);
-            else if (numberType == typeof(ulong))
-                return Convert.ToUInt64(value1) & Convert.ToUInt64(value2);
-            else
-                throw new NotImplementedException();
-        }
         else
             throw new NotImplementedException();
     }
@@ -644,48 +559,6 @@ public static partial class NumberUtils
                 return Convert.ToDouble(value1) % Convert.ToDouble(value2);
             else if (numberType is NumberType.Decimal)
                 return Convert.ToDecimal(value1) % Convert.ToDecimal(value2);
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is ArithmeticOperatorType.BitwiseOr)
-        {
-            if (numberType is NumberType.SByte)
-                return Convert.ToSByte(value1) | Convert.ToSByte(value2);
-            else if (numberType is NumberType.Byte)
-                return Convert.ToByte(value1) | Convert.ToByte(value2);
-            else if (numberType is NumberType.Int16)
-                return Convert.ToInt16(value1) | Convert.ToInt16(value2);
-            else if (numberType is NumberType.UInt16)
-                return Convert.ToUInt16(value1) | Convert.ToUInt16(value2);
-            else if (numberType is NumberType.Int32)
-                return Convert.ToInt32(value1) | Convert.ToInt32(value2);
-            else if (numberType is NumberType.UInt32)
-                return Convert.ToUInt32(value1) | Convert.ToUInt32(value2);
-            else if (numberType is NumberType.Int64)
-                return Convert.ToInt64(value1) | Convert.ToInt64(value2);
-            else if (numberType is NumberType.UInt64)
-                return Convert.ToUInt64(value1) | Convert.ToUInt64(value2);
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is ArithmeticOperatorType.BitwiseAnd)
-        {
-            if (numberType is NumberType.SByte)
-                return Convert.ToSByte(value1) & Convert.ToSByte(value2);
-            else if (numberType is NumberType.Byte)
-                return Convert.ToByte(value1) & Convert.ToByte(value2);
-            else if (numberType is NumberType.Int16)
-                return Convert.ToInt16(value1) & Convert.ToInt16(value2);
-            else if (numberType is NumberType.UInt16)
-                return Convert.ToUInt16(value1) & Convert.ToUInt16(value2);
-            else if (numberType is NumberType.Int32)
-                return Convert.ToInt32(value1) & Convert.ToInt32(value2);
-            else if (numberType is NumberType.UInt32)
-                return Convert.ToUInt32(value1) & Convert.ToUInt32(value2);
-            else if (numberType is NumberType.Int64)
-                return Convert.ToInt64(value1) & Convert.ToInt64(value2);
-            else if (numberType is NumberType.UInt64)
-                return Convert.ToUInt64(value1) & Convert.ToUInt64(value2);
             else
                 throw new NotImplementedException();
         }

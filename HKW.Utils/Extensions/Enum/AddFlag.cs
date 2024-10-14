@@ -20,7 +20,12 @@ public static partial class HKWExtensions
     public static TEnum AddFlag<TEnum>(this TEnum value, TEnum flag)
         where TEnum : struct, Enum
     {
-        //Enum.GetUnderlyingType(typeof(TEnum));
-        return (TEnum)Enum.ToObject(typeof(TEnum), Convert.ToInt64(value) | Convert.ToInt64(flag));
+        return (TEnum)
+            NumberUtils.BitwiseOperatorF(
+                value,
+                flag,
+                EnumInfo<TEnum>.UnderlyingType,
+                BitwiseOperatorType.Or
+            );
     }
 }

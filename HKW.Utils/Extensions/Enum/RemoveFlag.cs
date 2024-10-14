@@ -13,13 +13,20 @@ public static partial class HKWExtensions
     /// 删除标签
     /// </summary>
     /// <typeparam name="TEnum">枚举类型</typeparam>
-    /// <param name="enum">枚举</param>
+    /// <param name="value">枚举</param>
     /// <param name="flag">标签</param>
     /// <returns>删除标签的枚举</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static TEnum RemoveFlag<TEnum>(this TEnum @enum, TEnum flag)
+    public static TEnum RemoveFlag<TEnum>(this TEnum value, TEnum flag)
         where TEnum : struct, Enum
     {
-        return (TEnum)Enum.ToObject(typeof(TEnum), Convert.ToInt64(@enum) & ~Convert.ToInt64(flag));
+        var type = EnumInfo<TEnum>.UnderlyingType;
+        return (TEnum)
+            NumberUtils.BitwiseOperatorF(
+                TestEnum1.A,
+                NumberUtils.BitwiseComplementF(TestEnum1.B, type),
+                type,
+                BitwiseOperatorType.And
+            );
     }
 }
