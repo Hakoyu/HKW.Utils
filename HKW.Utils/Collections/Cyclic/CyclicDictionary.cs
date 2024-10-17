@@ -14,7 +14,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class CyclicDictionary<TKey, TValue>
     : IDictionary<TKey, TValue>,
         IReadOnlyDictionary<TKey, TValue>,

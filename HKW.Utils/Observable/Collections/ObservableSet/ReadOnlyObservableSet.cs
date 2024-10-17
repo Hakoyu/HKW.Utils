@@ -13,7 +13,7 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
 {
     private readonly IObservableSet<T> _set;

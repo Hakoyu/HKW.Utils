@@ -7,10 +7,11 @@ using HKW.HKWUtils.Extensions;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-///
+/// 可观测集合包装器
+/// <para>!!!注意!!! 基础集合必须是顺序集合 <see cref="HashSet{T}"/>无法有效使用此包装器</para>
 /// </summary>
-/// <typeparam name="TItem"></typeparam>
-/// <typeparam name="TSet"></typeparam>
+/// <typeparam name="TItem">项类型</typeparam>
+/// <typeparam name="TSet">集合类型</typeparam>
 public class ObservableSetWrapper<TItem, TSet>
     : IObservableSet<TItem>,
         IReadOnlyObservableSet<TItem>,
@@ -18,9 +19,10 @@ public class ObservableSetWrapper<TItem, TSet>
     where TSet : ISet<TItem>
 {
     /// <inheritdoc/>
-    public ObservableSetWrapper(TSet set)
+    public ObservableSetWrapper(TSet set, IEqualityComparer<TItem> comparer)
     {
         BaseSet = set;
+        Comparer = comparer;
     }
 
     /// <inheritdoc/>
@@ -33,6 +35,9 @@ public class ObservableSetWrapper<TItem, TSet>
 
     /// <inheritdoc/>
     public bool IsReadOnly => ((ICollection<TItem>)BaseSet).IsReadOnly;
+
+    /// <inheritdoc cref="HashSet{T}.Comparer"/>
+    public IEqualityComparer<TItem> Comparer { get; }
 
     #region Change
 
@@ -74,7 +79,7 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public void IntersectWith(IEnumerable<TItem> other)
     {
-        var oldItems = new SimpleReadOnlyList<TItem>(BaseSet.Except(other));
+        var oldItems = new SimpleReadOnlyList<TItem>(BaseSet.Except(other, Comparer));
         var otherItems = new SimpleReadOnlyList<TItem>(other);
         OnSetOperating(SetChangeAction.Intersect, otherItems, null, oldItems);
         BaseSet.IntersectWith(otherItems);
@@ -95,8 +100,8 @@ public class ObservableSetWrapper<TItem, TSet>
     public void SymmetricExceptWith(IEnumerable<TItem> other)
     {
         var otherItems = new SimpleReadOnlyList<TItem>(other);
-        var oldItems = new SimpleReadOnlyList<TItem>(otherItems.Intersect(BaseSet));
-        var newItems = new SimpleReadOnlyList<TItem>(otherItems.Except(oldItems));
+        var oldItems = new SimpleReadOnlyList<TItem>(otherItems.Intersect(BaseSet, Comparer));
+        var newItems = new SimpleReadOnlyList<TItem>(otherItems.Except(oldItems, Comparer));
         OnSetOperating(SetChangeAction.SymmetricExcept, otherItems, newItems, oldItems);
         if (other is HashSet<TItem> otherSet)
             BaseSet.SymmetricExceptWith(otherSet);
@@ -108,8 +113,9 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public void UnionWith(IEnumerable<TItem> other)
     {
-        var newItems = new SimpleReadOnlyList<TItem>(BaseSet.Except(other));
+        TrimExcess();
         var otherItems = new SimpleReadOnlyList<TItem>(other);
+        var newItems = new SimpleReadOnlyList<TItem>(other.Except(BaseSet, Comparer));
         OnSetOperating(SetChangeAction.Union, otherItems, newItems, null);
         BaseSet.UnionWith(otherItems);
         OnSetOperated(SetChangeAction.Union, otherItems, newItems, null);
@@ -183,6 +189,13 @@ public class ObservableSetWrapper<TItem, TSet>
         return ((IEnumerable)BaseSet).GetEnumerator();
     }
 
+    /// <inheritdoc cref="HashSet{T}.TrimExcess"/>
+    public void TrimExcess()
+    {
+        if (BaseSet is HashSet<TItem> set)
+            set.TrimExcess();
+    }
+
     #endregion ISet
     private readonly List<int> _addIndexs = new();
     private readonly List<int> _removeIndexs = new();
@@ -219,6 +232,8 @@ public class ObservableSetWrapper<TItem, TSet>
                 {
                     _removeIndexs.Add(index);
                     removeItems.Remove(item);
+                    if (removeItems.HasValue() is false)
+                        break;
                 }
             }
         }
@@ -308,7 +323,9 @@ public class ObservableSetWrapper<TItem, TSet>
             OnSetChanged(SetChangeEventArgs ?? new(SetChangeAction.Remove, items));
         if (CollectionChanged is not null)
         {
-            foreach ((var item, var index) in items.Zip(_removeIndexs))
+            foreach (
+                (var item, var index) in ((IEnumerable<TItem>)items).Reverse().Zip(_removeIndexs)
+            )
                 OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, item, index));
         }
         OnCountChanged();
@@ -346,21 +363,23 @@ public class ObservableSetWrapper<TItem, TSet>
         {
             if (oldItems is not null)
             {
-                foreach ((var item, var index) in oldItems.Zip(_removeIndexs))
-                    OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, item, index));
+                foreach (
+                    (var item, var index) in ((IEnumerable<TItem>)oldItems)
+                        .Reverse()
+                        .Zip(_removeIndexs)
+                )
+                {
+                    OnCollectionChanged(
+                        new(NotifyCollectionChangedAction.Remove, item, index: index)
+                    );
+                }
             }
             if (newItems is not null)
             {
-                var addItems = newItems.ToHashSet();
-                foreach ((var index, var item) in BaseSet.ReverseEnumerateIndex())
+                var index = BaseSet.Count - newItems.Count;
+                foreach (var item in newItems)
                 {
-                    if (addItems.Contains(item))
-                    {
-                        OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item, index));
-                        addItems.Remove(item);
-                        if (addItems.HasValue() is false)
-                            break;
-                    }
+                    OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item, index++));
                 }
             }
         }

@@ -8,7 +8,7 @@ namespace HKW.HKWUtils;
 /// </summary>
 /// <typeparam name="T">项类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class UndoableList<T> : UndoableListWrapper<T, List<T>>
 {
     /// <inheritdoc/>

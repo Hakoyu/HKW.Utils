@@ -21,7 +21,7 @@ public static partial class HKWExtensions
     {
         ArgumentNullException.ThrowIfNull(source, nameof(source));
         var index = source.Count - 1;
-        foreach (var item in source)
+        foreach (var item in source.Reverse())
             yield return (index--, item);
     }
 
@@ -36,7 +36,7 @@ public static partial class HKWExtensions
     {
         ArgumentNullException.ThrowIfNull(source, nameof(source));
         var index = source.Count - 1;
-        foreach (var item in source)
+        foreach (var item in source.Cast<object>().Reverse())
             yield return (index--, item);
     }
 }

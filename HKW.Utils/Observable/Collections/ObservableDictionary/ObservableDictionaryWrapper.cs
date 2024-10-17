@@ -16,7 +16,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TValue">值类型</typeparam>
 /// <typeparam name="TDictionary">字典类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     : IObservableDictionary<TKey, TValue>,
         IReadOnlyObservableDictionary<TKey, TValue>,

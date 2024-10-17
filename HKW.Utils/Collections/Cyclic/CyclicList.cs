@@ -18,7 +18,7 @@ namespace HKW.HKWUtils.Collections;
 /// </summary>
 /// <typeparam name="T">项类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class CyclicList<T> : IList<T>, ICyclicCollection<T>, IReadOnlyList<T>, IList
 {
     private readonly List<T> _list;

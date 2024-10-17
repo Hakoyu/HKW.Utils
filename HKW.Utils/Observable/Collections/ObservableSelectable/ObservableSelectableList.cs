@@ -21,7 +21,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="T">项类型</typeparam>
 /// <typeparam name="TList">列表</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public partial class ObservableSelectableList<T, TList> : ReactiveObjectX, IList<T>, IList
     where TList : IList<T>
 {

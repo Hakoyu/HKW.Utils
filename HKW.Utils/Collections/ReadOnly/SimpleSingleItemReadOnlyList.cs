@@ -10,7 +10,7 @@ namespace HKW.HKWUtils.Collections;
 /// 简易的非通用单个项目的只读列表
 /// </summary>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public sealed class SimpleSingleItemReadOnlyList<T> : IList<T>, IList
 {
     /// <inheritdoc/>

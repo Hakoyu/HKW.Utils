@@ -52,28 +52,59 @@ namespace HKW.HKWUtils;
 /// 否则需要手动运行生成的 <see langword="InitializeReactiveObject"/> 方法
 /// </para>
 /// </remarks>
-/// <param name="ResourceName">资源名称</param>
-/// <param name="KeyPropertyName">键属性值</param>
-/// <param name="RetentionValueOnKeyChange">当键改变时保留值</param>
 [AttributeUsage(AttributeTargets.Property)]
-public sealed class I18nPropertyAttribute(
-    string ResourceName,
-    string KeyPropertyName,
-    bool RetentionValueOnKeyChange = false
-) : Attribute
+public sealed class ReactiveI18nPropertyAttribute : Attribute
 {
+    ///<inheritdoc/>
+    /// <param name="ResourceName">资源名称</param>
+    /// <param name="KeyPropertyName">键属性值</param>
+    /// <param name="RetentionValueOnKeyChange">当键改变时保留值</param>
+    public ReactiveI18nPropertyAttribute(
+        string ResourceName,
+        string KeyPropertyName,
+        bool RetentionValueOnKeyChange = false
+    )
+    {
+        this.ResourceName = ResourceName;
+        this.KeyPropertyName = KeyPropertyName;
+        this.RetentionValueOnKeyChange = RetentionValueOnKeyChange;
+    }
+
+    ///<inheritdoc/>
+    /// <param name="ResourceName">资源名称</param>
+    /// <param name="ObjectName">对象名称</param>
+    /// <param name="KeyPropertyName">键属性值</param>
+    /// <param name="RetentionValueOnKeyChange">当键改变时保留值</param>
+    public ReactiveI18nPropertyAttribute(
+        string ResourceName,
+        string ObjectName,
+        string KeyPropertyName,
+        bool RetentionValueOnKeyChange = false
+    )
+    {
+        this.ResourceName = ResourceName;
+        this.ObjectName = ObjectName;
+        this.KeyPropertyName = KeyPropertyName;
+        this.RetentionValueOnKeyChange = RetentionValueOnKeyChange;
+    }
+
     /// <summary>
     /// 资源名称
     /// </summary>
-    public string ResourceName { get; } = ResourceName;
+    public string ResourceName { get; }
+
+    /// <summary>
+    /// 对象名称
+    /// </summary>
+    public string ObjectName { get; } = string.Empty;
 
     /// <summary>
     /// 键属性值
     /// </summary>
-    public string KeyPropertyName { get; } = KeyPropertyName;
+    public string KeyPropertyName { get; }
 
     /// <summary>
     /// 当键改变时保留值
     /// </summary>
-    public bool RetentionValueOnKeyChange { get; } = RetentionValueOnKeyChange;
+    public bool RetentionValueOnKeyChange { get; }
 }

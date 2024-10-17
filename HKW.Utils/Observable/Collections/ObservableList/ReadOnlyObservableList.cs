@@ -15,7 +15,7 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>, IList
 {
     /// <summary>

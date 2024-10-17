@@ -6,7 +6,7 @@ namespace HKW.HKWUtils.DebugViews;
 /// <summary>
 /// 集合调试视图
 /// </summary>
-public class CollectionDebugView
+public class ICollectionDebugView
 {
     /// <summary>
     /// 集合
@@ -21,7 +21,7 @@ public class CollectionDebugView
 
     /// <inheritdoc/>
     /// <param name="collection">集合</param>
-    public CollectionDebugView(IEnumerable collection)
+    public ICollectionDebugView(IEnumerable collection)
     {
         _collection = collection;
     }

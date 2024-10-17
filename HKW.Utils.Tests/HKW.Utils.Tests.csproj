@@ -8,7 +8,6 @@
     <IsTestProject>true</IsTestProject>
     <RootNamespace>HKW.HKWUtils.Tests</RootNamespace>
     <Configurations>Debug;Release</Configurations>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   </PropertyGroup>
 

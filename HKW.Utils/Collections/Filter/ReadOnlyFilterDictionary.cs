@@ -16,7 +16,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TValue">值类型</typeparam>
 /// <typeparam name="TFilteredDictionary">已过滤字典类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
     : IDictionary<TKey, TValue>,
         IReadOnlyDictionary<TKey, TValue>,

@@ -76,7 +76,7 @@ public class ObservableCollectionTests
         Assert.IsTrue(collection.SequenceEqual(cCollection));
 
         var triggered = false;
-        var removeIndex = cCollection.RandomIndex();
+        var removeIndex = 0;
         var removeItem = cCollection[removeIndex];
         collection.CollectionChanged += Collection_CollectionChanged;
         cCollection.Remove(removeItem);

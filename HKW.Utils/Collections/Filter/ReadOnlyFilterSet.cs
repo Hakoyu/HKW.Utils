@@ -12,7 +12,7 @@ namespace HKW.HKWUtils.Collections;
 /// <para>基于 <see cref="Filter"/> 维护一个实时过滤的 <see cref="FilteredSet"/></para>
 /// </summary>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class ReadOnlyFilterSet<T, TFilteredSet>
     : ISet<T>,
         IReadOnlySet<T>,

@@ -20,7 +20,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TList">列表类型</typeparam>
 /// <typeparam name="TFilteredList">已过滤列表类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class FilterListWrapper<TItem, TList, TFilteredList>
     : IList<TItem>,
         IReadOnlyList<TItem>,

@@ -35,9 +35,33 @@ internal class Program
     {
 #if !Release
 
+        var set = new OrderedSet<int>();
+        var values = Enumerable.Range(0, 10);
+        //o.BindingSet(t);
+        set.Add(1);
+        // Assert.IsTrue(o.SequenceEqual(t));
+        set.Add(2);
+        // Assert.IsTrue(o.SequenceEqual(t));
+        set.Add(3);
+        // Assert.IsTrue(o.SequenceEqual(t));
+        set.Add(4);
+        // Assert.IsTrue(o.SequenceEqual(t));
+        set.Add(5);
+        // Assert.IsTrue(o.SequenceEqual(t));
+
+        set.Remove(2);
+        // Assert.IsTrue(o.SequenceEqual(t));
+        set.Remove(3);
+        // Assert.IsTrue(o.SequenceEqual(t));
+        set.Remove(1);
+        // Assert.IsTrue(o.SequenceEqual(t));
+        var t1 = set.ToHashSet();
+        t1.SymmetricExceptWith(values);
+        set.SymmetricExceptWith(values);
+        var r = t1.SequenceEqual(set);
         //var v = TestEnum1.A | TestEnum1.B;
         //var e = new ObservableEnum<TestEnum1>(v);
-        var p = new ObservablePoint<int>(1, 1);
+        //var p = new ObservablePoint<int>(1, 1);
         //var size = new Size<int>("114, 514");
         //I18nResource.AddCulture("zh");
         //I18nResource.AddCulture("en");
@@ -130,12 +154,15 @@ internal partial class TestModel : ReactiveObjectX
     [ReactiveProperty]
     public string ID { get; set; } = string.Empty;
 
-    [I18nProperty("Program.I18nResource", nameof(ID), true)]
+    [ReactiveI18nProperty("Program.I18nResource", "I18nObject", nameof(ID), true)]
     public string Name
     {
         get => Program.I18nResource.GetCurrentCultureDataOrDefault(ID);
         set => Program.I18nResource.SetCurrentCultureData(ID, value);
     }
+
+    [NotifyPropertyChangeFrom("")]
+    public I18nObject<string, string> I18nObject => new(this);
 
     [ReactiveProperty]
     public bool CanExecute { get; set; }

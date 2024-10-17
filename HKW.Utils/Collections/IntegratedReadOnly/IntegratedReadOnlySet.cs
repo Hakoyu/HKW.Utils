@@ -23,7 +23,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TSet">集合类型</typeparam>
 /// <typeparam name="TReadOnlySet">只读集合类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class IntegratedReadOnlySet<T, TSet, TReadOnlySet> : ISet<T>, IReadOnlySet<T>
     where TSet : ISet<T>
     where TReadOnlySet : IReadOnlySet<T>

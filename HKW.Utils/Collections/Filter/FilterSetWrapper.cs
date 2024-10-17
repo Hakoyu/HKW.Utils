@@ -19,7 +19,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TSet">集合类型</typeparam>
 /// <typeparam name="TFilteredSet">已过滤集合类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     : ISet<TItem>,
         IReadOnlySet<TItem>,

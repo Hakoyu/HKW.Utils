@@ -17,7 +17,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TDictionary">字典类型</typeparam>
 /// <typeparam name="TFilteredDictionary">已过滤字典类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDictionary>
     : IDictionary<TKey, TValue>,
         IReadOnlyDictionary<TKey, TValue>,

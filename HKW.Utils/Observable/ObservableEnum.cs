@@ -25,8 +25,8 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
 
     /// <inheritdoc/>
     /// <param name="value">枚举值</param>
-    /// <param name="addFlag">添加枚举值</param>
-    /// <param name="removeFlag">删除枚举值</param>
+    /// <param name="addFlag">添加枚举值 <c>(v, f) => v | f</c></param>
+    /// <param name="removeFlag">删除枚举值 <c>(v, f) => v &amp; ~f</c></param>
     public ObservableEnum(TEnum value, AddFlag<TEnum> addFlag, RemoveFlag<TEnum> removeFlag)
         : this(value)
     {

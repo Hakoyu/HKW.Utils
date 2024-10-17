@@ -6,12 +6,12 @@
 public enum BitwiseOperatorType
 {
     /// <summary>
-    /// 或 (<see langword="&amp;"/>)
+    /// 或 (<see langword="|"/>)
     /// </summary>
     Or,
 
     /// <summary>
-    /// 或 (<see langword="|"/>)
+    /// 和 (<see langword="&amp;"/>)
     /// </summary>
     And,
 

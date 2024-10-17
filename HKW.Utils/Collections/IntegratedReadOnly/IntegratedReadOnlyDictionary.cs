@@ -25,7 +25,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TDictionary">字典类型</typeparam>
 /// <typeparam name="TReadOnlyDictionary">只读字典类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class IntegratedReadOnlyDictionary<TKey, TValue, TDictionary, TReadOnlyDictionary>
     : IDictionary<TKey, TValue>,
         IReadOnlyDictionary<TKey, TValue>

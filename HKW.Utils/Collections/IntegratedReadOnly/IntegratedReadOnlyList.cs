@@ -24,7 +24,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TList">列表类型</typeparam>
 /// <typeparam name="TReadOnlyList">只读列表类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class IntegratedReadOnlyList<T, TList, TReadOnlyList> : IList<T>, IReadOnlyList<T>
     where TList : IList<T>
     where TReadOnlyList : IReadOnlyList<T>

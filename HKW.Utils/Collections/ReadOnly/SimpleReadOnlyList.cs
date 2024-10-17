@@ -11,7 +11,7 @@ namespace HKW.HKWUtils.Collections;
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class SimpleReadOnlyList<T> : IList<T>, IList
 {
     /// <inheritdoc/>

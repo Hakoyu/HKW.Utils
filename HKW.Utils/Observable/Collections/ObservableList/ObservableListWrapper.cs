@@ -13,7 +13,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TItem">项类型</typeparam>
 /// <typeparam name="TList">列表类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class ObservableListWrapper<TItem, TList>
     : IObservableList<TItem>,
         IReadOnlyObservableList<TItem>,

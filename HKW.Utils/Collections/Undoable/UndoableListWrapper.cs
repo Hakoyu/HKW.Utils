@@ -11,7 +11,7 @@ namespace HKW.HKWUtils;
 /// <typeparam name="TItem">项类型</typeparam>
 /// <typeparam name="TList">列表类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(CollectionDebugView))]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class UndoableListWrapper<TItem, TList>
     : IList<TItem>,
         IUndoableCollection<TItem>,

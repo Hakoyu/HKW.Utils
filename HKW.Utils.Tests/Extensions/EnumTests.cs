@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,34 +9,16 @@ using HKW.HKWUtils.Extensions;
 namespace HKW.HKWUtils.Tests.Extensions;
 
 [Flags]
-public enum TestEnum
+internal enum TestEnum
 {
-    A,
-    B,
-    C,
-    D,
-    E,
-    F,
-    G,
-    H,
-    I,
-    J,
-    K,
-    L,
-    M,
-    N,
-    O,
-    P,
-    Q,
-    R,
-    S,
-    T,
-    U,
-    V,
-    W,
-    X,
-    Y,
-    Z
+    [Display(Name = "A_Name", ShortName = "A_ShortName", Description = "A_Description")]
+    A = 1 << 0,
+
+    [Display(Name = "B_Name", ShortName = "B_ShortName", Description = "B_Description")]
+    B = 1 << 1,
+
+    [Display(Name = "C_Name", ShortName = "C_ShortName", Description = "C_Description")]
+    C = 1 << 2,
 }
 
 [TestClass]

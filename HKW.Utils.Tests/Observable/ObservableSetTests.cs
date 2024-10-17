@@ -1,4 +1,5 @@
 ﻿using System.Collections.Specialized;
+using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
 
@@ -12,15 +13,21 @@ public class ObservableSetTests
     {
         Test(
             new ObservableSet<int>(),
-            Enumerable.Range(1, 10).ToHashSet(),
-            Enumerable.Range(5, 10).ToHashSet()
+            new OrderedSet<int>(Enumerable.Range(1, 10)),
+            Enumerable.Range(5, 10).ToHashSet(),
+            () => 11
         );
     }
 
-    public static void Test<T>(IObservableSet<T> set, ISet<T> comparisonSet, ISet<T> otherSet)
+    public static void Test<T>(
+        IObservableSet<T> set,
+        ISet<T> comparisonSet,
+        ISet<T> otherSet,
+        Func<T> createNewItem
+    )
     {
         // TODO: 单独设置CollectionChanged测试项
-        //ObservableCollectionTests.Test(set, comparisonSet, createNewItem);
+        ObservableCollectionTests.Test(set, comparisonSet, createNewItem);
 
         SetChangingOnAdd(set, comparisonSet, otherSet.Last());
         SetChangingOnRemove(set, comparisonSet);
@@ -44,7 +51,7 @@ public class ObservableSetTests
     {
         set.Clear();
         var triggered = false;
-        var cSet = comparisonSet.ToHashSet();
+        var cSet = new OrderedSet<T>(comparisonSet);
         set.AddRange(cSet);
 
         set.SetChanging += Set_SetChanging;
@@ -71,7 +78,7 @@ public class ObservableSetTests
     {
         set.Clear();
         var triggered = false;
-        var cSet = comparisonSet.ToHashSet();
+        var cSet = new OrderedSet<T>(comparisonSet);
         set.AddRange(cSet);
 
         var removeItem = cSet.Random();
@@ -99,7 +106,7 @@ public class ObservableSetTests
     {
         set.Clear();
         var triggered = false;
-        var cSet = comparisonSet.ToHashSet();
+        var cSet = new OrderedSet<T>(comparisonSet);
         set.AddRange(cSet);
 
         set.SetChanging += Set_SetChanging;
@@ -130,7 +137,7 @@ public class ObservableSetTests
     {
         set.Clear();
         var triggered = false;
-        var cSet = comparisonSet.ToHashSet();
+        var cSet = new OrderedSet<T>(comparisonSet);
         set.AddRange(cSet);
 
         set.SetChanging += Set_SetChanging;
@@ -161,7 +168,7 @@ public class ObservableSetTests
     {
         set.Clear();
         var triggered = false;
-        var cSet = comparisonSet.ToHashSet();
+        var cSet = new OrderedSet<T>(comparisonSet);
         set.AddRange(cSet);
 
         set.SetChanging += Set_SetChanging;
@@ -192,7 +199,7 @@ public class ObservableSetTests
     {
         set.Clear();
         var triggered = false;
-        var cSet = comparisonSet.ToHashSet();
+        var cSet = new OrderedSet<T>(comparisonSet);
         set.AddRange(cSet);
 
         set.SetChanging += Set_SetChanging;
@@ -223,7 +230,7 @@ public class ObservableSetTests
     {
         set.Clear();
         var triggered = false;
-        var cSet = comparisonSet.ToHashSet();
+        var cSet = new OrderedSet<T>(comparisonSet);
         set.AddRange(cSet);
 
         set.SetChanging += Set_SetChanging;
@@ -239,7 +246,7 @@ public class ObservableSetTests
         {
             triggered = true;
             Assert.IsTrue(e.Action is SetChangeAction.Union);
-            Assert.IsTrue(e.NewItems!.SequenceEqual(set.Except(otherSet)));
+            Assert.IsTrue(e.NewItems!.SequenceEqual(otherSet.Except(set)));
             Assert.IsTrue(e.OldItems is null);
             Assert.IsTrue(e.OtherItems!.SequenceEqual(otherSet));
             Assert.IsTrue(set.SequenceEqual(cSet));
@@ -252,7 +259,7 @@ public class ObservableSetTests
     {
         set.Clear();
         var triggered = false;
-        var cSet = comparisonSet.ToHashSet();
+        var cSet = new OrderedSet<T>(comparisonSet);
         set.AddRange(cSet);
 
         set.SetChanged += Set_SetChanged;
@@ -278,7 +285,7 @@ public class ObservableSetTests
     {
         set.Clear();
         var triggered = false;
-        var cSet = comparisonSet.ToHashSet();
+        var cSet = new OrderedSet<T>(comparisonSet);
         set.AddRange(cSet);
 
         var removeItem = cSet.Random();
@@ -305,7 +312,7 @@ public class ObservableSetTests
     {
         set.Clear();
         var triggered = false;
-        var cSet = comparisonSet.ToHashSet();
+        var cSet = new OrderedSet<T>(comparisonSet);
         set.AddRange(cSet);
 
         set.SetChanged += Set_SetChanged;
@@ -335,7 +342,7 @@ public class ObservableSetTests
     {
         set.Clear();
         var triggered = false;
-        var cSet = comparisonSet.ToHashSet();
+        var cSet = new OrderedSet<T>(comparisonSet);
         set.AddRange(cSet);
 
         set.SetChanged += Set_SetChanged;
@@ -365,7 +372,7 @@ public class ObservableSetTests
     {
         set.Clear();
         var triggered = false;
-        var cSet = comparisonSet.ToHashSet();
+        var cSet = new OrderedSet<T>(comparisonSet);
         set.AddRange(cSet);
 
         set.SetChanged += Set_SetChanged;
@@ -395,7 +402,7 @@ public class ObservableSetTests
     {
         set.Clear();
         var triggered = false;
-        var cSet = comparisonSet.ToHashSet();
+        var cSet = new OrderedSet<T>(comparisonSet);
         set.AddRange(cSet);
 
         set.SetChanged += Set_SetChanged;
@@ -427,7 +434,7 @@ public class ObservableSetTests
     {
         set.Clear();
         var triggered = false;
-        var cSet = comparisonSet.ToHashSet();
+        var cSet = new OrderedSet<T>(comparisonSet);
         set.AddRange(cSet);
 
         set.SetChanged += Set_SetChanged;
@@ -442,7 +449,7 @@ public class ObservableSetTests
         {
             triggered = true;
             Assert.IsTrue(e.Action is SetChangeAction.Union);
-            Assert.IsTrue(e.NewItems!.SequenceEqual(comparisonSet.Except(otherSet)));
+            Assert.IsTrue(e.NewItems!.SequenceEqual(otherSet.Except(comparisonSet)));
             Assert.IsTrue(e.OldItems is null);
             Assert.IsTrue(e.OtherItems!.SequenceEqual(otherSet));
             Assert.IsTrue(set.SequenceEqual(cSet));
