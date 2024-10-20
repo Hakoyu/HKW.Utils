@@ -27,6 +27,27 @@ public class FilterListTests
     }
 
     [TestMethod]
+    public void Insert()
+    {
+        var filterList = new FilterListWrapper<int, List<int>, List<int>>(
+            Enumerable.Range(0, 10).ToList(),
+            [],
+            Filter
+        );
+        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        filterList.Insert(3, 3);
+        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        filterList.Insert(6, 10);
+        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        filterList.Insert(8, 5);
+        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        filterList.Insert(9, 11);
+        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        filterList.Insert(10, 15);
+        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+    }
+
+    [TestMethod]
     public void Remove()
     {
         var filterList = new FilterListWrapper<int, List<int>, List<int>>(

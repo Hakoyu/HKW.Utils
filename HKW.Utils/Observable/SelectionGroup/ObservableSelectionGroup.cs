@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,27 +14,71 @@ using HKW.HKWReactiveUI;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 选择组
+/// 可观测的选择组
 /// </summary>
-public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX, IDisposable
+/// <typeparam name="TMember">成员类型</typeparam>
+[DebuggerDisplay("Leader = {Leader.IsSelected}, Count = {Count}")]
+public partial class ObservableSelectionGroup<TMember>
+    : ObservableSelectionGroup<
+        ObservableSelectionGroupLeader,
+        ObservableSelectionGroupMember<TMember>,
+        ObservableList<ObservableSelectionGroupMember<TMember>>
+    >
+{
+    /// <summary>
+    ///
+    /// </summary>
+    public ObservableSelectionGroup()
+        : base(
+            new ObservableSelectionGroupLeader().Wrapper,
+            new ObservableSelectionGroupMember<TMember>().Wrapper,
+            new ObservableList<ObservableSelectionGroupMember<TMember>>()
+        ) { }
+
+    /// <summary>
+    ///
+    /// </summary>
+    public ObservableSelectionGroup(IEnumerable<TMember> collection)
+        : base(
+            new ObservableSelectionGroupLeader().Wrapper,
+            new ObservableSelectionGroupMember<TMember>().Wrapper,
+            new ObservableList<ObservableSelectionGroupMember<TMember>>()
+        )
+    {
+        foreach (var item in collection)
+            Members.Add(new(item));
+    }
+}
+
+/// <summary>
+/// 可观测的选择组
+/// </summary>
+/// <typeparam name="TLeader">队长类型</typeparam>
+/// <typeparam name="TMember">成员类型</typeparam>
+/// <typeparam name="TMemberCollection">成员集合类型</typeparam>
+[DebuggerDisplay("Leader = {Leader.IsSelected}, Count = {Count}")]
+public partial class ObservableSelectionGroup<TLeader, TMember, TMemberCollection>
+    : ReactiveObjectX,
+        ICollection<TMember>,
+        IDisposable
     where TLeader : INotifyPropertyChanged
     where TMember : INotifyPropertyChanged
+    where TMemberCollection : IObservableCollection<TMember>
 {
     /// <inheritdoc/>
     /// <param name="leaderWrapper">队长包装器</param>
     /// <param name="memberWrapper">成员包装器</param>
-    /// <param name="members">成员</param>
-    /// <param name="observableMembers">可观测成员</param>
-    public SelectionGroup(
+    /// <param name="memberCollection">成员</param>
+    public ObservableSelectionGroup(
         ObservablePropertyWrapper<TLeader, bool?> leaderWrapper,
         ObservablePropertyWrapper<TMember, bool> memberWrapper,
-        IEnumerable<TMember> members,
-        INotifyCollectionChanged? observableMembers = null
+        TMemberCollection memberCollection
     )
     {
         Leader = leaderWrapper;
+        Members = memberCollection;
         _memberWrapper = memberWrapper.Clone(default!);
-        foreach (var member in members)
+        foreach (var member in Members)
         {
             member.PropertyChanged -= Member_PropertyChanged;
             member.PropertyChanged += Member_PropertyChanged;
@@ -45,12 +91,8 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX, IDispos
         Leader.PropertyChanged -= Leader_PropertyChanged;
         Leader.PropertyChanged += Leader_PropertyChanged;
 
-        if (observableMembers is not null)
-        {
-            ObservableMembers = observableMembers;
-            observableMembers.CollectionChanged -= ObservableMembers_CollectionChanged;
-            observableMembers.CollectionChanged += ObservableMembers_CollectionChanged;
-        }
+        Members.CollectionChanged -= ObservableMembers_CollectionChanged;
+        Members.CollectionChanged += ObservableMembers_CollectionChanged;
     }
 
     /// <summary>
@@ -69,7 +111,7 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX, IDispos
     /// <summary>
     /// 可观测成员
     /// </summary>
-    public INotifyCollectionChanged? ObservableMembers { get; }
+    public TMemberCollection Members { get; }
 
     /// <summary>
     /// 选中的数量
@@ -299,7 +341,7 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX, IDispos
     private bool _disposed;
 
     /// <inheritdoc/>
-    ~SelectionGroup()
+    ~ObservableSelectionGroup()
     {
         //必须为false
         Dispose(false);
@@ -340,6 +382,56 @@ public partial class SelectionGroup<TLeader, TMember> : ReactiveObjectX, IDispos
     public void Close()
     {
         Dispose();
+    }
+    #endregion
+
+    #region ICollection
+    /// <inheritdoc/>
+    public int Count => Members.Count;
+
+    /// <inheritdoc/>
+    public bool IsReadOnly => Members.IsReadOnly;
+
+    /// <inheritdoc/>
+    public void Add(TMember item)
+    {
+        Members.Add(item);
+    }
+
+    /// <inheritdoc/>
+    public void Clear()
+    {
+        Members.Clear();
+    }
+
+    /// <inheritdoc/>
+    public bool Contains(TMember item)
+    {
+        return Members.Contains(item);
+    }
+
+    /// <inheritdoc/>
+    public void CopyTo(TMember[] array, int arrayIndex)
+    {
+        Members.CopyTo(array, arrayIndex);
+    }
+
+    /// <inheritdoc/>
+    public bool Remove(TMember item)
+    {
+        return Members.Remove(item);
+    }
+
+    /// <inheritdoc/>
+    public IEnumerator<TMember> GetEnumerator()
+    {
+        return Members.GetEnumerator();
+    }
+
+    /// <inheritdoc/>
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return ((IEnumerable)Members).GetEnumerator();
     }
     #endregion
 }

@@ -30,8 +30,8 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
     public ObservableEnum(TEnum value, AddFlag<TEnum> addFlag, RemoveFlag<TEnum> removeFlag)
         : this(value)
     {
-        AddFlageFunc = addFlag;
-        RemoveFlageFunc = removeFlag;
+        AddFlagFunc = addFlag;
+        RemoveFlagFunc = removeFlag;
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
     {
         if (IsFlagable is false)
             throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
-        Value = AddFlageFunc(Value, flag);
+        Value = AddFlagFunc(Value, flag);
     }
 
     /// <summary>
@@ -67,43 +67,43 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
     /// </summary>
     /// <param name="flag">标志</param>
     [ReactiveCommand]
-    public void RemoveFlage(TEnum flag)
+    public void RemoveFlag(TEnum flag)
     {
         if (IsFlagable is false)
             throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
-        Value = RemoveFlageFunc(Value, flag);
+        Value = RemoveFlagFunc(Value, flag);
     }
 
     /// <summary>
     /// 添加标志方法
     /// </summary>
-    public AddFlag<TEnum> AddFlageFunc { get; set; } = DefaultAddFlageFunc;
+    public AddFlag<TEnum> AddFlagFunc { get; set; } = DefaultAddFlagFunc;
 
     /// <summary>
     /// 删除标志方法
     /// </summary>
-    public RemoveFlag<TEnum> RemoveFlageFunc { get; set; } = DefaultRemoveFlageFunc;
+    public RemoveFlag<TEnum> RemoveFlagFunc { get; set; } = DefaultRemoveFlagFunc;
 
     /// <summary>
     /// 默认添加标志方法
     /// </summary>
-    public static AddFlag<TEnum> DefaultAddFlageFunc { get; set; } = GlobalDefaultAddFlageFunc!;
+    public static AddFlag<TEnum> DefaultAddFlagFunc { get; set; } = GlobalDefaultAddFlagFunc!;
 
     /// <summary>
     /// 默认删除标志方法
     /// </summary>
-    public static RemoveFlag<TEnum> DefaultRemoveFlageFunc { get; set; } =
-        GlobalDefaultRemoveFlageFunc!;
+    public static RemoveFlag<TEnum> DefaultRemoveFlagFunc { get; set; } =
+        GlobalDefaultRemoveFlagFunc!;
 
     /// <summary>
     /// 全局默认添加标志方法
     /// </summary>
-    public static AddFlag<TEnum> GlobalDefaultAddFlageFunc { get; } = (v, f) => v.AddFlag(f);
+    public static AddFlag<TEnum> GlobalDefaultAddFlagFunc { get; } = (v, f) => v.AddFlag(f);
 
     /// <summary>
     /// 全局默认删除标志方法
     /// </summary>
-    public static RemoveFlag<TEnum> GlobalDefaultRemoveFlageFunc { get; } =
+    public static RemoveFlag<TEnum> GlobalDefaultRemoveFlagFunc { get; } =
         (v, f) => v.RemoveFlag(f);
 }
 

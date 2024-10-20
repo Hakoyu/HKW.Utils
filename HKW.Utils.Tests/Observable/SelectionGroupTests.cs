@@ -10,26 +10,31 @@ using ReactiveUI;
 namespace HKW.HKWUtils.Tests.Observable;
 
 [TestClass]
+[ReferenceType(typeof(ReactiveObject))]
 public class SelectionGroupTests
 {
     [TestMethod]
     public void InitializeAllMemberTrue()
     {
-        var leader = new LeaderModel();
+        var leader = new ObservableSelectionGroupLeader();
         var members = Enumerable
             .Range(0, 3)
-            .Select(_ => new SelectableModel() { IsSelected = true })
-            .ToList();
-        var group = new SelectionGroup<LeaderModel, SelectableModel>(
+            .Select(_ => new ObservableSelectionGroupMember() { IsSelected = true })
+            .ToObservableList();
+        var group = new ObservableSelectionGroup<
+            ObservableSelectionGroupLeader,
+            ObservableSelectionGroupMember,
+            ObservableList<ObservableSelectionGroupMember>
+        >(
             new(
                 leader,
-                nameof(LeaderModel.IsSelected),
+                nameof(ObservableSelectionGroupLeader.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
             new(
                 new(),
-                nameof(SelectableModel.IsSelected),
+                nameof(ObservableSelectionGroupMember.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
@@ -46,18 +51,25 @@ public class SelectionGroupTests
     [TestMethod]
     public void InitializeAllMemberFalse()
     {
-        var leader = new LeaderModel();
-        var members = Enumerable.Range(0, 3).Select(_ => new SelectableModel()).ToList();
-        var group = new SelectionGroup<LeaderModel, SelectableModel>(
+        var leader = new ObservableSelectionGroupLeader();
+        var members = Enumerable
+            .Range(0, 3)
+            .Select(_ => new ObservableSelectionGroupMember())
+            .ToObservableList();
+        var group = new ObservableSelectionGroup<
+            ObservableSelectionGroupLeader,
+            ObservableSelectionGroupMember,
+            ObservableList<ObservableSelectionGroupMember>
+        >(
             new(
                 leader,
-                nameof(LeaderModel.IsSelected),
+                nameof(ObservableSelectionGroupLeader.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
             new(
                 new(),
-                nameof(SelectableModel.IsSelected),
+                nameof(ObservableSelectionGroupMember.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
@@ -74,18 +86,25 @@ public class SelectionGroupTests
     [TestMethod]
     public void SetLeaderTrue()
     {
-        var leader = new LeaderModel();
-        var members = Enumerable.Range(0, 3).Select(_ => new SelectableModel()).ToList();
-        var group = new SelectionGroup<LeaderModel, SelectableModel>(
+        var leader = new ObservableSelectionGroupLeader();
+        var members = Enumerable
+            .Range(0, 3)
+            .Select(_ => new ObservableSelectionGroupMember())
+            .ToObservableList();
+        var group = new ObservableSelectionGroup<
+            ObservableSelectionGroupLeader,
+            ObservableSelectionGroupMember,
+            ObservableList<ObservableSelectionGroupMember>
+        >(
             new(
                 leader,
-                nameof(LeaderModel.IsSelected),
+                nameof(ObservableSelectionGroupLeader.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
             new(
                 new(),
-                nameof(SelectableModel.IsSelected),
+                nameof(ObservableSelectionGroupMember.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
@@ -103,21 +122,25 @@ public class SelectionGroupTests
     [TestMethod]
     public void SetLeaderFalse()
     {
-        var leader = new LeaderModel();
+        var leader = new ObservableSelectionGroupLeader();
         var members = Enumerable
             .Range(0, 3)
-            .Select(_ => new SelectableModel() { IsSelected = true })
-            .ToList();
-        var group = new SelectionGroup<LeaderModel, SelectableModel>(
+            .Select(_ => new ObservableSelectionGroupMember() { IsSelected = true })
+            .ToObservableList();
+        var group = new ObservableSelectionGroup<
+            ObservableSelectionGroupLeader,
+            ObservableSelectionGroupMember,
+            ObservableList<ObservableSelectionGroupMember>
+        >(
             new(
                 leader,
-                nameof(LeaderModel.IsSelected),
+                nameof(ObservableSelectionGroupLeader.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
             new(
                 new(),
-                nameof(SelectableModel.IsSelected),
+                nameof(ObservableSelectionGroupMember.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
@@ -135,22 +158,28 @@ public class SelectionGroupTests
     [TestMethod]
     public void AddMemberWhenAllFalse()
     {
-        var leader = new LeaderModel();
-        var members = Enumerable.Range(0, 3).Select(_ => new SelectableModel()).ToObservableList();
-        var group = new SelectionGroup<LeaderModel, SelectableModel>(
+        var leader = new ObservableSelectionGroupLeader();
+        var members = Enumerable
+            .Range(0, 3)
+            .Select(_ => new ObservableSelectionGroupMember())
+            .ToObservableList();
+        var group = new ObservableSelectionGroup<
+            ObservableSelectionGroupLeader,
+            ObservableSelectionGroupMember,
+            ObservableList<ObservableSelectionGroupMember>
+        >(
             new(
                 leader,
-                nameof(LeaderModel.IsSelected),
+                nameof(ObservableSelectionGroupLeader.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
             new(
                 new(),
-                nameof(SelectableModel.IsSelected),
+                nameof(ObservableSelectionGroupMember.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
-            members,
             members
         );
         members.Add(new());
@@ -173,25 +202,28 @@ public class SelectionGroupTests
     [TestMethod]
     public void AddMemberWhenAllTrue()
     {
-        var leader = new LeaderModel();
+        var leader = new ObservableSelectionGroupLeader();
         var members = Enumerable
             .Range(0, 3)
-            .Select(_ => new SelectableModel() { IsSelected = true })
+            .Select(_ => new ObservableSelectionGroupMember() { IsSelected = true })
             .ToObservableList();
-        var group = new SelectionGroup<LeaderModel, SelectableModel>(
+        var group = new ObservableSelectionGroup<
+            ObservableSelectionGroupLeader,
+            ObservableSelectionGroupMember,
+            ObservableList<ObservableSelectionGroupMember>
+        >(
             new(
                 leader,
-                nameof(LeaderModel.IsSelected),
+                nameof(ObservableSelectionGroupLeader.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
             new(
                 new(),
-                nameof(SelectableModel.IsSelected),
+                nameof(ObservableSelectionGroupMember.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
-            members,
             members
         );
         members.Add(new());
@@ -214,25 +246,28 @@ public class SelectionGroupTests
     [TestMethod]
     public void RemoveMember()
     {
-        var leader = new LeaderModel();
+        var leader = new ObservableSelectionGroupLeader();
         var members = Enumerable
             .Range(0, 3)
-            .Select(_ => new SelectableModel() { IsSelected = true })
+            .Select(_ => new ObservableSelectionGroupMember() { IsSelected = true })
             .ToObservableList();
-        var group = new SelectionGroup<LeaderModel, SelectableModel>(
+        var group = new ObservableSelectionGroup<
+            ObservableSelectionGroupLeader,
+            ObservableSelectionGroupMember,
+            ObservableList<ObservableSelectionGroupMember>
+        >(
             new(
                 leader,
-                nameof(LeaderModel.IsSelected),
+                nameof(ObservableSelectionGroupLeader.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
             new(
                 new(),
-                nameof(SelectableModel.IsSelected),
+                nameof(ObservableSelectionGroupMember.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
-            members,
             members
         );
         members.Remove(members.Last());
@@ -263,21 +298,25 @@ public class SelectionGroupTests
     [TestMethod]
     public void ChangeMemberWhenAllTrue()
     {
-        var leader = new LeaderModel();
+        var leader = new ObservableSelectionGroupLeader();
         var members = Enumerable
             .Range(0, 3)
-            .Select(_ => new SelectableModel() { IsSelected = true })
-            .ToList();
-        var group = new SelectionGroup<LeaderModel, SelectableModel>(
+            .Select(_ => new ObservableSelectionGroupMember() { IsSelected = true })
+            .ToObservableList();
+        var group = new ObservableSelectionGroup<
+            ObservableSelectionGroupLeader,
+            ObservableSelectionGroupMember,
+            ObservableList<ObservableSelectionGroupMember>
+        >(
             new(
                 leader,
-                nameof(LeaderModel.IsSelected),
+                nameof(ObservableSelectionGroupLeader.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
             new(
                 new(),
-                nameof(SelectableModel.IsSelected),
+                nameof(ObservableSelectionGroupMember.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
@@ -311,18 +350,25 @@ public class SelectionGroupTests
     [TestMethod]
     public void ChangeMemberWhenAllFalse()
     {
-        var leader = new LeaderModel();
-        var members = Enumerable.Range(0, 3).Select(_ => new SelectableModel()).ToList();
-        var group = new SelectionGroup<LeaderModel, SelectableModel>(
+        var leader = new ObservableSelectionGroupLeader();
+        var members = Enumerable
+            .Range(0, 3)
+            .Select(_ => new ObservableSelectionGroupMember())
+            .ToObservableList();
+        var group = new ObservableSelectionGroup<
+            ObservableSelectionGroupLeader,
+            ObservableSelectionGroupMember,
+            ObservableList<ObservableSelectionGroupMember>
+        >(
             new(
                 leader,
-                nameof(LeaderModel.IsSelected),
+                nameof(ObservableSelectionGroupLeader.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
             new(
                 new(),
-                nameof(SelectableModel.IsSelected),
+                nameof(ObservableSelectionGroupMember.IsSelected),
                 x => x.IsSelected,
                 (x, v) => x.IsSelected = v
             ),
@@ -352,16 +398,4 @@ public class SelectionGroupTests
         );
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
     }
-}
-
-internal partial class LeaderModel : ReactiveObjectX
-{
-    [ReactiveProperty]
-    public bool? IsSelected { get; set; }
-}
-
-internal partial class SelectableModel : ReactiveObjectX
-{
-    [ReactiveProperty]
-    public bool IsSelected { get; set; }
 }

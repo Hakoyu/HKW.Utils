@@ -18,6 +18,11 @@ public interface IFilterCollection<T, TCollection, TFilteredCollection> : IColle
     where TFilteredCollection : ICollection<T>
 {
     /// <summary>
+    /// 自动过滤
+    /// </summary>
+    public bool AutoFilter { get; set; }
+
+    /// <summary>
     /// 过滤器
     /// </summary>
     public Predicate<T> Filter { get; set; }

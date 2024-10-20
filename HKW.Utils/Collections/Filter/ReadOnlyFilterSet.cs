@@ -35,6 +35,10 @@ public class ReadOnlyFilterSet<T, TFilteredSet>
         Filter = filter;
     }
     #endregion
+
+    /// <inheritdoc/>
+    bool IFilterCollection<T, IObservableSet<T>, TFilteredSet>.AutoFilter { get; set; } = true;
+
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private Predicate<T> _filter = null!;
 

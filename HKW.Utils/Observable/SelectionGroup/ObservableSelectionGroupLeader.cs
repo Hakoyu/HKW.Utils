@@ -3,13 +3,13 @@
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可选择组队长
+/// 可观测的选择组组长
 /// </summary>
-public partial class SelectionGroupLeader : ReactiveObjectX
+public partial class ObservableSelectionGroupLeader : ReactiveObjectX
 {
     /// <inheritdoc/>
     /// <param name="isSelected">已选中</param>
-    public SelectionGroupLeader(bool isSelected = false)
+    public ObservableSelectionGroupLeader(bool isSelected = false)
     {
         IsSelected = isSelected;
         Wrapper = new(this, nameof(IsSelected), x => x.IsSelected, (x, v) => x.IsSelected = v);
@@ -24,5 +24,5 @@ public partial class SelectionGroupLeader : ReactiveObjectX
     /// <summary>
     /// 包装器
     /// </summary>
-    public ObservablePropertyWrapper<SelectionGroupLeader, bool?> Wrapper { get; }
+    public ObservablePropertyWrapper<ObservableSelectionGroupLeader, bool?> Wrapper { get; }
 }

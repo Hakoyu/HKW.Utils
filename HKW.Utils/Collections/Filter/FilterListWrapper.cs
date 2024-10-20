@@ -56,6 +56,9 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
         : this(list, getFilteredList(list), filter) { }
     #endregion
 
+    /// <inheritdoc/>
+    public bool AutoFilter { get; set; } = true;
+
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private Predicate<TItem> _filter = null!;
 
@@ -107,7 +110,9 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
         {
             var oldValue = BaseList[index];
             ((IList<TItem>)BaseList)[index] = value;
-            if (Filter(value) is false || FilteredList.IsReadOnly)
+            if (AutoFilter is false || FilteredList.IsReadOnly)
+                return;
+            if (Filter(value) is false)
                 return;
             var tempIndex = FilteredList.IndexOf(oldValue);
             if (tempIndex != -1)
@@ -136,7 +141,7 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     public void Add(TItem item)
     {
         ((ICollection<TItem>)BaseList).Add(item);
-        if (FilteredList.IsReadOnly)
+        if (AutoFilter is false || FilteredList.IsReadOnly)
             return;
         if (Filter(item))
             FilteredList.Add(item);
@@ -146,7 +151,7 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     public void Clear()
     {
         ((ICollection<TItem>)BaseList).Clear();
-        if (FilteredList.IsReadOnly)
+        if (AutoFilter is false || FilteredList.IsReadOnly)
             return;
         FilteredList.Clear();
     }
@@ -179,17 +184,34 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     public void Insert(int index, TItem item)
     {
         ((IList<TItem>)BaseList).Insert(index, item);
-        if (FilteredList.IsReadOnly)
+        if (AutoFilter is false || FilteredList.IsReadOnly)
             return;
         if (Filter(item))
-            FilteredList.Insert(index, item);
+        {
+            if (FilteredList.HasValue() is false)
+                FilteredList.Add(item);
+            else
+            {
+                var set = BaseList.Take(index).ToHashSet();
+                var last1 = FilteredList.FindLastIndex(x => set.Contains(x));
+                if (last1 == -1)
+                    FilteredList.Insert(0, item);
+                else
+                {
+                    var last2 = FilteredList.FindLastIndex(x =>
+                        x?.Equals(FilteredList[last1]) is true
+                    );
+                    FilteredList.Insert(last2 + 1, item);
+                }
+            }
+        }
     }
 
     /// <inheritdoc/>
     public bool Remove(TItem item)
     {
         var result = ((ICollection<TItem>)BaseList).Remove(item);
-        if (FilteredList.IsReadOnly)
+        if (AutoFilter is false || FilteredList.IsReadOnly)
             return result;
         if (result)
             FilteredList.Remove(item);
@@ -202,7 +224,7 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
         if (BaseList.TryGetValue(index, out var value) is false)
             return;
         BaseList.RemoveAt(index);
-        if (FilteredList.IsReadOnly)
+        if (AutoFilter is false || FilteredList.IsReadOnly)
             return;
         FilteredList.Remove(value);
     }

@@ -94,6 +94,8 @@ public class ReadOnlyFilterList<T, TFilteredList>
         }
     }
     #endregion
+    /// <inheritdoc/>
+    bool IFilterCollection<T, IObservableList<T>, TFilteredList>.AutoFilter { get; set; } = true;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private Predicate<T> _filter = null!;

@@ -347,7 +347,7 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// </summary>
     public static Func<EnumInfo<TEnum>, string> DefaultToString
     {
-        get => _defaultToString ?? GlobalDefaultToString;
+        get => _defaultToString ?? EnumInfo.GlobalDefaultToString;
         set => _defaultToString = value;
     }
     #endregion
@@ -360,7 +360,7 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// </summary>
     public static Func<EnumInfo<TEnum>, string> DefaultGetName
     {
-        get => _defaultGetName ?? GlobalDefaultGetName;
+        get => _defaultGetName ?? EnumInfo.GlobalDefaultGetName;
         set => _defaultGetName = value;
     }
     #endregion
@@ -373,7 +373,7 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// </summary>
     public static Func<EnumInfo<TEnum>, string> DefaultGetShortName
     {
-        get => _defaultGetShortName ?? GlobalDefaultGetShortName;
+        get => _defaultGetShortName ?? EnumInfo.GlobalDefaultGetShortName;
         set => _defaultGetShortName = value;
     }
     #endregion
@@ -386,104 +386,9 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// </summary>
     public static Func<EnumInfo<TEnum>, string> DefaultGetDescription
     {
-        get => _defaultGetDescription ?? GlobalDefaultGetDescription;
+        get => _defaultGetDescription ?? EnumInfo.GlobalDefaultGetDescription;
         set => _defaultGetDescription = value;
     }
-    #endregion
-
-    #endregion
-
-    #region GlobalDefault
-
-    #region GlobalDefaultToString
-    private static Lazy<Func<EnumInfo<TEnum>, string>> _globalDefaultToString =
-        new(() => static v => v.Value.ToString());
-
-    /// <summary>
-    /// 全局默认到字符串方法
-    /// </summary>
-    public static Func<EnumInfo<TEnum>, string> GlobalDefaultToString =>
-        _globalDefaultToString.Value;
-    #endregion
-
-    #region GlobalDefaultGetName
-    private static Lazy<Func<EnumInfo<TEnum>, string>> _globalDefaultGetName =
-        new(
-            () =>
-                static v =>
-                {
-                    if (IsFlagable is false)
-                        return v.Display?.Name ?? v.Value.ToString();
-                    if (EnumDisplays.HasValue())
-                    {
-                        return string.Join(
-                            " | ",
-                            v.GetFlagInfos()
-                                .Select(static i => i.Display?.Name ?? i.Value.ToString())
-                        );
-                    }
-                    return v.Value.ToString();
-                }
-        );
-
-    /// <summary>
-    /// 全局默认获取名称方法
-    /// </summary>
-    public static Func<EnumInfo<TEnum>, string> GlobalDefaultGetName => _globalDefaultGetName.Value;
-    #endregion
-
-    #region GlobalDefaultGetShortName
-    private static Lazy<Func<EnumInfo<TEnum>, string>> _globalDefaultGetShortName =
-        new(
-            () =>
-                static v =>
-                {
-                    if (IsFlagable is false)
-                        return v.Display?.ShortName ?? v.Value.ToString();
-                    if (EnumDisplays.HasValue())
-                    {
-                        return string.Join(
-                            " | ",
-                            v.GetFlagInfos()
-                                .Select(static i => i.Display?.ShortName ?? i.Value.ToString())
-                        );
-                    }
-                    return v.Value.ToString();
-                }
-        );
-
-    /// <summary>
-    /// 全局默认获取短名称方法
-    /// </summary>
-    public static Func<EnumInfo<TEnum>, string> GlobalDefaultGetShortName =>
-        _globalDefaultGetShortName.Value;
-    #endregion
-
-    #region GlobalDefaultGetDescription
-    private static Lazy<Func<EnumInfo<TEnum>, string>> _globalDefaultGetDescription =
-        new(
-            () =>
-                static v =>
-                {
-                    if (IsFlagable is false)
-                        return v.Display?.Description ?? v.Value.ToString();
-                    if (EnumDisplays.HasValue())
-                    {
-                        return string.Join(
-                            " | ",
-                            v.GetFlagInfos()
-                                .Select(static i => i.Display?.Description ?? i.Value.ToString())
-                        );
-                    }
-                    return v.Value.ToString();
-                }
-        );
-
-    /// <summary>
-    /// 全局默认获取描述方法
-    /// </summary>
-    public static Func<EnumInfo<TEnum>, string> GlobalDefaultGetDescription =>
-        _globalDefaultGetDescription.Value;
     #endregion
 
     #endregion

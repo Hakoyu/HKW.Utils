@@ -17,7 +17,8 @@ using System.Runtime.Serialization;
 using HKW.HKWUtils.DebugViews;
 
 /// <summary>
-/// 顺序哈希集合
+/// 顺序集合
+/// <para>按删除插入顺序排列的集合</para>
 /// </summary>
 /// <typeparam name="T">项类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]

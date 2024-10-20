@@ -129,6 +129,12 @@ public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
         _disposed = true;
     }
     #endregion
+    /// <inheritdoc/>
+    bool IFilterCollection<
+        KeyValuePair<TKey, TValue>,
+        IObservableDictionary<TKey, TValue>,
+        TFilteredDictionary
+    >.AutoFilter { get; set; } = true;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private Predicate<KeyValuePair<TKey, TValue>> _filter = null!;
