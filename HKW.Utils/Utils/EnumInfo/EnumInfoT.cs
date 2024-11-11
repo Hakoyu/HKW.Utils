@@ -31,65 +31,67 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     Enum IEnumInfo.Value => Value;
 
     /// <inheritdoc/>
-    public string Name => GetName(this);
+    public string DisplayName => GetDisplayName(this);
 
     /// <inheritdoc/>
-    public string ShortName => GetShortName(this);
+    public string DisplayShortName => GetDisplayShortName(this);
 
     /// <inheritdoc/>
-    public string Description => GetDescription(this);
+    public string DisplayDescription => GetDisplayDescription(this);
 
     /// <inheritdoc/>
     public DisplayAttribute? Display =>
         EnumDisplays is null ? null : EnumDisplays!.GetValueOrDefault(Value, defaultValue: null);
 
-    /// <inheritdoc/>
     Type IEnumInfo.EnumType => EnumInfo<TEnum>.EnumType;
 
     Type IEnumInfo.UnderlyingType => EnumInfo<TEnum>.UnderlyingType;
 
-    /// <inheritdoc/>
     bool IEnumInfo.IsFlagable => EnumInfo<TEnum>.IsFlagable;
+
+    FrozenSet<string> IEnumInfo.Names => EnumInfo<TEnum>.Names;
+
+    FrozenDictionary<Enum, IEnumInfo> IEnumInfo.Infos => EnumInfo<TEnum>.Infos;
 
     #region GetName
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private Func<EnumInfo<TEnum>, string>? _getName;
+    private Func<EnumInfo<TEnum>, string>? _getDisplayName;
 
     /// <summary>
     /// 获取名称
     /// </summary>
-    public Func<EnumInfo<TEnum>, string> GetName
+    public Func<EnumInfo<TEnum>, string> GetDisplayName
     {
-        get => _getName ?? DefaultGetName;
-        set => _getName = value;
+        get => _getDisplayName ?? DefaultGetDisplayName;
+        set => _getDisplayName = value;
     }
     #endregion
 
     #region GetShortName
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private Func<EnumInfo<TEnum>, string>? _getShortName;
+    private Func<EnumInfo<TEnum>, string>? _getDisplayShortName;
 
     /// <summary>
     /// 获取短名称
     /// </summary>
-    public Func<EnumInfo<TEnum>, string> GetShortName
+    public Func<EnumInfo<TEnum>, string> GetDisplayShortName
     {
-        get => _getShortName ?? DefaultGetShortName;
-        set => _getShortName = value;
+        get => _getDisplayShortName ?? DefaultGetDisplayShortName;
+        set => _getDisplayShortName = value;
     }
     #endregion
 
     #region GetDescription
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private Func<EnumInfo<TEnum>, string>? _getDescription;
+    private Func<EnumInfo<TEnum>, string>? _getDisplayDescription;
 
     /// <summary>
     /// 获取描述
     /// </summary>
-    public Func<EnumInfo<TEnum>, string> GetDescription
+    public Func<EnumInfo<TEnum>, string> GetDisplayDescription
     {
-        get => _getDescription ?? DefaultGetDescription;
-        set => _getDescription = value;
+        get => _getDisplayDescription ?? DefaultGetDisplayDescription;
+        set => _getDisplayDescription = value;
     }
     #endregion
 
@@ -347,47 +349,47 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// </summary>
     public static Func<EnumInfo<TEnum>, string> DefaultToString
     {
-        get => _defaultToString ?? EnumInfo.GlobalDefaultToString;
+        get => _defaultToString ?? EnumInfo.DefaultToString;
         set => _defaultToString = value;
     }
     #endregion
 
     #region DefaultGetName
-    private static Func<EnumInfo<TEnum>, string>? _defaultGetName;
+    private static Func<EnumInfo<TEnum>, string>? _defaultGetDisplayName;
 
     /// <summary>
     /// 默认获取名称方法
     /// </summary>
-    public static Func<EnumInfo<TEnum>, string> DefaultGetName
+    public static Func<EnumInfo<TEnum>, string> DefaultGetDisplayName
     {
-        get => _defaultGetName ?? EnumInfo.GlobalDefaultGetName;
-        set => _defaultGetName = value;
+        get => _defaultGetDisplayName ?? EnumInfo.DefaultGetDisplayName;
+        set => _defaultGetDisplayName = value;
     }
     #endregion
 
     #region DefaultGetShortName
-    private static Func<EnumInfo<TEnum>, string>? _defaultGetShortName;
+    private static Func<EnumInfo<TEnum>, string>? _defaultGetDisplayShortName;
 
     /// <summary>
     /// 默认获取短名称方法
     /// </summary>
-    public static Func<EnumInfo<TEnum>, string> DefaultGetShortName
+    public static Func<EnumInfo<TEnum>, string> DefaultGetDisplayShortName
     {
-        get => _defaultGetShortName ?? EnumInfo.GlobalDefaultGetShortName;
-        set => _defaultGetShortName = value;
+        get => _defaultGetDisplayShortName ?? EnumInfo.DefaultGetDisplayShortName;
+        set => _defaultGetDisplayShortName = value;
     }
     #endregion
 
     #region DefaultGetDescription
-    private static Func<EnumInfo<TEnum>, string>? _defaultGetDescription;
+    private static Func<EnumInfo<TEnum>, string>? _defaultGetDisplayDescription;
 
     /// <summary>
     /// 默认获取描述方法
     /// </summary>
-    public static Func<EnumInfo<TEnum>, string> DefaultGetDescription
+    public static Func<EnumInfo<TEnum>, string> DefaultGetDisplayDescription
     {
-        get => _defaultGetDescription ?? EnumInfo.GlobalDefaultGetDescription;
-        set => _defaultGetDescription = value;
+        get => _defaultGetDisplayDescription ?? EnumInfo.DefaultGetDisplayDescription;
+        set => _defaultGetDisplayDescription = value;
     }
     #endregion
 

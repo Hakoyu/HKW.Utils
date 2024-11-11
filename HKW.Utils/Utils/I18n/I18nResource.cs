@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -16,12 +17,7 @@ namespace HKW.HKWUtils;
 /// public partial class MainWindowViewModel : ObservableObject
 /// {
 ///     public static I18nCore I18nCore { get; } = new();
-///     [ObservableProperty]
-///     public I18nResource<TestI18nResource> _i18n = I18nCore.Create<TestI18nResource>(new());
-/// }
-/// public class TestI18nResource : II18nResource
-/// {
-///     public I18nResource I18nResource { get; } = new(MainWindowViewModel.I18nCore);
+///     public I18nResource<TestI18nResource> I18nResource { get; } = I18nCore.Create<TestI18nResource>(new());
 ///
 ///     public string Name => GetCultureData(nameof(Name));
 /// }
@@ -147,10 +143,11 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// (<see langword="TKey"/>, (<see cref="CultureInfo"/>, <see langword="TValue"/>))
     /// </para>
     /// </summary>
-    public ObservableDictionary<
+    public ObservableDictionaryWrapper<
         TKey,
-        ObservableCultureDataDictionary<TKey, TValue>
-    > CultureDatas { get; } = new();
+        ObservableCultureDataDictionary<TKey, TValue>,
+        ConcurrentDictionary<TKey, ObservableCultureDataDictionary<TKey, TValue>>
+    > CultureDatas { get; } = new(new());
 
     /// <summary>
     /// I18n对象信息
@@ -546,10 +543,10 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// 添加多个文化数据
     /// </summary>
     /// <param name="culture">文化</param>
-    /// <param name="items">项目 (键, 值)</param>
-    public void AddCultureDatas(CultureInfo culture, IEnumerable<(TKey Key, TValue Value)> items)
+    /// <param name="datas">项目 (键, 值)</param>
+    public void AddCultureDatas(CultureInfo culture, IEnumerable<KeyValuePair<TKey, TValue>> datas)
     {
-        foreach (var item in items)
+        foreach (var item in datas)
             AddCultureData(culture, item.Key, item.Value);
     }
 
@@ -557,9 +554,11 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// 添加多个文化数据
     /// </summary>
     /// <param name="cultureName">文化名称</param>
-    /// <param name="items">项目 (键, 值)</param>
-    public void AddCultureDatas(string cultureName, IEnumerable<(TKey Key, TValue Value)> items) =>
-        AddCultureDatas(CultureInfo.GetCultureInfo(cultureName), items);
+    /// <param name="datas">项目 (键, 值)</param>
+    public void AddCultureDatas(
+        string cultureName,
+        IEnumerable<KeyValuePair<TKey, TValue>> datas
+    ) => AddCultureDatas(CultureInfo.GetCultureInfo(cultureName), datas);
 
     /// <summary>
     /// 设置或覆盖文化数据
@@ -588,6 +587,28 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
     public void SetCultureData(string cultureName, TKey key, TValue value) =>
         SetCultureData(CultureInfo.GetCultureInfo(cultureName), key, value);
+
+    /// <summary>
+    /// 设置或覆盖文化数据
+    /// </summary>
+    /// <param name="culture">文化</param>
+    /// <param name="datas">文化数据</param>
+    public void SetCultureDatas(CultureInfo culture, IEnumerable<KeyValuePair<TKey, TValue>> datas)
+    {
+        foreach (var pair in datas)
+            SetCultureData(culture, pair.Key, pair.Value);
+    }
+
+    /// <summary>
+    /// 设置或覆盖文化数据
+    /// </summary>
+    /// <param name="cultureName">文化名称</param>
+    /// <param name="datas">文化数据</param>
+    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    public void SetCultureDatas(
+        string cultureName,
+        IEnumerable<KeyValuePair<TKey, TValue>> datas
+    ) => SetCultureDatas(CultureInfo.GetCultureInfo(cultureName), datas);
 
     /// <summary>
     /// 删除文化数据
@@ -620,6 +641,31 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
     public bool RemoveCultureData(string cultureName, TKey key) =>
         RemoveCultureData(CultureInfo.GetCultureInfo(cultureName), key);
+
+    /// <summary>
+    /// 替换键名
+    /// </summary>
+    /// <param name="oldKey">旧键</param>
+    /// <param name="newKey">新键</param>
+    /// <param name="overwrite">如果已经存在新键,则强制覆盖</param>
+    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    public bool ReplaceCultureDataKey(TKey oldKey, TKey newKey, bool overwrite = false)
+    {
+        if (CultureDatas.TryGetValue(oldKey, out var data) is false)
+            return false;
+        if (overwrite)
+        {
+            data.Key = newKey;
+            CultureDatas[newKey] = data;
+        }
+        else
+        {
+            if (CultureDatas.TryAdd(newKey, data) is false)
+                return false;
+            data.Key = newKey;
+        }
+        return true;
+    }
 
     /// <summary>
     /// 清空文化数据
@@ -665,6 +711,66 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// <returns>文化数据</returns>
     public TValue GetCultureData(string cultureName, TKey key) =>
         GetCultureData(CultureInfo.GetCultureInfo(cultureName), key);
+
+    /// <summary>
+    /// 获取文化数据
+    /// </summary>
+    /// <param name="key">键</param>
+    /// <returns>文化数据</returns>
+    public IDictionary<CultureInfo, TValue> GetCultureDatas(TKey key)
+    {
+        return CultureDatas[key];
+    }
+
+    /// <summary>
+    /// 尝试获取文化数据
+    /// </summary>
+    /// <param name="key">键</param>
+    /// <param name="cultureDatas">文化数据</param>
+    /// <returns>文化数据</returns>
+    public bool TryGetCultureDatas(
+        TKey key,
+        [MaybeNullWhen(false)] out IDictionary<CultureInfo, TValue> cultureDatas
+    )
+    {
+        cultureDatas = null;
+        if (CultureDatas.TryGetValue(key, out var datas))
+        {
+            cultureDatas = datas;
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 获取文化数据复制品
+    /// </summary>
+    /// <param name="key">键</param>
+    /// <returns>文化数据</returns>
+    public IDictionary<CultureInfo, TValue> GetCultureDatasReplica(TKey key)
+    {
+        return CultureDatas[key].ToDictionary();
+    }
+
+    /// <summary>
+    /// 尝试获取文化数据复制品
+    /// </summary>
+    /// <param name="key">键</param>
+    /// <param name="cultureDatas">文化数据</param>
+    /// <returns>文化数据</returns>
+    public bool TryGetCultureDatasReplica(
+        TKey key,
+        [MaybeNullWhen(false)] out IDictionary<CultureInfo, TValue> cultureDatas
+    )
+    {
+        cultureDatas = null;
+        if (CultureDatas.TryGetValue(key, out var datas))
+        {
+            cultureDatas = datas.ToDictionary();
+            return true;
+        }
+        return false;
+    }
 
     /// <summary>
     /// 获取文化数据或默认值

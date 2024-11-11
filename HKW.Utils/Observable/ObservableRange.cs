@@ -29,6 +29,27 @@ public partial class ObservableRange<T>
         Max = max;
     }
 
+    /// <summary>
+    /// 设置值
+    /// </summary>
+    /// <param name="min">最小值</param>
+    /// <param name="max">最大值</param>
+    public void SetValue(T min, T max)
+    {
+        Min = min;
+        Max = max;
+    }
+
+    /// <summary>
+    /// 设置值
+    /// </summary>
+    /// <param name="range">范围</param>
+    public void SetValue(IRange<T> range)
+    {
+        Min = range.Min;
+        Max = range.Max;
+    }
+
     /// <inheritdoc/>
     [ReactiveProperty]
     public T Min { get; set; }

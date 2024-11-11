@@ -42,16 +42,16 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
         Filter = filter;
     }
 
-    /// <inheritdoc/>
-    /// <param name="set">集合</param>
-    /// <param name="getFilteredSet">获取过滤集合</param>
-    /// <param name="filter">过滤器</param>
-    public FilterSetWrapper(
-        TSet set,
-        Func<TSet, TFilteredSet> getFilteredSet,
-        Predicate<TItem> filter
-    )
-        : this(set, getFilteredSet(set), filter) { }
+    ///// <inheritdoc/>
+    ///// <param name="set">集合</param>
+    ///// <param name="getFilteredSet">获取过滤集合</param>
+    ///// <param name="filter">过滤器</param>
+    //public FilterSetWrapper(
+    //    TSet set,
+    //    Func<TSet, TFilteredSet> getFilteredSet,
+    //    Predicate<TItem> filter
+    //)
+    //    : this(set, getFilteredSet(set), filter) { }
     #endregion
 
     /// <inheritdoc/>

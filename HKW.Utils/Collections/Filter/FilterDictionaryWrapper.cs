@@ -46,16 +46,16 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
         Filter = filter;
     }
 
-    /// <inheritdoc/>
-    /// <param name="dictionary">字典</param>
-    /// <param name="getFilteredDictionary">获取过滤字典</param>
-    /// <param name="filter">过滤器</param>
-    public FilterDictionaryWrapper(
-        TDictionary dictionary,
-        Func<TDictionary, TFilteredDictionary> getFilteredDictionary,
-        Predicate<KeyValuePair<TKey, TValue>> filter
-    )
-        : this(dictionary, getFilteredDictionary(dictionary), filter) { }
+    ///// <inheritdoc/>
+    ///// <param name="dictionary">字典</param>
+    ///// <param name="getFilteredDictionary">获取过滤字典</param>
+    ///// <param name="filter">过滤器</param>
+    //public FilterDictionaryWrapper(
+    //    TDictionary dictionary,
+    //    Func<TDictionary, TFilteredDictionary> getFilteredDictionary,
+    //    Predicate<KeyValuePair<TKey, TValue>> filter
+    //)
+    //    : this(dictionary, getFilteredDictionary(dictionary), filter) { }
     #endregion
 
     /// <inheritdoc/>

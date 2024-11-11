@@ -64,7 +64,7 @@ public static partial class HKWExtensions
         ArgumentNullException.ThrowIfNull(nameof(match));
         if (startIndex <= 0)
             throw new IndexOutOfRangeException(
-                $"{nameof(startIndex).ToPascal()}Non-negative number required."
+                $"{nameof(startIndex).ToPascal()} non-negative number required."
             );
         if (startIndex > list.Count)
             throw new IndexOutOfRangeException(

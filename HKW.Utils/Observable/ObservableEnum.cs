@@ -10,7 +10,7 @@ namespace HKW.HKWUtils.Observable;
 /// 枚举命令
 /// </summary>
 /// <typeparam name="TEnum">枚举类型</typeparam>
-public partial class ObservableEnum<TEnum> : ReactiveObjectX
+public partial class ObservableEnum<TEnum> : ReactiveObjectX, ICloneable<ObservableEnum<TEnum>>
     where TEnum : struct, Enum
 {
     /// <inheritdoc/>
@@ -40,15 +40,10 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
     [ReactiveProperty]
     public TEnum Value { get; set; }
 
-    #region IsFlagable
-    private static Lazy<bool> _isFlagable =
-        new(() => Attribute.IsDefined(typeof(TEnum), typeof(FlagsAttribute)));
-
     /// <summary>
     /// 是可标记的
     /// </summary>
-    public static bool IsFlagable => _isFlagable.Value;
-    #endregion
+    public bool IsFlagable => EnumInfo<TEnum>.IsFlagable;
 
     /// <summary>
     /// 添加标志
@@ -74,6 +69,18 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
         Value = RemoveFlagFunc(Value, flag);
     }
 
+    #region ICloneable
+    /// <inheritdoc/>
+    public ObservableEnum<TEnum> Clone()
+    {
+        return new(Value);
+    }
+
+    object ICloneable.Clone()
+    {
+        return Clone();
+    }
+    #endregion
     /// <summary>
     /// 添加标志方法
     /// </summary>

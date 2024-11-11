@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace HKW.HKWUtils;
 
 /// <summary>
-/// 枚举信息目标
+/// 枚举信息显示目标
 /// </summary>
-public enum EnumInfoTarget
+public enum EnumInfoDisplayTarget
 {
     /// <summary>
     /// 名称

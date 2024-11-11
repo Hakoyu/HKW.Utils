@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Collections.Concurrent;
+using System.Globalization;
 using HKW.HKWUtils.Observable;
 
 namespace HKW.HKWUtils;
@@ -9,9 +10,13 @@ namespace HKW.HKWUtils;
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
 public class ObservableCultureDataDictionary<TKey, TValue>
-    : ObservableDictionary<CultureInfo, TValue>
+    : ObservableDictionaryWrapper<CultureInfo, TValue, ConcurrentDictionary<CultureInfo, TValue>>
     where TKey : notnull
 {
+    /// <inheritdoc/>
+    public ObservableCultureDataDictionary()
+        : base(new()) { }
+
     /// <summary>
     /// 键
     /// </summary>

@@ -18,18 +18,22 @@ namespace HKW.HKWUtils.Observable;
 /// <summary>
 /// 可观测可选中列表
 /// </summary>
-/// <typeparam name="T">项类型</typeparam>
+/// <typeparam name="TItem">项类型</typeparam>
 /// <typeparam name="TList">列表</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(ICollectionDebugView))]
-public partial class ObservableSelectableList<T, TList> : ReactiveObjectX, IList<T>, IList
-    where TList : IList<T>
+public partial class ObservableSelectableList<TItem, TList>
+    : ReactiveObjectX,
+        IList<TItem>,
+        IList,
+        IListWrapper<TItem, TList>
+    where TList : IList<TItem>
 {
     /// <inheritdoc/>
     /// <param name="list">列表</param>
     public ObservableSelectableList(TList list)
     {
-        List = list;
+        BaseList = list;
         PropertyChanged += ObservableSelectableList_PropertyChanged;
     }
 
@@ -43,7 +47,7 @@ public partial class ObservableSelectableList<T, TList> : ReactiveObjectX, IList
             if (_changing)
                 return;
             _changing = true;
-            SelectedIndex = List.IndexOf(SelectedItem!);
+            SelectedIndex = BaseList.IndexOf(SelectedItem!);
             _changing = false;
         }
         else if (e.PropertyName == nameof(SelectedIndex))
@@ -51,7 +55,7 @@ public partial class ObservableSelectableList<T, TList> : ReactiveObjectX, IList
             if (_changing)
                 return;
             _changing = true;
-            SelectedItem = SelectedIndex < 0 ? default : List[SelectedIndex];
+            SelectedItem = SelectedIndex < 0 ? default : BaseList[SelectedIndex];
             _changing = false;
         }
     }
@@ -68,7 +72,7 @@ public partial class ObservableSelectableList<T, TList> : ReactiveObjectX, IList
     /// <inheritdoc/>
     /// <param name="list"></param>
     /// <param name="seletedItem">选中项</param>
-    public ObservableSelectableList(TList list, T seletedItem)
+    public ObservableSelectableList(TList list, TItem seletedItem)
         : this(list)
     {
         SelectedItem = seletedItem;
@@ -77,10 +81,8 @@ public partial class ObservableSelectableList<T, TList> : ReactiveObjectX, IList
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private bool _changing = false;
 
-    /// <summary>
-    /// 列表 (使用此属性修改列表不会正确的修改 <see cref="SelectedIndex"/> 和 <see cref="SelectedItem"/>)
-    /// </summary>
-    public TList List { get; }
+    /// <inheritdoc/>
+    public TList BaseList { get; }
 
     /// <summary>
     /// 选中的索引
@@ -92,76 +94,76 @@ public partial class ObservableSelectableList<T, TList> : ReactiveObjectX, IList
     /// 选中的项目
     /// </summary>
     [ReactiveProperty]
-    public T? SelectedItem { get; set; }
+    public TItem? SelectedItem { get; set; }
 
     #region IListT
     /// <inheritdoc/>
-    public T this[int index]
+    public TItem this[int index]
     {
-        get => ((IList<T>)List)[index];
+        get => ((IList<TItem>)BaseList)[index];
         set
         {
-            ((IList<T>)List)[index] = value;
+            ((IList<TItem>)BaseList)[index] = value;
             if (index == SelectedIndex)
                 SelectedItem = value;
         }
     }
 
     /// <inheritdoc/>
-    public int Count => ((ICollection<T>)List).Count;
+    public int Count => ((ICollection<TItem>)BaseList).Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<T>)List).IsReadOnly;
+    public bool IsReadOnly => ((ICollection<TItem>)BaseList).IsReadOnly;
 
     /// <inheritdoc/>
-    public void Add(T item)
+    public void Add(TItem item)
     {
-        ((ICollection<T>)List).Add(item);
+        ((ICollection<TItem>)BaseList).Add(item);
     }
 
     /// <inheritdoc/>
     public void Clear()
     {
-        ((ICollection<T>)List).Clear();
+        ((ICollection<TItem>)BaseList).Clear();
         SelectedIndex = -1;
     }
 
     /// <inheritdoc/>
-    public bool Contains(T item)
+    public bool Contains(TItem item)
     {
-        return ((ICollection<T>)List).Contains(item);
+        return ((ICollection<TItem>)BaseList).Contains(item);
     }
 
     /// <inheritdoc/>
-    public void CopyTo(T[] array, int arrayIndex)
+    public void CopyTo(TItem[] array, int arrayIndex)
     {
-        ((ICollection<T>)List).CopyTo(array, arrayIndex);
+        ((ICollection<TItem>)BaseList).CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
-    public IEnumerator<T> GetEnumerator()
+    public IEnumerator<TItem> GetEnumerator()
     {
-        return ((IEnumerable<T>)List).GetEnumerator();
+        return ((IEnumerable<TItem>)BaseList).GetEnumerator();
     }
 
     /// <inheritdoc/>
-    public int IndexOf(T item)
+    public int IndexOf(TItem item)
     {
-        return ((IList<T>)List).IndexOf(item);
+        return ((IList<TItem>)BaseList).IndexOf(item);
     }
 
     /// <inheritdoc/>
-    public void Insert(int index, T item)
+    public void Insert(int index, TItem item)
     {
-        ((IList<T>)List).Insert(index, item);
+        ((IList<TItem>)BaseList).Insert(index, item);
         if (index <= SelectedIndex)
             SelectedIndex += 1;
     }
 
     /// <inheritdoc/>
-    public bool Remove(T item)
+    public bool Remove(TItem item)
     {
-        var result = List.Remove(item, out var index);
+        var result = BaseList.Remove(item, out var index);
         if (SelectedIndex == index)
         {
             SelectedIndex = -1;
@@ -176,14 +178,14 @@ public partial class ObservableSelectableList<T, TList> : ReactiveObjectX, IList
     /// <inheritdoc/>
     public void RemoveAt(int index)
     {
-        ((IList<T>)List).RemoveAt(index);
+        ((IList<TItem>)BaseList).RemoveAt(index);
         if (SelectedIndex == index)
             SelectedIndex = -1;
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)List).GetEnumerator();
+        return ((IEnumerable)BaseList).GetEnumerator();
     }
 
     #endregion
@@ -192,50 +194,50 @@ public partial class ObservableSelectableList<T, TList> : ReactiveObjectX, IList
 
     object? IList.this[int index]
     {
-        get => List[index];
+        get => BaseList[index];
         set
         {
-            List[index] = (T)value!;
+            BaseList[index] = (TItem)value!;
             if (index == SelectedIndex)
-                SelectedItem = (T)value!;
+                SelectedItem = (TItem)value!;
         }
     }
-    bool IList.IsFixedSize => ((IList)List).IsFixedSize;
+    bool IList.IsFixedSize => ((IList)BaseList).IsFixedSize;
 
-    bool ICollection.IsSynchronized => ((IList)List).IsSynchronized;
+    bool ICollection.IsSynchronized => ((IList)BaseList).IsSynchronized;
 
-    object ICollection.SyncRoot => ((IList)List).SyncRoot;
+    object ICollection.SyncRoot => ((IList)BaseList).SyncRoot;
 
     int IList.Add(object? value)
     {
-        return ((IList)List).Add(value);
+        return ((IList)BaseList).Add(value);
     }
 
     bool IList.Contains(object? value)
     {
-        return ((IList)List).Contains(value);
+        return ((IList)BaseList).Contains(value);
     }
 
     void ICollection.CopyTo(Array array, int index)
     {
-        ((IList)List).CopyTo(array, index);
+        ((IList)BaseList).CopyTo(array, index);
     }
 
     int IList.IndexOf(object? value)
     {
-        return ((IList)List).IndexOf(value);
+        return ((IList)BaseList).IndexOf(value);
     }
 
     void IList.Insert(int index, object? value)
     {
-        ((IList)List).Insert(index, value);
+        ((IList)BaseList).Insert(index, value);
         if (index <= SelectedIndex)
             SelectedIndex += 1;
     }
 
     void IList.Remove(object? value)
     {
-        var result = List.Remove((T)value!, out var index);
+        var result = BaseList.Remove((TItem)value!, out var index);
         if (SelectedIndex == index)
             SelectedIndex = -1;
     }

@@ -50,8 +50,6 @@ public static partial class DrawingExtensions
     public static bool Contains<T>(this IReadOnlySize<T> size, T x, T y)
         where T : struct, INumber<T>
     {
-        if (x < T.Zero || y < T.Zero)
-            return false;
         if (x > size.Width || y > size.Height)
             return false;
         return true;

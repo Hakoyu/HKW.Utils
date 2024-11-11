@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -59,17 +60,17 @@ public interface IEnumInfo
     /// <summary>
     /// 名称
     /// </summary>
-    public string Name { get; }
+    public string DisplayName { get; }
 
     /// <summary>
     /// 短名称
     /// </summary>
-    public string ShortName { get; }
+    public string DisplayShortName { get; }
 
     /// <summary>
     /// 描述
     /// </summary>
-    public string Description { get; }
+    public string DisplayDescription { get; }
 
     /// <summary>
     /// 显示
@@ -90,6 +91,16 @@ public interface IEnumInfo
     /// 是可标记的
     /// </summary>
     public bool IsFlagable { get; }
+
+    /// <summary>
+    /// 全部名称
+    /// </summary>
+    public FrozenSet<string> Names { get; }
+
+    /// <summary>
+    /// 全部信息
+    /// </summary>
+    public FrozenDictionary<Enum, IEnumInfo> Infos { get; }
 
     /// <summary>
     /// 拥有标记

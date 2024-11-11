@@ -39,7 +39,7 @@ public static class EnumInfo
     {
         if (TryGetEnumInfo(type, @enum, out var info) is false)
             throw new InvalidOperationException(
-                "The specified enumeration type is not initialized, use EnumInfo<Enum>.Initialize() first."
+                $"The specified enum type [{type.FullName}] is not initialized, use EnumInfo<Enum>.Initialize() first."
             );
         return info;
     }
@@ -68,9 +68,38 @@ public static class EnumInfo
     /// <summary>
     /// 获取枚举信息
     /// </summary>
-    /// <typeparam name="TEnum"></typeparam>
-    /// <param name="enum"></param>
-    /// <returns></returns>
+    /// <param name="type">枚举类型</param>
+    /// <returns>枚举信息接口</returns>
+    public static IEnumInfo? GetEnumInfo(Type type)
+    {
+        if (TryGetEnumInfo(type, out var info) is false)
+            throw new InvalidOperationException(
+                $"The specified enum type [{type.FullName}] is not initialized, use EnumInfo<Enum>.Initialize() first."
+            );
+        return info;
+    }
+
+    /// <summary>
+    /// 尝试获取枚举信息
+    /// </summary>
+    /// <param name="type">枚举类型</param>
+    /// <param name="info">枚举信息</param>
+    /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    public static bool TryGetEnumInfo(Type type, [MaybeNullWhen(false)] out IEnumInfo info)
+    {
+        info = default;
+        if (InfosByType.TryGetValue(type, out var infos) is false)
+            return false;
+        info = infos.First().Value;
+        return true;
+    }
+
+    /// <summary>
+    /// 获取枚举信息
+    /// </summary>
+    /// <typeparam name="TEnum">枚举类型</typeparam>
+    /// <param name="enum">枚举值</param>
+    /// <returns>枚举信息</returns>
     public static EnumInfo<TEnum> GetEnumInfo<TEnum>(TEnum @enum)
         where TEnum : struct, Enum
     {
@@ -79,19 +108,31 @@ public static class EnumInfo
     }
 
     /// <summary>
+    /// 获取枚举信息
+    /// </summary>
+    /// <typeparam name="TEnum">枚举类型</typeparam>
+    /// <returns>枚举信息</returns>
+    public static EnumInfo<TEnum> GetEnumInfo<TEnum>()
+        where TEnum : struct, Enum
+    {
+        EnumInfo<TEnum>.Initialize();
+        return (EnumInfo<TEnum>)InfosByType[typeof(TEnum)].First().Value;
+    }
+
+    /// <summary>
     /// 获取信息
     /// </summary>
     /// <param name="info">枚举信息</param>
     /// <param name="target">目标</param>
     /// <returns>目标信息</returns>
-    public static string GetInfo(this IEnumInfo info, EnumInfoTarget target)
+    public static string GetInfo(this IEnumInfo info, EnumInfoDisplayTarget target)
     {
         return target switch
         {
-            EnumInfoTarget.Name => info.Name,
-            EnumInfoTarget.ShortName => info.ShortName,
-            EnumInfoTarget.Description => info.Description,
-            _ => info.Name,
+            EnumInfoDisplayTarget.Name => info.DisplayName,
+            EnumInfoDisplayTarget.ShortName => info.DisplayShortName,
+            EnumInfoDisplayTarget.Description => info.DisplayDescription,
+            _ => info.DisplayName,
         };
     }
 
@@ -112,41 +153,41 @@ public static class EnumInfo
     #endregion
 
     #region DefaultGetName
-    private static Func<IEnumInfo, string>? _defaultGetName;
+    private static Func<IEnumInfo, string>? _defaultGetDisplayName;
 
     /// <summary>
     /// 默认获取名称方法
     /// </summary>
-    public static Func<IEnumInfo, string> DefaultGetName
+    public static Func<IEnumInfo, string> DefaultGetDisplayName
     {
-        get => _defaultGetName ?? GlobalDefaultGetName;
-        set => _defaultGetName = value;
+        get => _defaultGetDisplayName ?? GlobalDefaultGetDisplayName;
+        set => _defaultGetDisplayName = value;
     }
     #endregion
 
     #region DefaultGetShortName
-    private static Func<IEnumInfo, string>? _defaultGetShortName;
+    private static Func<IEnumInfo, string>? _defaultGetDisplayShortName;
 
     /// <summary>
     /// 默认获取短名称方法
     /// </summary>
-    public static Func<IEnumInfo, string> DefaultGetShortName
+    public static Func<IEnumInfo, string> DefaultGetDisplayShortName
     {
-        get => _defaultGetShortName ?? GlobalDefaultGetShortName;
-        set => _defaultGetShortName = value;
+        get => _defaultGetDisplayShortName ?? GlobalDefaultGetDisplayShortName;
+        set => _defaultGetDisplayShortName = value;
     }
     #endregion
 
     #region DefaultGetDescription
-    private static Func<IEnumInfo, string>? _defaultGetDescription;
+    private static Func<IEnumInfo, string>? _defaultGetDisplayDescription;
 
     /// <summary>
     /// 默认获取描述方法
     /// </summary>
-    public static Func<IEnumInfo, string> DefaultGetDescription
+    public static Func<IEnumInfo, string> DefaultGetDisplayDescription
     {
-        get => _defaultGetDescription ?? GlobalDefaultGetDescription;
-        set => _defaultGetDescription = value;
+        get => _defaultGetDisplayDescription ?? GlobalDefaultGetDisplayDescription;
+        set => _defaultGetDisplayDescription = value;
     }
     #endregion
 
@@ -167,7 +208,7 @@ public static class EnumInfo
     #endregion
 
     #region GlobalDefaultGetName
-    private static Lazy<Func<IEnumInfo, string>> _globalDefaultGetName =
+    private static Lazy<Func<IEnumInfo, string>> _globalDefaultGetDisplayName =
         new(
             () =>
                 static v =>
@@ -184,11 +225,12 @@ public static class EnumInfo
     /// <summary>
     /// 全局默认获取名称方法
     /// </summary>
-    public static Func<IEnumInfo, string> GlobalDefaultGetName => _globalDefaultGetName.Value;
+    public static Func<IEnumInfo, string> GlobalDefaultGetDisplayName =>
+        _globalDefaultGetDisplayName.Value;
     #endregion
 
     #region GlobalDefaultGetShortName
-    private static Lazy<Func<IEnumInfo, string>> _globalDefaultGetShortName =
+    private static Lazy<Func<IEnumInfo, string>> _globalDefaultGetDisplayShortName =
         new(
             () =>
                 static v =>
@@ -206,12 +248,12 @@ public static class EnumInfo
     /// <summary>
     /// 全局默认获取短名称方法
     /// </summary>
-    public static Func<IEnumInfo, string> GlobalDefaultGetShortName =>
-        _globalDefaultGetShortName.Value;
+    public static Func<IEnumInfo, string> GlobalDefaultGetDisplayShortName =>
+        _globalDefaultGetDisplayShortName.Value;
     #endregion
 
     #region GlobalDefaultGetDescription
-    private static Lazy<Func<IEnumInfo, string>> _globalDefaultGetDescription =
+    private static Lazy<Func<IEnumInfo, string>> _globalDefaultGetDisplayDescription =
         new(
             () =>
                 static v =>
@@ -229,8 +271,8 @@ public static class EnumInfo
     /// <summary>
     /// 全局默认获取描述方法
     /// </summary>
-    public static Func<IEnumInfo, string> GlobalDefaultGetDescription =>
-        _globalDefaultGetDescription.Value;
+    public static Func<IEnumInfo, string> GlobalDefaultGetDisplayDescription =>
+        _globalDefaultGetDisplayDescription.Value;
     #endregion
 
     #endregion

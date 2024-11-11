@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Globalization;
+using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -34,59 +35,6 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-
-        var set = new OrderedSet<int>();
-        var values = Enumerable.Range(0, 10);
-        //o.BindingSet(t);
-        set.Add(1);
-        // Assert.IsTrue(o.SequenceEqual(t));
-        set.Add(2);
-        // Assert.IsTrue(o.SequenceEqual(t));
-        set.Add(3);
-        // Assert.IsTrue(o.SequenceEqual(t));
-        set.Add(4);
-        // Assert.IsTrue(o.SequenceEqual(t));
-        set.Add(5);
-        // Assert.IsTrue(o.SequenceEqual(t));
-
-        set.Remove(2);
-        // Assert.IsTrue(o.SequenceEqual(t));
-        set.Remove(3);
-        // Assert.IsTrue(o.SequenceEqual(t));
-        set.Remove(1);
-        // Assert.IsTrue(o.SequenceEqual(t));
-        var t1 = set.ToHashSet();
-        t1.SymmetricExceptWith(values);
-        set.SymmetricExceptWith(values);
-        var r = t1.SequenceEqual(set);
-        //var v = TestEnum1.A | TestEnum1.B;
-        //var e = new ObservableEnum<TestEnum1>(v);
-        //var p = new ObservablePoint<int>(1, 1);
-        //var size = new Size<int>("114, 514");
-        //I18nResource.AddCulture("zh");
-        //I18nResource.AddCulture("en");
-        //I18nResource.AddCultureData("zh", "Name", "Name-CN");
-        //I18nResource.AddCultureData("en", "Name", "Name-EN");
-        //I18nResource.SetCurrentCulture("zh");
-        //var t = new TestModel();
-        //t.PropertyChanged += T_PropertyChanged;
-        //t.ID = "Name";
-        //Console.WriteLine(t.Name);
-        //I18nResource.SetCurrentCulture("en");
-        //Console.WriteLine(t.Name);
-        //t.ID = "Name2";
-        //Console.WriteLine(t.Name);
-        //t.CanExecute = !t.CanExecute;
-        //var c = t.TestCommand as ICommand;
-        //c.CanExecuteChanged += C_CanExecuteChanged;
-        //c.CanExecute(null);
-        //c.Execute(null);
-        //var command = ReactiveCommand.Create(() => { });
-        //var e1 = EnumInfo<TestEnum1>.GetInfo(TestEnum1.A);
-        //e1.GetName = (v) => $"{v.Value}_1";
-        //var e2 = EnumInfo<TestEnum2>.GetInfo(TestEnum2.A);
-        //var n1 = e1.Name;
-        //var n2 = e2.Name;
 
 #endif
     }

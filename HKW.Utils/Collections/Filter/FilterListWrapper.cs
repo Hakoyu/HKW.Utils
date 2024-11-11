@@ -44,16 +44,16 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
         Filter = filter;
     }
 
-    /// <inheritdoc/>
-    /// <param name="list">列表</param>
-    /// <param name="getFilteredList">获取过滤列表</param>
-    /// <param name="filter">过滤器</param>
-    public FilterListWrapper(
-        TList list,
-        Func<TList, TFilteredList> getFilteredList,
-        Predicate<TItem> filter
-    )
-        : this(list, getFilteredList(list), filter) { }
+    ///// <inheritdoc/>
+    ///// <param name="list">列表</param>
+    ///// <param name="getFilteredList">获取过滤列表</param>
+    ///// <param name="filter">过滤器</param>
+    //public FilterListWrapper(
+    //    TList list,
+    //    Func<TList, TFilteredList> getFilteredList,
+    //    Predicate<TItem> filter
+    //)
+    //    : this(list, getFilteredList(list), filter) { }
     #endregion
 
     /// <inheritdoc/>
