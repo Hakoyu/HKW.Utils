@@ -1,22 +1,35 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HKW.HKWUtils.DebugViews;
 
 namespace HKW.HKWUtils.Collections;
 
 /// <summary>
 /// 双向字典
 /// </summary>
+[DebuggerDisplay("Count = {Count}")]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class BidirectionalDictionary<T1, T2> : IDictionary<T1, T2>
     where T1 : notnull
     where T2 : notnull
 {
-    private readonly Dictionary<T1, T2> _dictionary1 = new();
-    private readonly Dictionary<T2, T1> _dictionary2 = new();
+    private readonly Dictionary<T1, T2> _dictionary1;
+    private readonly Dictionary<T2, T1> _dictionary2;
+
+    /// <inheritdoc/>
+    /// <param name="dictionary1">字典1</param>
+    /// <param name="dictionary2">字典2</param>
+    public BidirectionalDictionary(Dictionary<T1, T2> dictionary1, Dictionary<T2, T1> dictionary2)
+    {
+        _dictionary1 = dictionary1;
+        _dictionary2 = dictionary2;
+    }
 
     /// <inheritdoc/>
     /// <param name="keyValuePairs">键值对</param>
@@ -137,7 +150,10 @@ public class BidirectionalDictionary<T1, T2> : IDictionary<T1, T2>
     {
         var result = ((IDictionary<T1, T2>)_dictionary1).TryGetValue(key, out var value);
         if (result)
+        {
+            ((IDictionary<T1, T2>)_dictionary1).Remove(key);
             ((IDictionary<T2, T1>)_dictionary2).Remove(value!);
+        }
         return result;
     }
 
@@ -170,13 +186,14 @@ public class BidirectionalDictionary<T1, T2> : IDictionary<T1, T2>
     /// <inheritdoc/>
     public void Add(T2 key, T1 value)
     {
+        ((IDictionary<T1, T2>)_dictionary2).Add(KeyValuePair.Create(value, key));
         ((IDictionary<T2, T1>)_dictionary2).Add(key, value);
     }
 
     /// <inheritdoc/>
     public void Add(KeyValuePair<T2, T1> item)
     {
-        ((ICollection<KeyValuePair<T2, T1>>)_dictionary2).Add(item);
+        Add(item.Key, item.Value);
     }
 
     /// <inheritdoc/>
@@ -202,14 +219,17 @@ public class BidirectionalDictionary<T1, T2> : IDictionary<T1, T2>
     {
         var result = ((IDictionary<T2, T1>)_dictionary2).TryGetValue(key, out var value);
         if (result)
+        {
             ((IDictionary<T1, T2>)_dictionary1).Remove(value!);
+            ((IDictionary<T2, T1>)_dictionary2).Remove(key);
+        }
         return result;
     }
 
     /// <inheritdoc/>
     public bool Remove(KeyValuePair<T2, T1> item)
     {
-        return Remove(item);
+        return Remove(item.Key);
     }
 
     /// <inheritdoc/>

@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Extensions;
 
@@ -98,13 +99,16 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
     >.FilteredCollection => FilteredDictionary;
 
     /// <inheritdoc/>
-    public void Refresh()
+    public void Refresh(bool forcedRefresh = false)
     {
-        FilteredDictionary.Clear();
-        if (Filter is null)
-            FilteredDictionary.AddRange(BaseDictionary);
-        else if (BaseDictionary.HasValue())
-            FilteredDictionary.AddRange(BaseDictionary.Where(i => Filter(i)));
+        if (forcedRefresh || BaseDictionary.SequenceEqual(FilteredDictionary) is false)
+        {
+            FilteredDictionary.Clear();
+            if (Filter is null)
+                FilteredDictionary.AddRange(BaseDictionary);
+            else if (BaseDictionary.HasValue())
+                FilteredDictionary.AddRange(BaseDictionary.Where(i => Filter(i)));
+        }
     }
 
     #region IDictionary

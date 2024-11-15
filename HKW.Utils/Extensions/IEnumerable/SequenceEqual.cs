@@ -26,20 +26,8 @@ public static partial class HKWExtensions
         ArgumentNullException.ThrowIfNull(first, nameof(first));
         ArgumentNullException.ThrowIfNull(second, nameof(second));
         ArgumentNullException.ThrowIfNull(comparer, nameof(comparer));
-        using var firstEnumerator = first.GetEnumerator();
-        using var secondEnumerator = second.GetEnumerator();
-        while (firstEnumerator.MoveNext())
-        {
-            if (
-                (
-                    secondEnumerator.MoveNext()
-                    && comparer(firstEnumerator.Current, secondEnumerator.Current)
-                )
-                is false
-            )
-                return false;
-        }
-        return secondEnumerator.MoveNext() is false;
+        var c = EqualityComparer<TSource>.Create(comparer!);
+        return first.SequenceEqual(second, c);
     }
 
     /// <summary>

@@ -3,16 +3,20 @@ using System.Collections;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HKW.HKWUtils.DebugViews;
 
 namespace HKW.HKWUtils;
 
 /// <summary>
 /// 冻结双向字典
 /// </summary>
+[DebuggerDisplay("Count = {Count}")]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class FrozenBidirectionalDictionary
 {
     /// <inheritdoc/>

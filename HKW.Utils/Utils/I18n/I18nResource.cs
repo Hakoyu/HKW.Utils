@@ -672,6 +672,10 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// </summary>
     public void ClearCultureData()
     {
+        foreach (var cultureData in CultureDatas)
+        {
+            cultureData.Value.Clear();
+        }
         CultureDatas.Clear();
     }
 
@@ -1104,6 +1108,16 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
                     otherResource.AddCultureData(dataInfo.Key, key, dataInfo.Value);
             }
         }
+    }
+
+    /// <summary>
+    /// 清空所有文化和数据
+    /// </summary>
+    public void Clear()
+    {
+        I18nObjects.Clear();
+        ClearCultureData();
+        ClearCulture();
     }
 
     /// <summary>

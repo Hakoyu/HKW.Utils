@@ -90,12 +90,15 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     /// <summary>
     /// 刷新过滤集合
     /// </summary>
-    public void Refresh()
+    public void Refresh(bool forcedRefresh = false)
     {
-        if (Filter is null)
-            FilteredSet.AddRange(BaseSet);
-        else if (BaseSet.HasValue())
-            FilteredSet.AddRange(BaseSet.Where(i => Filter(i)));
+        if (forcedRefresh || BaseSet.SequenceEqual(FilteredSet) is false)
+        {
+            if (Filter is null)
+                FilteredSet.AddRange(BaseSet);
+            else if (BaseSet.HasValue())
+                FilteredSet.AddRange(BaseSet.Where(i => Filter(i)));
+        }
     }
 
     #region ISet

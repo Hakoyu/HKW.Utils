@@ -41,5 +41,6 @@ public interface IFilterCollection<T, TCollection, TFilteredCollection> : IColle
     /// <summary>
     /// 刷新过滤集合
     /// </summary>
-    public void Refresh();
+    /// <param name="forcedRefresh">强制刷新, 非强制状态下会先比较初始列表和过滤列表是否相等</param>
+    public void Refresh(bool forcedRefresh);
 }

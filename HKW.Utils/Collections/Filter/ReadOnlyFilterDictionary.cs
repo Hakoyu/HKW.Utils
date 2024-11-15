@@ -170,7 +170,7 @@ public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
     >.FilteredCollection => FilteredDictionary;
 
     /// <inheritdoc/>
-    public void Refresh()
+    public void Refresh(bool forcedRefresh = false)
     {
         FilteredDictionary.Clear();
         if (Filter is null)

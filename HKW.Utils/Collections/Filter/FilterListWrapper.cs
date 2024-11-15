@@ -92,13 +92,16 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     /// <summary>
     /// 刷新过滤列表
     /// </summary>
-    public void Refresh()
+    public void Refresh(bool forcedRefresh = false)
     {
-        FilteredList.Clear();
-        if (Filter is null)
-            FilteredList.AddRange(BaseList);
-        else if (BaseList.HasValue())
-            FilteredList.AddRange(BaseList.Where(i => Filter(i)));
+        if (forcedRefresh || BaseList.SequenceEqual(FilteredList) is false)
+        {
+            FilteredList.Clear();
+            if (Filter is null)
+                FilteredList.AddRange(BaseList);
+            else if (BaseList.HasValue())
+                FilteredList.AddRange(BaseList.Where(i => Filter(i)));
+        }
     }
 
     #region IList

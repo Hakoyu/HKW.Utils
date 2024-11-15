@@ -14,7 +14,7 @@ namespace HKW.HKWUtils;
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
-public sealed class I18nObject<TKey, TValue> : IEquatable<I18nObject<TKey, TValue>>
+public sealed class I18nObject<TKey, TValue> : IEquatable<I18nObject<TKey, TValue>>, IDisposable
     where TKey : notnull
 {
     /// <inheritdoc/>
@@ -40,7 +40,7 @@ public sealed class I18nObject<TKey, TValue> : IEquatable<I18nObject<TKey, TValu
     /// <summary>
     /// 源
     /// </summary>
-    public IReactiveObject Source { get; }
+    public IReactiveObject Source { get; set; }
 
     /// <summary>
     /// 属性改变后事件
@@ -180,8 +180,7 @@ public sealed class I18nObject<TKey, TValue> : IEquatable<I18nObject<TKey, TValu
     /// </summary>
     public void Close()
     {
-        Source.PropertyChanging -= Source_PropertyChanging;
-        Source.PropertyChanged -= Source_PropertyChanged;
+        Dispose();
     }
 
     #region IEquatable
@@ -201,6 +200,54 @@ public sealed class I18nObject<TKey, TValue> : IEquatable<I18nObject<TKey, TValu
     public override int GetHashCode()
     {
         return Source.GetHashCode();
+    }
+    #endregion
+    #region IDisposable
+    /// <summary>
+    /// 已释放标记
+    /// </summary>
+    private bool _disposed = false;
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// 释放
+    /// </summary>
+    /// <param name="disposing">释放中</param>
+    private void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+        if (disposing)
+        {
+            foreach (var pair in KeyToTargetNames)
+                pair.Value.Clear();
+            KeyToTargetNames.Clear();
+
+            foreach (var pair in KeyNameToTargetNames)
+                pair.Value.Clear();
+            KeyToTargetNames.Clear();
+            RetentionValueOnKeyChangePropertyNames.Clear();
+
+            Source.PropertyChanging -= Source_PropertyChanging;
+            Source.PropertyChanged -= Source_PropertyChanged;
+            Source = null!;
+        }
+
+        _disposed = true;
+    }
+
+    /// <summary>
+    /// 析构
+    /// </summary>
+    ~I18nObject()
+    {
+        Dispose(disposing: false);
     }
     #endregion
     /// <summary>

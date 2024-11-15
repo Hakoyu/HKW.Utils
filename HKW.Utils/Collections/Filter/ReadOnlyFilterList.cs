@@ -134,7 +134,7 @@ public class ReadOnlyFilterList<T, TFilteredList>
     /// <summary>
     /// 刷新过滤列表
     /// </summary>
-    public void Refresh()
+    public void Refresh(bool forcedRefresh = false)
     {
         FilteredList.Clear();
         _filteredListIndex.Clear();

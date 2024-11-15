@@ -71,7 +71,7 @@ public class ReadOnlyFilterSet<T, TFilteredSet>
     /// <summary>
     /// 刷新过滤集合
     /// </summary>
-    public void Refresh()
+    public void Refresh(bool forcedRefresh = false)
     {
         if (Filter is null)
             FilteredSet.AddRange(_set);
