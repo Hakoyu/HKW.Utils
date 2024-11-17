@@ -131,10 +131,8 @@ public class ReadOnlyFilterList<T, TFilteredList>
     TFilteredList IFilterCollection<T, IObservableList<T>, TFilteredList>.FilteredCollection =>
         FilteredList;
 
-    /// <summary>
-    /// 刷新过滤列表
-    /// </summary>
-    public void Refresh(bool forcedRefresh = false)
+    /// <inheritdoc/>
+    public void Refresh()
     {
         FilteredList.Clear();
         _filteredListIndex.Clear();

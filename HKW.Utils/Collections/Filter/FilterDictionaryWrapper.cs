@@ -99,16 +99,13 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
     >.FilteredCollection => FilteredDictionary;
 
     /// <inheritdoc/>
-    public void Refresh(bool forcedRefresh = false)
+    public void Refresh()
     {
-        if (forcedRefresh || BaseDictionary.SequenceEqual(FilteredDictionary) is false)
-        {
-            FilteredDictionary.Clear();
-            if (Filter is null)
-                FilteredDictionary.AddRange(BaseDictionary);
-            else if (BaseDictionary.HasValue())
-                FilteredDictionary.AddRange(BaseDictionary.Where(i => Filter(i)));
-        }
+        FilteredDictionary.Clear();
+        if (Filter is null)
+            FilteredDictionary.AddRange(BaseDictionary);
+        else if (BaseDictionary.HasValue())
+            FilteredDictionary.AddRange(BaseDictionary.Where(i => Filter(i)));
     }
 
     #region IDictionary

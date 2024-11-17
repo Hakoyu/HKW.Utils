@@ -68,10 +68,8 @@ public class ReadOnlyFilterSet<T, TFilteredSet>
     TFilteredSet IFilterCollection<T, IObservableSet<T>, TFilteredSet>.FilteredCollection =>
         FilteredSet;
 
-    /// <summary>
-    /// 刷新过滤集合
-    /// </summary>
-    public void Refresh(bool forcedRefresh = false)
+    /// <inheritdoc/>
+    public void Refresh()
     {
         if (Filter is null)
             FilteredSet.AddRange(_set);

@@ -87,18 +87,13 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     TFilteredSet IFilterCollection<TItem, TSet, TFilteredSet>.FilteredCollection => FilteredSet;
 
-    /// <summary>
-    /// 刷新过滤集合
-    /// </summary>
-    public void Refresh(bool forcedRefresh = false)
+    /// <inheritdoc/>
+    public void Refresh()
     {
-        if (forcedRefresh || BaseSet.SequenceEqual(FilteredSet) is false)
-        {
-            if (Filter is null)
-                FilteredSet.AddRange(BaseSet);
-            else if (BaseSet.HasValue())
-                FilteredSet.AddRange(BaseSet.Where(i => Filter(i)));
-        }
+        if (Filter is null)
+            FilteredSet.AddRange(BaseSet);
+        else if (BaseSet.HasValue())
+            FilteredSet.AddRange(BaseSet.Where(i => Filter(i)));
     }
 
     #region ISet
