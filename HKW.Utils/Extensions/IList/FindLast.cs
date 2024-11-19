@@ -66,18 +66,16 @@ public static partial class HKWExtensions
     {
         ArgumentNullException.ThrowIfNull(nameof(list));
         ArgumentNullException.ThrowIfNull(nameof(match));
-        if (startIndex <= 0)
+        if (startIndex < 0)
             throw new IndexOutOfRangeException(
-                $"{nameof(startIndex).ToPascal()}Non-negative number required."
+                $"{nameof(startIndex)} Non-negative number required."
             );
         if (startIndex > list.Count)
             throw new IndexOutOfRangeException(
-                $"{nameof(startIndex).ToPascal()} must be within the bounds of the List."
+                $"{nameof(startIndex)} must be within the bounds of the List."
             );
         if (count <= 0)
-            throw new IndexOutOfRangeException(
-                $"{nameof(count).ToPascal()} non-negative number required."
-            );
+            throw new IndexOutOfRangeException($"{nameof(count)} non-negative number required.");
         int endIndex = startIndex - count;
         if (endIndex > list.Count)
             throw new IndexOutOfRangeException(

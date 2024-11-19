@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
+using Splat;
 
 namespace HKW.HKWUtils;
 
@@ -81,6 +82,27 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// 默认值
     /// </summary>
     public TValue DefaultValue { get; set; } = default!;
+
+    private Func<TValue, TValue>? _valueCloneAction;
+
+    /// <summary>
+    /// 值克隆行动,如果值类型是引用类型可设置此行动
+    /// </summary>
+    public Func<TValue, TValue>? ValueCloneAction
+    {
+        get => _valueCloneAction ?? DefaultValueCloneAction;
+        set => _valueCloneAction ??= value;
+    }
+
+    /// <summary>
+    /// 默认值克隆行动,如果值类型是引用类型可设置此行动
+    /// </summary>
+    public static Func<TValue, TValue>? DefaultValueCloneAction { get; set; }
+
+    /// <summary>
+    /// 日志记录器
+    /// </summary>
+    public IEnableLogger? Logger { get; set; }
 
     #region I18nCore
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -223,6 +245,7 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
                 return;
             newPair.Value.DictionaryChanged -= CurrentCultureDatas_DictionaryChanged;
             newPair.Value.DictionaryChanged += CurrentCultureDatas_DictionaryChanged;
+            newPair.Value.ValueCloneAction = ValueCloneAction;
         }
         else if (e.Action is DictionaryChangeAction.Remove)
         {
@@ -236,6 +259,7 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
             {
                 newPair.Value.DictionaryChanged -= CurrentCultureDatas_DictionaryChanged;
                 newPair.Value.DictionaryChanged += CurrentCultureDatas_DictionaryChanged;
+                newPair.Value.ValueCloneAction = ValueCloneAction;
             }
             if (e.TryGetOldPair(out var oldPair))
             {
@@ -415,7 +439,7 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     public bool AddCurrentCultureData(TKey key, TValue value)
     {
         if (CultureDatas.TryGetValue(key, out var datas) is false)
-            datas = CultureDatas[key] = new() { Key = key };
+            datas = CultureDatas[key] = new() { Key = key, ValueCloneAction = ValueCloneAction };
         return datas.TryAdd(CurrentCulture, value);
     }
 
@@ -506,7 +530,7 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
     public bool AddCultureData(TKey key)
     {
-        return CultureDatas.TryAdd(key, new() { Key = key });
+        return CultureDatas.TryAdd(key, new() { Key = key, ValueCloneAction = ValueCloneAction });
     }
 
     /// <summary>
@@ -524,7 +548,15 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         }
         else
         {
-            CultureDatas.Add(key, new() { Key = key, [culture] = value });
+            CultureDatas.Add(
+                key,
+                new()
+                {
+                    Key = key,
+                    [culture] = value,
+                    ValueCloneAction = ValueCloneAction
+                }
+            );
             return true;
         }
     }
@@ -574,7 +606,15 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         }
         else
         {
-            CultureDatas.Add(key, new() { Key = key, [culture] = value });
+            CultureDatas.Add(
+                key,
+                new()
+                {
+                    Key = key,
+                    [culture] = value,
+                    ValueCloneAction = ValueCloneAction
+                }
+            );
         }
     }
 
@@ -647,16 +687,22 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// </summary>
     /// <param name="oldKey">旧键</param>
     /// <param name="newKey">新键</param>
-    /// <param name="overwrite">如果已经存在新键,则强制覆盖</param>
+    /// <param name="override">如果已经存在新键,则强制覆盖</param>
+    /// <param name="removeOldData">如果旧键存在则删除旧键</param>
     /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
-    public bool ReplaceCultureDataKey(TKey oldKey, TKey newKey, bool overwrite = false)
+    public bool ReplaceCultureDataKey(
+        TKey oldKey,
+        TKey newKey,
+        bool @override = false,
+        bool removeOldData = true
+    )
     {
         if (CultureDatas.TryGetValue(oldKey, out var data) is false)
             return false;
-        if (overwrite)
+        if (@override)
         {
             data.Key = newKey;
-            CultureDatas[newKey] = data;
+            CultureDatas[newKey] = removeOldData ? data : data.Clone();
         }
         else
         {
@@ -664,6 +710,8 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
                 return false;
             data.Key = newKey;
         }
+        if (removeOldData)
+            CultureDatas.Remove(oldKey);
         return true;
     }
 
@@ -753,7 +801,7 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// <returns>文化数据</returns>
     public IDictionary<CultureInfo, TValue> GetCultureDatasReplica(TKey key)
     {
-        return CultureDatas[key].ToDictionary();
+        return CultureDatas[key].Clone();
     }
 
     /// <summary>
@@ -770,7 +818,7 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         cultureDatas = null;
         if (CultureDatas.TryGetValue(key, out var datas))
         {
-            cultureDatas = datas.ToDictionary();
+            cultureDatas = datas.Clone();
             return true;
         }
         return false;

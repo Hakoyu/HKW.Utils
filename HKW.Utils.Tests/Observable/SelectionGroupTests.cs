@@ -40,11 +40,9 @@ public class SelectionGroupTests
             ),
             members
         );
+        Assert.IsTrue(group.Leader.Value);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == 3);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
     }
 
@@ -75,11 +73,9 @@ public class SelectionGroupTests
             ),
             members
         );
+        Assert.IsTrue(group.Leader.Value is false);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == 0);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
     }
 
@@ -111,11 +107,9 @@ public class SelectionGroupTests
             members
         );
         leader.IsSelected = true;
+        Assert.IsTrue(group.Leader.Value);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == group.Members.Count);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
     }
 
@@ -147,11 +141,9 @@ public class SelectionGroupTests
             members
         );
         leader.IsSelected = false;
+        Assert.IsTrue(group.Leader.Value is false);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == 0);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
     }
 
@@ -183,19 +175,15 @@ public class SelectionGroupTests
             members
         );
         members.Add(new());
+        Assert.IsTrue(group.Leader.Value is false);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == 0);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
 
         members.Add(new() { IsSelected = true });
+        Assert.IsTrue(group.Leader.Value is null);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == 1);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
     }
 
@@ -227,19 +215,15 @@ public class SelectionGroupTests
             members
         );
         members.Add(new());
+        Assert.IsTrue(group.Leader.Value is null);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == 3);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
 
         members.Add(new() { IsSelected = true });
+        Assert.IsTrue(group.Leader.Value is null);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == 4);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
     }
 
@@ -271,27 +255,21 @@ public class SelectionGroupTests
             members
         );
         members.Remove(members.Last());
+        Assert.IsTrue(group.Leader.Value is true);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == 2);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
 
         members.Remove(members.Last());
+        Assert.IsTrue(group.Leader.Value is true);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == 1);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
 
         members.Remove(members.Last());
+        Assert.IsTrue(group.Leader.Value is false);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == 0);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
     }
 
@@ -323,27 +301,21 @@ public class SelectionGroupTests
             members
         );
         members[0].IsSelected = false;
+        Assert.IsTrue(group.Leader.Value is null);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == 2);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
 
         members[1].IsSelected = false;
+        Assert.IsTrue(group.Leader.Value is null);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == 1);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
 
         members[2].IsSelected = false;
+        Assert.IsTrue(group.Leader.Value is false);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == 0);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
     }
 
@@ -375,27 +347,21 @@ public class SelectionGroupTests
             members
         );
         members[0].IsSelected = true;
+        Assert.IsTrue(group.Leader.Value is null);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == 1);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
 
         members[1].IsSelected = true;
+        Assert.IsTrue(group.Leader.Value is null);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == 2);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
 
         members[2].IsSelected = true;
+        Assert.IsTrue(group.Leader.Value is true);
         Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(
-            members.Count(x => x.IsSelected)
-                == group.MemberWrapperByMember.Values.Count(x => x.Value)
-        );
+        Assert.IsTrue(members.Count(x => x.IsSelected) == 3);
         Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
     }
 }

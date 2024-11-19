@@ -35,7 +35,37 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-
+        //var leader = new ObservableSelectionGroupLeader();
+        //var members = Enumerable
+        //    .Range(0, 2)
+        //    .Select(_ => new ObservableSelectionGroupMember() { IsSelected = false })
+        //    .ToObservableList();
+        //var group = new ObservableSelectionGroup<
+        //    ObservableSelectionGroupLeader,
+        //    ObservableSelectionGroupMember,
+        //    ObservableList<ObservableSelectionGroupMember>
+        //>(
+        //    new(
+        //        leader,
+        //        nameof(ObservableSelectionGroupLeader.IsSelected),
+        //        x => x.IsSelected,
+        //        (x, v) => x.IsSelected = v
+        //    ),
+        //    new(
+        //        new(),
+        //        nameof(ObservableSelectionGroupMember.IsSelected),
+        //        x => x.IsSelected,
+        //        (x, v) => x.IsSelected = v
+        //    ),
+        //    members
+        //);
+        var group = new ObservableSelectionGroup<TestModel>();
+        group.Add(new(new() { ID = "A" }));
+        group.Add(new(new() { ID = "B" }));
+        //group.Add(new(new() { ID = "C" }));
+        group.First().IsSelected = true;
+        group.Last().IsSelected = true;
+        var r = group.Leader.Value;
 #endif
     }
 

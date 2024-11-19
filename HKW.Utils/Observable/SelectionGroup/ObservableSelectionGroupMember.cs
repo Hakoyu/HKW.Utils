@@ -1,10 +1,12 @@
-﻿using HKW.HKWReactiveUI;
+﻿using System.Diagnostics;
+using HKW.HKWReactiveUI;
 
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
 /// 可观测可选中组成员
 /// </summary>
+[DebuggerDisplay("IsSelected = {IsSelected}")]
 public partial class ObservableSelectionGroupMember : ReactiveObjectX
 {
     /// <inheritdoc/>
@@ -37,7 +39,9 @@ public partial class ObservableSelectionGroupMember : ReactiveObjectX
 /// 可观测可选中组成员
 /// </summary>
 /// <typeparam name="TSource">源类型</typeparam>
-public partial class ObservableSelectionGroupMember<TSource> : ReactiveObjectX, IEquatable<TSource>
+public partial class ObservableSelectionGroupMember<TSource>
+    : ReactiveObjectX,
+        IEquatable<ObservableSelectionGroupMember<TSource>>
 {
     /// <inheritdoc/>
     /// <param name="source">源</param>
@@ -64,17 +68,25 @@ public partial class ObservableSelectionGroupMember<TSource> : ReactiveObjectX, 
     /// </summary>
     public ObservablePropertyWrapper<ObservableSelectionGroupMember<TSource>, bool> Wrapper { get; }
 
+    /// <inheritdoc/>
+    public override string? ToString()
+    {
+        return Source?.ToString();
+    }
+
     #region IEquatable
     /// <inheritdoc/>
-    public bool Equals(TSource? other)
+    public bool Equals(ObservableSelectionGroupMember<TSource>? other)
     {
-        return Source?.Equals(other) is true;
+        if (other is null)
+            return false;
+        return Source?.Equals(other.Source) is true;
     }
 
     /// <inheritdoc/>
     public override bool Equals(object? obj)
     {
-        return Equals((TSource)obj!);
+        return Equals(obj as ObservableSelectionGroupMember<TSource>);
     }
 
     /// <inheritdoc/>

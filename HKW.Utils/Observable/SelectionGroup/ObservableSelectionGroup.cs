@@ -17,7 +17,7 @@ namespace HKW.HKWUtils.Observable;
 /// 可观测的选择组
 /// </summary>
 /// <typeparam name="TMember">成员类型</typeparam>
-[DebuggerDisplay("Leader = {Leader.IsSelected}, Count = {Count}")]
+[DebuggerDisplay("Leader = {Leader.Value}, Count = {Count}, SelectedCount = {SelectedCount}")]
 public partial class ObservableSelectionGroup<TMember>
     : ObservableSelectionGroup<
         ObservableSelectionGroupLeader,
@@ -56,7 +56,7 @@ public partial class ObservableSelectionGroup<TMember>
 /// <typeparam name="TLeader">队长类型</typeparam>
 /// <typeparam name="TMember">成员类型</typeparam>
 /// <typeparam name="TMemberCollection">成员集合类型</typeparam>
-[DebuggerDisplay("Leader = {Leader.IsSelected}, Count = {Count}")]
+[DebuggerDisplay("Leader = {Leader.Value}, Count = {Count}, SelectedCount = {SelectedCount}")]
 public partial class ObservableSelectionGroup<TLeader, TMember, TMemberCollection>
     : ReactiveObjectX,
         ICollection<TMember>,
@@ -82,12 +82,9 @@ public partial class ObservableSelectionGroup<TLeader, TMember, TMemberCollectio
         {
             member.PropertyChanged -= Member_PropertyChanged;
             member.PropertyChanged += Member_PropertyChanged;
-            MemberWrapperByMember.Add(member, _memberWrapper.Clone(member));
         }
         RefreshLeader();
 
-        MemberWrapperByMember.DictionaryChanged -= MemberWrapperByMember_DictionaryChanged;
-        MemberWrapperByMember.DictionaryChanged += MemberWrapperByMember_DictionaryChanged;
         Leader.PropertyChanged -= Leader_PropertyChanged;
         Leader.PropertyChanged += Leader_PropertyChanged;
 
@@ -99,14 +96,6 @@ public partial class ObservableSelectionGroup<TLeader, TMember, TMemberCollectio
     /// 组长
     /// </summary>
     public ObservablePropertyWrapper<TLeader, bool?> Leader { get; }
-
-    /// <summary>
-    /// 成员 (Member, MemberWrapper)
-    /// </summary>
-    public ObservableDictionary<
-        TMember,
-        ObservablePropertyWrapper<TMember, bool>
-    > MemberWrapperByMember { get; } = [];
 
     /// <summary>
     /// 可观测成员
@@ -127,121 +116,8 @@ public partial class ObservableSelectionGroup<TLeader, TMember, TMemberCollectio
     public void RefreshLeader()
     {
         _changing = true;
-        SelectedCount = MemberWrapperByMember.Count(x => x.Value.Value);
-        Leader.Value =
-            SelectedCount == 0
-                ? false
-                : (SelectedCount == MemberWrapperByMember.Count ? true : null);
-        _changing = false;
-    }
-
-    private void MemberWrapperByMember_DictionaryChanged(
-        IObservableDictionary<TMember, ObservablePropertyWrapper<TMember, bool>> sender,
-        NotifyDictionaryChangeEventArgs<TMember, ObservablePropertyWrapper<TMember, bool>> e
-    )
-    {
-        _changing = true;
-        if (e.Action is DictionaryChangeAction.Add)
-        {
-            if (e.TryGetNewPair(out var _, out var newMember) is false)
-                return;
-            newMember.PropertyChanged -= Member_PropertyChanged;
-            newMember.PropertyChanged += Member_PropertyChanged;
-
-            if (newMember.Value is true)
-            {
-                if (Leader.Value is false)
-                {
-                    if (MemberWrapperByMember.Count == 1)
-                        Leader.Value = true;
-                    else
-                        Leader.Value = null;
-                }
-
-                SelectedCount++;
-            }
-            else if (newMember.Value is false)
-            {
-                if (Leader.Value is true)
-                {
-                    if (MemberWrapperByMember.Count == 1)
-                        Leader.Value = false;
-                    else
-                        Leader.Value = null;
-                }
-            }
-        }
-        else if (e.Action is DictionaryChangeAction.Remove)
-        {
-            if (e.TryGetOldPair(out var _, out var oldMember) is false)
-                return;
-            oldMember.PropertyChanged -= Member_PropertyChanged;
-
-            if (oldMember.Value is true)
-            {
-                if (SelectedCount == 1)
-                {
-                    if (MemberWrapperByMember.Count == 1)
-                        Leader.Value = false;
-                    else
-                        Leader.Value = null;
-                }
-                SelectedCount--;
-            }
-            else if (oldMember.Value is false)
-            {
-                if (Leader.Value is true)
-                {
-                    if (MemberWrapperByMember.Count == 1)
-                        Leader.Value = false;
-                    else
-                        Leader.Value = null;
-                }
-                else if (SelectedCount == MemberWrapperByMember.Count - 1)
-                {
-                    Leader.Value = true;
-                }
-            }
-        }
-        else if (e.Action is DictionaryChangeAction.Replace)
-        {
-            if (e.TryGetNewPair(out var _, out var newMember) is false)
-                return;
-            if (e.TryGetOldPair(out var _, out var oldMember) is false)
-                return;
-
-            newMember.PropertyChanged -= Member_PropertyChanged;
-            newMember.PropertyChanged += Member_PropertyChanged;
-
-            oldMember.PropertyChanged -= Member_PropertyChanged;
-
-            if (newMember.Value is true)
-            {
-                if (Leader.Value is false)
-                {
-                    if (MemberWrapperByMember.Count == 1)
-                        Leader.Value = true;
-                    else
-                        Leader.Value = null;
-                }
-
-                if (oldMember.Value is false)
-                    SelectedCount++;
-            }
-            else if (newMember.Value is false)
-            {
-                if (Leader.Value is true)
-                {
-                    if (MemberWrapperByMember.Count == 1)
-                        Leader.Value = false;
-                    else
-                        Leader.Value = null;
-                }
-
-                if (oldMember.Value is true)
-                    SelectedCount--;
-            }
-        }
+        SelectedCount = Members.Count(x => _memberWrapper.GetAction(x));
+        Leader.Value = SelectedCount == 0 ? false : (SelectedCount == Members.Count ? true : null);
         _changing = false;
     }
 
@@ -249,36 +125,22 @@ public partial class ObservableSelectionGroup<TLeader, TMember, TMemberCollectio
     {
         if (_changing)
             return;
+        _changing = true;
         if (sender is not TMember member)
             return;
-        if (MemberWrapperByMember.TryGetValue(member, out var wrapper) is false)
-            return;
-        _changing = true;
-        if (wrapper.Value)
-        {
-            if (Leader.Value is false)
-            {
-                if (
-                    (MemberWrapperByMember.Count == 1)
-                    || (SelectedCount == MemberWrapperByMember.Count - 1)
-                )
-                    Leader.Value = true;
-                else
-                    Leader.Value = null;
-            }
+        var selected = _memberWrapper.GetAction(member);
+
+        if (selected)
             SelectedCount++;
-        }
-        else if (wrapper.Value is false)
-        {
-            if (Leader.Value is true)
-            {
-                if (SelectedCount == 1)
-                    Leader.Value = false;
-                else
-                    Leader.Value = null;
-            }
+        else if (selected is false)
             SelectedCount--;
-        }
+
+        if (SelectedCount == Members.Count && Members.Count != 0)
+            Leader.Value = true;
+        else if (SelectedCount != 0)
+            Leader.Value = null;
+        else
+            Leader.Value = false;
         _changing = false;
     }
 
@@ -289,15 +151,14 @@ public partial class ObservableSelectionGroup<TLeader, TMember, TMemberCollectio
         _changing = true;
         if (Leader.Value is true)
         {
-            foreach (var pair in MemberWrapperByMember)
-                pair.Value.Value = true;
-
-            SelectedCount = MemberWrapperByMember.Count;
+            foreach (var item in Members)
+                _memberWrapper.SetAction(item, true);
+            SelectedCount = Members.Count;
         }
         else if (Leader.Value is false)
         {
-            foreach (var pair in MemberWrapperByMember)
-                pair.Value.Value = false;
+            foreach (var item in Members)
+                _memberWrapper.SetAction(item, false);
             SelectedCount = 0;
         }
         _changing = false;
@@ -308,33 +169,38 @@ public partial class ObservableSelectionGroup<TLeader, TMember, TMemberCollectio
         NotifyCollectionChangedEventArgs e
     )
     {
-        if (e.Action == NotifyCollectionChangedAction.Add)
-        {
-            foreach (var item in e.NewItems!.Cast<TMember>())
-            {
-                MemberWrapperByMember.Add(item, _memberWrapper.Clone(item));
-            }
-        }
-        else if (e.Action == NotifyCollectionChangedAction.Remove)
+        _changing = true;
+
+        if (e.OldItems is not null)
         {
             foreach (var item in e.OldItems!.Cast<TMember>())
             {
-                MemberWrapperByMember.Remove(item);
+                item.PropertyChanged -= Member_PropertyChanged;
+
+                var selected = _memberWrapper.GetAction(item);
+                if (selected)
+                    SelectedCount--;
             }
         }
-        else if (e.Action is NotifyCollectionChangedAction.Replace)
+        if (e.NewItems is not null)
         {
-            for (var i = 0; i < e.OldItems!.Count; i++)
+            foreach (var item in e.NewItems!.Cast<TMember>())
             {
-                MemberWrapperByMember[(TMember)e.OldItems[i]!] = _memberWrapper.Clone(
-                    (TMember)e.NewItems![i]!
-                );
+                item.PropertyChanged -= Member_PropertyChanged;
+                item.PropertyChanged += Member_PropertyChanged;
+
+                var selected = _memberWrapper.GetAction(item);
+                if (selected is true)
+                    SelectedCount++;
             }
         }
-        else if (e.Action == NotifyCollectionChangedAction.Reset)
-        {
-            MemberWrapperByMember.Clear();
-        }
+        if (SelectedCount == Members.Count && Members.Count != 0)
+            Leader.Value = true;
+        else if (SelectedCount != 0)
+            Leader.Value = null;
+        else
+            Leader.Value = false;
+        _changing = false;
     }
 
     #region IDisposable
@@ -366,13 +232,11 @@ public partial class ObservableSelectionGroup<TLeader, TMember, TMemberCollectio
         {
             Leader.Dispose();
             Leader.PropertyChanged -= Leader_PropertyChanged;
-            foreach (var pair in MemberWrapperByMember)
+            foreach (var member in Members)
             {
-                pair.Value.Dispose();
-                pair.Value.PropertyChanged -= Member_PropertyChanged;
+                member.PropertyChanged -= Member_PropertyChanged;
             }
-            MemberWrapperByMember.DictionaryChanged -= MemberWrapperByMember_DictionaryChanged;
-            MemberWrapperByMember.Clear();
+            Members.Clear();
         }
 
         _disposed = true;

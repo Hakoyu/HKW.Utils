@@ -1,10 +1,12 @@
-﻿using HKW.HKWReactiveUI;
+﻿using System.Diagnostics;
+using HKW.HKWReactiveUI;
 
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
 /// 可观测的选择组组长
 /// </summary>
+[DebuggerDisplay("IsSelected = {IsSelected}")]
 public partial class ObservableSelectionGroupLeader : ReactiveObjectX
 {
     /// <inheritdoc/>

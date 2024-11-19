@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using HKW.HKWReactiveUI;
 using ReactiveUI;
 
@@ -9,6 +10,7 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="TSource">源类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
+[DebuggerDisplay("Source = {Source}, PropertyName = {PropertyName}")]
 public partial class ObservablePropertyWrapper<TSource, TValue>
     : ReactiveObjectX,
         ICloneable<ObservablePropertyWrapper<TSource, TValue>>,

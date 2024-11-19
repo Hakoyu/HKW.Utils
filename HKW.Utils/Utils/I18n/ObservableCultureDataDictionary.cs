@@ -10,7 +10,8 @@ namespace HKW.HKWUtils;
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
 public class ObservableCultureDataDictionary<TKey, TValue>
-    : ObservableDictionaryWrapper<CultureInfo, TValue, ConcurrentDictionary<CultureInfo, TValue>>
+    : ObservableDictionaryWrapper<CultureInfo, TValue, ConcurrentDictionary<CultureInfo, TValue>>,
+        ICloneable<ObservableCultureDataDictionary<TKey, TValue>>
     where TKey : notnull
 {
     /// <inheritdoc/>
@@ -32,4 +33,30 @@ public class ObservableCultureDataDictionary<TKey, TValue>
         get => this[CultureInfo.GetCultureInfo(cultureName)];
         set => this[CultureInfo.GetCultureInfo(cultureName)] = value;
     }
+
+    /// <summary>
+    /// 值克隆行动,如果值类型是引用类型可设置此行动
+    /// </summary>
+    public Func<TValue, TValue>? ValueCloneAction { get; set; }
+
+    #region ICloneable
+    /// <inheritdoc/>
+    public ObservableCultureDataDictionary<TKey, TValue> Clone()
+    {
+        var dictionary = new ObservableCultureDataDictionary<TKey, TValue>() { Key = Key };
+        foreach (var pair in this)
+        {
+            dictionary.Add(
+                pair.Key,
+                ValueCloneAction is null ? pair.Value : ValueCloneAction(pair.Value)
+            );
+        }
+        return dictionary;
+    }
+
+    object ICloneable.Clone()
+    {
+        return Clone();
+    }
+    #endregion
 }
