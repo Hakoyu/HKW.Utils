@@ -61,7 +61,7 @@ public static class EnumInfo
         if (InfosByType.TryGetValue(type, out var infos) is false)
             return false;
         if (infos.TryGetValue(@enum, out info) is false)
-            return false;
+            info = infos.First().Value.Create(@enum);
         return true;
     }
 
@@ -104,7 +104,10 @@ public static class EnumInfo
         where TEnum : struct, Enum
     {
         EnumInfo<TEnum>.Initialize();
-        return (EnumInfo<TEnum>)InfosByType[typeof(TEnum)][@enum];
+        var infos = InfosByType[typeof(TEnum)];
+        if (infos.TryGetValue(@enum, out var info) is false)
+            info = infos.First().Value.Create(@enum);
+        return (EnumInfo<TEnum>)info;
     }
 
     /// <summary>
@@ -134,6 +137,33 @@ public static class EnumInfo
             EnumInfoDisplayTarget.Description => info.DisplayDescription,
             _ => info.DisplayName,
         };
+    }
+
+    /// <summary>
+    /// 清除缓存
+    /// </summary>
+    public static void ClearCache()
+    {
+        InfosByType.Clear();
+    }
+
+    /// <summary>
+    /// 清除指定枚举缓存
+    /// </summary>
+    /// <typeparam name="TEnum">枚举类型</typeparam>
+    public static void ClearCache<TEnum>()
+        where TEnum : struct, Enum
+    {
+        InfosByType.Remove(typeof(TEnum), out var _);
+    }
+
+    /// <summary>
+    /// 清除指定枚举缓存
+    /// </summary>
+    /// <param name="enumType">枚举类型</param>
+    public static void ClearCache(Type enumType)
+    {
+        InfosByType.Remove(enumType, out var _);
     }
 
     #region Default
@@ -216,7 +246,7 @@ public static class EnumInfo
                     if (v.IsFlagable is false)
                         return v.Display?.Name ?? v.Value.ToString();
                     return string.Join(
-                        " | ",
+                        ", ",
                         v.GetFlagInfos().Select(static i => i.Display?.Name ?? i.Value.ToString())
                     );
                 }
@@ -238,7 +268,7 @@ public static class EnumInfo
                     if (v.IsFlagable is false)
                         return v.Display?.ShortName ?? v.Value.ToString();
                     return string.Join(
-                        " | ",
+                        ", ",
                         v.GetFlagInfos()
                             .Select(static i => i.Display?.ShortName ?? i.Value.ToString())
                     );
@@ -261,7 +291,7 @@ public static class EnumInfo
                     if (v.IsFlagable is false)
                         return v.Display?.Description ?? v.Value.ToString();
                     return string.Join(
-                        " | ",
+                        ", ",
                         v.GetFlagInfos()
                             .Select(static i => i.Display?.Description ?? i.Value.ToString())
                     );

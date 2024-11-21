@@ -35,6 +35,9 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
+        EnumInfo<TestEnum1>.Initialize();
+        var info = EnumInfo.GetEnumInfo<TestEnum1>(TestEnum1.A | TestEnum1.B);
+        var s = info.DisplayName;
         //var leader = new ObservableSelectionGroupLeader();
         //var members = Enumerable
         //    .Range(0, 2)
@@ -59,13 +62,13 @@ internal class Program
         //    ),
         //    members
         //);
-        var group = new ObservableSelectionGroup<TestModel>();
-        group.Add(new(new() { ID = "A" }));
-        group.Add(new(new() { ID = "B" }));
-        //group.Add(new(new() { ID = "C" }));
-        group.First().IsSelected = true;
-        group.Last().IsSelected = true;
-        var r = group.Leader.Value;
+        //var group = new ObservableSelectionGroup<TestModel>();
+        //group.Add(new(new() { ID = "A" }));
+        //group.Add(new(new() { ID = "B" }));
+        ////group.Add(new(new() { ID = "C" }));
+        //group.First().IsSelected = true;
+        //group.Last().IsSelected = true;
+        //var r = group.Leader.Value;
 #endif
     }
 

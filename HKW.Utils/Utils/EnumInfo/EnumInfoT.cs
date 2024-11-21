@@ -15,15 +15,20 @@ namespace HKW.HKWUtils;
 /// 枚举信息
 /// </summary>
 /// <typeparam name="TEnum">枚举类型</typeparam>
+[DebuggerDisplay("{Value}")]
 public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     where TEnum : struct, Enum
 {
     /// <inheritdoc/>
-    protected EnumInfo() { }
-
-    private EnumInfo(TEnum value)
+    protected EnumInfo(TEnum value)
     {
         Value = value;
+    }
+
+    /// <inheritdoc/>
+    public IEnumInfo Create(Enum @enum)
+    {
+        return new EnumInfo<TEnum>((TEnum)@enum);
     }
 
     /// <inheritdoc/>
@@ -137,7 +142,6 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
             throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
         return Infos.Values.Where(i => Value.HasFlag(i.Value));
     }
-
     #endregion
 
     #region IEnumInfoT
@@ -186,15 +190,15 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     }
 
     /// <inheritdoc/>
-    public override bool Equals(object? obj)
-    {
-        return Equals(obj as IEnumInfo<TEnum>);
-    }
-
-    /// <inheritdoc/>
     public bool Equals(TEnum other)
     {
         return Value.Equals(other);
+    }
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as IEnumInfo<TEnum>);
     }
 
     /// <inheritdoc/>
@@ -255,16 +259,24 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// </summary>
     public static void Initialize()
     {
-        EnumInfo.InfosByType[EnumType] = Infos;
+        EnumInfo.InfosByType.TryAdd(EnumType, Infos);
     }
 
-    private static Lazy<FrozenDictionary<Enum, IEnumInfo>> _infos =
-        new(() => Values.ToFrozenDictionary(v => (Enum)v, v => (IEnumInfo)new EnumInfo<TEnum>(v)));
+    /// <summary>
+    /// 全部名称
+    /// </summary>
+    public static FrozenSet<string> Names { get; } = Enum.GetNames<TEnum>().ToFrozenSet();
+
+    /// <summary>
+    /// 全部值
+    /// </summary>
+    public static FrozenSet<TEnum> Values { get; } = Enum.GetValues<TEnum>().ToFrozenSet();
 
     /// <summary>
     /// 信息
     /// </summary>
-    public static FrozenDictionary<Enum, IEnumInfo> Infos => _infos.Value;
+    public static FrozenDictionary<Enum, IEnumInfo> Infos { get; } =
+        Values.ToFrozenDictionary(v => (Enum)v, v => (IEnumInfo)new EnumInfo<TEnum>(v));
 
     /// <summary>
     /// 获取信息
@@ -273,27 +285,10 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// <returns>信息</returns>
     public static EnumInfo<TEnum> GetInfo(TEnum @enum)
     {
-        return (EnumInfo<TEnum>)Infos[@enum];
+        if (Infos.TryGetValue(@enum, out var info))
+            return (EnumInfo<TEnum>)info;
+        return (EnumInfo<TEnum>)Infos.First().Value.Create(@enum);
     }
-
-    #region Names
-    private static Lazy<FrozenSet<string>> _names = new(() => Enum.GetNames<TEnum>().ToFrozenSet());
-
-    /// <summary>
-    /// 全部名称
-    /// </summary>
-    public static FrozenSet<string> Names => _names.Value;
-    #endregion
-
-    #region Values
-    private static Lazy<FrozenSet<TEnum>> _values =
-        new(() => Enum.GetValues<TEnum>().ToFrozenSet());
-
-    /// <summary>
-    /// 全部值
-    /// </summary>
-    public static FrozenSet<TEnum> Values => _values.Value;
-    #endregion
 
     /// <summary>
     /// 枚举类型
@@ -337,6 +332,7 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
                 v => v.FieldInfo.GetCustomAttribute<DisplayAttribute>()!
             );
     }
+
     #endregion
 
     #region Default

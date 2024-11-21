@@ -129,4 +129,10 @@ public interface IEnumInfo
     /// <returns>全部标志信息</returns>
     /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
     public IEnumerable<IEnumInfo> GetFlagInfos();
+
+    /// <summary>
+    /// 创建一个新的枚举信息
+    /// </summary>
+    /// <returns>枚举信息</returns>
+    public IEnumInfo Create(Enum @enum);
 }
