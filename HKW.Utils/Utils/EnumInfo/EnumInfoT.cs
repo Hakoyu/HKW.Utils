@@ -20,13 +20,20 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     where TEnum : struct, Enum
 {
     /// <inheritdoc/>
-    protected EnumInfo(TEnum value)
+    public EnumInfo(TEnum value)
     {
         Value = value;
     }
 
     /// <inheritdoc/>
-    public IEnumInfo Create(Enum @enum)
+    public static EnumInfo<TEnum> Create(Enum @enum)
+    {
+        EnumInfo.InfosByType.TryAdd(EnumType, Infos);
+        return new EnumInfo<TEnum>((TEnum)@enum);
+    }
+
+    /// <inheritdoc/>
+    IEnumInfo IEnumInfo.Create(Enum @enum)
     {
         return new EnumInfo<TEnum>((TEnum)@enum);
     }
@@ -255,12 +262,19 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     #region static
 
     /// <summary>
-    /// 初始化, 初始化枚举信息并存储至 <see cref="EnumInfo"/>
+    /// 枚举类型
     /// </summary>
-    public static void Initialize()
-    {
-        EnumInfo.InfosByType.TryAdd(EnumType, Infos);
-    }
+    public static Type EnumType { get; } = typeof(TEnum);
+
+    /// <summary>
+    /// 基础类型
+    /// </summary>
+    public static Type UnderlyingType { get; } = EnumType.GetEnumUnderlyingType();
+
+    /// <summary>
+    /// 是可标记的
+    /// </summary>
+    public static bool IsFlagable { get; } = Attribute.IsDefined(EnumType, typeof(FlagsAttribute));
 
     /// <summary>
     /// 全部名称
@@ -290,29 +304,8 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
         return (EnumInfo<TEnum>)Infos.First().Value.Create(@enum);
     }
 
-    /// <summary>
-    /// 枚举类型
-    /// </summary>
-    public static Type EnumType { get; } = typeof(TEnum);
-
-    /// <summary>
-    /// 基础类型
-    /// </summary>
-    public static Type UnderlyingType { get; } = typeof(TEnum).GetEnumUnderlyingType();
-
-    #region IsFlagable
-    private static Lazy<bool> _isFlagable =
-        new(() => Attribute.IsDefined(EnumType, typeof(FlagsAttribute)));
-
-    /// <summary>
-    /// 是可标记的
-    /// </summary>
-    public static bool IsFlagable => _isFlagable.Value;
-    #endregion
-
     #region EnumDisplays
-    private static Lazy<FrozenDictionary<TEnum, DisplayAttribute>> _enumDisplays =
-        new(() => GetEnumInfo());
+    private static FrozenDictionary<TEnum, DisplayAttribute>? _enumDisplays;
 
     /// <summary>
     /// 枚举信息
@@ -320,12 +313,13 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// (Enum, DisplayAttribute)
     /// </para>
     /// </summary>
-    public static FrozenDictionary<TEnum, DisplayAttribute> EnumDisplays => _enumDisplays.Value;
+    public static FrozenDictionary<TEnum, DisplayAttribute> EnumDisplays =>
+        _enumDisplays ??= GetEnumInfo();
 
     private static FrozenDictionary<TEnum, DisplayAttribute> GetEnumInfo()
     {
         return Values
-            .Select(static v => (Value: v, FieldInfo: typeof(TEnum).GetField(v.ToString())!))
+            .Select(static v => (Value: v, FieldInfo: EnumType.GetField(v.ToString())!))
             .Where(static v => v.FieldInfo.IsDefined(typeof(DisplayAttribute)))
             .ToFrozenDictionary(
                 v => v.Value,

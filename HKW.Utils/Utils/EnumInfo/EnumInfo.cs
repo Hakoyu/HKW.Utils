@@ -7,6 +7,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,116 +31,6 @@ public static class EnumInfo
     > InfosByType { get; } = [];
 
     /// <summary>
-    /// 获取枚举信息
-    /// </summary>
-    /// <param name="type">枚举类型</param>
-    /// <param name="enum">枚举值</param>
-    /// <returns>枚举信息接口</returns>
-    public static IEnumInfo? GetEnumInfo(Type type, Enum @enum)
-    {
-        if (TryGetEnumInfo(type, @enum, out var info) is false)
-            throw new InvalidOperationException(
-                $"The specified enum type [{type.FullName}] is not initialized, use EnumInfo<Enum>.Initialize() first."
-            );
-        return info;
-    }
-
-    /// <summary>
-    /// 尝试获取枚举信息
-    /// </summary>
-    /// <param name="type">枚举类型</param>
-    /// <param name="enum">枚举值</param>
-    /// <param name="info">枚举信息</param>
-    /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
-    public static bool TryGetEnumInfo(
-        Type type,
-        Enum @enum,
-        [MaybeNullWhen(false)] out IEnumInfo info
-    )
-    {
-        info = default;
-        if (InfosByType.TryGetValue(type, out var infos) is false)
-            return false;
-        if (infos.TryGetValue(@enum, out info) is false)
-            info = infos.First().Value.Create(@enum);
-        return true;
-    }
-
-    /// <summary>
-    /// 获取枚举信息
-    /// </summary>
-    /// <param name="type">枚举类型</param>
-    /// <returns>枚举信息接口</returns>
-    public static IEnumInfo? GetEnumInfo(Type type)
-    {
-        if (TryGetEnumInfo(type, out var info) is false)
-            throw new InvalidOperationException(
-                $"The specified enum type [{type.FullName}] is not initialized, use EnumInfo<Enum>.Initialize() first."
-            );
-        return info;
-    }
-
-    /// <summary>
-    /// 尝试获取枚举信息
-    /// </summary>
-    /// <param name="type">枚举类型</param>
-    /// <param name="info">枚举信息</param>
-    /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
-    public static bool TryGetEnumInfo(Type type, [MaybeNullWhen(false)] out IEnumInfo info)
-    {
-        info = default;
-        if (InfosByType.TryGetValue(type, out var infos) is false)
-            return false;
-        info = infos.First().Value;
-        return true;
-    }
-
-    /// <summary>
-    /// 获取枚举信息
-    /// </summary>
-    /// <typeparam name="TEnum">枚举类型</typeparam>
-    /// <param name="enum">枚举值</param>
-    /// <returns>枚举信息</returns>
-    public static EnumInfo<TEnum> GetEnumInfo<TEnum>(TEnum @enum)
-        where TEnum : struct, Enum
-    {
-        EnumInfo<TEnum>.Initialize();
-        var infos = InfosByType[typeof(TEnum)];
-        if (infos.TryGetValue(@enum, out var info) is false)
-            info = infos.First().Value.Create(@enum);
-        return (EnumInfo<TEnum>)info;
-    }
-
-    /// <summary>
-    /// 获取枚举信息
-    /// </summary>
-    /// <typeparam name="TEnum">枚举类型</typeparam>
-    /// <returns>枚举信息</returns>
-    public static EnumInfo<TEnum> GetEnumInfo<TEnum>()
-        where TEnum : struct, Enum
-    {
-        EnumInfo<TEnum>.Initialize();
-        return (EnumInfo<TEnum>)InfosByType[typeof(TEnum)].First().Value;
-    }
-
-    /// <summary>
-    /// 获取信息
-    /// </summary>
-    /// <param name="info">枚举信息</param>
-    /// <param name="target">目标</param>
-    /// <returns>目标信息</returns>
-    public static string GetInfo(this IEnumInfo info, EnumInfoDisplayTarget target)
-    {
-        return target switch
-        {
-            EnumInfoDisplayTarget.Name => info.DisplayName,
-            EnumInfoDisplayTarget.ShortName => info.DisplayShortName,
-            EnumInfoDisplayTarget.Description => info.DisplayDescription,
-            _ => info.DisplayName,
-        };
-    }
-
-    /// <summary>
     /// 清除缓存
     /// </summary>
     public static void ClearCache()
@@ -148,20 +39,20 @@ public static class EnumInfo
     }
 
     /// <summary>
-    /// 清除指定枚举缓存
+    /// 删除指定枚举缓存
     /// </summary>
     /// <typeparam name="TEnum">枚举类型</typeparam>
-    public static void ClearCache<TEnum>()
+    public static void RemoveCache<TEnum>()
         where TEnum : struct, Enum
     {
         InfosByType.Remove(typeof(TEnum), out var _);
     }
 
     /// <summary>
-    /// 清除指定枚举缓存
+    /// 删除指定枚举缓存
     /// </summary>
     /// <param name="enumType">枚举类型</param>
-    public static void ClearCache(Type enumType)
+    public static void RemoveCache(Type enumType)
     {
         InfosByType.Remove(enumType, out var _);
     }
@@ -223,87 +114,94 @@ public static class EnumInfo
 
     #endregion
 
-
-
     #region GlobalDefault
 
     #region GlobalDefaultToString
-    private static Lazy<Func<IEnumInfo, string>> _globalDefaultToString =
-        new(() => static v => v.Value.ToString());
+    private static Func<IEnumInfo, string>? _globalDefaultToString;
 
     /// <summary>
     /// 全局默认到字符串方法
     /// </summary>
-    public static Func<IEnumInfo, string> GlobalDefaultToString => _globalDefaultToString.Value;
+    public static Func<IEnumInfo, string> GlobalDefaultToString =>
+        _globalDefaultToString ??= static v => v.Value.ToString();
     #endregion
 
     #region GlobalDefaultGetName
-    private static Lazy<Func<IEnumInfo, string>> _globalDefaultGetDisplayName =
-        new(
-            () =>
-                static v =>
-                {
-                    if (v.IsFlagable is false)
-                        return v.Display?.Name ?? v.Value.ToString();
-                    return string.Join(
-                        ", ",
-                        v.GetFlagInfos().Select(static i => i.Display?.Name ?? i.Value.ToString())
-                    );
-                }
-        );
+    private static Func<IEnumInfo, string>? _globalDefaultGetDisplayName;
 
     /// <summary>
     /// 全局默认获取名称方法
     /// </summary>
     public static Func<IEnumInfo, string> GlobalDefaultGetDisplayName =>
-        _globalDefaultGetDisplayName.Value;
+        _globalDefaultGetDisplayName ??= static v =>
+        {
+            if (v.IsFlagable is false)
+                return v.Display?.Name ?? v.Value.ToString();
+            return string.Join(
+                ", ",
+                v.GetFlagInfos().Select(static i => i.Display?.Name ?? i.Value.ToString())
+            );
+        };
     #endregion
 
     #region GlobalDefaultGetShortName
-    private static Lazy<Func<IEnumInfo, string>> _globalDefaultGetDisplayShortName =
-        new(
-            () =>
-                static v =>
-                {
-                    if (v.IsFlagable is false)
-                        return v.Display?.ShortName ?? v.Value.ToString();
-                    return string.Join(
-                        ", ",
-                        v.GetFlagInfos()
-                            .Select(static i => i.Display?.ShortName ?? i.Value.ToString())
-                    );
-                }
-        );
+    private static Func<IEnumInfo, string>? _globalDefaultGetDisplayShortName;
 
     /// <summary>
     /// 全局默认获取短名称方法
     /// </summary>
     public static Func<IEnumInfo, string> GlobalDefaultGetDisplayShortName =>
-        _globalDefaultGetDisplayShortName.Value;
+        _globalDefaultGetDisplayShortName ??= static v =>
+        {
+            if (v.IsFlagable is false)
+                return v.Display?.ShortName ?? v.Value.ToString();
+            return string.Join(
+                ", ",
+                v.GetFlagInfos().Select(static i => i.Display?.ShortName ?? i.Value.ToString())
+            );
+        };
     #endregion
 
     #region GlobalDefaultGetDescription
-    private static Lazy<Func<IEnumInfo, string>> _globalDefaultGetDisplayDescription =
-        new(
-            () =>
-                static v =>
-                {
-                    if (v.IsFlagable is false)
-                        return v.Display?.Description ?? v.Value.ToString();
-                    return string.Join(
-                        ", ",
-                        v.GetFlagInfos()
-                            .Select(static i => i.Display?.Description ?? i.Value.ToString())
-                    );
-                }
-        );
+    private static Func<IEnumInfo, string>? _globalDefaultGetDisplayDescription;
 
     /// <summary>
     /// 全局默认获取描述方法
     /// </summary>
     public static Func<IEnumInfo, string> GlobalDefaultGetDisplayDescription =>
-        _globalDefaultGetDisplayDescription.Value;
+        _globalDefaultGetDisplayDescription ??= static v =>
+        {
+            if (v.IsFlagable is false)
+                return v.Display?.Description ?? v.Value.ToString();
+            return string.Join(
+                ", ",
+                v.GetFlagInfos().Select(static i => i.Display?.Description ?? i.Value.ToString())
+            );
+        };
     #endregion
 
     #endregion
+
+    /// <summary>
+    /// 创建枚举信息表达式
+    /// </summary>
+    /// <param name="enumType">枚举类型</param>
+    /// <returns>构造方法</returns>
+    internal static Func<Enum, IEnumInfo> CreateEnumInfoExpression(Type enumType)
+    {
+        //var enumParam = Expression.Parameter(typeof(Enum), "enumValue");
+        //var constructor = typeof(EnumInfo<>)
+        //    .MakeGenericType(enumType)
+        //    .GetConstructor(new[] { enumType });
+        //var enumInfo = Expression.New(constructor!, Expression.Convert(enumParam, enumType));
+        //var lambda = Expression.Lambda<Func<Enum, IEnumInfo>>(enumInfo, enumParam);
+        //return lambda.Compile();
+        var enumParam = Expression.Parameter(typeof(Enum), "enumValue");
+        var createMethod = typeof(EnumInfo<>)
+            .MakeGenericType(enumType)
+            .GetMethod(nameof(EnumInfo<StringComparison>.Create), new[] { typeof(Enum) });
+        var createCall = Expression.Call(createMethod!, enumParam);
+        var lambda = Expression.Lambda<Func<Enum, IEnumInfo>>(createCall, enumParam);
+        return lambda.Compile();
+    }
 }

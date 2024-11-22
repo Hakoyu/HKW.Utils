@@ -35,8 +35,9 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-        EnumInfo<TestEnum1>.Initialize();
-        var info = EnumInfo.GetEnumInfo<TestEnum1>(TestEnum1.A | TestEnum1.B);
+        Enum e = TestEnum1.A | TestEnum1.B;
+        var info = e.GetInfo();
+        info = e.GetInfo();
         var s = info.DisplayName;
         //var leader = new ObservableSelectionGroupLeader();
         //var members = Enumerable
