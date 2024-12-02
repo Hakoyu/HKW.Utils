@@ -23,6 +23,7 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX, ICloneable<Observa
         Value = value;
     }
 
+    /// <inheritdoc cref="AddFlagInfo(global::HKW.HKWUtils.IEnumInfo{TEnum})"/>
     /// <inheritdoc/>
     /// <param name="value">枚举值</param>
     /// <param name="addFlag">添加枚举值 <c>(v, f) => v | f</c></param>
