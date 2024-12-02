@@ -17,7 +17,7 @@ public static partial class HKWExtensions
     /// <param name="items">项目</param>
     public static void AddRange<T>(this ICollection<T> collection, IEnumerable<T> items)
     {
-        if (collection is IList<T> list)
+        if (collection is List<T> list)
         {
             list.AddRange(items);
         }

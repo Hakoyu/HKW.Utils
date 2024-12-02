@@ -46,17 +46,6 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
         FilteredDictionary = filteredDictionary;
         Filter = filter;
     }
-
-    ///// <inheritdoc/>
-    ///// <param name="dictionary">字典</param>
-    ///// <param name="getFilteredDictionary">获取过滤字典</param>
-    ///// <param name="filter">过滤器</param>
-    //public FilterDictionaryWrapper(
-    //    TDictionary dictionary,
-    //    Func<TDictionary, TFilteredDictionary> getFilteredDictionary,
-    //    Predicate<KeyValuePair<TKey, TValue>> filter
-    //)
-    //    : this(dictionary, getFilteredDictionary(dictionary), filter) { }
     #endregion
 
     /// <inheritdoc/>
@@ -155,7 +144,7 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
         set
         {
             ((IDictionary<TKey, TValue>)BaseDictionary)[key] = value;
-            if (AutoFilter is false || FilteredDictionary.IsReadOnly)
+            if (AutoFilter is false)
                 return;
             if (Filter(new(key, value)) is false)
                 return;
@@ -170,7 +159,7 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
     public void Add(TKey key, TValue value)
     {
         ((IDictionary<TKey, TValue>)BaseDictionary).Add(key, value);
-        if (AutoFilter is false || FilteredDictionary.IsReadOnly)
+        if (AutoFilter is false)
             return;
         if (Filter(new(key, value)))
             FilteredDictionary.Add(key, value);
@@ -186,7 +175,7 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
     public bool Remove(TKey key)
     {
         var result = ((IDictionary<TKey, TValue>)BaseDictionary).Remove(key);
-        if (AutoFilter is false || FilteredDictionary.IsReadOnly)
+        if (AutoFilter is false)
             return result;
         if (result)
             FilteredDictionary.Remove(key);
@@ -203,7 +192,7 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
     public void Add(KeyValuePair<TKey, TValue> item)
     {
         ((ICollection<KeyValuePair<TKey, TValue>>)BaseDictionary).Add(item);
-        if (AutoFilter is false || FilteredDictionary.IsReadOnly)
+        if (AutoFilter is false)
             return;
         if (Filter(item))
             FilteredDictionary.Add(item);
@@ -213,8 +202,6 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
     public void Clear()
     {
         ((ICollection<KeyValuePair<TKey, TValue>>)BaseDictionary).Clear();
-        if (AutoFilter is false || FilteredDictionary.IsReadOnly)
-            return;
         FilteredDictionary.Clear();
     }
 
@@ -234,7 +221,7 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
     public bool Remove(KeyValuePair<TKey, TValue> item)
     {
         var result = ((ICollection<KeyValuePair<TKey, TValue>>)BaseDictionary).Remove(item);
-        if (AutoFilter is false || result || FilteredDictionary.IsReadOnly is false)
+        if (AutoFilter is false || result is false)
             FilteredDictionary.Remove(item);
         return result;
     }

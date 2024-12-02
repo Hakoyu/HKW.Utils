@@ -35,10 +35,18 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-        Enum e = TestEnum1.A | TestEnum1.B;
-        var info = e.GetInfo();
-        info = e.GetInfo();
-        var s = info.DisplayName;
+        var r = decimal.Zero.CompareTo(decimal.MaxValue);
+        //var observableDictionary = new ObservableDictionaryWrapper<
+        //    string,
+        //    string,
+        //    Dictionary<string, string>
+        //>(new Dictionary<string, string>());
+        //var e = TestEnum1.A | TestEnum1.B | TestEnum1.C;
+        //var e1 = e.RemoveFlag(TestEnum1.B);
+        //EnumInfo<TestEnum1>.DefaultToString = x => $"{x.Value}_String";
+        //var info = EnumInfo<TestEnum1>.GetInfo(e);
+        //var str = info.ToString();
+        //var i = info.Names.GetItemByIndex(3);
         //var leader = new ObservableSelectionGroupLeader();
         //var members = Enumerable
         //    .Range(0, 2)

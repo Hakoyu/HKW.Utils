@@ -18,7 +18,7 @@ public interface IFilterCollection<T, TCollection, TFilteredCollection> : IColle
     where TFilteredCollection : ICollection<T>
 {
     /// <summary>
-    /// 自动过滤
+    /// 自动过滤, 为 <see langword="false"/> 时过滤列表将不会因主列表的变动而发生改变, <see cref="ICollection{T}.Clear"/> 除外
     /// </summary>
     public bool AutoFilter { get; set; }
 

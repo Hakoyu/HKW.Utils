@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
+using HKW.HKWReactiveUI;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Extensions;
 
@@ -197,7 +199,10 @@ public class ObservableSetWrapper<TItem, TSet>
     }
 
     #endregion ISet
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly List<int> _addIndexs = new();
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly List<int> _removeIndexs = new();
 
     #region SetChanging

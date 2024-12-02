@@ -45,7 +45,7 @@ public sealed class I18nObject<TKey, TValue> : IEquatable<I18nObject<TKey, TValu
     /// <summary>
     /// 属性改变后事件
     /// </summary>
-    public PropertyChanged OnPropertyChanged { get; }
+    public PropertyChanged OnPropertyChanged { get; private set; }
 
     /// <summary>
     /// 基于键属性名称的目标属性名称
@@ -232,11 +232,14 @@ public sealed class I18nObject<TKey, TValue> : IEquatable<I18nObject<TKey, TValu
             foreach (var pair in KeyNameToTargetNames)
                 pair.Value.Clear();
             KeyToTargetNames.Clear();
+            KeyNameToGetKey.Clear();
+            KeyNameToTargetNames.Clear();
             RetentionValueOnKeyChangePropertyNames.Clear();
 
             Source.PropertyChanging -= Source_PropertyChanging;
             Source.PropertyChanged -= Source_PropertyChanged;
             Source = null!;
+            OnPropertyChanged = null!;
         }
 
         _disposed = true;

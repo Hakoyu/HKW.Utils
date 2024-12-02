@@ -41,17 +41,6 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
         FilteredSet = filteredSet;
         Filter = filter;
     }
-
-    ///// <inheritdoc/>
-    ///// <param name="set">集合</param>
-    ///// <param name="getFilteredSet">获取过滤集合</param>
-    ///// <param name="filter">过滤器</param>
-    //public FilterSetWrapper(
-    //    TSet set,
-    //    Func<TSet, TFilteredSet> getFilteredSet,
-    //    Predicate<TItem> filter
-    //)
-    //    : this(set, getFilteredSet(set), filter) { }
     #endregion
 
     /// <inheritdoc/>
@@ -107,7 +96,7 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     public bool Add(TItem item)
     {
         var result = ((ISet<TItem>)BaseSet).Add(item);
-        if (AutoFilter && result && Filter(item) && FilteredSet.IsReadOnly is false)
+        if (AutoFilter && result && Filter(item))
             FilteredSet.Add(item);
         return result;
     }
@@ -116,8 +105,6 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     public void Clear()
     {
         ((ICollection<TItem>)BaseSet).Clear();
-        if (AutoFilter is false || FilteredSet.IsReadOnly)
-            return;
         FilteredSet.Clear();
     }
 
@@ -137,7 +124,7 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     public void ExceptWith(IEnumerable<TItem> other)
     {
         ((ISet<TItem>)BaseSet).ExceptWith(other);
-        if (AutoFilter is false || FilteredSet.IsReadOnly)
+        if (AutoFilter is false)
             return;
         FilteredSet.ExceptWith(other.Where(i => Filter(i)));
     }
@@ -152,7 +139,7 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     public void IntersectWith(IEnumerable<TItem> other)
     {
         ((ISet<TItem>)BaseSet).IntersectWith(other);
-        if (AutoFilter is false || FilteredSet.IsReadOnly)
+        if (AutoFilter is false)
             return;
         FilteredSet.IntersectWith(other.Where(i => Filter(i)));
     }
@@ -205,7 +192,7 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     public void SymmetricExceptWith(IEnumerable<TItem> other)
     {
         ((ISet<TItem>)BaseSet).SymmetricExceptWith(other);
-        if (AutoFilter is false || FilteredSet.IsReadOnly)
+        if (AutoFilter is false)
             return;
         FilteredSet.SymmetricExceptWith(other.Where(i => Filter(i)));
     }
@@ -214,7 +201,7 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     public void UnionWith(IEnumerable<TItem> other)
     {
         ((ISet<TItem>)BaseSet).UnionWith(other);
-        if (AutoFilter is false || FilteredSet.IsReadOnly)
+        if (AutoFilter is false)
             return;
         FilteredSet.UnionWith(other.Where(i => Filter(i)));
     }
@@ -222,7 +209,7 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     void ICollection<TItem>.Add(TItem item)
     {
         ((ICollection<TItem>)BaseSet).Add(item);
-        if (AutoFilter is false || FilteredSet.IsReadOnly)
+        if (AutoFilter is false)
             return;
         if (Filter(item))
             FilteredSet.Add(item);

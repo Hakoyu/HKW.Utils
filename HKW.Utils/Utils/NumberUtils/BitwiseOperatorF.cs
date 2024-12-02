@@ -10,7 +10,7 @@ namespace HKW.HKWUtils;
 public static partial class NumberUtils
 {
     /// <summary>
-    /// 计算
+    /// 计算 (性能特化)
     /// </summary>
     /// <typeparam name="T">目标类型</typeparam>
     /// <param name="value1">值1</param>
@@ -25,7 +25,7 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 计算
+    /// 计算 (性能特化)
     /// </summary>
     /// <param name="value1">值1</param>
     /// <param name="value2">值2</param>
@@ -44,7 +44,7 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 计算
+    /// 计算 (性能特化)
     /// </summary>
     /// <param name="value1">值1</param>
     /// <param name="value2">值2</param>
@@ -63,7 +63,7 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 计算
+    /// 计算 (性能特化)
     /// </summary>
     /// <typeparam name="T">目标类型</typeparam>
     /// <param name="value1">值1</param>
@@ -147,7 +147,7 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 计算
+    /// 计算 (性能特化)
     /// </summary>
     /// <param name="value1">值1</param>
     /// <param name="value2">值2</param>
@@ -230,7 +230,7 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 计算
+    /// 计算 (性能特化)
     /// </summary>
     /// <param name="value1">值1</param>
     /// <param name="value2">值2</param>

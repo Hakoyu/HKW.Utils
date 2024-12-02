@@ -54,7 +54,25 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX, ICloneable<Observa
     {
         if (IsFlagable is false)
             throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
-        Value = AddFlagFunc(Value, flag);
+        if (AddFlagFunc is null)
+            Value = Value.AddFlag(flag);
+        else
+            Value = AddFlagFunc(Value, flag);
+    }
+
+    /// <summary>
+    /// 添加标志
+    /// </summary>
+    /// <param name="flag">标志</param>
+    [ReactiveCommand]
+    public void AddFlagInfo(IEnumInfo<TEnum> flag)
+    {
+        if (IsFlagable is false)
+            throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
+        if (AddFlagFunc is null)
+            Value = Value.AddFlag(flag.Value);
+        else
+            Value = AddFlagFunc(Value, flag.Value);
     }
 
     /// <summary>
@@ -66,7 +84,25 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX, ICloneable<Observa
     {
         if (IsFlagable is false)
             throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
-        Value = RemoveFlagFunc(Value, flag);
+        if (RemoveFlagFunc is null)
+            Value = Value.RemoveFlag(flag);
+        else
+            Value = RemoveFlagFunc(Value, flag);
+    }
+
+    /// <summary>
+    /// 删除标志
+    /// </summary>
+    /// <param name="flag">标志</param>
+    [ReactiveCommand]
+    public void RemoveFlagInfo(IEnumInfo<TEnum> flag)
+    {
+        if (IsFlagable is false)
+            throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
+        if (RemoveFlagFunc is null)
+            Value = Value.RemoveFlag(flag.Value);
+        else
+            Value = RemoveFlagFunc(Value, flag.Value);
     }
 
     #region ICloneable

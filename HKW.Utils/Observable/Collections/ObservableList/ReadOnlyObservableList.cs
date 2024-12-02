@@ -21,7 +21,7 @@ public class ReadOnlyObservableList<T> : IObservableList<T>, IReadOnlyObservable
     /// <summary>
     /// 原始可观测列表
     /// </summary>
-    public IObservableList<T> _list;
+    protected IObservableList<T> _list;
 
     #region Ctor
 

@@ -11,26 +11,6 @@ namespace HKW.HKWUtils.Extensions;
 public static partial class HKWExtensions
 {
     /// <summary>
-    /// 范围添加
-    /// </summary>
-    /// <typeparam name="T">项类型</typeparam>
-    /// <param name="list">列表</param>
-    /// <param name="collection">集合</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void AddRange<T>(this IList<T> list, IEnumerable<T> collection)
-    {
-        if (list is List<T> baseList)
-        {
-            baseList.AddRange(collection);
-        }
-        else
-        {
-            foreach (var item in collection)
-                list.Add(item);
-        }
-    }
-
-    /// <summary>
     /// 范围插入
     /// </summary>
     /// <typeparam name="T">项类型</typeparam>

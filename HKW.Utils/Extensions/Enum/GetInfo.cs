@@ -38,11 +38,30 @@ public static partial class HKWExtensions
     /// <summary>
     /// 获取信息
     /// </summary>
+    /// <typeparam name="TEnum">枚举类型</typeparam>
     /// <param name="value">枚举值</param>
     /// <param name="target">目标</param>
     /// <returns>目标信息</returns>
     public static string GetDisplayInfo<TEnum>(this TEnum value, EnumInfoDisplayTarget target)
         where TEnum : struct, Enum
+    {
+        var info = value.GetInfo();
+        return target switch
+        {
+            EnumInfoDisplayTarget.Name => info.DisplayName,
+            EnumInfoDisplayTarget.ShortName => info.DisplayShortName,
+            EnumInfoDisplayTarget.Description => info.DisplayDescription,
+            _ => info.DisplayName,
+        };
+    }
+
+    /// <summary>
+    /// 获取信息
+    /// </summary>
+    /// <param name="value">枚举值</param>
+    /// <param name="target">目标</param>
+    /// <returns>目标信息</returns>
+    public static string GetDisplayInfo(this Enum value, EnumInfoDisplayTarget target)
     {
         var info = value.GetInfo();
         return target switch

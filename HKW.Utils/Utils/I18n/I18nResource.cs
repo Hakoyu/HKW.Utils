@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Collections;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -26,7 +27,10 @@ namespace HKW.HKWUtils;
 /// </code>
 /// </para>
 /// </summary>
-public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
+public class I18nResource<TKey, TValue>
+    : IDictionary<TKey, ObservableCultureDataDictionary<TKey, TValue>>,
+        II18nResource,
+        INotifyPropertyChanged
     where TKey : notnull
 {
     /// <inheritdoc/>
@@ -179,6 +183,96 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// </summary>
     public ObservableSet<I18nObject<TKey, TValue>> I18nObjects { get; } = new();
     #endregion
+
+    #region IDictionary
+
+    /// <inheritdoc/>
+    public ICollection<TKey> Keys => CultureDatas.Keys;
+
+    /// <inheritdoc/>
+    public ICollection<ObservableCultureDataDictionary<TKey, TValue>> Values => CultureDatas.Values;
+
+    /// <inheritdoc/>
+    public int Count => CultureDatas.Count;
+
+    /// <inheritdoc/>
+    public bool IsReadOnly => CultureDatas.IsReadOnly;
+
+    /// <inheritdoc/>
+    public ObservableCultureDataDictionary<TKey, TValue> this[TKey key]
+    {
+        get => CultureDatas[key];
+        set => CultureDatas[key] = value;
+    }
+
+    /// <inheritdoc/>
+    public void Add(TKey key, ObservableCultureDataDictionary<TKey, TValue> value)
+    {
+        CultureDatas.Add(key, value);
+    }
+
+    /// <inheritdoc/>
+    public bool ContainsKey(TKey key)
+    {
+        return CultureDatas.ContainsKey(key);
+    }
+
+    /// <inheritdoc/>
+    public bool Remove(TKey key)
+    {
+        return CultureDatas.Remove(key);
+    }
+
+    /// <inheritdoc/>
+    public bool TryGetValue(
+        TKey key,
+        [MaybeNullWhen(false)] out ObservableCultureDataDictionary<TKey, TValue> value
+    )
+    {
+        return CultureDatas.TryGetValue(key, out value);
+    }
+
+    /// <inheritdoc/>
+    public void Add(KeyValuePair<TKey, ObservableCultureDataDictionary<TKey, TValue>> item)
+    {
+        CultureDatas.Add(item);
+        item.Value.ValueCloneAction = ValueCloneAction;
+    }
+
+    /// <inheritdoc/>
+    public bool Contains(KeyValuePair<TKey, ObservableCultureDataDictionary<TKey, TValue>> item)
+    {
+        return CultureDatas.Contains(item);
+    }
+
+    /// <inheritdoc/>
+    public void CopyTo(
+        KeyValuePair<TKey, ObservableCultureDataDictionary<TKey, TValue>>[] array,
+        int arrayIndex
+    )
+    {
+        CultureDatas.CopyTo(array, arrayIndex);
+    }
+
+    /// <inheritdoc/>
+    public bool Remove(KeyValuePair<TKey, ObservableCultureDataDictionary<TKey, TValue>> item)
+    {
+        return CultureDatas.Remove(item);
+    }
+
+    /// <inheritdoc/>
+    public IEnumerator<
+        KeyValuePair<TKey, ObservableCultureDataDictionary<TKey, TValue>>
+    > GetEnumerator()
+    {
+        return CultureDatas.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return ((IEnumerable)CultureDatas).GetEnumerator();
+    }
+    #endregion
     private void Cultures_SetChanged(
         IObservableSet<CultureInfo> sender,
         NotifySetChangeEventArgs<CultureInfo> e
@@ -245,6 +339,8 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
                 return;
             newPair.Value.DictionaryChanged -= CurrentCultureDatas_DictionaryChanged;
             newPair.Value.DictionaryChanged += CurrentCultureDatas_DictionaryChanged;
+            if (newPair.Value.Key.Equals(newPair.Key) is false)
+                newPair.Value.Key = newPair.Key;
             newPair.Value.ValueCloneAction = ValueCloneAction;
         }
         else if (e.Action is DictionaryChangeAction.Remove)
@@ -255,15 +351,17 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         }
         else if (e.Action is DictionaryChangeAction.Replace)
         {
+            if (e.TryGetOldPair(out var oldPair))
+            {
+                oldPair.Value.DictionaryChanged -= CurrentCultureDatas_DictionaryChanged;
+            }
             if (e.TryGetNewPair(out var newPair))
             {
                 newPair.Value.DictionaryChanged -= CurrentCultureDatas_DictionaryChanged;
                 newPair.Value.DictionaryChanged += CurrentCultureDatas_DictionaryChanged;
+                if (newPair.Value.Key.Equals(newPair.Key) is false)
+                    newPair.Value.Key = newPair.Key;
                 newPair.Value.ValueCloneAction = ValueCloneAction;
-            }
-            if (e.TryGetOldPair(out var oldPair))
-            {
-                oldPair.Value.DictionaryChanged -= CurrentCultureDatas_DictionaryChanged;
             }
         }
     }
@@ -399,12 +497,9 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         {
             newDatas = new() { Key = e.NewKey };
             // 添加(注册事件)
-            CultureDatas.TryAdd(e.NewKey, newDatas);
+            CultureDatas.Add(e.NewKey, newDatas);
             // 添加并触发事件
             newDatas.AddRange(oldDatas);
-            // 如果未被使用,则删除
-            if (I18nObjects.All(i => i.KeyToTargetNames.ContainsKey(e.OldKey) is false))
-                CultureDatas.Remove(e.OldKey);
         }
         else
         {
@@ -688,30 +783,17 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     /// <param name="oldKey">旧键</param>
     /// <param name="newKey">新键</param>
     /// <param name="override">如果已经存在新键,则强制覆盖</param>
-    /// <param name="removeOldData">如果旧键存在则删除旧键</param>
     /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
-    public bool ReplaceCultureDataKey(
-        TKey oldKey,
-        TKey newKey,
-        bool @override = false,
-        bool removeOldData = true
-    )
+    public bool ReplaceCultureDataKey(TKey oldKey, TKey newKey, bool @override = false)
     {
         if (CultureDatas.TryGetValue(oldKey, out var data) is false)
             return false;
+
         if (@override)
-        {
-            data.Key = newKey;
-            CultureDatas[newKey] = removeOldData ? data : data.Clone();
-        }
-        else
-        {
-            if (CultureDatas.TryAdd(newKey, data) is false)
-                return false;
-            data.Key = newKey;
-        }
-        if (removeOldData)
-            CultureDatas.Remove(oldKey);
+            CultureDatas[newKey] = data;
+        else if (CultureDatas.TryAdd(newKey, data) is false)
+            return false;
+
         return true;
     }
 
@@ -1033,6 +1115,8 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         }
         Cultures.Remove(oldCulture);
         Cultures.Add(newCulture);
+        if (CurrentCulture == oldCulture)
+            CurrentCulture = newCulture;
         return true;
     }
 
@@ -1075,6 +1159,22 @@ public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
         foreach (var obj in I18nObjects)
         {
             obj.NotifyAllPropertyChanged();
+        }
+    }
+
+    /// <summary>
+    /// 删除所有在未在 <see cref="I18nObject{TKey,TValue}"/> 中引用的键
+    /// </summary>
+    public void RemoveAllUnreferencedKey()
+    {
+        // 收集所有已使用的键
+        var keys = I18nObjects.SelectMany(x => x.KeyToTargetNames.Keys).ToHashSet();
+
+        foreach (var key in CultureDatas.Keys)
+        {
+            // 如果未被使用,则删除
+            if (keys.Contains(key) is false)
+                CultureDatas.Remove(key);
         }
     }
 

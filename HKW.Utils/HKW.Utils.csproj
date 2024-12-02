@@ -1,10 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<Version>1.3.0</Version>
+		<Version>1.4.0</Version>
 		<Authors>HKW</Authors>
 		<Company>HKW</Company>
-		<Description>Noop</Description>
+    <PackageDescription>Utils created by HKW.</PackageDescription>
+    <PackageTags>MVVM;ReactiveUI;Observable;Collection;FilterCollection;NumberUtils;Extensions;EnumInfo</PackageTags>
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -28,7 +29,7 @@
 		<WeaverFiles Include="..\..\HKW.ReactiveUI\HKW.ReactiveUI.Fody\bin\Debug\netstandard2.0\HKW.ReactiveUI.Fody.dll" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(Configuration)'=='Release'">
-		<PackageReference Include="HKW.ReactiveUI" Version="0.2.3" />
+		<PackageReference Include="HKW.ReactiveUI" Version="0.3.1" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -47,7 +48,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Fody" Version="6.8.2" PrivateAssets="all" />
+		<PackageReference Include="Fody" Version="6.9.1" PrivateAssets="all" />
 		<PackageReference Include="ReactiveUI" Version="20.1.63" />
 	</ItemGroup>
 

@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using HKW.HKWReactiveUI;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Extensions;
@@ -28,8 +29,8 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     public ObservableDictionaryWrapper(TDictionary dictionary)
     {
         BaseDictionary = dictionary;
-        _observableKeys.AddRange(BaseDictionary.Keys);
-        _observableValues.AddRange(BaseDictionary.Values);
+        _observableKeys.BaseList.AddRange(BaseDictionary.Keys);
+        _observableValues.BaseList.AddRange(BaseDictionary.Values);
         ObservableKeys = new ReadOnlyObservableList<TKey>(_observableKeys);
         ObservableValues = new ReadOnlyObservableList<TValue>(_observableValues);
     }

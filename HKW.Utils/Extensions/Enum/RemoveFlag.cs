@@ -23,8 +23,8 @@ public static partial class HKWExtensions
         var type = EnumInfo<TEnum>.UnderlyingType;
         return (TEnum)
             NumberUtils.BitwiseOperatorF(
-                TestEnum1.A,
-                NumberUtils.BitwiseComplementF(TestEnum1.B, type),
+                value,
+                NumberUtils.BitwiseComplementF(flag, type),
                 type,
                 BitwiseOperatorType.And
             );

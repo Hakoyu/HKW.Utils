@@ -43,17 +43,6 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
         FilteredList = filteredList;
         Filter = filter;
     }
-
-    ///// <inheritdoc/>
-    ///// <param name="list">列表</param>
-    ///// <param name="getFilteredList">获取过滤列表</param>
-    ///// <param name="filter">过滤器</param>
-    //public FilterListWrapper(
-    //    TList list,
-    //    Func<TList, TFilteredList> getFilteredList,
-    //    Predicate<TItem> filter
-    //)
-    //    : this(list, getFilteredList(list), filter) { }
     #endregion
 
     /// <inheritdoc/>
@@ -108,7 +97,7 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
         {
             var oldValue = BaseList[index];
             ((IList<TItem>)BaseList)[index] = value;
-            if (AutoFilter is false || FilteredList.IsReadOnly)
+            if (AutoFilter is false)
                 return;
             if (Filter(value) is false)
                 return;
@@ -139,7 +128,7 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     public void Add(TItem item)
     {
         ((ICollection<TItem>)BaseList).Add(item);
-        if (AutoFilter is false || FilteredList.IsReadOnly)
+        if (AutoFilter is false)
             return;
         if (Filter(item))
             FilteredList.Add(item);
@@ -149,8 +138,6 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     public void Clear()
     {
         ((ICollection<TItem>)BaseList).Clear();
-        if (AutoFilter is false || FilteredList.IsReadOnly)
-            return;
         FilteredList.Clear();
     }
 
@@ -182,7 +169,7 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     public void Insert(int index, TItem item)
     {
         ((IList<TItem>)BaseList).Insert(index, item);
-        if (AutoFilter is false || FilteredList.IsReadOnly)
+        if (AutoFilter is false)
             return;
         if (Filter(item))
         {
@@ -209,7 +196,7 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     public bool Remove(TItem item)
     {
         var result = ((ICollection<TItem>)BaseList).Remove(item);
-        if (AutoFilter is false || FilteredList.IsReadOnly)
+        if (AutoFilter is false)
             return result;
         if (result)
             FilteredList.Remove(item);
@@ -222,7 +209,7 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
         if (BaseList.TryGetValue(index, out var value) is false)
             return;
         BaseList.RemoveAt(index);
-        if (AutoFilter is false || FilteredList.IsReadOnly)
+        if (AutoFilter is false)
             return;
         FilteredList.Remove(value);
     }

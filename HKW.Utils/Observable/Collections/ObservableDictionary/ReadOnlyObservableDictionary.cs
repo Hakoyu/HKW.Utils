@@ -24,7 +24,7 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     /// <summary>
     /// 原始字典
     /// </summary>
-    private readonly IObservableDictionary<TKey, TValue> _dictionary;
+    protected readonly IObservableDictionary<TKey, TValue> _dictionary;
 
     #region Ctor
     /// <inheritdoc/>
@@ -36,6 +36,7 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
         _dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
         _dictionary.CollectionChanged -= Dictionary_CollectionChanged;
         _dictionary.PropertyChanged -= Dictionary_PropertyChanged;
+
         _dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
         _dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
         _dictionary.CollectionChanged += Dictionary_CollectionChanged;
@@ -113,7 +114,7 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     {
         if (_disposed)
             return;
-        //清理托管资源
+
         if (disposing)
         {
             _dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
@@ -121,9 +122,6 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
             _dictionary.CollectionChanged -= Dictionary_CollectionChanged;
             _dictionary.PropertyChanged -= Dictionary_PropertyChanged;
         }
-        //清理非托管资源
-
-        //告诉自己已经被释放
         _disposed = true;
     }
     #endregion

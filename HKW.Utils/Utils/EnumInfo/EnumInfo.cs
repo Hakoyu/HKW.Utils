@@ -189,13 +189,6 @@ public static class EnumInfo
     /// <returns>构造方法</returns>
     internal static Func<Enum, IEnumInfo> CreateEnumInfoExpression(Type enumType)
     {
-        //var enumParam = Expression.Parameter(typeof(Enum), "enumValue");
-        //var constructor = typeof(EnumInfo<>)
-        //    .MakeGenericType(enumType)
-        //    .GetConstructor(new[] { enumType });
-        //var enumInfo = Expression.New(constructor!, Expression.Convert(enumParam, enumType));
-        //var lambda = Expression.Lambda<Func<Enum, IEnumInfo>>(enumInfo, enumParam);
-        //return lambda.Compile();
         var enumParam = Expression.Parameter(typeof(Enum), "enumValue");
         var createMethod = typeof(EnumInfo<>)
             .MakeGenericType(enumType)
