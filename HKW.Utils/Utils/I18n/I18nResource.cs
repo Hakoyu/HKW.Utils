@@ -236,7 +236,6 @@ public class I18nResource<TKey, TValue>
     public void Add(KeyValuePair<TKey, ObservableCultureDataDictionary<TKey, TValue>> item)
     {
         CultureDatas.Add(item);
-        item.Value.ValueCloneAction = ValueCloneAction;
     }
 
     /// <inheritdoc/>
@@ -339,9 +338,6 @@ public class I18nResource<TKey, TValue>
                 return;
             newPair.Value.DictionaryChanged -= CurrentCultureDatas_DictionaryChanged;
             newPair.Value.DictionaryChanged += CurrentCultureDatas_DictionaryChanged;
-            if (newPair.Value.Key.Equals(newPair.Key) is false)
-                newPair.Value.Key = newPair.Key;
-            newPair.Value.ValueCloneAction = ValueCloneAction;
         }
         else if (e.Action is DictionaryChangeAction.Remove)
         {
@@ -359,9 +355,6 @@ public class I18nResource<TKey, TValue>
             {
                 newPair.Value.DictionaryChanged -= CurrentCultureDatas_DictionaryChanged;
                 newPair.Value.DictionaryChanged += CurrentCultureDatas_DictionaryChanged;
-                if (newPair.Value.Key.Equals(newPair.Key) is false)
-                    newPair.Value.Key = newPair.Key;
-                newPair.Value.ValueCloneAction = ValueCloneAction;
             }
         }
     }
@@ -534,7 +527,7 @@ public class I18nResource<TKey, TValue>
     public bool AddCurrentCultureData(TKey key, TValue value)
     {
         if (CultureDatas.TryGetValue(key, out var datas) is false)
-            datas = CultureDatas[key] = new() { Key = key, ValueCloneAction = ValueCloneAction };
+            datas = CultureDatas[key] = new() { Key = key };
         return datas.TryAdd(CurrentCulture, value);
     }
 
@@ -625,7 +618,7 @@ public class I18nResource<TKey, TValue>
     /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
     public bool AddCultureData(TKey key)
     {
-        return CultureDatas.TryAdd(key, new() { Key = key, ValueCloneAction = ValueCloneAction });
+        return CultureDatas.TryAdd(key, new() { Key = key });
     }
 
     /// <summary>
@@ -643,15 +636,7 @@ public class I18nResource<TKey, TValue>
         }
         else
         {
-            CultureDatas.Add(
-                key,
-                new()
-                {
-                    Key = key,
-                    [culture] = value,
-                    ValueCloneAction = ValueCloneAction
-                }
-            );
+            CultureDatas.Add(key, new() { Key = key, [culture] = value });
             return true;
         }
     }
@@ -701,15 +686,7 @@ public class I18nResource<TKey, TValue>
         }
         else
         {
-            CultureDatas.Add(
-                key,
-                new()
-                {
-                    Key = key,
-                    [culture] = value,
-                    ValueCloneAction = ValueCloneAction
-                }
-            );
+            CultureDatas.Add(key, new() { Key = key, [culture] = value });
         }
     }
 
@@ -788,13 +765,17 @@ public class I18nResource<TKey, TValue>
     {
         if (CultureDatas.TryGetValue(oldKey, out var data) is false)
             return false;
-
         if (@override)
-            CultureDatas[newKey] = data;
-        else if (CultureDatas.TryAdd(newKey, data) is false)
-            return false;
-
-        return true;
+        {
+            CultureDatas[newKey] = data.Clone(ValueCloneAction);
+            return true;
+        }
+        else if (CultureDatas.ContainsKey(newKey) is false)
+        {
+            CultureDatas.Add(newKey, data.Clone(ValueCloneAction));
+            return true;
+        }
+        return false;
     }
 
     /// <summary>
@@ -871,36 +852,6 @@ public class I18nResource<TKey, TValue>
         if (CultureDatas.TryGetValue(key, out var datas))
         {
             cultureDatas = datas;
-            return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// 获取文化数据复制品
-    /// </summary>
-    /// <param name="key">键</param>
-    /// <returns>文化数据</returns>
-    public IDictionary<CultureInfo, TValue> GetCultureDatasReplica(TKey key)
-    {
-        return CultureDatas[key].Clone();
-    }
-
-    /// <summary>
-    /// 尝试获取文化数据复制品
-    /// </summary>
-    /// <param name="key">键</param>
-    /// <param name="cultureDatas">文化数据</param>
-    /// <returns>文化数据</returns>
-    public bool TryGetCultureDatasReplica(
-        TKey key,
-        [MaybeNullWhen(false)] out IDictionary<CultureInfo, TValue> cultureDatas
-    )
-    {
-        cultureDatas = null;
-        if (CultureDatas.TryGetValue(key, out var datas))
-        {
-            cultureDatas = datas.Clone();
             return true;
         }
         return false;

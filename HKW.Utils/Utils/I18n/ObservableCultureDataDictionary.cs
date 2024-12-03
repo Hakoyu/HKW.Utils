@@ -34,22 +34,34 @@ public class ObservableCultureDataDictionary<TKey, TValue>
         set => this[CultureInfo.GetCultureInfo(cultureName)] = value;
     }
 
-    /// <summary>
-    /// 值克隆行动,如果值类型是引用类型可设置此行动
-    /// </summary>
-    public Func<TValue, TValue>? ValueCloneAction { get; set; }
-
     #region ICloneable
-    /// <inheritdoc/>
-    public ObservableCultureDataDictionary<TKey, TValue> Clone()
+    /// <summary>
+    /// 使用值克隆器克隆
+    /// </summary>
+    /// <param name="valueCloneAction">值克隆器</param>
+    /// <returns>文化数据字典</returns>
+    public ObservableCultureDataDictionary<TKey, TValue> Clone(
+        Func<TValue, TValue>? valueCloneAction
+    )
     {
         var dictionary = new ObservableCultureDataDictionary<TKey, TValue>() { Key = Key };
         foreach (var pair in this)
         {
             dictionary.Add(
                 pair.Key,
-                ValueCloneAction is null ? pair.Value : ValueCloneAction(pair.Value)
+                valueCloneAction is null ? pair.Value : valueCloneAction(pair.Value)
             );
+        }
+        return dictionary;
+    }
+
+    /// <inheritdoc/>
+    public ObservableCultureDataDictionary<TKey, TValue> Clone()
+    {
+        var dictionary = new ObservableCultureDataDictionary<TKey, TValue>() { Key = Key };
+        foreach (var pair in this)
+        {
+            dictionary.Add(pair.Key, pair.Value);
         }
         return dictionary;
     }
