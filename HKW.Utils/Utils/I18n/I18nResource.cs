@@ -1114,9 +1114,9 @@ public class I18nResource<TKey, TValue>
     }
 
     /// <summary>
-    /// 删除所有在未在 <see cref="I18nObject{TKey,TValue}"/> 中引用的键
+    /// 清除未在 <see cref="I18nObject{TKey,TValue}"/> 中引用的键
     /// </summary>
-    public void RemoveAllUnreferencedKey()
+    public void ClearUnreferencedData()
     {
         // 收集所有已使用的键
         var keys = I18nObjects.SelectMany(x => x.KeyToTargetNames.Keys).ToHashSet();

@@ -35,7 +35,21 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-        var r = decimal.Zero.CompareTo(decimal.MaxValue);
+        var dic = new ObservableSelectableDictionary<int, int>(
+            new Dictionary<int, int>()
+            {
+                [1] = 1,
+                [2] = 2,
+                [3] = 3
+            },
+            1
+        );
+        dic.WhenValueChanged(x => x.SelectedItem)
+            .Subscribe(x =>
+            {
+                Console.WriteLine(x);
+            });
+        dic[1] = 10;
         //var observableDictionary = new ObservableDictionaryWrapper<
         //    string,
         //    string,
