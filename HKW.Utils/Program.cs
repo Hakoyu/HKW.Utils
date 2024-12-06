@@ -25,7 +25,7 @@ internal class Program
     private static System.Diagnostics.Stopwatch stopWatch = new();
     public static I18nCore I18nCore = new();
     public static I18nResource<string, string> I18nResource =
-        new(I18nCore) { DefaultValue = string.Empty, FillDefaultValueToNewCulture = true };
+        new(I18nCore) { DefaultValue = string.Empty, FillDefaultValueToData = true };
     public IntegratedReadOnlyList<int, List<int>, ReadOnlyCollection<int>> List { get; } =
         new(new(), l => new(l));
     public ReadOnlyCollection<int> ReadOnlyList => List.ReadOnlyList;

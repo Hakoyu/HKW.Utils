@@ -75,12 +75,12 @@ public class I18nResource<TKey, TValue>
         : this(core, CultureInfo.GetCultureInfo(cultureName)) { }
 
     /// <summary>
-    /// 为新文化填写默认值
+    /// 填充默认值到数据
     /// <para>
-    /// 在添加新文化时,会向文化数据添加 <see cref="DefaultValue"/>
+    /// 在添加新文化或新键时,会向文化数据添加 <see cref="DefaultValue"/>
     /// </para>
     /// </summary>
-    public bool FillDefaultValueToNewCulture { get; set; } = false;
+    public bool FillDefaultValueToData { get; set; } = false;
 
     /// <summary>
     /// 默认值
@@ -281,7 +281,7 @@ public class I18nResource<TKey, TValue>
         {
             if (e.NewItems is null)
                 return;
-            if (FillDefaultValueToNewCulture)
+            if (FillDefaultValueToData)
             {
                 foreach (var item in e.NewItems)
                 {
@@ -337,6 +337,11 @@ public class I18nResource<TKey, TValue>
             if (e.TryGetNewPair(out var newPair) is false)
                 return;
             newPair.Value.DictionaryChanged -= CurrentCultureDatas_DictionaryChanged;
+            if (FillDefaultValueToData)
+            {
+                foreach (var culture in Cultures)
+                    newPair.Value.TryAdd(culture, DefaultValue);
+            }
             newPair.Value.DictionaryChanged += CurrentCultureDatas_DictionaryChanged;
         }
         else if (e.Action is DictionaryChangeAction.Remove)
@@ -354,6 +359,11 @@ public class I18nResource<TKey, TValue>
             if (e.TryGetNewPair(out var newPair))
             {
                 newPair.Value.DictionaryChanged -= CurrentCultureDatas_DictionaryChanged;
+                if (FillDefaultValueToData)
+                {
+                    foreach (var culture in Cultures)
+                        newPair.Value.TryAdd(culture, DefaultValue);
+                }
                 newPair.Value.DictionaryChanged += CurrentCultureDatas_DictionaryChanged;
             }
         }
@@ -492,7 +502,8 @@ public class I18nResource<TKey, TValue>
             // 添加(注册事件)
             CultureDatas.Add(e.NewKey, newDatas);
             // 添加并触发事件
-            newDatas.AddRange(oldDatas);
+            foreach (var data in oldDatas)
+                newDatas.TryAdd(data.Key, data.Value);
         }
         else
         {
