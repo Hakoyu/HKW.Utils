@@ -65,6 +65,10 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
 
     FrozenDictionary<Enum, IEnumInfo> IEnumInfo.Infos => EnumInfo<TEnum>.Infos;
 
+    FrozenSet<string> IEnumInfo.ValidNames => EnumInfo<TEnum>.ValidNames;
+
+    FrozenDictionary<Enum, IEnumInfo> IEnumInfo.ValidInfos => EnumInfo<TEnum>.ValidInfos;
+
     #region GetName
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private Func<EnumInfo<TEnum>, string>? _getDisplayName;
@@ -135,18 +139,22 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     }
 
     /// <inheritdoc/>
-    IEnumerable<Enum> IEnumInfo.GetFlags()
+    IEnumerable<Enum> IEnumInfo.GetFlags(bool onlyValid)
     {
         if (IsFlagable is false)
-            throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
+            throw new Exception($"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\".");
+        if (onlyValid)
+            return ValidValues.Where(i => Value.HasFlag(i)).Cast<Enum>();
         return Values.Where(i => Value.HasFlag(i)).Cast<Enum>();
     }
 
     /// <inheritdoc/>
-    IEnumerable<IEnumInfo> IEnumInfo.GetFlagInfos()
+    IEnumerable<IEnumInfo> IEnumInfo.GetFlagInfos(bool onlyValid)
     {
         if (IsFlagable is false)
-            throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
+            throw new Exception($"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\".");
+        if (onlyValid)
+            return ValidInfos.Values.Where(i => Value.HasFlag(i.Value));
         return Infos.Values.Where(i => Value.HasFlag(i.Value));
     }
     #endregion
@@ -165,18 +173,22 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     }
 
     /// <inheritdoc/>
-    public IEnumerable<TEnum> GetFlags()
+    public IEnumerable<TEnum> GetFlags(bool onlyValid = true)
     {
         if (IsFlagable is false)
-            throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
+            throw new Exception($"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\".");
+        if (onlyValid)
+            return ValidValues.Where(i => Value.HasFlag(i));
         return Values.Where(i => Value.HasFlag(i));
     }
 
     /// <inheritdoc/>
-    public IEnumerable<IEnumInfo<TEnum>> GetFlagInfos()
+    public IEnumerable<IEnumInfo<TEnum>> GetFlagInfos(bool onlyValid = true)
     {
         if (IsFlagable is false)
-            throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
+            throw new Exception($"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\".");
+        if (onlyValid)
+            return ValidInfos.Values.Cast<EnumInfo<TEnum>>().Where(i => Value.HasFlag(i));
         return Infos.Values.Cast<EnumInfo<TEnum>>().Where(i => Value.HasFlag(i));
     }
 
@@ -287,10 +299,35 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     public static FrozenSet<TEnum> Values { get; } = Enum.GetValues<TEnum>().ToFrozenSet();
 
     /// <summary>
-    /// 信息
+    /// 全部信息
     /// </summary>
     public static FrozenDictionary<Enum, IEnumInfo> Infos { get; } =
         Values.ToFrozenDictionary(v => (Enum)v, v => (IEnumInfo)new EnumInfo<TEnum>(v));
+
+    #region ValidEnum
+
+    /// <summary>
+    /// 有效的全部值 (去除0值)
+    /// </summary>
+    public static FrozenSet<TEnum> ValidValues { get; } =
+        Enum.GetValues<TEnum>()
+            .Where(x =>
+                NumberUtils.CompareX(x, 0, UnderlyingType, ComparisonOperatorType.Inequality)
+            )
+            .ToFrozenSet();
+
+    /// <summary>
+    /// 有效的全部名称 (去除0值)
+    /// </summary>
+    public static FrozenSet<string> ValidNames { get; } =
+        ValidValues.Select(x => Enum.GetName<TEnum>(x)).ToFrozenSet()!;
+
+    /// <summary>
+    /// 有效的全部信息 (去除0值)
+    /// </summary>
+    public static FrozenDictionary<Enum, IEnumInfo> ValidInfos { get; } =
+        ValidValues.ToFrozenDictionary(v => (Enum)v, v => (IEnumInfo)new EnumInfo<TEnum>(v));
+    #endregion
 
     /// <summary>
     /// 获取信息
@@ -314,18 +351,13 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// </para>
     /// </summary>
     public static FrozenDictionary<TEnum, DisplayAttribute> EnumDisplays =>
-        _enumDisplays ??= GetEnumInfo();
-
-    private static FrozenDictionary<TEnum, DisplayAttribute> GetEnumInfo()
-    {
-        return Values
+        _enumDisplays ??= Values
             .Select(static v => (Value: v, FieldInfo: EnumType.GetField(v.ToString())!))
             .Where(static v => v.FieldInfo.IsDefined(typeof(DisplayAttribute)))
             .ToFrozenDictionary(
                 v => v.Value,
                 v => v.FieldInfo.GetCustomAttribute<DisplayAttribute>()!
             );
-    }
 
     #endregion
 

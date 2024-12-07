@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Frozen;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
@@ -35,21 +36,32 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-        var dic = new ObservableSelectableDictionary<int, int>(
-            new Dictionary<int, int>()
-            {
-                [1] = 1,
-                [2] = 2,
-                [3] = 3
-            },
-            1
-        );
-        dic.WhenValueChanged(x => x.SelectedItem)
-            .Subscribe(x =>
-            {
-                Console.WriteLine(x);
-            });
-        dic[1] = 10;
+        var enums = Enum.GetValues<TestEnum1>()
+            .Where(x =>
+                NumberUtils.CompareX(
+                    x,
+                    0,
+                    Enum.GetUnderlyingType(typeof(TestEnum1)),
+                    ComparisonOperatorType.Inequality
+                )
+            )
+            .ToFrozenSet();
+        var info = new EnumInfo<TestEnum1>(TestEnum1.None);
+        //var dic = new ObservableSelectableDictionary<int, int>(
+        //    new Dictionary<int, int>()
+        //    {
+        //        [1] = 1,
+        //        [2] = 2,
+        //        [3] = 3
+        //    },
+        //    1
+        //);
+        //dic.WhenValueChanged(x => x.SelectedItem)
+        //    .Subscribe(x =>
+        //    {
+        //        Console.WriteLine(x);
+        //    });
+        //dic[1] = 10;
         //var observableDictionary = new ObservableDictionaryWrapper<
         //    string,
         //    string,
@@ -186,8 +198,11 @@ internal partial class TestModel : ReactiveObjectX
 }
 
 [Flags]
-internal enum TestEnum1
+internal enum TestEnum1 : Int64
 {
+    [Display(Name = "None_Name", ShortName = "None_ShortName", Description = "None_Description")]
+    None,
+
     [Display(Name = "A_Name", ShortName = "A_ShortName", Description = "A_Description")]
     A = 1 << 0,
 

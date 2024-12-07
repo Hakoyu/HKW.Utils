@@ -35,16 +35,18 @@ public interface IEnumInfo<TEnum> : IEnumInfo, IEquatable<IEnumInfo<TEnum>>, IEq
     /// <summary>
     /// 获取标志
     /// </summary>
+    /// <param name="onlyValid">只获取有效的标志 (排除0值)</param>
     /// <returns>全部标志</returns>
     /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
-    public new IEnumerable<TEnum> GetFlags();
+    public new IEnumerable<TEnum> GetFlags(bool onlyValid = true);
 
     /// <summary>
     /// 获取标志信息
     /// </summary>
+    /// <param name="onlyValid">只获取有效的标志 (排除0值)</param>
     /// <returns>全部标志信息</returns>
     /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
-    public new IEnumerable<IEnumInfo<TEnum>> GetFlagInfos();
+    public new IEnumerable<IEnumInfo<TEnum>> GetFlagInfos(bool onlyValid = true);
 }
 
 /// <summary>
@@ -103,6 +105,16 @@ public interface IEnumInfo
     public FrozenDictionary<Enum, IEnumInfo> Infos { get; }
 
     /// <summary>
+    /// 有效的全部名称 (排除0值)
+    /// </summary>
+    public FrozenSet<string> ValidNames { get; }
+
+    /// <summary>
+    /// 有效的全部信息 (排除0值)
+    /// </summary>
+    public FrozenDictionary<Enum, IEnumInfo> ValidInfos { get; }
+
+    /// <summary>
     /// 拥有标记
     /// </summary>
     /// <param name="flag">标记</param>
@@ -119,16 +131,18 @@ public interface IEnumInfo
     /// <summary>
     /// 获取标志
     /// </summary>
+    /// <param name="onlyValid">只获取有效的标志 (排除0值)</param>
     /// <returns>全部标志</returns>
     /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
-    public IEnumerable<Enum> GetFlags();
+    public IEnumerable<Enum> GetFlags(bool onlyValid = true);
 
     /// <summary>
     /// 获取标志信息
     /// </summary>
+    /// <param name="onlyValid">只获取有效的标志 (排除0值)</param>
     /// <returns>全部标志信息</returns>
     /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
-    public IEnumerable<IEnumInfo> GetFlagInfos();
+    public IEnumerable<IEnumInfo> GetFlagInfos(bool onlyValid = true);
 
     /// <summary>
     /// 创建一个新的枚举信息

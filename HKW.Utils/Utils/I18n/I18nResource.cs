@@ -422,6 +422,7 @@ public class I18nResource<TKey, TValue>
             );
             if (_keyChanging)
                 return;
+            // TODO: 当对象过多时,此方法会运行过久
             foreach (var obj in I18nObjects)
             {
                 if (obj.KeyToTargetNames.ContainsKey(cultureDatas.Key) is false)
