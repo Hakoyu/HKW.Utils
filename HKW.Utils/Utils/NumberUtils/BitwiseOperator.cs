@@ -22,7 +22,6 @@ public static partial class NumberUtils
                 ('|', BitwiseOperatorType.Or),
                 ('&', BitwiseOperatorType.And),
                 ('^', BitwiseOperatorType.LogicalOr),
-                //('~', BitwiseOperatorType.Complement),
             ]
         );
 
@@ -59,7 +58,7 @@ public static partial class NumberUtils
     /// <param name="operator">运算符</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object BitwiseOperator<T>(object? value1, object? value2, char @operator)
+    public static object BitwiseOperator<T>(object value1, object value2, char @operator)
         where T : struct, INumber<T>
     {
         return BitwiseOperator<T>(value1, value2, GetBitwiseOperatorType(@operator));
@@ -75,8 +74,8 @@ public static partial class NumberUtils
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static object BitwiseOperator(
-        object? value1,
-        object? value2,
+        object value1,
+        object value2,
         Type numberType,
         char @operator
     )
@@ -94,8 +93,8 @@ public static partial class NumberUtils
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static object BitwiseOperator(
-        object? value1,
-        object? value2,
+        object value1,
+        object value2,
         NumberType numberType,
         char @operator
     )
@@ -113,8 +112,8 @@ public static partial class NumberUtils
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static object BitwiseOperator<T>(
-        object? value1,
-        object? value2,
+        object value1,
+        object value2,
         BitwiseOperatorType operatorType
     )
         where T : struct, INumber<T>
@@ -197,8 +196,8 @@ public static partial class NumberUtils
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static object BitwiseOperator(
-        object? value1,
-        object? value2,
+        object value1,
+        object value2,
         Type numberType,
         BitwiseOperatorType operatorType
     )
@@ -280,8 +279,8 @@ public static partial class NumberUtils
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static object BitwiseOperator(
-        object? value1,
-        object? value2,
+        object value1,
+        object value2,
         NumberType numberType,
         BitwiseOperatorType operatorType
     )

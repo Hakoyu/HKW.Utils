@@ -35,18 +35,16 @@ public interface IEnumInfo<TEnum> : IEnumInfo, IEquatable<IEnumInfo<TEnum>>, IEq
     /// <summary>
     /// 获取标志
     /// </summary>
-    /// <param name="onlyValid">只获取有效的标志 (排除0值)</param>
     /// <returns>全部标志</returns>
     /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
-    public new IEnumerable<TEnum> GetFlags(bool onlyValid = true);
+    public new IEnumerable<TEnum> GetFlags();
 
     /// <summary>
     /// 获取标志信息
     /// </summary>
-    /// <param name="onlyValid">只获取有效的标志 (排除0值)</param>
     /// <returns>全部标志信息</returns>
     /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
-    public new IEnumerable<IEnumInfo<TEnum>> GetFlagInfos(bool onlyValid = true);
+    public new IEnumerable<IEnumInfo<TEnum>> GetFlagInfos();
 }
 
 /// <summary>
@@ -105,12 +103,12 @@ public interface IEnumInfo
     public FrozenDictionary<Enum, IEnumInfo> Infos { get; }
 
     /// <summary>
-    /// 有效的全部名称 (排除0值)
+    /// 有效的全部名称 (排除None)
     /// </summary>
     public FrozenSet<string> ValidNames { get; }
 
     /// <summary>
-    /// 有效的全部信息 (排除0值)
+    /// 有效的全部信息 (排除None)
     /// </summary>
     public FrozenDictionary<Enum, IEnumInfo> ValidInfos { get; }
 
@@ -131,18 +129,16 @@ public interface IEnumInfo
     /// <summary>
     /// 获取标志
     /// </summary>
-    /// <param name="onlyValid">只获取有效的标志 (排除0值)</param>
     /// <returns>全部标志</returns>
     /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
-    public IEnumerable<Enum> GetFlags(bool onlyValid = true);
+    public IEnumerable<Enum> GetFlags();
 
     /// <summary>
     /// 获取标志信息
     /// </summary>
-    /// <param name="onlyValid">只获取有效的标志 (排除0值)</param>
     /// <returns>全部标志信息</returns>
     /// <exception cref="Exception">枚举没有特性 <see cref="FlagsAttribute"/></exception>
-    public IEnumerable<IEnumInfo> GetFlagInfos(bool onlyValid = true);
+    public IEnumerable<IEnumInfo> GetFlagInfos();
 
     /// <summary>
     /// 创建一个新的枚举信息

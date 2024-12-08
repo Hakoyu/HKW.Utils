@@ -19,9 +19,4 @@ public enum BitwiseOperatorType
     /// 异或 (<see langword="^"/>)
     /// </summary>
     LogicalOr,
-
-    ///// <summary>
-    ///// 取反 (<see langword="~"/>)
-    ///// </summary>
-    //Complement
 }

@@ -15,7 +15,7 @@ public partial class NumberUtils
     /// <param name="value">值</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object BitwiseComplement<T>(object? value)
+    public static object BitwiseComplement<T>(object value)
     {
         var type = typeof(T);
         if (type == typeof(sbyte))
@@ -45,7 +45,7 @@ public partial class NumberUtils
     /// <param name="numberType">数值类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object BitwiseComplement(object? value, Type numberType)
+    public static object BitwiseComplement(object value, Type numberType)
     {
         if (numberType == typeof(sbyte))
             return ~Convert.ToSByte(value);
@@ -74,7 +74,7 @@ public partial class NumberUtils
     /// <param name="numberType">数值类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object BitwiseComplement(object? value, NumberType numberType)
+    public static object BitwiseComplement(object value, NumberType numberType)
     {
         if (numberType is NumberType.SByte)
             return ~Convert.ToSByte(value);

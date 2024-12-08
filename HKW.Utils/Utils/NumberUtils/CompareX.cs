@@ -20,7 +20,7 @@ public static partial class NumberUtils
     /// <param name="operator">运算符</param>
     /// <returns>比较的结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static bool CompareX<T>(object? value1, object? value2, string @operator)
+    public static bool CompareX<T>(object value1, object value2, string @operator)
         where T : struct, INumber<T>
     {
         return CompareX<T>(value1, value2, GetComparisonOperatorType(@operator));
@@ -35,7 +35,7 @@ public static partial class NumberUtils
     /// <param name="operator">运算符</param>
     /// <returns>比较的结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static bool CompareX(object? value1, object? value2, Type numberType, string @operator)
+    public static bool CompareX(object value1, object value2, Type numberType, string @operator)
     {
         return CompareX(value1, value2, numberType, GetComparisonOperatorType(@operator));
     }
@@ -50,8 +50,8 @@ public static partial class NumberUtils
     /// <returns>比较的结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static bool CompareX(
-        object? value1,
-        object? value2,
+        object value1,
+        object value2,
         NumberType numberType,
         string @operator
     )
@@ -69,8 +69,8 @@ public static partial class NumberUtils
     /// <returns>比较的结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static bool CompareX<T>(
-        object? value1,
-        object? value2,
+        object value1,
+        object value2,
         ComparisonOperatorType operatorType
     )
         where T : struct, INumber<T>
@@ -246,8 +246,8 @@ public static partial class NumberUtils
     /// <returns>比较的结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static bool CompareX(
-        object? value1,
-        object? value2,
+        object value1,
+        object value2,
         Type numberType,
         ComparisonOperatorType operatorType
     )
@@ -422,8 +422,8 @@ public static partial class NumberUtils
     /// <returns>比较的结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static bool CompareX(
-        object? value1,
-        object? value2,
+        object value1,
+        object value2,
         NumberType numberType,
         ComparisonOperatorType operatorType
     )

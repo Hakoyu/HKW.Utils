@@ -55,7 +55,7 @@ public partial class NumberUtils
     /// <param name="operator">运算符</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object BitwiseShift<T>(object? value1, object? value2, string @operator)
+    public static object BitwiseShift<T>(object value1, object value2, string @operator)
         where T : struct, INumber<T>
     {
         return BitwiseShift<T>(value1, value2, GetBitwiseShiftType(@operator));
@@ -71,8 +71,8 @@ public partial class NumberUtils
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static object BitwiseShift(
-        object? value1,
-        object? value2,
+        object value1,
+        object value2,
         Type numberType,
         string @operator
     )
@@ -90,8 +90,8 @@ public partial class NumberUtils
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static object BitwiseShift(
-        object? value1,
-        object? value2,
+        object value1,
+        object value2,
         NumberType numberType,
         string @operator
     )
@@ -109,8 +109,8 @@ public partial class NumberUtils
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static object BitwiseShift<T>(
-        object? value1,
-        object? value2,
+        object value1,
+        object value2,
         BitwiseShiftType operatorType
     )
         where T : struct, INumber<T>
@@ -193,8 +193,8 @@ public partial class NumberUtils
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static object BitwiseShift(
-        object? value1,
-        object? value2,
+        object value1,
+        object value2,
         Type numberType,
         BitwiseShiftType operatorType
     )
@@ -276,8 +276,8 @@ public partial class NumberUtils
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static object BitwiseShift(
-        object? value1,
-        object? value2,
+        object value1,
+        object value2,
         NumberType numberType,
         BitwiseShiftType operatorType
     )

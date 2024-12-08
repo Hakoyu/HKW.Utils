@@ -82,7 +82,7 @@ public static partial class NumberUtils
     /// <param name="value2">值2</param>
     /// <returns>-1 表示value1<see langword="&lt;"/>value2,0 表示value1<see langword="=="/>value2,1 表示value1<see langword="&gt;"/>value2</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object Compare<T>(object? value1, object? value2)
+    public static object Compare<T>(object value1, object value2)
         where T : struct, INumber<T>
     {
         var type = typeof(T);
@@ -121,7 +121,7 @@ public static partial class NumberUtils
     /// <param name="numberType">类型</param>
     /// <returns>-1 表示value1<see langword="&lt;"/>value2,0 表示value1<see langword="=="/>value2,1 表示value1<see langword="&gt;"/>value2</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object Compare(object? value1, object? value2, Type numberType)
+    public static object Compare(object value1, object value2, Type numberType)
     {
         if (numberType == typeof(sbyte))
             return Convert.ToSByte(value1).CompareTo(Convert.ToSByte(value2));
@@ -157,7 +157,7 @@ public static partial class NumberUtils
     /// <param name="numberType">类型</param>
     /// <returns>-1 表示value1<see langword="&lt;"/>value2,0 表示value1<see langword="=="/>value2,1 表示value1<see langword="&gt;"/>value2</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object Compare(object? value1, object? value2, NumberType numberType)
+    public static object Compare(object value1, object value2, NumberType numberType)
     {
         if (numberType is NumberType.SByte)
             return Convert.ToSByte(value1).CompareTo(Convert.ToSByte(value2));

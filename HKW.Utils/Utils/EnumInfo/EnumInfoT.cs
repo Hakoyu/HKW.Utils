@@ -139,23 +139,19 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     }
 
     /// <inheritdoc/>
-    IEnumerable<Enum> IEnumInfo.GetFlags(bool onlyValid)
+    IEnumerable<Enum> IEnumInfo.GetFlags()
     {
         if (IsFlagable is false)
             throw new Exception($"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\".");
-        if (onlyValid)
-            return ValidValues.Where(i => Value.HasFlag(i)).Cast<Enum>();
-        return Values.Where(i => Value.HasFlag(i)).Cast<Enum>();
+        return ValidValues.Where(x => Value.HasFlag(x)).Cast<Enum>();
     }
 
     /// <inheritdoc/>
-    IEnumerable<IEnumInfo> IEnumInfo.GetFlagInfos(bool onlyValid)
+    IEnumerable<IEnumInfo> IEnumInfo.GetFlagInfos()
     {
         if (IsFlagable is false)
             throw new Exception($"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\".");
-        if (onlyValid)
-            return ValidInfos.Values.Where(i => Value.HasFlag(i.Value));
-        return Infos.Values.Where(i => Value.HasFlag(i.Value));
+        return ValidInfos.Values.Where(x => Value.HasFlag(x.Value));
     }
     #endregion
 
@@ -173,23 +169,19 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     }
 
     /// <inheritdoc/>
-    public IEnumerable<TEnum> GetFlags(bool onlyValid = true)
+    public IEnumerable<TEnum> GetFlags()
     {
         if (IsFlagable is false)
             throw new Exception($"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\".");
-        if (onlyValid)
-            return ValidValues.Where(i => Value.HasFlag(i));
-        return Values.Where(i => Value.HasFlag(i));
+        return ValidValues.Where(x => Value.HasFlag(x));
     }
 
     /// <inheritdoc/>
-    public IEnumerable<IEnumInfo<TEnum>> GetFlagInfos(bool onlyValid = true)
+    public IEnumerable<IEnumInfo<TEnum>> GetFlagInfos()
     {
         if (IsFlagable is false)
             throw new Exception($"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\".");
-        if (onlyValid)
-            return ValidInfos.Values.Cast<EnumInfo<TEnum>>().Where(i => Value.HasFlag(i));
-        return Infos.Values.Cast<EnumInfo<TEnum>>().Where(i => Value.HasFlag(i));
+        return ValidInfos.Values.Cast<EnumInfo<TEnum>>().Where(x => Value.HasFlag(x));
     }
 
     #endregion
@@ -288,45 +280,76 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// </summary>
     public static bool IsFlagable { get; } = Attribute.IsDefined(EnumType, typeof(FlagsAttribute));
 
+    #region Names
+    private static FrozenSet<string>? _names;
+
     /// <summary>
     /// 全部名称
     /// </summary>
-    public static FrozenSet<string> Names { get; } = Enum.GetNames<TEnum>().ToFrozenSet();
+    public static FrozenSet<string> Names => _names ??= Enum.GetNames<TEnum>().ToFrozenSet();
+    #endregion
+
+    #region Values
+    private static FrozenSet<TEnum>? _values;
 
     /// <summary>
     /// 全部值
     /// </summary>
-    public static FrozenSet<TEnum> Values { get; } = Enum.GetValues<TEnum>().ToFrozenSet();
+    public static FrozenSet<TEnum> Values => _values ??= Enum.GetValues<TEnum>().ToFrozenSet();
+    #endregion
+
+    #region Infos
+    private static FrozenDictionary<Enum, IEnumInfo>? _infos;
 
     /// <summary>
     /// 全部信息
     /// </summary>
-    public static FrozenDictionary<Enum, IEnumInfo> Infos { get; } =
-        Values.ToFrozenDictionary(v => (Enum)v, v => (IEnumInfo)new EnumInfo<TEnum>(v));
-
+    public static FrozenDictionary<Enum, IEnumInfo> Infos =>
+        _infos ??= Values.ToFrozenDictionary(v => (Enum)v, v => (IEnumInfo)new EnumInfo<TEnum>(v));
+    #endregion
     #region ValidEnum
 
-    /// <summary>
-    /// 有效的全部值 (去除0值)
-    /// </summary>
-    public static FrozenSet<TEnum> ValidValues { get; } =
-        Enum.GetValues<TEnum>()
-            .Where(x =>
-                NumberUtils.CompareX(x, 0, UnderlyingType, ComparisonOperatorType.Inequality)
-            )
-            .ToFrozenSet();
+    private static Func<Enum, bool>? _checkValidEnum;
 
     /// <summary>
-    /// 有效的全部名称 (去除0值)
+    /// 检查有效枚举方法
     /// </summary>
-    public static FrozenSet<string> ValidNames { get; } =
-        ValidValues.Select(x => Enum.GetName<TEnum>(x)).ToFrozenSet()!;
+    public static Func<Enum, bool> CheckValidEnum =>
+        _checkValidEnum ??= x =>
+            NumberUtils.CompareX(x, 0, UnderlyingType, ComparisonOperatorType.Inequality);
+
+    #region ValidValues
+    private static FrozenSet<TEnum>? _validValues;
 
     /// <summary>
-    /// 有效的全部信息 (去除0值)
+    /// 有效的全部值 (排除None)
     /// </summary>
-    public static FrozenDictionary<Enum, IEnumInfo> ValidInfos { get; } =
-        ValidValues.ToFrozenDictionary(v => (Enum)v, v => (IEnumInfo)new EnumInfo<TEnum>(v));
+    public static FrozenSet<TEnum> ValidValues =>
+        _validValues ??= Enum.GetValues<TEnum>().Where(x => CheckValidEnum(x)).ToFrozenSet();
+    #endregion
+
+    #region ValidNames
+    private static FrozenSet<string>? _validNames;
+
+    /// <summary>
+    /// 有效的全部名称 (排除None)
+    /// </summary>
+    public static FrozenSet<string> ValidNames =>
+        _validNames ??= ValidValues.Select(x => Enum.GetName<TEnum>(x)).ToFrozenSet()!;
+    #endregion
+
+    #region ValidInfos
+    private static FrozenDictionary<Enum, IEnumInfo>? _validInfos;
+
+    /// <summary>
+    /// 有效的全部信息 (排除None)
+    /// </summary>
+    public static FrozenDictionary<Enum, IEnumInfo> ValidInfos =>
+        _validInfos ??= ValidValues.ToFrozenDictionary(
+            v => (Enum)v,
+            v => (IEnumInfo)new EnumInfo<TEnum>(v)
+        );
+    #endregion
     #endregion
 
     /// <summary>

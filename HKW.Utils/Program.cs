@@ -36,74 +36,32 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-        var enums = Enum.GetValues<TestEnum1>()
-            .Where(x =>
-                NumberUtils.CompareX(
-                    x,
-                    0,
-                    Enum.GetUnderlyingType(typeof(TestEnum1)),
-                    ComparisonOperatorType.Inequality
+        EnumInfo.DefaultToString = x =>
+            x.IsFlagable
+                ? string.Join(
+                    ", ",
+                    x.GetFlagInfos().Select(static i => $"{i.EnumType.Name}_{i.Value}")
                 )
-            )
-            .ToFrozenSet();
-        var info = new EnumInfo<TestEnum1>(TestEnum1.None);
-        //var dic = new ObservableSelectableDictionary<int, int>(
-        //    new Dictionary<int, int>()
-        //    {
-        //        [1] = 1,
-        //        [2] = 2,
-        //        [3] = 3
-        //    },
-        //    1
-        //);
-        //dic.WhenValueChanged(x => x.SelectedItem)
-        //    .Subscribe(x =>
-        //    {
-        //        Console.WriteLine(x);
-        //    });
-        //dic[1] = 10;
-        //var observableDictionary = new ObservableDictionaryWrapper<
-        //    string,
-        //    string,
-        //    Dictionary<string, string>
-        //>(new Dictionary<string, string>());
-        //var e = TestEnum1.A | TestEnum1.B | TestEnum1.C;
-        //var e1 = e.RemoveFlag(TestEnum1.B);
-        //EnumInfo<TestEnum1>.DefaultToString = x => $"{x.Value}_String";
-        //var info = EnumInfo<TestEnum1>.GetInfo(e);
-        //var str = info.ToString();
-        //var i = info.Names.GetItemByIndex(3);
-        //var leader = new ObservableSelectionGroupLeader();
-        //var members = Enumerable
-        //    .Range(0, 2)
-        //    .Select(_ => new ObservableSelectionGroupMember() { IsSelected = false })
-        //    .ToObservableList();
-        //var group = new ObservableSelectionGroup<
-        //    ObservableSelectionGroupLeader,
-        //    ObservableSelectionGroupMember,
-        //    ObservableList<ObservableSelectionGroupMember>
-        //>(
-        //    new(
-        //        leader,
-        //        nameof(ObservableSelectionGroupLeader.IsSelected),
-        //        x => x.IsSelected,
-        //        (x, v) => x.IsSelected = v
-        //    ),
-        //    new(
-        //        new(),
-        //        nameof(ObservableSelectionGroupMember.IsSelected),
-        //        x => x.IsSelected,
-        //        (x, v) => x.IsSelected = v
-        //    ),
-        //    members
-        //);
-        //var group = new ObservableSelectionGroup<TestModel>();
-        //group.Add(new(new() { ID = "A" }));
-        //group.Add(new(new() { ID = "B" }));
-        ////group.Add(new(new() { ID = "C" }));
-        //group.First().IsSelected = true;
-        //group.Last().IsSelected = true;
-        //var r = group.Leader.Value;
+                : $"{x.EnumType.Name}_{x.Value}";
+        //foreach (var e in EnumInfo<TestEnum1>.Infos.Values)
+        //    Console.WriteLine(e.ToString());
+
+        Console.WriteLine(
+            (TestEnum1.None | TestEnum1.A | TestEnum1.B | TestEnum1.C).GetInfo().ToString()
+        );
+
+        //var enums = Enum.GetValues<TestEnum1>()
+        //    .Where(x =>
+        //        NumberUtils.CompareX(
+        //            x,
+        //            0,
+        //            Enum.GetUnderlyingType(typeof(TestEnum1)),
+        //            ComparisonOperatorType.Inequality
+        //        )
+        //    )
+        //    .ToFrozenSet();
+        //var info = new EnumInfo<TestEnum1>(TestEnum1.None | TestEnum1.A);
+        //var infos = info.GetFlagInfos();
 #endif
     }
 

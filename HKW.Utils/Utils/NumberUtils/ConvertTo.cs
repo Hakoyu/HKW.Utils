@@ -18,7 +18,7 @@ public static partial class NumberUtils
     /// <param name="provider">格式提供者</param>
     /// <returns>转换后的数值</returns>
     /// <exception cref="NotImplementedException">不支持的类型</exception>
-    public static object ConvertTo<T>(object? value, IFormatProvider? provider = null)
+    public static object ConvertTo<T>(object value, IFormatProvider? provider = null)
         where T : struct, INumber<T>
     {
         var type = typeof(T);
@@ -81,7 +81,7 @@ public static partial class NumberUtils
     /// <param name="provider">格式提供者</param>
     /// <returns>转换后的数值</returns>
     /// <exception cref="NotImplementedException">不支持的类型</exception>
-    public static object ConvertTo(object? value, Type numberType, IFormatProvider? provider = null)
+    public static object ConvertTo(object value, Type numberType, IFormatProvider? provider = null)
     {
         if (value is IConvertible ic)
         {
@@ -142,7 +142,7 @@ public static partial class NumberUtils
     /// <param name="provider">格式提供者</param>
     /// <returns>转换后的数值</returns>
     /// <exception cref="NotImplementedException">不支持的类型</exception>
-    public static object ConvertTo(object? value, NumberType type, IFormatProvider? provider = null)
+    public static object ConvertTo(object value, NumberType type, IFormatProvider? provider = null)
     {
         if (value is IConvertible ic)
         {
