@@ -13,7 +13,7 @@ public class ObservableSelectableCollectionTests
         var list = new ObservableSelectableList<int>();
         Assert.IsTrue(list.SelectedIndex == -1);
         Assert.IsTrue(list.SelectedItem == default);
-        IListTestUtils.Test<int>(
+        IListTTestUtils.Test<int>(
             list,
             Enumerable.Range(1, 10).ToList(),
             () => Random.Shared.Next(100, 1000)

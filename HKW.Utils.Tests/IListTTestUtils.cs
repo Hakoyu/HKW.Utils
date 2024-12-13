@@ -1,9 +1,15 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Extensions;
+using HKW.HKWUtils.Tests.Collections;
 
 namespace HKW.HKWUtils.Tests;
 
-public class IListTestUtils
+public class IListTTestUtils
 {
     /// <summary>
     /// 测试
@@ -12,8 +18,10 @@ public class IListTestUtils
     /// <param name="testList">测试列表</param>
     /// <param name="items">测试项目</param>
     /// <param name="createNewItem">创建新项目</param>
-    public static void Test(IList testList, IList items, Func<object> createNewItem)
+    public static void Test<T>(IList<T> testList, IList<T> items, Func<T> createNewItem)
     {
+        ICollectionTestUtils.Test(testList, items, createNewItem);
+
         ValueWithIndex(testList, items, 0, createNewItem());
         ValueWithIndex(testList, items, items.Count / 2, createNewItem());
         ValueWithIndex(testList, items, items.Count - 1, createNewItem());
@@ -38,12 +46,11 @@ public class IListTestUtils
         RemoveAtFalse(testList, items, items.Count);
     }
 
-    public static void ValueWithIndex(IList testList, IList items, int index, object newItem)
+    public static void ValueWithIndex<T>(IList<T> testList, IList<T> items, int index, T newItem)
     {
         testList.Clear();
-        var cList = items.Cast<object>().ToList();
-        foreach (var i in cList)
-            testList.Add(i);
+        var cList = items.ToList();
+        testList.AddRange(cList);
 
         Assert.IsTrue(testList[index]?.Equals(cList[index]));
         testList[index] = cList[index] = newItem;
@@ -52,17 +59,16 @@ public class IListTestUtils
         testList.Clear();
     }
 
-    public static void ValueWithIndexFalse(
-        IList testList,
-        IList items,
+    public static void ValueWithIndexFalse<T>(
+        IList<T> testList,
+        IList<T> items,
         int outRangeIndex,
-        object newItem
+        T newItem
     )
     {
         testList.Clear();
-        var cList = items.Cast<object>().ToList();
-        foreach (var i in cList)
-            testList.Add(i);
+        var cList = items.ToList();
+        testList.AddRange(cList);
 
         try
         {
@@ -76,17 +82,16 @@ public class IListTestUtils
             cList[outRangeIndex] = newItem;
         }
         catch { }
-        Assert.IsTrue(testList.ItemsEqual(cList));
+        Assert.IsTrue(testList.SequenceEqual(cList));
 
         testList.Clear();
     }
 
-    public static void IndexOf(IList testList, IList items)
+    public static void IndexOf<T>(IList<T> testList, IList<T> items)
     {
         testList.Clear();
-        var cList = items.Cast<object>().ToList();
-        foreach (var i in cList)
-            testList.Add(i);
+        var cList = items.ToList();
+        testList.AddRange(cList);
 
         var item = cList.Random();
         Assert.IsTrue(cList.IndexOf(item) == testList.IndexOf(item));
@@ -94,26 +99,29 @@ public class IListTestUtils
         testList.Clear();
     }
 
-    public static void Insert(IList testList, IList items, int index, object newItem)
+    public static void Insert<T>(IList<T> testList, IList<T> items, int index, T newItem)
     {
         testList.Clear();
-        var cList = items.Cast<object>().ToList();
-        foreach (var i in cList)
-            testList.Add(i);
+        var cList = items.ToList();
+        testList.AddRange(cList);
 
         cList.Insert(index, newItem);
         testList.Insert(index, newItem);
-        Assert.IsTrue(testList.ItemsEqual(cList));
+        Assert.IsTrue(testList.SequenceEqual(cList));
 
         testList.Clear();
     }
 
-    public static void InsertFalse(IList testList, IList items, int outRangeIndex, object newItem)
+    public static void InsertFalse<T>(
+        IList<T> testList,
+        IList<T> items,
+        int outRangeIndex,
+        T newItem
+    )
     {
         testList.Clear();
-        var cList = items.Cast<object>().ToList();
-        foreach (var i in cList)
-            testList.Add(i);
+        var cList = items.ToList();
+        testList.AddRange(cList);
 
         try
         {
@@ -128,17 +136,16 @@ public class IListTestUtils
             Assert.Fail();
         }
         catch { }
-        Assert.IsTrue(testList.ItemsEqual(cList));
+        Assert.IsTrue(testList.SequenceEqual(cList));
 
         testList.Clear();
     }
 
-    public static void RemoveAt(IList testList, IList items, int index)
+    public static void RemoveAt<T>(IList<T> testList, IList<T> items, int index)
     {
         testList.Clear();
-        var cList = items.Cast<object>().ToList();
-        foreach (var i in cList)
-            testList.Add(i);
+        var cList = items.ToList();
+        testList.AddRange(cList);
 
         cList.RemoveAt(index);
         testList.RemoveAt(index);
@@ -146,12 +153,11 @@ public class IListTestUtils
         testList.Clear();
     }
 
-    public static void RemoveAtFalse(IList testList, IList items, int index)
+    public static void RemoveAtFalse<T>(IList<T> testList, IList<T> items, int index)
     {
         testList.Clear();
-        var cList = items.Cast<object>().ToList();
-        foreach (var i in cList)
-            testList.Add(i);
+        var cList = items.ToList();
+        testList.AddRange(cList);
 
         try
         {

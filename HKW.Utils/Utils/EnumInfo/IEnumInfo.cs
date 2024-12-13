@@ -103,12 +103,12 @@ public interface IEnumInfo
     public FrozenDictionary<Enum, IEnumInfo> Infos { get; }
 
     /// <summary>
-    /// 有效的全部名称 (排除None)
+    /// 有效的全部名称 (为设置 <see cref="FlagsAttribute"/> 的枚举排除None)
     /// </summary>
     public FrozenSet<string> ValidNames { get; }
 
     /// <summary>
-    /// 有效的全部信息 (排除None)
+    /// 有效的全部信息 (为设置 <see cref="FlagsAttribute"/> 的枚举排除None)
     /// </summary>
     public FrozenDictionary<Enum, IEnumInfo> ValidInfos { get; }
 

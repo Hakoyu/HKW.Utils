@@ -4,11 +4,11 @@ namespace HKW.HKWUtils.Tests;
 
 public class ICollectionTestUtils
 {
-    static HashSet<Type> _testCompletedTypes = new();
+    static HashSet<Type> _testCompletedTypes = [];
 
     public static void Test<T>(
         ICollection<T> collection,
-        ICollection<T> comparisonCollection,
+        ICollection<T> items,
         Func<T> createNewItem
     )
     {
@@ -17,29 +17,22 @@ public class ICollectionTestUtils
         else
             _testCompletedTypes.Add(collection.GetType());
 
-        if (comparisonCollection.HasValue() is false)
-            throw new ArgumentException(
-                "ComparisonCollection must has value",
-                nameof(comparisonCollection)
-            );
-        var cCollection = comparisonCollection.ToList();
+        if (items.HasValue() is false)
+            throw new ArgumentException("ComparisonCollection must has value", nameof(items));
+        var cCollection = items.ToList();
         collection.AddRange(cCollection);
         Assert.IsTrue(collection.SequenceEqual(cCollection));
         collection.Clear();
 
-        Add(collection, comparisonCollection, createNewItem());
-        Remove(collection, comparisonCollection);
-        Clear(collection, comparisonCollection);
+        Add(collection, items, createNewItem());
+        Remove(collection, items);
+        Clear(collection, items);
     }
 
-    public static void Add<T>(
-        ICollection<T> collection,
-        ICollection<T> comparisonCollection,
-        T newItem
-    )
+    public static void Add<T>(ICollection<T> collection, ICollection<T> items, T newItem)
     {
         collection.Clear();
-        var cCollection = comparisonCollection.ToList();
+        var cCollection = items.ToList();
         cCollection.Clear();
 
         cCollection.Add(newItem);
@@ -49,10 +42,10 @@ public class ICollectionTestUtils
         collection.Clear();
     }
 
-    public static void Remove<T>(ICollection<T> collection, ICollection<T> comparisonCollection)
+    public static void Remove<T>(ICollection<T> collection, ICollection<T> items)
     {
         collection.Clear();
-        var cCollection = comparisonCollection.ToList();
+        var cCollection = items.ToList();
         collection.AddRange(cCollection);
 
         var removeItem = cCollection.Random();
@@ -63,10 +56,10 @@ public class ICollectionTestUtils
         collection.Clear();
     }
 
-    public static void Clear<T>(ICollection<T> collection, ICollection<T> comparisonCollection)
+    public static void Clear<T>(ICollection<T> collection, ICollection<T> items)
     {
         collection.Clear();
-        var cCollection = comparisonCollection.ToList();
+        var cCollection = items.ToList();
         collection.AddRange(cCollection);
 
         cCollection.Clear();

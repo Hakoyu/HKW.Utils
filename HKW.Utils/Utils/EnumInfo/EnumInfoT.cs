@@ -309,46 +309,44 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     #endregion
     #region ValidEnum
 
-    private static Func<Enum, bool>? _checkValidEnum;
-
-    /// <summary>
-    /// 检查有效枚举方法
-    /// </summary>
-    public static Func<Enum, bool> CheckValidEnum =>
-        _checkValidEnum ??= x =>
-            NumberUtils.CompareX(x, 0, UnderlyingType, ComparisonOperatorType.Inequality);
-
     #region ValidValues
     private static FrozenSet<TEnum>? _validValues;
 
     /// <summary>
-    /// 有效的全部值 (排除None)
+    /// 有效的全部值 (为设置 <see cref="FlagsAttribute"/> 的枚举排除None)
     /// </summary>
     public static FrozenSet<TEnum> ValidValues =>
-        _validValues ??= Enum.GetValues<TEnum>().Where(x => CheckValidEnum(x)).ToFrozenSet();
+        _validValues ??= IsFlagable
+            ? Enum.GetValues<TEnum>()
+                .Where(x =>
+                    NumberUtils.CompareX(x, 0, UnderlyingType, ComparisonOperatorType.Inequality)
+                )
+                .ToFrozenSet()
+            : Values;
     #endregion
 
     #region ValidNames
     private static FrozenSet<string>? _validNames;
 
     /// <summary>
-    /// 有效的全部名称 (排除None)
+    /// 有效的全部名称 (为设置 <see cref="FlagsAttribute"/> 的枚举排除None)
     /// </summary>
     public static FrozenSet<string> ValidNames =>
-        _validNames ??= ValidValues.Select(x => Enum.GetName<TEnum>(x)).ToFrozenSet()!;
+        _validNames ??= IsFlagable
+            ? ValidValues.Select(x => Enum.GetName<TEnum>(x)).ToFrozenSet()!
+            : Names;
     #endregion
 
     #region ValidInfos
     private static FrozenDictionary<Enum, IEnumInfo>? _validInfos;
 
     /// <summary>
-    /// 有效的全部信息 (排除None)
+    /// 有效的全部信息 (为设置 <see cref="FlagsAttribute"/> 的枚举排除None)
     /// </summary>
     public static FrozenDictionary<Enum, IEnumInfo> ValidInfos =>
-        _validInfos ??= ValidValues.ToFrozenDictionary(
-            v => (Enum)v,
-            v => (IEnumInfo)new EnumInfo<TEnum>(v)
-        );
+        _validInfos ??= IsFlagable
+            ? ValidValues.ToFrozenDictionary(v => (Enum)v, v => (IEnumInfo)new EnumInfo<TEnum>(v))
+            : Infos;
     #endregion
     #endregion
 

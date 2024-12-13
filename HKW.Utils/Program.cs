@@ -36,20 +36,8 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-        EnumInfo.DefaultToString = x =>
-            x.IsFlagable
-                ? string.Join(
-                    ", ",
-                    x.GetFlagInfos().Select(static i => $"{i.EnumType.Name}_{i.Value}")
-                )
-                : $"{x.EnumType.Name}_{x.Value}";
-        //foreach (var e in EnumInfo<TestEnum1>.Infos.Values)
-        //    Console.WriteLine(e.ToString());
-
-        Console.WriteLine(
-            (TestEnum1.None | TestEnum1.A | TestEnum1.B | TestEnum1.C).GetInfo().ToString()
-        );
-
+        //var its = typeof(TestModel1).GetInterfaces();
+        //var it = its.LastOrDefault(i => i.Name == typeof(IEnableLogger<>).Name);
         //var enums = Enum.GetValues<TestEnum1>()
         //    .Where(x =>
         //        NumberUtils.CompareX(
@@ -104,7 +92,9 @@ internal static class TestExtensions
     }
 }
 
-internal partial class TestModel : ReactiveObjectX
+internal partial class TestModel1 : TestModel, IEnableLogger<ReactiveObjectX> { }
+
+internal partial class TestModel : ReactiveObjectX, IEnableLogger<TestModel>
 {
     public TestModel()
     {

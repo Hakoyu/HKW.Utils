@@ -12,7 +12,7 @@ public class UndoableListTests
     [TestMethod]
     public void ListTest()
     {
-        IListTestUtils.Test(
+        IListTTestUtils.Test(
             new UndoableList<int>(),
             Enumerable.Range(0, 10).ToList(),
             () => Random.Shared.Next(10)

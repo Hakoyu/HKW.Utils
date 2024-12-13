@@ -24,7 +24,7 @@ public class ObservableListTests
         Func<T> createNewItem
     )
     {
-        IListTestUtils.Test(list, comparisonList, createNewItem);
+        IListTTestUtils.Test(list, comparisonList, createNewItem);
         ObservableCollectionTests.Test(list, comparisonList, createNewItem);
 
         ListChangingOnAdd(list, comparisonList, createNewItem());
