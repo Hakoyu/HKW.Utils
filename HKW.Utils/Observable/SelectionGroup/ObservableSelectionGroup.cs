@@ -203,52 +203,6 @@ public partial class ObservableSelectionGroup<TLeader, TMember, TMemberCollectio
         _changing = false;
     }
 
-    #region IDisposable
-    private bool _disposed;
-
-    /// <inheritdoc/>
-    ~ObservableSelectionGroup()
-    {
-        //必须为false
-        Dispose(false);
-    }
-
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        //必须为true
-        Dispose(true);
-        //通知垃圾回收器不再调用终结器
-        GC.SuppressFinalize(this);
-    }
-
-    /// <inheritdoc/>
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_disposed)
-            return;
-
-        if (disposing)
-        {
-            Leader.Dispose();
-            Leader.PropertyChanged -= Leader_PropertyChanged;
-            foreach (var member in Members)
-            {
-                member.PropertyChanged -= Member_PropertyChanged;
-            }
-            Members.Clear();
-        }
-
-        _disposed = true;
-    }
-
-    /// <inheritdoc cref="IDisposable.Dispose"/>
-    public void Close()
-    {
-        Dispose();
-    }
-    #endregion
-
     #region ICollection
     /// <inheritdoc/>
     public int Count => Members.Count;
@@ -298,4 +252,22 @@ public partial class ObservableSelectionGroup<TLeader, TMember, TMemberCollectio
         return ((IEnumerable)Members).GetEnumerator();
     }
     #endregion
+
+    /// <inheritdoc/>
+    protected override void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+        base.Dispose(disposing);
+        if (disposing)
+        {
+            Leader.Dispose();
+            Leader.PropertyChanged -= Leader_PropertyChanged;
+            foreach (var member in Members)
+            {
+                member.PropertyChanged -= Member_PropertyChanged;
+            }
+            Members.Clear();
+        }
+    }
 }

@@ -97,46 +97,17 @@ public partial class ObservablePropertyWrapper<TSource, TValue>
     }
     #endregion
 
-    #region IDisposable
-    private bool _disposed;
 
     /// <inheritdoc/>
-    ~ObservablePropertyWrapper()
+    protected override void Dispose(bool disposing)
     {
-        //必须为false
-        Dispose(false);
-    }
-
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        //必须为true
-        Dispose(true);
-        //通知垃圾回收器不再调用终结器
-        GC.SuppressFinalize(this);
-    }
-
-    /// <inheritdoc/>
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_disposed)
-            return;
-
+        base.Dispose(disposing);
         if (disposing)
         {
             if (Source is not null)
                 Source.PropertyChanged -= Source_PropertyChanged;
             GetAction = null!;
             SetAction = null!;
-
-            _disposed = true;
         }
     }
-
-    /// <inheritdoc cref="IDisposable.Dispose"/>
-    public void Close()
-    {
-        Dispose();
-    }
-    #endregion
 }
