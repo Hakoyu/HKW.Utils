@@ -22,4 +22,16 @@ public static partial class HKWExtensions
     {
         return func(source);
     }
+
+    /// <summary>
+    /// 转换到默认
+    /// <para>不直接使用,常作为占位符</para>
+    /// </summary>
+    /// <typeparam name="T">返回类型</typeparam>
+    /// <param name="obj">对象</param>
+    /// <returns>默认类型</returns>
+    public static T ToDefault<T>(this object obj)
+    {
+        return default!;
+    }
 }

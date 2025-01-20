@@ -36,6 +36,9 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
+        var text = "Chinese_name".ToPascal('_', sourceToLower: false);
+        //var l = new ObservableList<int>();
+        //l.AddRange(new[] { 1, 2, 3 });
         //var its = typeof(TestModel1).GetInterfaces();
         //var it = its.LastOrDefault(i => i.Name == typeof(IEnableLogger<>).Name);
         //var enums = Enum.GetValues<TestEnum1>()

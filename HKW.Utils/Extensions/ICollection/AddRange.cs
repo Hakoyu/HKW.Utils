@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using HKW.HKWUtils.Collections;
@@ -20,6 +21,11 @@ public static partial class HKWExtensions
         if (collection is List<T> list)
         {
             list.AddRange(items);
+        }
+        else if (items is IList<T> iList)
+        {
+            for (var i = 0; i < iList.Count; i++)
+                collection.Add(iList[i]);
         }
         else
         {
