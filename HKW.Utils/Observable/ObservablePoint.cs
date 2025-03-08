@@ -1,9 +1,6 @@
 ﻿using System.Diagnostics;
-using System.Drawing;
 using System.Numerics;
-using System.Windows;
 using HKW.HKWReactiveUI;
-using HKW.HKWUtils;
 using HKW.HKWUtils.Drawing;
 
 namespace HKW.HKWUtils.Observable;

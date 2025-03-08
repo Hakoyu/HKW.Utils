@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
-using HKW.HKWUtils;
-using HKW.HKWUtils.Drawing;
 using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Drawing;

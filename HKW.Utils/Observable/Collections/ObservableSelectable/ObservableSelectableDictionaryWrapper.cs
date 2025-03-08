@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using HKW.HKWReactiveUI;
 using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Extensions;
-using ReactiveUI;
 
 namespace HKW.HKWUtils.Observable;
 

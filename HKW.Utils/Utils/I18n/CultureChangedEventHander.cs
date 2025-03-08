@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-namespace HKW.HKWUtils;
+﻿namespace HKW.HKWUtils;
 
 /// <summary>
 /// 文化改变后事件

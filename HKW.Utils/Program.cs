@@ -1,22 +1,12 @@
-﻿using System.Collections.Frozen;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
-using System.Globalization;
-using System.Linq.Expressions;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Windows.Input;
-using DynamicData.Binding;
 using HKW.HKWReactiveUI;
 using HKW.HKWUtils;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Drawing;
-using HKW.HKWUtils.Extensions;
-using HKW.HKWUtils.Observable;
 using ReactiveUI;
 
 namespace HKW;
@@ -36,7 +26,8 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-        var text = "Chinese_name".ToPascal('_', sourceToLower: false);
+        var r = FileUtils.Compare("D:\\Downloads\\G2151.7z1", "D:\\Downloads\\G2151.7z1");
+        //var text = "Chinese_name".ToPascal('_', sourceToLower: false);
         //var l = new ObservableList<int>();
         //l.AddRange(new[] { 1, 2, 3 });
         //var its = typeof(TestModel1).GetInterfaces();
@@ -170,4 +161,6 @@ internal enum TestEnum2
     B,
     C,
 }
+
+
 #endif

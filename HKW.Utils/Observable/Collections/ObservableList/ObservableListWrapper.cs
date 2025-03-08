@@ -2,7 +2,6 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
-using HKW.HKWReactiveUI;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.DebugViews;
 
@@ -179,28 +178,20 @@ public class ObservableListWrapper<TItem, TList>
     int IList.Add(object? value)
     {
         var item = (TItem)value!;
-        var index = BaseList.Count - 1;
-        Insert(index, item);
-        return index;
+        Add(item);
+        return Count - 1;
     }
 
     void IList.Insert(int index, object? value)
     {
         var item = (TItem)value!;
-        OnListAdding(item, index);
-        BaseList.Insert(index, item);
-        OnListAdded(item, index);
+        Insert(index, item);
     }
 
     void IList.Remove(object? value)
     {
         var item = (TItem)value!;
-        var index = BaseList.IndexOf(item);
-        if (index == -1)
-            return;
-        OnListRemoving(item, index);
-        BaseList.RemoveAt(index);
-        OnListRemoved(item, index);
+        Remove(item);
     }
 
     bool IList.Contains(object? value)

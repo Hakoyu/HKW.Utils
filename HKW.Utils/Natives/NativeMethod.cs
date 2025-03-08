@@ -1,6 +1,4 @@
-﻿using System.Collections.ObjectModel;
-
-namespace HKW.HKWUtils.Natives;
+﻿namespace HKW.HKWUtils.Natives;
 
 internal static class NativeMethod
 {

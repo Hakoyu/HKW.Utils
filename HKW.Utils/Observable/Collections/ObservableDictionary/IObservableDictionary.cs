@@ -1,7 +1,4 @@
-﻿using System.Collections.Specialized;
-using System.ComponentModel;
-
-namespace HKW.HKWUtils.Observable;
+﻿namespace HKW.HKWUtils.Observable;
 
 /// <summary>
 /// 可观测字典接口

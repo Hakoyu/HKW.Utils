@@ -5,7 +5,6 @@ using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HKW.HKWUtils.DebugViews;
-using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Observable;
 

@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace HKW.HKWUtils.Collections;
+﻿namespace HKW.HKWUtils.Collections;
 
 /// <summary>
 /// 过滤集合

@@ -1,20 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections;
+using System.Diagnostics;
+using HKW.HKWUtils.DebugViews;
 
 namespace HKW.HKWUtils.Collections;
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
-using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
-using HKW.HKWUtils.DebugViews;
 
 /// <summary>
 /// 顺序集合

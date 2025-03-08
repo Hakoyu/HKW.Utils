@@ -44,7 +44,6 @@
 		<Folder Include="Attributes\" />
 		<Folder Include="Exceptions\" />
 		<Folder Include="Extensions\IObservable\" />
-		<Folder Include="Utils\Interfaces\" />
 	</ItemGroup>
 
 	<ItemGroup>
