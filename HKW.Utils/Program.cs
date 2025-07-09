@@ -3,6 +3,9 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using HKW.HKWReactiveUI;
 using HKW.HKWUtils;
 using HKW.HKWUtils.Collections;
@@ -26,7 +29,8 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-        var r = FileUtils.Compare("D:\\Downloads\\G2151.7z1", "D:\\Downloads\\G2151.7z1");
+
+        //var r = FileUtils.Compare("D:\\Downloads\\G2151.7z1", "D:\\Downloads\\G2151.7z1");
         //var text = "Chinese_name".ToPascal('_', sourceToLower: false);
         //var l = new ObservableList<int>();
         //l.AddRange(new[] { 1, 2, 3 });
