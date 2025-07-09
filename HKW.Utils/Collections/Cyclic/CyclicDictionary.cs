@@ -122,7 +122,7 @@ public class CyclicDictionary<TKey, TValue>
     }
     #endregion
 
-    #region IDictionary
+    #region IDictionaryT
     /// <inheritdoc/>
     public TValue this[TKey key]
     {
@@ -152,13 +152,6 @@ public class CyclicDictionary<TKey, TValue>
 
     IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values =>
         ((IReadOnlyDictionary<TKey, TValue>)_dictionary).Values;
-
-    /// <inheritdoc/>
-    public bool IsFixedSize => ((IDictionary)_dictionary).IsFixedSize;
-
-    ICollection IDictionary.Keys => ((IDictionary)_dictionary).Keys;
-
-    ICollection IDictionary.Values => ((IDictionary)_dictionary).Values;
 
     /// <inheritdoc/>
     public bool IsSynchronized => ((ICollection)_dictionary).IsSynchronized;
@@ -255,9 +248,15 @@ public class CyclicDictionary<TKey, TValue>
     {
         return ((IEnumerable)_dictionary).GetEnumerator();
     }
+    #endregion
+    #region IDictionary
+    bool IDictionary.IsFixedSize => ((IDictionary)_dictionary).IsFixedSize;
 
-    /// <inheritdoc/>
-    public void Add(object key, object? value)
+    ICollection IDictionary.Keys => ((IDictionary)_dictionary).Keys;
+
+    ICollection IDictionary.Values => ((IDictionary)_dictionary).Values;
+
+    void IDictionary.Add(object key, object? value)
     {
         var count = Count;
         ((IDictionary)_dictionary).Add(key, value);
@@ -266,8 +265,7 @@ public class CyclicDictionary<TKey, TValue>
         Reset();
     }
 
-    /// <inheritdoc/>
-    public bool Contains(object key)
+    bool IDictionary.Contains(object key)
     {
         return ((IDictionary)_dictionary).Contains(key);
     }
@@ -277,8 +275,7 @@ public class CyclicDictionary<TKey, TValue>
         return ((IDictionary)_dictionary).GetEnumerator();
     }
 
-    /// <inheritdoc/>
-    public void Remove(object key)
+    void IDictionary.Remove(object key)
     {
         var count = Count;
         ((IDictionary)_dictionary).Remove(key);
@@ -287,8 +284,7 @@ public class CyclicDictionary<TKey, TValue>
         Reset();
     }
 
-    /// <inheritdoc/>
-    public void CopyTo(Array array, int index)
+    void ICollection.CopyTo(Array array, int index)
     {
         ((ICollection)_dictionary).CopyTo(array, index);
     }

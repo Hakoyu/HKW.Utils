@@ -3,10 +3,12 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HKW.HKWUtils.DebugViews;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -15,6 +17,8 @@ namespace HKW.HKWUtils.Collections;
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
+[DebuggerDisplay("Count = {Count}")]
+[DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class CacheDictionary<TKey, TValue>
     : IDictionary<TKey, TValue>,
         IReadOnlyDictionary<TKey, TValue>,
@@ -87,13 +91,16 @@ public class CacheDictionary<TKey, TValue>
         _keyQueue.Enqueue(key);
     }
 
-    #region IDictionary
+    #region IDictionaryT
     /// <inheritdoc/>
     public TValue this[TKey key]
     {
         get => ((IDictionary<TKey, TValue>)_dictionary)[key];
         set => ((IDictionary<TKey, TValue>)_dictionary)[key] = value;
     }
+
+    /// <inheritdoc/>
+    public bool IsReadOnly => ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).IsReadOnly;
 
     /// <inheritdoc/>
     public ICollection<TKey> Keys => ((IDictionary<TKey, TValue>)_dictionary).Keys;
@@ -104,21 +111,11 @@ public class CacheDictionary<TKey, TValue>
     /// <inheritdoc/>
     public int Count => ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).Count;
 
-    /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).IsReadOnly;
-
     IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys =>
         ((IReadOnlyDictionary<TKey, TValue>)_dictionary).Keys;
 
     IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values =>
         ((IReadOnlyDictionary<TKey, TValue>)_dictionary).Values;
-
-    /// <inheritdoc/>
-    public bool IsFixedSize => ((IDictionary)_dictionary).IsFixedSize;
-
-    ICollection IDictionary.Keys => ((IDictionary)_dictionary).Keys;
-
-    ICollection IDictionary.Values => ((IDictionary)_dictionary).Values;
 
     /// <inheritdoc/>
     public bool IsSynchronized => ((ICollection)_dictionary).IsSynchronized;
@@ -204,18 +201,22 @@ public class CacheDictionary<TKey, TValue>
     {
         return ((IEnumerable)_dictionary).GetEnumerator();
     }
+    #endregion
 
-    /// <inheritdoc/>
-    public void Add(object key, object? value)
+    #region IDictionary
+
+    bool IDictionary.IsFixedSize => ((IDictionary)_dictionary).IsFixedSize;
+
+    ICollection IDictionary.Keys => ((IDictionary)_dictionary).Keys;
+
+    ICollection IDictionary.Values => ((IDictionary)_dictionary).Values;
+
+    void IDictionary.Add(object key, object? value)
     {
-        var count = Count;
-        ((IDictionary)_dictionary).Add(key, value);
-        if (count != Count)
-            TryAddToQueue((TKey)key);
+        Add((TKey)key, (TValue)value!);
     }
 
-    /// <inheritdoc/>
-    public bool Contains(object key)
+    bool IDictionary.Contains(object key)
     {
         return ((IDictionary)_dictionary).Contains(key);
     }
@@ -225,14 +226,12 @@ public class CacheDictionary<TKey, TValue>
         return ((IDictionary)_dictionary).GetEnumerator();
     }
 
-    /// <inheritdoc/>
-    public void Remove(object key)
+    void IDictionary.Remove(object key)
     {
         throw new NotSupportedException("Remove operation is not supported in CacheDictionary.");
     }
 
-    /// <inheritdoc/>
-    public void CopyTo(Array array, int index)
+    void ICollection.CopyTo(Array array, int index)
     {
         ((ICollection)_dictionary).CopyTo(array, index);
     }

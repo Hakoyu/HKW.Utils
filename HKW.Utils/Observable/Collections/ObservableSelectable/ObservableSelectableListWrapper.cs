@@ -75,12 +75,12 @@ public partial class ObservableSelectableListWrapper<TItem, TList>
     [ReactiveProperty]
     public TItem? SelectedItem { get; set; }
 
-    partial void OnSelectedItemChanged(TItem oldValue, TItem newValue)
+    partial void OnSelectedItemChanged(TItem? oldValue, TItem? newValue)
     {
         if (_changing)
             return;
         _changing = true;
-        SelectedIndex = BaseList.IndexOf(newValue);
+        SelectedIndex = BaseList.IndexOf(newValue!);
         _changing = false;
     }
 

@@ -5,21 +5,24 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using HKW.HKWUtils.Collections;
 
 namespace HKW.HKWUtils.Extensions;
 
 public static partial class HKWExtensions
 {
     /// <summary>
-    /// 是否已定义特性
+    /// 获取成员的特性字典
     /// </summary>
-    /// <typeparam name="T">特性类型</typeparam>
     /// <param name="memberInfo">成员信息</param>
-    /// <param name="inherit">包括继承</param>
-    /// <returns>已定义为 <see langword="true"/>, 否则为 <see langword="false"/></returns>
+    /// <param name="inherit">包括继承特性</param>
+    /// <returns>特性字典</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsDefined<T>(this MemberInfo memberInfo, bool inherit = false)
+    public static AttributeDictionary GetAttributeDictionary(
+        this MemberInfo memberInfo,
+        bool inherit = false
+    )
     {
-        return memberInfo.IsDefined(typeof(T), inherit);
+        return new AttributeDictionary(memberInfo, inherit);
     }
 }
