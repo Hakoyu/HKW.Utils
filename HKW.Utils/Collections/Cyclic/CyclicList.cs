@@ -109,15 +109,6 @@ public class CyclicList<T> : IList<T>, ICyclicCollection<T>, IReadOnlyList<T>, I
     /// <inheritdoc/>
     public bool IsReadOnly => ((ICollection<T>)_list).IsReadOnly;
 
-    /// <inheritdoc/>
-    public bool IsFixedSize => ((IList)_list).IsFixedSize;
-
-    /// <inheritdoc/>
-    public bool IsSynchronized => ((ICollection)_list).IsSynchronized;
-
-    /// <inheritdoc/>
-    public object SyncRoot => ((ICollection)_list).SyncRoot;
-
     object? IList.this[int index]
     {
         get => ((IList)_list)[index];
@@ -191,42 +182,42 @@ public class CyclicList<T> : IList<T>, ICyclicCollection<T>, IReadOnlyList<T>, I
     #endregion
 
     #region IList
-    /// <inheritdoc/>
-    public int Add(object? value)
+    bool IList.IsFixedSize => ((IList)_list).IsFixedSize;
+
+    bool ICollection.IsSynchronized => ((ICollection)_list).IsSynchronized;
+
+    object ICollection.SyncRoot => ((ICollection)_list).SyncRoot;
+
+    int IList.Add(object? value)
     {
         var result = ((IList)_list).Add(value);
         Reset();
         return result;
     }
 
-    /// <inheritdoc/>
-    public bool Contains(object? value)
+    bool IList.Contains(object? value)
     {
         return ((IList)_list).Contains(value);
     }
 
-    /// <inheritdoc/>
-    public int IndexOf(object? value)
+    int IList.IndexOf(object? value)
     {
         return ((IList)_list).IndexOf(value);
     }
 
-    /// <inheritdoc/>
-    public void Insert(int index, object? value)
+    void IList.Insert(int index, object? value)
     {
         ((IList)_list).Insert(index, value);
         Reset();
     }
 
-    /// <inheritdoc/>
-    public void Remove(object? value)
+    void IList.Remove(object? value)
     {
         ((IList)_list).Remove(value);
         Reset();
     }
 
-    /// <inheritdoc/>
-    public void CopyTo(Array array, int index)
+    void ICollection.CopyTo(Array array, int index)
     {
         ((ICollection)_list).CopyTo(array, index);
     }

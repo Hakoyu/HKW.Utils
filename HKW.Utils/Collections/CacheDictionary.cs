@@ -31,7 +31,6 @@ public class CacheDictionary<TKey, TValue>
     [DefaultValue(16)]
     public int MaxCacheSize { get; set; } = 16;
     private readonly ConcurrentDictionary<TKey, TValue> _dictionary;
-    private readonly ConcurrentQueue<TKey> _keyQueue = new();
 
     #region Ctor
     /// <inheritdoc/>
@@ -68,11 +67,11 @@ public class CacheDictionary<TKey, TValue>
         if (collection is not null)
         {
             _dictionary = new(collection, comparer);
-            foreach (var item in _dictionary)
-                _keyQueue.Enqueue(item.Key);
         }
         else
+        {
             _dictionary = new(comparer);
+        }
         MaxCacheSize = maxCacheSize;
     }
     #endregion
@@ -81,14 +80,10 @@ public class CacheDictionary<TKey, TValue>
     /// 尝试添加到队列
     /// </summary>
     /// <param name="key">键</param>
-    public void TryAddToQueue(TKey key)
+    public void CheckCacheSize(TKey key)
     {
-        if (_keyQueue.Count >= MaxCacheSize)
-        {
-            if (_keyQueue.TryDequeue(out var dequeueKey))
-                _dictionary.TryRemove(dequeueKey, out _);
-        }
-        _keyQueue.Enqueue(key);
+        if (_dictionary.Count > 0 && _dictionary.Count > MaxCacheSize)
+            _dictionary.TryRemove(_dictionary.First().Key, out _);
     }
 
     #region IDictionaryT
@@ -136,7 +131,7 @@ public class CacheDictionary<TKey, TValue>
         var count = Count;
         ((IDictionary<TKey, TValue>)_dictionary).Add(key, value);
         if (count != Count)
-            TryAddToQueue(key);
+            CheckCacheSize(key);
     }
 
     /// <inheritdoc/>
@@ -145,14 +140,13 @@ public class CacheDictionary<TKey, TValue>
         var count = Count;
         ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).Add(item);
         if (count != Count)
-            TryAddToQueue(item.Key);
+            CheckCacheSize(item.Key);
     }
 
     /// <inheritdoc/>
     public void Clear()
     {
         ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).Clear();
-        _keyQueue.Clear();
     }
 
     /// <inheritdoc/>
@@ -182,13 +176,13 @@ public class CacheDictionary<TKey, TValue>
     /// <inheritdoc/>
     public bool Remove(TKey key)
     {
-        throw new NotSupportedException("Remove operation is not supported in CacheDictionary.");
+        return _dictionary.Remove(key, out _);
     }
 
     /// <inheritdoc/>
     public bool Remove(KeyValuePair<TKey, TValue> item)
     {
-        throw new NotSupportedException("Remove operation is not supported in CacheDictionary.");
+        return _dictionary.Remove(item.Key, out _);
     }
 
     /// <inheritdoc/>
@@ -228,7 +222,7 @@ public class CacheDictionary<TKey, TValue>
 
     void IDictionary.Remove(object key)
     {
-        throw new NotSupportedException("Remove operation is not supported in CacheDictionary.");
+        _dictionary.Remove((TKey)key, out _);
     }
 
     void ICollection.CopyTo(Array array, int index)

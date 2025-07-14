@@ -50,7 +50,7 @@ public class CyclicListTests
     {
         var cyclicList = new CyclicList<int>(Enumerable.Range(0, 10));
         Assert.IsTrue(cyclicList.Current == cyclicList.First());
-        cyclicList.RemoveAt(0);
+        ((System.Collections.IList)cyclicList).RemoveAt(0);
         Assert.IsTrue(cyclicList.Current == cyclicList.First());
     }
 
@@ -59,7 +59,7 @@ public class CyclicListTests
     {
         var cyclicList = new CyclicList<int>(Enumerable.Range(0, 10));
         Assert.IsTrue(cyclicList.Current == cyclicList.First());
-        cyclicList.Clear();
+        ((System.Collections.IList)cyclicList).Clear();
         Assert.IsTrue(cyclicList.Current == default);
     }
 
