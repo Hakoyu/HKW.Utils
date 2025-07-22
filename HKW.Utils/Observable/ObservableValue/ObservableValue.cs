@@ -6,7 +6,7 @@ namespace HKW.HKWUtils.Observable;
 /// <summary>
 /// 可观测值
 /// </summary>
-/// <typeparam name="T"></typeparam>
+/// <typeparam name="T">值类型</typeparam>
 [DebuggerDisplay("{Value}")]
 public partial class ObservableValue<T> : ReactiveObjectX, IEquatable<ObservableValue<T>>
 {

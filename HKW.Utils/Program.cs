@@ -10,6 +10,7 @@ using HKW.HKWReactiveUI;
 using HKW.HKWUtils;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Drawing;
+using HKW.HKWUtils.Observable;
 using ReactiveUI;
 
 namespace HKW;
@@ -19,7 +20,7 @@ internal class Program
     private static System.Diagnostics.Stopwatch stopWatch = new();
     public static I18nCore I18nCore = new();
     public static I18nResource<string, string> I18nResource =
-        new(I18nCore) { DefaultValue = string.Empty, FillDefaultValueToData = true };
+        new("", I18nCore.Default) { DefaultValue = string.Empty, FillDefaultValueToData = true };
     public IntegratedReadOnlyList<int, List<int>, ReadOnlyCollection<int>> List { get; } =
         new(new(), l => new(l));
     public ReadOnlyCollection<int> ReadOnlyList => List.ReadOnlyList;
@@ -29,7 +30,12 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-
+        var vm = new TestModel();
+        var p = new ObservableWrapper<TestModel, bool>(
+            vm,
+            static vm => vm.CanExecute,
+            static (vm, x) => vm.CanExecute = x
+        );
         //var r = FileUtils.Compare("D:\\Downloads\\G2151.7z1", "D:\\Downloads\\G2151.7z1");
         //var text = "Chinese_name".ToPascal('_', sourceToLower: false);
         //var l = new ObservableList<int>();

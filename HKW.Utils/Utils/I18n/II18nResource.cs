@@ -6,6 +6,11 @@
 public interface II18nResource
 {
     /// <summary>
+    /// 资源名称
+    /// </summary>
+    public string ResourceName { get; }
+
+    /// <summary>
     /// I18n核心
     /// </summary>
     public I18nCore? I18nCore { get; set; }

@@ -11,6 +11,13 @@ namespace HKW.HKWUtils;
 /// </summary>
 public class I18nCore
 {
+    private static readonly Lazy<I18nCore> _lazy = new(() => new I18nCore());
+
+    /// <summary>
+    /// 默认 I18nCore
+    /// </summary>
+    public static I18nCore Default => _lazy.Value;
+
     /// <summary>
     /// 改变 <see cref="CurrentCulture"/> 同时修改 <see cref="Thread.CurrentThread"/> 的 <see cref="Thread.CurrentCulture"/>
     /// </summary>
@@ -27,7 +34,7 @@ public class I18nCore
     /// 本地化资源实例集合
     /// <para>(ResourceName, I18nResourceInfo)</para>
     /// </summary>
-    public HashSet<II18nResource> I18nResources { get; } = new();
+    public Dictionary<string, II18nResource> I18nResources { get; } = [];
 
     private CultureInfo _currentCulture = CultureInfo.CurrentCulture;
 
@@ -51,18 +58,18 @@ public class I18nCore
         }
     }
 
-    /// <summary>
-    /// 创建I18n资源
-    /// </summary>
-    /// <typeparam name="TKey">键</typeparam>
-    /// <typeparam name="TValue">值</typeparam>
-    /// <param name="addCurrentCulture">为资源添加当前文化</param>
-    /// <returns>I18n资源</returns>
-    public I18nResource<TKey, TValue> CreateResource<TKey, TValue>(bool addCurrentCulture = false)
-        where TKey : notnull
-    {
-        return new I18nResource<TKey, TValue>(this, addCurrentCulture);
-    }
+    ///// <summary>
+    ///// 创建I18n资源
+    ///// </summary>
+    ///// <typeparam name="TKey">键</typeparam>
+    ///// <typeparam name="TValue">值</typeparam>
+    ///// <param name="addCurrentCulture">为资源添加当前文化</param>
+    ///// <returns>I18n资源</returns>
+    //public I18nResource<TKey, TValue> CreateResource<TKey, TValue>(bool addCurrentCulture = false)
+    //    where TKey : notnull
+    //{
+    //    return new I18nResource<TKey, TValue>("", this, addCurrentCulture);
+    //}
 
     /// <summary>
     /// 刷新所有I18n资源
@@ -70,8 +77,8 @@ public class I18nCore
     public void RefreshAllI18nResource()
     {
         CurrentCultureChanged?.Invoke(this, new(CurrentCulture));
-        foreach (var resource in I18nResources)
-            resource.RefreshAllI18nObject();
+        foreach (var pair in I18nResources)
+            pair.Value.RefreshAllI18nObject();
     }
 
     #region BindingValue
@@ -174,8 +181,8 @@ public class I18nCore
     /// </summary>
     public void ClearI18nResources()
     {
-        foreach (var resource in I18nResources)
-            resource.I18nCore = null;
+        foreach (var pair in I18nResources)
+            pair.Value.I18nCore = null;
     }
 
     /// <summary>

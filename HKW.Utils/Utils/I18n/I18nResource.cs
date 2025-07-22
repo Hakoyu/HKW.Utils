@@ -13,13 +13,13 @@ namespace HKW.HKWUtils;
 
 /// <summary>
 /// I18n资源
-/// 配合 <see cref="I18nCore"/> 使用
+/// 可以配合 <see cref="I18nCore"/> 使用
 /// <para>示例:
 /// <code><![CDATA[
 /// public partial class MainWindowViewModel : ObservableObject
 /// {
 ///     public static I18nCore I18nCore { get; } = new();
-///     public I18nResource<TestI18nResource> I18nResource { get; } = I18nCore.Create<TestI18nResource>(new());
+///     public I18nResource<TestI18nResource> I18nResource { get; } = new I18nResource("Main",I18nCore);
 ///
 ///     public string Name => GetCultureData(nameof(Name));
 /// }
@@ -34,8 +34,11 @@ public class I18nResource<TKey, TValue>
     where TKey : notnull
 {
     /// <inheritdoc/>
-    public I18nResource()
+    /// <param name="resourceName">资源名称</param>
+    public I18nResource(string resourceName)
     {
+        ResourceName = resourceName;
+
         Cultures.SetChanged += Cultures_SetChanged;
         CultureDatas.DictionaryChanging += CultureDatas_DictionaryChanging;
         CultureDatas.DictionaryChanged += CultureDatas_DictionaryChanged;
@@ -44,10 +47,11 @@ public class I18nResource<TKey, TValue>
     }
 
     /// <inheritdoc/>
+    /// <param name="resourceName">资源名称</param>
     /// <param name="core">I18n核心</param>
     /// <param name="addCurrentCulture">为资源添加当前文化</param>
-    public I18nResource(I18nCore core, bool addCurrentCulture = false)
-        : this()
+    public I18nResource(string resourceName, I18nCore core, bool addCurrentCulture = false)
+        : this(resourceName)
     {
         I18nCore = core;
         if (addCurrentCulture)
@@ -58,10 +62,11 @@ public class I18nResource<TKey, TValue>
     }
 
     /// <inheritdoc/>
+    /// <param name="resourceName">资源名称</param>
     /// <param name="core">本地化核心</param>
     /// <param name="culture">文化</param>
-    public I18nResource(I18nCore core, CultureInfo culture)
-        : this()
+    public I18nResource(string resourceName, I18nCore core, CultureInfo culture)
+        : this(resourceName)
     {
         I18nCore = core;
         AddCulture(culture);
@@ -69,10 +74,14 @@ public class I18nResource<TKey, TValue>
     }
 
     /// <inheritdoc/>
+    /// <param name="resourceName">资源名称</param>
     /// <param name="core">本地化核心</param>
     /// <param name="cultureName">文化名称</param>
-    public I18nResource(I18nCore core, string cultureName)
-        : this(core, CultureInfo.GetCultureInfo(cultureName)) { }
+    public I18nResource(string resourceName, I18nCore core, string cultureName)
+        : this(resourceName, core, CultureInfo.GetCultureInfo(cultureName)) { }
+
+    /// <inheritdoc/>
+    public string ResourceName { get; }
 
     /// <summary>
     /// 填充默认值到数据
@@ -80,6 +89,7 @@ public class I18nResource<TKey, TValue>
     /// 在添加新文化或新键时,会向文化数据添加 <see cref="DefaultValue"/>
     /// </para>
     /// </summary>
+    /// <remarks>会增大内存使用量</remarks>
     public bool FillDefaultValueToData { get; set; } = false;
 
     /// <summary>
@@ -123,14 +133,14 @@ public class I18nResource<TKey, TValue>
             if (_i18nCore is not null)
             {
                 _i18nCore.CurrentCultureChanged -= Core_CurrentCultureChanged;
-                _i18nCore.I18nResources.Remove(this);
+                _i18nCore.I18nResources.Remove(ResourceName);
             }
             _i18nCore = value;
             if (_i18nCore is not null)
             {
                 _i18nCore.CurrentCultureChanged -= Core_CurrentCultureChanged;
                 _i18nCore.CurrentCultureChanged += Core_CurrentCultureChanged;
-                _i18nCore.I18nResources.Add(this);
+                _i18nCore.I18nResources.Add(ResourceName, this);
             }
         }
     }

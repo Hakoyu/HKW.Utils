@@ -42,6 +42,37 @@ public class AttributeDictionary
     }
 
     /// <summary>
+    /// 包含指定类型的特性
+    /// </summary>
+    /// <param name="attributeType">特性类型</param>
+    /// <returns>包含为 <see langword="true"/>, 否则为 <see langword="false"/></returns>
+    public bool Contains(Type attributeType)
+    {
+        return _dictionary.ContainsKey(attributeType);
+    }
+
+    /// <summary>
+    /// 包含指定类型的特性
+    /// </summary>
+    /// <typeparam name="TAttribute">特性类型</typeparam>
+    /// <returns>包含为 <see langword="true"/>, 否则为 <see langword="false"/></returns>
+    public bool IsDefined<TAttribute>()
+        where TAttribute : Attribute
+    {
+        return _dictionary.ContainsKey(typeof(TAttribute));
+    }
+
+    /// <summary>
+    /// 包含指定类型的特性
+    /// </summary>
+    /// <param name="attributeType">特性类型</param>
+    /// <returns>包含为 <see langword="true"/>, 否则为 <see langword="false"/></returns>
+    public bool IsDefined(Type attributeType)
+    {
+        return _dictionary.ContainsKey(attributeType);
+    }
+
+    /// <summary>
     /// 获取指定类型的特性,若存在多个特性则返回第一个找到的特性
     /// </summary>
     /// <typeparam name="TAttribute">特性类型</typeparam>
@@ -51,6 +82,19 @@ public class AttributeDictionary
     {
         if (_dictionary.TryGetValue(typeof(TAttribute), out var attribute))
             return (TAttribute)attribute;
+        else
+            return null;
+    }
+
+    /// <summary>
+    /// 获取指定类型的特性,若存在多个特性则返回第一个找到的特性
+    /// </summary>
+    /// <param name="attributeType">特性类型</param>
+    /// <returns>指定类型的特性,若存在多个特性则返回第一个找到的特性</returns>
+    public Attribute? GetAttribute(Type attributeType)
+    {
+        if (_dictionary.TryGetValue(attributeType, out var attribute))
+            return attribute;
         else
             return null;
     }
@@ -68,6 +112,16 @@ public class AttributeDictionary
             .Select(kv => kv.Value)
             .Cast<TAttribute>()
             .ToArray();
+    }
+
+    /// <summary>
+    /// 获取指定类型的所有特性
+    /// </summary>
+    /// <param name="attributeType">特性类型</param>
+    /// <returns>指定类型的所有特性</returns>
+    public Attribute[] GetAttributes(Type attributeType)
+    {
+        return _dictionary.Where(kv => kv.Key == attributeType).Select(kv => kv.Value).ToArray();
     }
 
     /// <summary>
@@ -94,6 +148,26 @@ public class AttributeDictionary
     /// <summary>
     /// 尝试获取指定类型的特性
     /// </summary>
+    /// <param name="attributeType">特性类型</param>
+    /// <param name="attribute">指定类型的特性,若存在多个特性则返回第一个找到的特性</param>
+    /// <returns>获取成功为 <see langword="true"/>, 否则为 <see langword="false"/></returns>
+    public bool TryGetAttribute(Type attributeType, [MaybeNullWhen(false)] out Attribute attribute)
+    {
+        if (_dictionary.TryGetValue(attributeType, out var attr))
+        {
+            attribute = attr;
+            return true;
+        }
+        else
+        {
+            attribute = null;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 尝试获取指定类型的特性
+    /// </summary>
     /// <typeparam name="TAttribute">特性类型</typeparam>
     /// <param name="attributes">指定类型的所有特性</param>
     /// <returns>获取成功为 <see langword="true"/>, 否则为 <see langword="false"/></returns>
@@ -103,6 +177,29 @@ public class AttributeDictionary
         if (Contains<TAttribute>())
         {
             attributes = GetAttributes<TAttribute>();
+            return true;
+        }
+        else
+        {
+            attributes = null;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 尝试获取指定类型的特性
+    /// </summary>
+    /// <param name="attributeType">特性类型</param>
+    /// <param name="attributes">指定类型的所有特性</param>
+    /// <returns>获取成功为 <see langword="true"/>, 否则为 <see langword="false"/></returns>
+    public bool TryGetAttributes(
+        Type attributeType,
+        [MaybeNullWhen(false)] out Attribute[] attributes
+    )
+    {
+        if (Contains(attributeType))
+        {
+            attributes = GetAttributes(attributeType);
             return true;
         }
         else
