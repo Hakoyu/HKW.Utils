@@ -23,50 +23,50 @@ public class I18n
         Assert.IsTrue(core.ChangeThreadCulture is false);
         Assert.IsTrue(core.ChangeThreadUICulture is false);
 
-        Assert.IsTrue(core.CurrentCulture == CultureInfo.CurrentCulture);
-        Assert.IsTrue(core.CurrentCulture == CultureInfo.CurrentUICulture);
-        Assert.IsTrue(core.CurrentCulture == Thread.CurrentThread.CurrentCulture);
-        Assert.IsTrue(core.CurrentCulture == Thread.CurrentThread.CurrentUICulture);
+        Assert.AreEqual(CultureInfo.CurrentCulture, core.CurrentCulture);
+        Assert.AreEqual(CultureInfo.CurrentUICulture, core.CurrentCulture);
+        Assert.AreEqual(Thread.CurrentThread.CurrentCulture, core.CurrentCulture);
+        Assert.AreEqual(Thread.CurrentThread.CurrentUICulture, core.CurrentCulture);
 
         core.CurrentCulture = targetCulture;
-        Assert.IsTrue(core.CurrentCulture != CultureInfo.CurrentCulture);
-        Assert.IsTrue(core.CurrentCulture != CultureInfo.CurrentUICulture);
-        Assert.IsTrue(core.CurrentCulture != Thread.CurrentThread.CurrentCulture);
-        Assert.IsTrue(core.CurrentCulture != Thread.CurrentThread.CurrentUICulture);
+        Assert.AreNotEqual(CultureInfo.CurrentCulture, core.CurrentCulture);
+        Assert.AreNotEqual(CultureInfo.CurrentUICulture, core.CurrentCulture);
+        Assert.AreNotEqual(Thread.CurrentThread.CurrentCulture, core.CurrentCulture);
+        Assert.AreNotEqual(Thread.CurrentThread.CurrentUICulture, core.CurrentCulture);
 
         core.ChangeThreadCulture = true;
         core.CurrentCulture = targetCulture;
-        Assert.IsTrue(core.CurrentCulture == CultureInfo.CurrentCulture);
-        Assert.IsTrue(core.CurrentCulture != CultureInfo.CurrentUICulture);
-        Assert.IsTrue(core.CurrentCulture == Thread.CurrentThread.CurrentCulture);
-        Assert.IsTrue(core.CurrentCulture != Thread.CurrentThread.CurrentUICulture);
+        Assert.AreEqual(CultureInfo.CurrentCulture, core.CurrentCulture);
+        Assert.AreNotEqual(CultureInfo.CurrentUICulture, core.CurrentCulture);
+        Assert.AreEqual(Thread.CurrentThread.CurrentCulture, core.CurrentCulture);
+        Assert.AreNotEqual(Thread.CurrentThread.CurrentUICulture, core.CurrentCulture);
 
         core.CurrentCulture = baseCulture;
-        Assert.IsTrue(core.CurrentCulture == CultureInfo.CurrentCulture);
-        Assert.IsTrue(core.CurrentCulture == CultureInfo.CurrentUICulture);
-        Assert.IsTrue(core.CurrentCulture == Thread.CurrentThread.CurrentCulture);
-        Assert.IsTrue(core.CurrentCulture == Thread.CurrentThread.CurrentUICulture);
+        Assert.AreEqual(CultureInfo.CurrentCulture, core.CurrentCulture);
+        Assert.AreEqual(CultureInfo.CurrentUICulture, core.CurrentCulture);
+        Assert.AreEqual(Thread.CurrentThread.CurrentCulture, core.CurrentCulture);
+        Assert.AreEqual(Thread.CurrentThread.CurrentUICulture, core.CurrentCulture);
 
         core.ChangeThreadCulture = false;
         core.ChangeThreadUICulture = true;
         core.CurrentCulture = targetCulture;
-        Assert.IsTrue(core.CurrentCulture != CultureInfo.CurrentCulture);
-        Assert.IsTrue(core.CurrentCulture == CultureInfo.CurrentUICulture);
-        Assert.IsTrue(core.CurrentCulture != Thread.CurrentThread.CurrentCulture);
-        Assert.IsTrue(core.CurrentCulture == Thread.CurrentThread.CurrentUICulture);
+        Assert.AreNotEqual(CultureInfo.CurrentCulture, core.CurrentCulture);
+        Assert.AreEqual(CultureInfo.CurrentUICulture, core.CurrentCulture);
+        Assert.AreNotEqual(Thread.CurrentThread.CurrentCulture, core.CurrentCulture);
+        Assert.AreEqual(Thread.CurrentThread.CurrentUICulture, core.CurrentCulture);
 
         core.CurrentCulture = baseCulture;
-        Assert.IsTrue(core.CurrentCulture == CultureInfo.CurrentCulture);
-        Assert.IsTrue(core.CurrentCulture == CultureInfo.CurrentUICulture);
-        Assert.IsTrue(core.CurrentCulture == Thread.CurrentThread.CurrentCulture);
-        Assert.IsTrue(core.CurrentCulture == Thread.CurrentThread.CurrentUICulture);
+        Assert.AreEqual(CultureInfo.CurrentCulture, core.CurrentCulture);
+        Assert.AreEqual(CultureInfo.CurrentUICulture, core.CurrentCulture);
+        Assert.AreEqual(Thread.CurrentThread.CurrentCulture, core.CurrentCulture);
+        Assert.AreEqual(Thread.CurrentThread.CurrentUICulture, core.CurrentCulture);
 
         core.ChangeThreadCulture = true;
         core.ChangeThreadUICulture = true;
         core.CurrentCulture = baseCulture;
-        Assert.IsTrue(core.CurrentCulture == CultureInfo.CurrentCulture);
-        Assert.IsTrue(core.CurrentCulture == CultureInfo.CurrentUICulture);
-        Assert.IsTrue(core.CurrentCulture == Thread.CurrentThread.CurrentCulture);
-        Assert.IsTrue(core.CurrentCulture == Thread.CurrentThread.CurrentUICulture);
+        Assert.AreEqual(CultureInfo.CurrentCulture, core.CurrentCulture);
+        Assert.AreEqual(CultureInfo.CurrentUICulture, core.CurrentCulture);
+        Assert.AreEqual(Thread.CurrentThread.CurrentCulture, core.CurrentCulture);
+        Assert.AreEqual(Thread.CurrentThread.CurrentUICulture, core.CurrentCulture);
     }
 }

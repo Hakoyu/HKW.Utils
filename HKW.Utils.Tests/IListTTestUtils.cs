@@ -94,7 +94,7 @@ public class IListTTestUtils
         testList.AddRange(cList);
 
         var item = cList.Random();
-        Assert.IsTrue(cList.IndexOf(item) == testList.IndexOf(item));
+        Assert.AreEqual(testList.IndexOf(item), cList.IndexOf(item));
 
         testList.Clear();
     }

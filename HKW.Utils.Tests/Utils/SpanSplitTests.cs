@@ -21,9 +21,9 @@ public class SpanSplitTests
         {
             var splitStr = splitSpan.ToString();
             Assert.IsTrue(splitStr.Contains(',') is false);
-            Assert.IsTrue(splitStr == strs[index++]);
+            Assert.AreEqual(strs[index++], splitStr);
         }
-        Assert.IsTrue(index == strs.Length);
+        Assert.AreEqual(strs.Length, index);
     }
 
     [TestMethod]
@@ -38,8 +38,8 @@ public class SpanSplitTests
             var splitStr = splitSpan.ToString();
             Assert.IsTrue(splitStr.Contains(',') is false);
             Assert.IsTrue(string.IsNullOrWhiteSpace(splitStr) is false);
-            Assert.IsTrue(splitStr == strs[index++]);
+            Assert.AreEqual(strs[index++], splitStr);
         }
-        Assert.IsTrue(index == strs.Length);
+        Assert.AreEqual(strs.Length, index);
     }
 }

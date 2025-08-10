@@ -102,10 +102,10 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Add);
+            Assert.AreEqual(ListChangeAction.Add, e.Action);
             Assert.IsTrue(e.OldItem?.Equals(default(T)));
             Assert.IsTrue(e.NewItem?.Equals(newItem));
-            Assert.IsTrue(e.Index == list.Count);
+            Assert.AreEqual(list.Count, e.Index);
             Assert.IsTrue(list.SequenceEqual(cList));
         }
     }
@@ -135,10 +135,10 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Add);
+            Assert.AreEqual(ListChangeAction.Add, e.Action);
             Assert.IsTrue(e.OldItem?.Equals(default(T)));
             Assert.IsTrue(e.NewItem?.Equals(newItem));
-            Assert.IsTrue(e.Index == index);
+            Assert.AreEqual(index, e.Index);
             Assert.IsTrue(list.SequenceEqual(cList));
         }
     }
@@ -201,10 +201,10 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Remove);
+            Assert.AreEqual(ListChangeAction.Remove, e.Action);
             Assert.IsTrue(e.OldItem?.Equals(removeItem));
             Assert.IsTrue(e.NewItem?.Equals(default(T)));
-            Assert.IsTrue(e.Index == removeIndex);
+            Assert.AreEqual(removeIndex, e.Index);
             Assert.IsTrue(list.SequenceEqual(cList));
         }
     }
@@ -259,10 +259,10 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Remove);
+            Assert.AreEqual(ListChangeAction.Remove, e.Action);
             Assert.IsTrue(e.OldItem?.Equals(removeItem));
             Assert.IsTrue(e.NewItem?.Equals(default(T)));
-            Assert.IsTrue(e.Index == index);
+            Assert.AreEqual(index, e.Index);
             Assert.IsTrue(list.SequenceEqual(cList));
         }
     }
@@ -322,10 +322,10 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Clear);
+            Assert.AreEqual(ListChangeAction.Clear, e.Action);
             Assert.IsTrue(e.OldItem?.Equals(default(T)));
             Assert.IsTrue(e.NewItem?.Equals(default(T)));
-            Assert.IsTrue(e.Index == -1);
+            Assert.AreEqual(-1, e.Index);
             Assert.IsTrue(list.SequenceEqual(cList));
         }
     }
@@ -356,10 +356,10 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Replace);
+            Assert.AreEqual(ListChangeAction.Replace, e.Action);
             Assert.IsTrue(e.OldItem?.Equals(oldItem));
             Assert.IsTrue(e.NewItem?.Equals(newItem));
-            Assert.IsTrue(e.Index == index);
+            Assert.AreEqual(index, e.Index);
             Assert.IsTrue(list.SequenceEqual(cList));
         }
     }
@@ -426,10 +426,10 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Add);
+            Assert.AreEqual(ListChangeAction.Add, e.Action);
             Assert.IsTrue(e.OldItem?.Equals(default(T)));
             Assert.IsTrue(e.NewItem?.Equals(newItem));
-            Assert.IsTrue(e.Index == cList.Count - 1);
+            Assert.AreEqual(cList.Count - 1, e.Index);
             Assert.IsTrue(list.SequenceEqual(cList));
         }
     }
@@ -459,10 +459,10 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Add);
+            Assert.AreEqual(ListChangeAction.Add, e.Action);
             Assert.IsTrue(e.OldItem?.Equals(default(T)));
             Assert.IsTrue(e.NewItem?.Equals(newItem));
-            Assert.IsTrue(e.Index == index);
+            Assert.AreEqual(index, e.Index);
             Assert.IsTrue(list.SequenceEqual(cList));
         }
     }
@@ -525,10 +525,10 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Remove);
+            Assert.AreEqual(ListChangeAction.Remove, e.Action);
             Assert.IsTrue(e.OldItem?.Equals(removeItem));
             Assert.IsTrue(e.NewItem?.Equals(default(T)));
-            Assert.IsTrue(e.Index == removeIndex);
+            Assert.AreEqual(removeIndex, e.Index);
             Assert.IsTrue(list.SequenceEqual(cList));
         }
     }
@@ -583,10 +583,10 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Remove);
+            Assert.AreEqual(ListChangeAction.Remove, e.Action);
             Assert.IsTrue(e.OldItem?.Equals(removeItem));
             Assert.IsTrue(e.NewItem?.Equals(default(T)));
-            Assert.IsTrue(e.Index == index);
+            Assert.AreEqual(index, e.Index);
             Assert.IsTrue(list.SequenceEqual(cList));
         }
     }
@@ -646,10 +646,10 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Clear);
+            Assert.AreEqual(ListChangeAction.Clear, e.Action);
             Assert.IsTrue(e.OldItem?.Equals(default(T)));
             Assert.IsTrue(e.NewItem?.Equals(default(T)));
-            Assert.IsTrue(e.Index == -1);
+            Assert.AreEqual(-1, e.Index);
             Assert.IsTrue(list.SequenceEqual(cList));
         }
     }
@@ -680,10 +680,10 @@ public class ObservableListTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(list));
-            Assert.IsTrue(e.Action is ListChangeAction.Replace);
+            Assert.AreEqual(ListChangeAction.Replace, e.Action);
             Assert.IsTrue(e.OldItem?.Equals(oldItem));
             Assert.IsTrue(e.NewItem?.Equals(newItem));
-            Assert.IsTrue(e.Index == index);
+            Assert.AreEqual(index, e.Index);
             Assert.IsTrue(list.SequenceEqual(cList));
         }
     }

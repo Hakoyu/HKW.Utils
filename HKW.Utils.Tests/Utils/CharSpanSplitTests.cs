@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,14 +18,12 @@ public class CharSpanSplitTests
         var span = str.AsSpan();
         var strs = str.Split(new char[] { ',', ';' });
         var index = 0;
-        foreach (var splitSpan in span.Split(StringSplitOptions.None, ',', ';'))
+        foreach (
+            var splitSpan in span.Split(SearchValues.Create([',', ';']), StringSplitOptions.None)
+        )
         {
-            var splitStr = splitSpan.ToString();
-            Assert.IsTrue(splitStr.Contains(',') is false);
-            Assert.IsTrue(splitStr.Contains(';') is false);
-            Assert.IsTrue(splitStr == strs[index++]);
+            Assert.AreEqual(strs[index++], splitSpan.ToString());
         }
-        Assert.IsTrue(index == strs.Length);
     }
 
     [TestMethod]
@@ -34,15 +33,15 @@ public class CharSpanSplitTests
         var span = str.AsSpan();
         var strs = str.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
         var index = 0;
-        foreach (var splitSpan in span.Split(StringSplitOptions.RemoveEmptyEntries, ',', ';'))
+        foreach (
+            var splitSpan in span.Split(
+                SearchValues.Create([',', ';']),
+                StringSplitOptions.RemoveEmptyEntries
+            )
+        )
         {
-            var splitStr = splitSpan.ToString();
-            Assert.IsTrue(splitStr.Contains(',') is false);
-            Assert.IsTrue(splitStr.Contains(';') is false);
-            Assert.IsTrue(string.IsNullOrEmpty(splitStr) is false);
-            Assert.IsTrue(splitStr == strs[index++]);
+            Assert.AreEqual(strs[index++], splitSpan.ToString());
         }
-        Assert.IsTrue(index == strs.Length);
     }
 
     [TestMethod]
@@ -52,15 +51,15 @@ public class CharSpanSplitTests
         var span = str.AsSpan();
         var strs = str.Split(new char[] { ',', ';' }, StringSplitOptions.TrimEntries);
         var index = 0;
-        foreach (var splitSpan in span.Split(StringSplitOptions.TrimEntries, ',', ';'))
+        foreach (
+            var splitSpan in span.Split(
+                SearchValues.Create([',', ';']),
+                StringSplitOptions.TrimEntries
+            )
+        )
         {
-            var splitStr = splitSpan.ToString();
-            Assert.IsTrue(splitStr.Contains(',') is false);
-            Assert.IsTrue(splitStr.Contains(';') is false);
-            Assert.IsTrue(splitStr.Contains(' ') is false);
-            Assert.IsTrue(splitStr == strs[index++]);
+            Assert.AreEqual(strs[index++], splitSpan.ToString());
         }
-        Assert.IsTrue(index == strs.Length);
     }
 
     [TestMethod]
@@ -75,19 +74,12 @@ public class CharSpanSplitTests
         var index = 0;
         foreach (
             var splitSpan in span.Split(
-                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries,
-                ',',
-                ';'
+                SearchValues.Create([',', ';']),
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
             )
         )
         {
-            var splitStr = splitSpan.ToString();
-            Assert.IsTrue(splitStr.Contains(',') is false);
-            Assert.IsTrue(splitStr.Contains(';') is false);
-            Assert.IsTrue(splitStr.Contains(' ') is false);
-            Assert.IsTrue(string.IsNullOrEmpty(splitStr) is false);
-            Assert.IsTrue(splitStr == strs[index++]);
+            Assert.AreEqual(strs[index++], splitSpan.ToString());
         }
-        Assert.IsTrue(index == strs.Length);
     }
 }

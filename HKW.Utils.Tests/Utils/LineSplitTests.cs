@@ -18,14 +18,14 @@ public class LineSplitTests
         var str = " aaa\r bbb\n ccc\r\nddd \r\reee \n\nfff \r\n\r\nggg \n\r ";
         var lines = str.Split(StringUtils.LineSeparator, StringSplitOptions.None);
         var index = 0;
-        foreach (var line in str.LineSplit())
+        foreach (var line in str.GetLineSplitEnumerator())
         {
             var lineStr = line.ToString();
             Assert.IsTrue(lineStr.Contains('\r') is false);
             Assert.IsTrue(lineStr.Contains('\n') is false);
-            Assert.IsTrue(lineStr == lines[index++]);
+            Assert.AreEqual(lines[index++], lineStr);
         }
-        Assert.IsTrue(index == lines.Length);
+        Assert.AreEqual(lines.Length, index);
     }
 
     [TestMethod]
@@ -34,15 +34,15 @@ public class LineSplitTests
         var str = " aaa\r bbb\n ccc\r\nddd \r\reee \n\nfff \r\n\r\nggg \n\r ";
         var lines = str.Split(StringUtils.LineSeparator, StringSplitOptions.RemoveEmptyEntries);
         var index = 0;
-        foreach (var line in str.LineSplit(StringSplitOptions.RemoveEmptyEntries))
+        foreach (var line in str.GetLineSplitEnumerator(StringSplitOptions.RemoveEmptyEntries))
         {
             var lineStr = line.ToString();
             Assert.IsTrue(lineStr.Contains('\r') is false);
             Assert.IsTrue(lineStr.Contains('\n') is false);
             Assert.IsTrue(string.IsNullOrEmpty(lineStr) is false);
-            Assert.IsTrue(lineStr == lines[index++]);
+            Assert.AreEqual(lines[index++], lineStr);
         }
-        Assert.IsTrue(index == lines.Length);
+        Assert.AreEqual(lines.Length, index);
     }
 
     [TestMethod]
@@ -51,15 +51,15 @@ public class LineSplitTests
         var str = " aaa\r bbb\n ccc\r\nddd \r\reee \n\nfff \r\n\r\nggg \n\r ";
         var lines = str.Split(StringUtils.LineSeparator, StringSplitOptions.TrimEntries);
         var index = 0;
-        foreach (var line in str.LineSplit(StringSplitOptions.TrimEntries))
+        foreach (var line in str.GetLineSplitEnumerator(StringSplitOptions.TrimEntries))
         {
             var lineStr = line.ToString();
             Assert.IsTrue(lineStr.Contains('\r') is false);
             Assert.IsTrue(lineStr.Contains('\n') is false);
             Assert.IsTrue(lineStr.Contains(' ') is false);
-            Assert.IsTrue(lineStr == lines[index++]);
+            Assert.AreEqual(lines[index++], lineStr);
         }
-        Assert.IsTrue(index == lines.Length);
+        Assert.AreEqual(lines.Length, index);
     }
 
     [TestMethod]
@@ -72,7 +72,7 @@ public class LineSplitTests
         );
         var index = 0;
         foreach (
-            var line in str.LineSplit(
+            var line in str.GetLineSplitEnumerator(
                 StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries
             )
         )
@@ -82,8 +82,8 @@ public class LineSplitTests
             Assert.IsTrue(lineStr.Contains('\n') is false);
             Assert.IsTrue(lineStr.Contains(' ') is false);
             Assert.IsTrue(string.IsNullOrEmpty(lineStr) is false);
-            Assert.IsTrue(lineStr == lines[index++]);
+            Assert.AreEqual(lines[index++], lineStr);
         }
-        Assert.IsTrue(index == lines.Length);
+        Assert.AreEqual(lines.Length, index);
     }
 }

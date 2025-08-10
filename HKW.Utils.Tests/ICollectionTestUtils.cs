@@ -64,7 +64,7 @@ public class ICollectionTestUtils
 
         cCollection.Clear();
         collection.Clear();
-        Assert.IsTrue(collection.Count == cCollection.Count);
+        Assert.AreEqual(cCollection.Count, collection.Count);
         Assert.IsTrue(collection.SequenceEqual(cCollection));
 
         collection.Clear();

@@ -56,11 +56,11 @@ public class ObservableCollectionTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(collection));
-            Assert.IsTrue(e.Action is NotifyCollectionChangedAction.Add);
-            Assert.IsTrue(e.OldItems?[0] is null);
+            Assert.AreEqual(NotifyCollectionChangedAction.Add, e.Action);
+            Assert.IsNull(e.OldItems?[0]);
             Assert.IsTrue(e.NewItems?[0]?.Equals(cCollection.Last()));
-            Assert.IsTrue(e.NewStartingIndex == collection.Count - 1);
-            Assert.IsTrue(e.OldStartingIndex == -1);
+            Assert.AreEqual(collection.Count - 1, e.NewStartingIndex);
+            Assert.AreEqual(-1, e.OldStartingIndex);
             Assert.IsTrue(collection.SequenceEqual(cCollection));
         }
     }
@@ -91,11 +91,11 @@ public class ObservableCollectionTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(collection));
-            Assert.IsTrue(e.Action is NotifyCollectionChangedAction.Remove);
+            Assert.AreEqual(NotifyCollectionChangedAction.Remove, e.Action);
             Assert.IsTrue(e.OldItems?[0]?.Equals(removeItem));
-            Assert.IsTrue(e.NewItems?[0] is null);
-            Assert.IsTrue(e.NewStartingIndex == -1);
-            Assert.IsTrue(e.OldStartingIndex == removeIndex);
+            Assert.IsNull(e.NewItems?[0]);
+            Assert.AreEqual(-1, e.NewStartingIndex);
+            Assert.AreEqual(removeIndex, e.OldStartingIndex);
             Assert.IsTrue(collection.SequenceEqual(cCollection));
         }
     }
@@ -112,7 +112,7 @@ public class ObservableCollectionTests
         Assert.IsTrue(collection.SequenceEqual(cCollection));
 
         collection.CollectionChanged += Collection_CollectionChanged;
-        Assert.IsTrue(collection.Remove(nonExeistItem) == cCollection.Remove(nonExeistItem));
+        Assert.AreEqual(cCollection.Remove(nonExeistItem), collection.Remove(nonExeistItem));
 
         Assert.IsTrue(collection.SequenceEqual(cCollection));
         collection.CollectionChanged -= Collection_CollectionChanged;
@@ -148,11 +148,11 @@ public class ObservableCollectionTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(collection));
-            Assert.IsTrue(e.Action is NotifyCollectionChangedAction.Reset);
-            Assert.IsTrue(e.OldItems?[0] is null);
-            Assert.IsTrue(e.NewItems?[0] is null);
-            Assert.IsTrue(e.NewStartingIndex == -1);
-            Assert.IsTrue(e.OldStartingIndex == -1);
+            Assert.AreEqual(NotifyCollectionChangedAction.Reset, e.Action);
+            Assert.IsNull(e.OldItems?[0]);
+            Assert.IsNull(e.NewItems?[0]);
+            Assert.AreEqual(-1, e.NewStartingIndex);
+            Assert.AreEqual(-1, e.OldStartingIndex);
             Assert.IsTrue(collection.SequenceEqual(cCollection));
         }
     }
@@ -184,8 +184,8 @@ public class ObservableCollectionTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(collection));
-            Assert.IsTrue(e.PropertyName == nameof(collection.Count));
-            Assert.IsTrue(cCollection.Count == collection.Count);
+            Assert.AreEqual(nameof(collection.Count), e.PropertyName);
+            Assert.AreEqual(collection.Count, cCollection.Count);
         }
     }
 
@@ -213,8 +213,8 @@ public class ObservableCollectionTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(collection));
-            Assert.IsTrue(e.PropertyName == nameof(collection.Count));
-            Assert.IsTrue(cCollection.Count == collection.Count);
+            Assert.AreEqual(nameof(collection.Count), e.PropertyName);
+            Assert.AreEqual(collection.Count, cCollection.Count);
         }
     }
 
@@ -230,7 +230,7 @@ public class ObservableCollectionTests
         Assert.IsTrue(collection.SequenceEqual(cCollection));
 
         collection.PropertyChanged += Collection_PropertyChanged;
-        Assert.IsTrue(collection.Remove(nonExeistItem) == cCollection.Remove(nonExeistItem));
+        Assert.AreEqual(cCollection.Remove(nonExeistItem), collection.Remove(nonExeistItem));
 
         Assert.IsTrue(collection.SequenceEqual(cCollection));
         collection.PropertyChanged -= Collection_PropertyChanged;
@@ -266,8 +266,8 @@ public class ObservableCollectionTests
         {
             triggered = true;
             Assert.IsTrue(sender?.Equals(collection));
-            Assert.IsTrue(e.PropertyName == nameof(collection.Count));
-            Assert.IsTrue(cCollection.Count == collection.Count);
+            Assert.AreEqual(nameof(collection.Count), e.PropertyName);
+            Assert.AreEqual(collection.Count, cCollection.Count);
         }
     }
     #endregion

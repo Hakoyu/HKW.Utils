@@ -26,7 +26,7 @@ public class IDictionaryTests
         }
         catch
         {
-            Assert.IsTrue(pair == null);
+            Assert.IsNull(pair);
         }
     }
 
@@ -81,8 +81,8 @@ public class IDictionaryTests
             IReadOnlyList<int>
         >();
         dic.Add(dic.Count, new() { dic.Count });
-        Assert.IsTrue(readOnlyDictionary.Count < readOnlyDictionaryOnWrapper.Count);
+        Assert.IsLessThan(readOnlyDictionaryOnWrapper.Count, readOnlyDictionary.Count);
         Assert.IsTrue(readOnlyDictionary.Last().Value is List<int>);
-        Assert.IsTrue(readOnlyDictionaryOnWrapper.Last().Value is not null);
+        Assert.IsNotNull(readOnlyDictionaryOnWrapper.Last().Value);
     }
 }

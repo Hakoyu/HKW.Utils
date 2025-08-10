@@ -24,11 +24,11 @@ public class IListFindTestUtils
         var comparisonList = Enumerable.Range(1, 10).ToList();
         list.AddRange(comparisonList);
 
-        Assert.IsTrue(list.Find(x => x == 1) == comparisonList.Find(x => x == 1));
+        Assert.AreEqual(comparisonList.Find(x => x == 1), list.Find(x => x == 1));
         Assert.IsTrue(list.Find(1, x => x == 2) == (1, comparisonList.Find(x => x == 2)));
         Assert.IsTrue(list.Find(1, 3, x => x == 3) == (2, comparisonList.Find(x => x == 3)));
 
-        Assert.IsTrue(list.Find(x => x == -1) == default);
+        Assert.AreEqual(default, list.Find(x => x == -1));
         Assert.IsTrue(list.Find(1, x => x == -1) == (-1, default));
         Assert.IsTrue(list.Find(1, 3, x => x == -1) == (-1, default));
 
@@ -41,19 +41,22 @@ public class IListFindTestUtils
         var comparisonList = Enumerable.Range(1, 10).ToList();
         list.AddRange(comparisonList);
 
-        Assert.IsTrue(
-            comparisonList.FindIndex(x => x == 1) == comparisonList.FindIndex(x => x == 1)
+        Assert.AreEqual(
+            comparisonList.FindIndex(x => x == 1),
+            comparisonList.FindIndex(x => x == 1)
         );
-        Assert.IsTrue(
-            comparisonList.FindIndex(1, x => x == 2) == comparisonList.FindIndex(x => x == 2)
+        Assert.AreEqual(
+            comparisonList.FindIndex(x => x == 2),
+            comparisonList.FindIndex(1, x => x == 2)
         );
-        Assert.IsTrue(
-            comparisonList.FindIndex(1, 3, x => x == 3) == comparisonList.FindIndex(x => x == 3)
+        Assert.AreEqual(
+            comparisonList.FindIndex(x => x == 3),
+            comparisonList.FindIndex(1, 3, x => x == 3)
         );
 
-        Assert.IsTrue(comparisonList.FindIndex(x => x == -1) == -1);
-        Assert.IsTrue(comparisonList.FindIndex(1, x => x == -1) == -1);
-        Assert.IsTrue(comparisonList.FindIndex(1, 3, x => x == -1) == -1);
+        Assert.AreEqual(-1, comparisonList.FindIndex(x => x == -1));
+        Assert.AreEqual(-1, comparisonList.FindIndex(1, x => x == -1));
+        Assert.AreEqual(-1, comparisonList.FindIndex(1, 3, x => x == -1));
 
         list.Clear();
     }
@@ -64,7 +67,7 @@ public class IListFindTestUtils
         var comparisonList = Enumerable.Range(1, 10).ToList();
         list.AddRange(comparisonList);
 
-        Assert.IsTrue(comparisonList.FindLast(x => x == 1) == comparisonList.FindLast(x => x == 1));
+        Assert.AreEqual(comparisonList.FindLast(x => x == 1), comparisonList.FindLast(x => x == 1));
         Assert.IsTrue(
             comparisonList.FindLast(1, x => x == 2) == (1, comparisonList.FindLast(x => x == 2))
         );
@@ -72,7 +75,7 @@ public class IListFindTestUtils
             comparisonList.FindLast(4, 3, x => x == 3) == (2, comparisonList.FindLast(x => x == 3))
         );
 
-        Assert.IsTrue(comparisonList.FindLast(x => x == -1) == default);
+        Assert.AreEqual(default, comparisonList.FindLast(x => x == -1));
         Assert.IsTrue(comparisonList.FindLast(1, x => x == -1) == (-1, default));
         Assert.IsTrue(comparisonList.FindLast(4, 3, x => x == -1) == (-1, default));
 
@@ -85,21 +88,22 @@ public class IListFindTestUtils
         var comparisonList = Enumerable.Range(1, 10).ToList();
         list.AddRange(comparisonList);
 
-        Assert.IsTrue(
-            comparisonList.FindLastIndex(x => x == 1) == comparisonList.FindLastIndex(x => x == 1)
+        Assert.AreEqual(
+            comparisonList.FindLastIndex(x => x == 1),
+            comparisonList.FindLastIndex(x => x == 1)
         );
-        Assert.IsTrue(
+        Assert.AreEqual(
+            comparisonList.FindLastIndex(x => x == 2),
             comparisonList.FindLastIndex(1, x => x == 2)
-                == comparisonList.FindLastIndex(x => x == 2)
         );
-        Assert.IsTrue(
+        Assert.AreEqual(
+            comparisonList.FindLastIndex(x => x == 3),
             comparisonList.FindLastIndex(4, 3, x => x == 3)
-                == comparisonList.FindLastIndex(x => x == 3)
         );
 
-        Assert.IsTrue(comparisonList.FindLastIndex(x => x == -1) == -1);
-        Assert.IsTrue(comparisonList.FindLastIndex(1, x => x == -1) == -1);
-        Assert.IsTrue(comparisonList.FindLastIndex(4, 3, x => x == -1) == -1);
+        Assert.AreEqual(-1, comparisonList.FindLastIndex(x => x == -1));
+        Assert.AreEqual(-1, comparisonList.FindLastIndex(1, x => x == -1));
+        Assert.AreEqual(-1, comparisonList.FindLastIndex(4, 3, x => x == -1));
 
         list.Clear();
     }

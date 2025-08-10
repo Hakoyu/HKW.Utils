@@ -14,61 +14,61 @@ public class CyclicListTests
     public void Cyclic()
     {
         var cyclicList = new CyclicList<int>(Enumerable.Range(0, 10));
-        Assert.IsTrue(cyclicList.Current == cyclicList.First());
+        Assert.AreEqual(cyclicList.First(), cyclicList.Current);
         cyclicList.MoveNext();
-        Assert.IsTrue(cyclicList.Current == cyclicList[1]);
+        Assert.AreEqual(cyclicList[1], cyclicList.Current);
     }
 
     [TestMethod]
     public void Cyclic_AutoReset()
     {
         var cyclicList = new CyclicList<int>(Enumerable.Range(0, 10)) { AutoReset = true };
-        Assert.IsTrue(cyclicList.Current == cyclicList.First());
+        Assert.AreEqual(cyclicList.First(), cyclicList.Current);
         for (var i = 1; i < 10; i++)
         {
             cyclicList.MoveNext();
-            Assert.IsTrue(cyclicList.Current == cyclicList[i]);
+            Assert.AreEqual(cyclicList[i], cyclicList.Current);
         }
-        Assert.IsTrue(cyclicList.Current == cyclicList.Last());
+        Assert.AreEqual(cyclicList.Last(), cyclicList.Current);
         cyclicList.MoveNext();
-        Assert.IsTrue(cyclicList.Current == cyclicList.First());
+        Assert.AreEqual(cyclicList.First(), cyclicList.Current);
     }
 
     [TestMethod]
     public void Add()
     {
         var cyclicList = new CyclicList<int>();
-        Assert.IsTrue(cyclicList.Count == 0);
-        Assert.IsTrue(cyclicList.Current == default);
+        Assert.AreEqual(0, cyclicList.Count);
+        Assert.AreEqual(default, cyclicList.Current);
         cyclicList.Add(1);
-        Assert.IsTrue(cyclicList.Count == 1);
-        Assert.IsTrue(cyclicList.Current == cyclicList.First());
+        Assert.AreEqual(1, cyclicList.Count);
+        Assert.AreEqual(cyclicList.First(), cyclicList.Current);
     }
 
     [TestMethod]
     public void Remove()
     {
         var cyclicList = new CyclicList<int>(Enumerable.Range(0, 10));
-        Assert.IsTrue(cyclicList.Current == cyclicList.First());
+        Assert.AreEqual(cyclicList.First(), cyclicList.Current);
         ((System.Collections.IList)cyclicList).RemoveAt(0);
-        Assert.IsTrue(cyclicList.Current == cyclicList.First());
+        Assert.AreEqual(cyclicList.First(), cyclicList.Current);
     }
 
     [TestMethod]
     public void Clear()
     {
         var cyclicList = new CyclicList<int>(Enumerable.Range(0, 10));
-        Assert.IsTrue(cyclicList.Current == cyclicList.First());
+        Assert.AreEqual(cyclicList.First(), cyclicList.Current);
         ((System.Collections.IList)cyclicList).Clear();
-        Assert.IsTrue(cyclicList.Current == default);
+        Assert.AreEqual(default, cyclicList.Current);
     }
 
     [TestMethod]
     public void ValueChange()
     {
         var cyclicList = new CyclicList<int>(Enumerable.Range(0, 10));
-        Assert.IsTrue(cyclicList.Current == cyclicList.First());
+        Assert.AreEqual(cyclicList.First(), cyclicList.Current);
         cyclicList[0] = 10;
-        Assert.IsTrue(cyclicList.Current == cyclicList.First());
+        Assert.AreEqual(cyclicList.First(), cyclicList.Current);
     }
 }

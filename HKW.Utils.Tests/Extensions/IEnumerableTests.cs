@@ -23,8 +23,8 @@ public class IEnumerableTests
         var list = Enumerable.Range(0, 10).ToList();
         foreach (var (i, item) in list.EnumerateIndex())
         {
-            Assert.IsTrue(index == i);
-            Assert.IsTrue(list[i] == item);
+            Assert.AreEqual(i, index);
+            Assert.AreEqual(item, list[i]);
             index++;
         }
     }
@@ -34,7 +34,7 @@ public class IEnumerableTests
     {
         var set = Enumerable.Range(0, 10).ToHashSet();
         var randomItem = set.Random();
-        Assert.IsTrue(set.Contains(randomItem));
+        Assert.Contains(randomItem, set);
     }
 
     [TestMethod]
@@ -43,7 +43,7 @@ public class IEnumerableTests
         var set = Enumerable.Range(0, 10).ToHashSet();
         var random = new Random(set.GetHashCode());
         var randomItem = set.Random(random);
-        Assert.IsTrue(set.Contains(randomItem));
+        Assert.Contains(randomItem, set);
     }
 
     [TestMethod]

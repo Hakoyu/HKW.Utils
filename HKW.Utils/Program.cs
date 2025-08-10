@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Buffers;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
@@ -10,6 +11,7 @@ using HKW.HKWReactiveUI;
 using HKW.HKWUtils;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Drawing;
+using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
 using ReactiveUI;
 
@@ -30,12 +32,13 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-        var vm = new TestModel();
-        var p = new ObservableWrapper<TestModel, bool>(
-            vm,
-            static vm => vm.CanExecute,
-            static (vm, x) => vm.CanExecute = x
-        );
+        var str = "aaa_bbb ccc-ddd".ToPascal(SearchValues.Create([' ', '-', '_']));
+        //var vm = new TestModel();
+        //var p = new ObservableWrapper<TestModel, bool>(
+        //    vm,
+        //    static vm => vm.CanExecute,
+        //    static (vm, x) => vm.CanExecute = x
+        //);
         //var r = FileUtils.Compare("D:\\Downloads\\G2151.7z1", "D:\\Downloads\\G2151.7z1");
         //var text = "Chinese_name".ToPascal('_', sourceToLower: false);
         //var l = new ObservableList<int>();
@@ -52,8 +55,6 @@ internal class Program
         //        )
         //    )
         //    .ToFrozenSet();
-        //var info = new EnumInfo<TestEnum1>(TestEnum1.None | TestEnum1.A);
-        //var infos = info.GetFlagInfos();
 #endif
     }
 

@@ -17,27 +17,17 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-    <PackageReference Include="MSTest.TestAdapter" Version="3.9.3" />
-    <PackageReference Include="MSTest.TestFramework" Version="3.9.3" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.10.1" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.10.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="ReactiveUI" Version="20.4.1" />
+    <PackageReference Include="HKW.ReactiveUI" Version="0.4.6" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\HKW.Utils\HKW.Utils.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(Configuration)'=='Debug'">
-    <Reference Include="HKW.ReactiveUI">
-      <HintPath>..\..\HKW.ReactiveUI\HKW.ReactiveUI\bin\Debug\netstandard2.0\HKW.ReactiveUI.dll</HintPath>
-    </Reference>
-    <Analyzer Include="..\..\HKW.ReactiveUI\HKW.ReactiveUI\bin\Debug\netstandard2.0\HKW.ReactiveUI.dll" />
-    <WeaverFiles Include="..\..\HKW.ReactiveUI\HKW.ReactiveUI.Fody\bin\Debug\netstandard2.0\HKW.ReactiveUI.Fody.dll" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)'=='Release'">
-    <PackageReference Include="HKW.ReactiveUI" Version="0.4.0" />
   </ItemGroup>
 </Project>

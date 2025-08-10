@@ -22,16 +22,16 @@ public class CountdownTimerTests
         };
         timer.Start(100);
         await Task.Delay(500);
-        Assert.IsTrue(completedCount == 1);
-        Assert.IsTrue(stoppedCount == 0);
+        Assert.AreEqual(1, completedCount);
+        Assert.AreEqual(0, stoppedCount);
         timer.Start(100);
         timer.Stop();
-        Assert.IsTrue(completedCount == 1);
-        Assert.IsTrue(stoppedCount == 1);
+        Assert.AreEqual(1, completedCount);
+        Assert.AreEqual(1, stoppedCount);
         await Task.Delay(100);
         timer.Continue();
         await Task.Delay(500);
-        Assert.IsTrue(completedCount == 2);
-        Assert.IsTrue(stoppedCount == 1);
+        Assert.AreEqual(2, completedCount);
+        Assert.AreEqual(1, stoppedCount);
     }
 }

@@ -41,9 +41,9 @@ public class SelectionGroupTests
             members
         );
         Assert.IsTrue(group.Leader.Value);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == 3);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(3, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
     }
 
     [TestMethod]
@@ -74,9 +74,9 @@ public class SelectionGroupTests
             members
         );
         Assert.IsTrue(group.Leader.Value is false);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == 0);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(0, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
     }
 
     [TestMethod]
@@ -108,9 +108,9 @@ public class SelectionGroupTests
         );
         leader.IsSelected = true;
         Assert.IsTrue(group.Leader.Value);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.Members.Count);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(group.Members.Count, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
     }
 
     [TestMethod]
@@ -142,9 +142,9 @@ public class SelectionGroupTests
         );
         leader.IsSelected = false;
         Assert.IsTrue(group.Leader.Value is false);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == 0);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(0, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
     }
 
     [TestMethod]
@@ -176,15 +176,15 @@ public class SelectionGroupTests
         );
         members.Add(new());
         Assert.IsTrue(group.Leader.Value is false);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == 0);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(0, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
 
         members.Add(new() { IsSelected = true });
-        Assert.IsTrue(group.Leader.Value is null);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == 1);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.IsNull(group.Leader.Value);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(1, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
     }
 
     [TestMethod]
@@ -215,16 +215,16 @@ public class SelectionGroupTests
             members
         );
         members.Add(new());
-        Assert.IsTrue(group.Leader.Value is null);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == 3);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.IsNull(group.Leader.Value);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(3, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
 
         members.Add(new() { IsSelected = true });
-        Assert.IsTrue(group.Leader.Value is null);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == 4);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.IsNull(group.Leader.Value);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(4, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
     }
 
     [TestMethod]
@@ -256,21 +256,21 @@ public class SelectionGroupTests
         );
         members.Remove(members.Last());
         Assert.IsTrue(group.Leader.Value is true);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == 2);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(2, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
 
         members.Remove(members.Last());
         Assert.IsTrue(group.Leader.Value is true);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == 1);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(1, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
 
         members.Remove(members.Last());
         Assert.IsTrue(group.Leader.Value is false);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == 0);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(0, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
     }
 
     [TestMethod]
@@ -301,22 +301,22 @@ public class SelectionGroupTests
             members
         );
         members[0].IsSelected = false;
-        Assert.IsTrue(group.Leader.Value is null);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == 2);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.IsNull(group.Leader.Value);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(2, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
 
         members[1].IsSelected = false;
-        Assert.IsTrue(group.Leader.Value is null);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == 1);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.IsNull(group.Leader.Value);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(1, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
 
         members[2].IsSelected = false;
         Assert.IsTrue(group.Leader.Value is false);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == 0);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(0, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
     }
 
     [TestMethod]
@@ -347,21 +347,21 @@ public class SelectionGroupTests
             members
         );
         members[0].IsSelected = true;
-        Assert.IsTrue(group.Leader.Value is null);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == 1);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.IsNull(group.Leader.Value);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(1, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
 
         members[1].IsSelected = true;
-        Assert.IsTrue(group.Leader.Value is null);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == 2);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.IsNull(group.Leader.Value);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(2, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
 
         members[2].IsSelected = true;
         Assert.IsTrue(group.Leader.Value is true);
-        Assert.IsTrue(group.Leader.Value == leader.IsSelected);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == 3);
-        Assert.IsTrue(members.Count(x => x.IsSelected) == group.SelectedCount);
+        Assert.AreEqual(leader.IsSelected, group.Leader.Value);
+        Assert.AreEqual(3, members.Count(x => x.IsSelected));
+        Assert.AreEqual(group.SelectedCount, members.Count(x => x.IsSelected));
     }
 }

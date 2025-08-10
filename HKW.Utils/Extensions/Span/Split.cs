@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Buffers;
+using System.Runtime.CompilerServices;
 
 namespace HKW.HKWUtils.Extensions;
 
@@ -24,6 +25,25 @@ public static partial class HKWExtensions
     }
 
     /// <summary>
+    /// 分割Span
+    /// </summary>
+    /// <typeparam name="T">类型</typeparam>
+    /// <param name="span">源</param>
+    /// <param name="separators">分割符</param>
+    /// <param name="removeEmptyEntries">删除空白项</param>
+    /// <returns>枚举器</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static SpanMultiSeparatorSplitEnumerator<T> Split<T>(
+        this Span<T> span,
+        SearchValues<T> separators,
+        bool removeEmptyEntries = false
+    )
+        where T : IEquatable<T>
+    {
+        return new SpanMultiSeparatorSplitEnumerator<T>(span, separators, removeEmptyEntries);
+    }
+
+    /// <summary>
     /// 分割Span&lt;char&gt;
     /// </summary>
     /// <param name="span">源</param>
@@ -33,8 +53,8 @@ public static partial class HKWExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static CharSpanSplitEnumerator Split(
         this Span<char> span,
-        StringSplitOptions stringSplitOptions,
-        params char[] separator
+        SearchValues<char> separator,
+        StringSplitOptions stringSplitOptions
     )
     {
         return new CharSpanSplitEnumerator(span, separator, stringSplitOptions);

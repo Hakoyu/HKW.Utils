@@ -20,13 +20,14 @@ public class FilterDictionaryTests
             Dictionary<int, int>,
             Dictionary<int, int>
         >(new(), filteredDictionary: new(), Filter);
-        Assert.IsTrue(filterDictionary.Count == filterDictionary.FilteredDictionary.Count);
+        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, filterDictionary.Count);
         filterDictionary.Add(5, 5);
-        Assert.IsTrue(0 == filterDictionary.FilteredDictionary.Count);
+        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, 0);
         filterDictionary.Add(6, 6);
-        Assert.IsTrue(1 == filterDictionary.FilteredDictionary.Count);
-        Assert.IsTrue(
-            filterDictionary.Where(Filter).Count() == filterDictionary.FilteredDictionary.Count
+        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, 1);
+        Assert.AreEqual(
+            filterDictionary.FilteredDictionary.Count,
+            filterDictionary.Where(Filter).Count()
         );
     }
 
@@ -39,16 +40,18 @@ public class FilterDictionaryTests
             Dictionary<int, int>,
             Dictionary<int, int>
         >(Enumerable.Range(0, 10).ToDictionary(i => i, i => i), filteredDictionary: new(), Filter);
-        Assert.IsTrue(
-            filterDictionary.Where(Filter).Count() == filterDictionary.FilteredDictionary.Count
+        Assert.AreEqual(
+            filterDictionary.FilteredDictionary.Count,
+            filterDictionary.Where(Filter).Count()
         );
         var oldCount = filterDictionary.FilteredDictionary.Count;
         filterDictionary.Remove(5);
-        Assert.IsTrue(oldCount == filterDictionary.FilteredDictionary.Count);
+        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, oldCount);
         filterDictionary.Remove(6);
-        Assert.IsTrue(oldCount - 1 == filterDictionary.FilteredDictionary.Count);
-        Assert.IsTrue(
-            filterDictionary.Where(Filter).Count() == filterDictionary.FilteredDictionary.Count
+        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, oldCount - 1);
+        Assert.AreEqual(
+            filterDictionary.FilteredDictionary.Count,
+            filterDictionary.Where(Filter).Count()
         );
     }
 
@@ -61,16 +64,18 @@ public class FilterDictionaryTests
             Dictionary<int, int>,
             Dictionary<int, int>
         >(Enumerable.Range(0, 10).ToDictionary(i => i, i => i), filteredDictionary: new(), Filter);
-        Assert.IsTrue(
-            filterDictionary.Where(Filter).Count() == filterDictionary.FilteredDictionary.Count
+        Assert.AreEqual(
+            filterDictionary.FilteredDictionary.Count,
+            filterDictionary.Where(Filter).Count()
         );
         var oldCount = filterDictionary.FilteredDictionary.Count;
         filterDictionary[10] = 5;
-        Assert.IsTrue(oldCount == filterDictionary.FilteredDictionary.Count);
+        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, oldCount);
         filterDictionary[10] = 6;
-        Assert.IsTrue(oldCount + 1 == filterDictionary.FilteredDictionary.Count);
-        Assert.IsTrue(
-            filterDictionary.Where(Filter).Count() == filterDictionary.FilteredDictionary.Count
+        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, oldCount + 1);
+        Assert.AreEqual(
+            filterDictionary.FilteredDictionary.Count,
+            filterDictionary.Where(Filter).Count()
         );
     }
 
@@ -83,11 +88,12 @@ public class FilterDictionaryTests
             Dictionary<int, int>,
             Dictionary<int, int>
         >(Enumerable.Range(0, 10).ToDictionary(i => i, i => i), filteredDictionary: new(), Filter);
-        Assert.IsTrue(
-            filterDictionary.Where(Filter).Count() == filterDictionary.FilteredDictionary.Count
+        Assert.AreEqual(
+            filterDictionary.FilteredDictionary.Count,
+            filterDictionary.Where(Filter).Count()
         );
         filterDictionary.Clear();
-        Assert.IsTrue(filterDictionary.Count == filterDictionary.FilteredDictionary.Count);
-        Assert.IsTrue(filterDictionary.Count == 0);
+        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, filterDictionary.Count);
+        Assert.AreEqual(0, filterDictionary.Count);
     }
 }

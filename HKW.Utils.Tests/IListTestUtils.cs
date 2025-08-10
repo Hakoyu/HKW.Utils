@@ -89,7 +89,7 @@ public class IListTestUtils
             testList.Add(i);
 
         var item = cList.Random();
-        Assert.IsTrue(cList.IndexOf(item) == testList.IndexOf(item));
+        Assert.AreEqual(testList.IndexOf(item), cList.IndexOf(item));
 
         testList.Clear();
     }

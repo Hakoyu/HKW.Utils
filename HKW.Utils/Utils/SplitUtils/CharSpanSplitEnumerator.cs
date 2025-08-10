@@ -1,4 +1,6 @@
-﻿namespace HKW.HKWUtils;
+﻿using System.Buffers;
+
+namespace HKW.HKWUtils;
 
 /// <summary>
 /// Span&lt;char&gt;分割枚举器
@@ -10,12 +12,12 @@ public ref struct CharSpanSplitEnumerator
     /// <summary>
     /// 分割项
     /// </summary>
-    private readonly ReadOnlySpan<char> _separator;
+    private readonly SearchValues<char> _separators;
 
     /// <summary>
     /// 删除空项
     /// </summary>
-    private StringSplitOptions _stringSplitOptions;
+    private readonly StringSplitOptions _stringSplitOptions;
 
     /// <summary>
     /// 当前项
@@ -24,13 +26,13 @@ public ref struct CharSpanSplitEnumerator
 
     internal CharSpanSplitEnumerator(
         ReadOnlySpan<char> span,
-        ReadOnlySpan<char> separator,
+        SearchValues<char> separators,
         StringSplitOptions stringSplitOptions
     )
     {
         Current = default;
         _span = span;
-        _separator = separator;
+        _separators = separators;
         _stringSplitOptions = stringSplitOptions;
     }
 
@@ -44,13 +46,13 @@ public ref struct CharSpanSplitEnumerator
             return false;
         do
         {
-            int index = _span.IndexOfAny(_separator);
+            int index = _span.IndexOfAny(_separators);
             if (index < 0)
             {
                 if (_stringSplitOptions.HasFlag(StringSplitOptions.TrimEntries))
                 {
                     Current = _span.Trim();
-                    _span = ReadOnlySpan<char>.Empty;
+                    _span = [];
                     return !(
                         Current.IsEmpty
                         && _stringSplitOptions.HasFlag(StringSplitOptions.RemoveEmptyEntries)
@@ -59,7 +61,7 @@ public ref struct CharSpanSplitEnumerator
                 else
                 {
                     Current = _span;
-                    _span = ReadOnlySpan<char>.Empty;
+                    _span = [];
                     return !Current.IsEmpty;
                 }
             }

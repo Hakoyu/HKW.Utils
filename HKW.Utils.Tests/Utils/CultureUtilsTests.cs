@@ -16,9 +16,9 @@ public class CultureUtilsTests
     public void TryGetCultureInfo()
     {
         if (CultureUtils.TryGetCultureInfo("en", out var cultureInfo1))
-            Assert.IsTrue(cultureInfo1 is not null);
+            Assert.IsNotNull(cultureInfo1);
 
         if (CultureUtils.TryGetCultureInfo("aaaa", out var cultureInfo2) is false)
-            Assert.IsTrue(cultureInfo2 is null);
+            Assert.IsNull(cultureInfo2);
     }
 }

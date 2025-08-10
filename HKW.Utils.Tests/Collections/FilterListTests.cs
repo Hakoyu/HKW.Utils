@@ -21,9 +21,9 @@ public class FilterListTests
             filteredList: new(),
             Filter
         );
-        Assert.IsTrue(filterList.Count == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Count);
         filterList.AddRange(Enumerable.Range(0, 10));
-        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Where(Filter).Count());
     }
 
     [TestMethod]
@@ -34,17 +34,17 @@ public class FilterListTests
             [],
             Filter
         );
-        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Where(Filter).Count());
         filterList.Insert(3, 3);
-        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Where(Filter).Count());
         filterList.Insert(6, 10);
-        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Where(Filter).Count());
         filterList.Insert(8, 5);
-        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Where(Filter).Count());
         filterList.Insert(9, 11);
-        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Where(Filter).Count());
         filterList.Insert(10, 15);
-        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Where(Filter).Count());
     }
 
     [TestMethod]
@@ -55,13 +55,13 @@ public class FilterListTests
             filteredList: new(),
             Filter
         );
-        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Where(Filter).Count());
         var oldCount = filterList.FilteredList.Count;
         filterList.Remove(5);
-        Assert.IsTrue(oldCount == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, oldCount);
         filterList.Remove(6);
-        Assert.IsTrue(oldCount - 1 == filterList.FilteredList.Count);
-        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, oldCount - 1);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Where(Filter).Count());
     }
 
     [TestMethod]
@@ -72,9 +72,9 @@ public class FilterListTests
             filteredList: new(),
             Filter
         );
-        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Where(Filter).Count());
         filterList.RemoveAll(Filter);
-        Assert.IsTrue(filterList.FilteredList.Count == 0);
+        Assert.AreEqual(0, filterList.FilteredList.Count);
     }
 
     [TestMethod]
@@ -85,13 +85,13 @@ public class FilterListTests
             filteredList: new(),
             Filter
         );
-        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Where(Filter).Count());
         var oldCount = filterList.FilteredList.Count;
         filterList.RemoveAt(0);
-        Assert.IsTrue(oldCount == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, oldCount);
         filterList.RemoveAt(8);
-        Assert.IsTrue(oldCount - 1 == filterList.FilteredList.Count);
-        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, oldCount - 1);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Where(Filter).Count());
     }
 
     [TestMethod]
@@ -102,13 +102,13 @@ public class FilterListTests
             filteredList: new(),
             Filter
         );
-        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Where(Filter).Count());
         var oldCount = filterList.FilteredList.Count;
         filterList[0] = 5;
-        Assert.IsTrue(oldCount == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, oldCount);
         filterList[0] = 10;
-        Assert.IsTrue(oldCount + 1 == filterList.FilteredList.Count);
-        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, oldCount + 1);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Where(Filter).Count());
     }
 
     [TestMethod]
@@ -119,9 +119,9 @@ public class FilterListTests
             filteredList: new(),
             Filter
         );
-        Assert.IsTrue(filterList.Where(Filter).Count() == filterList.FilteredList.Count);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Where(Filter).Count());
         filterList.Clear();
-        Assert.IsTrue(filterList.Count == filterList.FilteredList.Count);
-        Assert.IsTrue(filterList.Count == 0);
+        Assert.AreEqual(filterList.FilteredList.Count, filterList.Count);
+        Assert.AreEqual(0, filterList.Count);
     }
 }

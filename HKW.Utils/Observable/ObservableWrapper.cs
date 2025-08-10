@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 using DynamicData.Binding;
@@ -124,7 +125,6 @@ public partial class ObservableWrapper<TObject, TProperty> : ReactiveObjectX
     /// <inheritdoc/>
     protected override void Dispose(bool disposing)
     {
-        base.Dispose(disposing);
         if (disposing)
         {
             if (Source is INotifyPropertyChanging changing)

@@ -1,4 +1,5 @@
-﻿using HKW.HKWUtils.Extensions;
+﻿using System.Buffers;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Tests.Extensions;
 
@@ -8,26 +9,18 @@ public class StringTests
     [TestMethod]
     public void FirstToUpper()
     {
-        string str1 = "red";
-        string str2 = HKWExtensions.FirstToUpper(str1);
-        Assert.IsTrue(str2 == "Red");
-    }
-
-    [TestMethod]
-    public void FirstLetterCapital_OtherToLower()
-    {
-        string str1 = "rEd";
-        string str2 = HKWExtensions.FirstToUpper(str1);
-        Assert.IsTrue(str2 == "REd");
-        string str3 = str1.FirstToUpper(true);
-        Assert.IsTrue(str3 == "Red");
+        Assert.AreEqual("Red", "red".FirstToUpper());
+        Assert.AreEqual("Redred", "REDRED".FirstToUpper(otherToLower: true));
     }
 
     [TestMethod]
     public void ToPascal()
     {
-        string str1 = "red red red";
-        string str2 = str1.ToPascal();
-        Assert.IsTrue(str2 == "RedRedRed");
+        Assert.AreEqual("RedRedRed", "red red red".ToPascal(' '));
+        Assert.AreEqual("RedRedRed", "rED reD rEd".ToPascal(' ', sourceToLower: true));
+        Assert.AreEqual(
+            "RedRedRedRed",
+            "red red-red_red".ToPascal(SearchValues.Create([' ', '-', '_']))
+        );
     }
 }

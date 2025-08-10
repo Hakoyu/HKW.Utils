@@ -66,10 +66,10 @@ public class ObservableSetTests
         void Set_SetChanging(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action is SetChangeAction.Add);
+            Assert.AreEqual(SetChangeAction.Add, e.Action);
             Assert.IsTrue(e.NewItems!.First()!.Equals(newItem));
-            Assert.IsTrue(e.OldItems is null);
-            Assert.IsTrue(e.OtherItems is null);
+            Assert.IsNull(e.OldItems);
+            Assert.IsNull(e.OtherItems);
             Assert.IsTrue(set.SequenceEqual(cSet));
         }
     }
@@ -94,10 +94,10 @@ public class ObservableSetTests
         void Set_SetChanging(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action is SetChangeAction.Remove);
-            Assert.IsTrue(e.NewItems is null);
+            Assert.AreEqual(SetChangeAction.Remove, e.Action);
+            Assert.IsNull(e.NewItems);
             Assert.IsTrue(e.OldItems!.First()!.Equals(removeItem));
-            Assert.IsTrue(e.OtherItems is null);
+            Assert.IsNull(e.OtherItems);
             Assert.IsTrue(set.SequenceEqual(cSet));
         }
     }
@@ -121,10 +121,10 @@ public class ObservableSetTests
         void Set_SetChanging(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action is SetChangeAction.Clear);
-            Assert.IsTrue(e.NewItems is null);
-            Assert.IsTrue(e.OldItems is null);
-            Assert.IsTrue(e.OtherItems is null);
+            Assert.AreEqual(SetChangeAction.Clear, e.Action);
+            Assert.IsNull(e.NewItems);
+            Assert.IsNull(e.OldItems);
+            Assert.IsNull(e.OtherItems);
             Assert.IsTrue(set.SequenceEqual(cSet));
         }
     }
@@ -152,8 +152,8 @@ public class ObservableSetTests
         void Set_SetChanging(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action is SetChangeAction.Intersect);
-            Assert.IsTrue(e.NewItems is null);
+            Assert.AreEqual(SetChangeAction.Intersect, e.Action);
+            Assert.IsNull(e.NewItems);
             Assert.IsTrue(e.OldItems!.SequenceEqual(set.Except(otherSet)));
             Assert.IsTrue(e.OtherItems!.SequenceEqual(otherSet));
             Assert.IsTrue(set.SequenceEqual(cSet));
@@ -183,8 +183,8 @@ public class ObservableSetTests
         void Set_SetChanging(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action is SetChangeAction.Except);
-            Assert.IsTrue(e.NewItems is null);
+            Assert.AreEqual(SetChangeAction.Except, e.Action);
+            Assert.IsNull(e.NewItems);
             Assert.IsTrue(e.OldItems!.SequenceEqual(set.Intersect(otherSet)));
             Assert.IsTrue(e.OtherItems!.SequenceEqual(otherSet));
             Assert.IsTrue(set.SequenceEqual(cSet));
@@ -214,7 +214,7 @@ public class ObservableSetTests
         void Set_SetChanging(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action is SetChangeAction.SymmetricExcept);
+            Assert.AreEqual(SetChangeAction.SymmetricExcept, e.Action);
             Assert.IsTrue(e.NewItems!.SequenceEqual(otherSet.Except(otherSet.Intersect(set))));
             Assert.IsTrue(e.OldItems!.SequenceEqual(otherSet.Intersect(set)));
             Assert.IsTrue(e.OtherItems!.SequenceEqual(otherSet));
@@ -245,9 +245,9 @@ public class ObservableSetTests
         void Set_SetChanging(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action is SetChangeAction.Union);
+            Assert.AreEqual(SetChangeAction.Union, e.Action);
             Assert.IsTrue(e.NewItems!.SequenceEqual(otherSet.Except(set)));
-            Assert.IsTrue(e.OldItems is null);
+            Assert.IsNull(e.OldItems);
             Assert.IsTrue(e.OtherItems!.SequenceEqual(otherSet));
             Assert.IsTrue(set.SequenceEqual(cSet));
         }
@@ -273,10 +273,10 @@ public class ObservableSetTests
         void Set_SetChanged(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action is SetChangeAction.Add);
+            Assert.AreEqual(SetChangeAction.Add, e.Action);
             Assert.IsTrue(e.NewItems!.First()!.Equals(newItem));
-            Assert.IsTrue(e.OldItems is null);
-            Assert.IsTrue(e.OtherItems is null);
+            Assert.IsNull(e.OldItems);
+            Assert.IsNull(e.OtherItems);
             Assert.IsTrue(set.SequenceEqual(cSet));
         }
     }
@@ -300,10 +300,10 @@ public class ObservableSetTests
         void Set_SetChanged(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action is SetChangeAction.Remove);
-            Assert.IsTrue(e.NewItems is null);
+            Assert.AreEqual(SetChangeAction.Remove, e.Action);
+            Assert.IsNull(e.NewItems);
             Assert.IsTrue(e.OldItems!.First()!.Equals(removeItem));
-            Assert.IsTrue(e.OtherItems is null);
+            Assert.IsNull(e.OtherItems);
             Assert.IsTrue(set.SequenceEqual(cSet));
         }
     }
@@ -326,10 +326,10 @@ public class ObservableSetTests
         void Set_SetChanged(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action is SetChangeAction.Clear);
-            Assert.IsTrue(e.NewItems is null);
-            Assert.IsTrue(e.OldItems is null);
-            Assert.IsTrue(e.OtherItems is null);
+            Assert.AreEqual(SetChangeAction.Clear, e.Action);
+            Assert.IsNull(e.NewItems);
+            Assert.IsNull(e.OldItems);
+            Assert.IsNull(e.OtherItems);
             Assert.IsTrue(set.SequenceEqual(cSet));
         }
     }
@@ -356,8 +356,8 @@ public class ObservableSetTests
         void Set_SetChanged(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action is SetChangeAction.Intersect);
-            Assert.IsTrue(e.NewItems is null);
+            Assert.AreEqual(SetChangeAction.Intersect, e.Action);
+            Assert.IsNull(e.NewItems);
             Assert.IsTrue(e.OldItems!.SequenceEqual(comparisonSet.Except(otherSet)));
             Assert.IsTrue(e.OtherItems!.SequenceEqual(otherSet));
             Assert.IsTrue(set.SequenceEqual(cSet));
@@ -386,8 +386,8 @@ public class ObservableSetTests
         void Set_SetChanged(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action is SetChangeAction.Except);
-            Assert.IsTrue(e.NewItems is null);
+            Assert.AreEqual(SetChangeAction.Except, e.Action);
+            Assert.IsNull(e.NewItems);
             Assert.IsTrue(e.OldItems!.SequenceEqual(comparisonSet.Intersect(otherSet)));
             Assert.IsTrue(e.OtherItems!.SequenceEqual(otherSet));
             Assert.IsTrue(set.SequenceEqual(cSet));
@@ -416,7 +416,7 @@ public class ObservableSetTests
         void Set_SetChanged(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action is SetChangeAction.SymmetricExcept);
+            Assert.AreEqual(SetChangeAction.SymmetricExcept, e.Action);
             Assert.IsTrue(
                 e.NewItems!.SequenceEqual(otherSet.Except(otherSet.Intersect(comparisonSet)))
             );
@@ -448,9 +448,9 @@ public class ObservableSetTests
         void Set_SetChanged(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
         {
             triggered = true;
-            Assert.IsTrue(e.Action is SetChangeAction.Union);
+            Assert.AreEqual(SetChangeAction.Union, e.Action);
             Assert.IsTrue(e.NewItems!.SequenceEqual(otherSet.Except(comparisonSet)));
-            Assert.IsTrue(e.OldItems is null);
+            Assert.IsNull(e.OldItems);
             Assert.IsTrue(e.OtherItems!.SequenceEqual(otherSet));
             Assert.IsTrue(set.SequenceEqual(cSet));
         }

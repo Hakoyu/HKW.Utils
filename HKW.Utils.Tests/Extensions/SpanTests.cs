@@ -13,7 +13,7 @@ public class SpanTests
         str.AsSpan().CopyTo(chars);
         foreach (var six in chars.Split(' '))
         {
-            Assert.AreEqual(six.ToString(), "666");
+            Assert.AreEqual("666", six.ToString());
         }
     }
 }

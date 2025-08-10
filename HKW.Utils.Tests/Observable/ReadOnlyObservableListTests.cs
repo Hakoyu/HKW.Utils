@@ -17,17 +17,18 @@ public class ReadOnlyObservableListTests
         readOnlyObservableList.CollectionChanged += (s, e) =>
         {
             triggered = true;
-            Assert.IsTrue(
-                e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add
+            Assert.AreEqual(
+                System.Collections.Specialized.NotifyCollectionChangedAction.Add,
+                e.Action
             );
-            Assert.IsTrue(e.OldItems?[0] == null);
+            Assert.IsNull(e.OldItems?[0]);
             Assert.IsTrue(e.NewItems?[0] is int i && i == 10);
-            Assert.IsTrue(e.NewStartingIndex == 10);
-            Assert.IsTrue(e.OldStartingIndex == -1);
+            Assert.AreEqual(10, e.NewStartingIndex);
+            Assert.AreEqual(-1, e.OldStartingIndex);
         };
         observableList.Add(10);
-        Assert.IsTrue(readOnlyObservableList[^1] == 10);
-        Assert.IsTrue(readOnlyObservableList.Count == 11);
+        Assert.AreEqual(10, readOnlyObservableList[^1]);
+        Assert.AreEqual(11, readOnlyObservableList.Count);
         Assert.IsTrue(triggered);
     }
 
@@ -41,17 +42,18 @@ public class ReadOnlyObservableListTests
         observableList.CollectionChanged += (s, e) =>
         {
             triggered = true;
-            Assert.IsTrue(
-                e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add
+            Assert.AreEqual(
+                System.Collections.Specialized.NotifyCollectionChangedAction.Add,
+                e.Action
             );
-            Assert.IsTrue(e.OldItems?[0] == null);
+            Assert.IsNull(e.OldItems?[0]);
             Assert.IsTrue(e.NewItems?[0] is int i && i == 10);
-            Assert.IsTrue(e.NewStartingIndex == 5);
-            Assert.IsTrue(e.OldStartingIndex == -1);
+            Assert.AreEqual(5, e.NewStartingIndex);
+            Assert.AreEqual(-1, e.OldStartingIndex);
         };
         observableList.Insert(5, 10);
-        Assert.IsTrue(readOnlyObservableList[5] == 10);
-        Assert.IsTrue(readOnlyObservableList.Count == 11);
+        Assert.AreEqual(10, readOnlyObservableList[5]);
+        Assert.AreEqual(11, readOnlyObservableList.Count);
         Assert.IsTrue(triggered);
     }
 
@@ -65,17 +67,18 @@ public class ReadOnlyObservableListTests
         readOnlyObservableList.CollectionChanged += (s, e) =>
         {
             triggered = true;
-            Assert.IsTrue(
-                e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove
+            Assert.AreEqual(
+                System.Collections.Specialized.NotifyCollectionChangedAction.Remove,
+                e.Action
             );
             Assert.IsTrue(e.OldItems?[0] is int i && i == 1);
-            Assert.IsTrue(e.NewItems?[0] == null);
-            Assert.IsTrue(e.NewStartingIndex == -1);
-            Assert.IsTrue(e.OldStartingIndex == 0);
+            Assert.IsNull(e.NewItems?[0]);
+            Assert.AreEqual(-1, e.NewStartingIndex);
+            Assert.AreEqual(0, e.OldStartingIndex);
         };
         observableList.RemoveAt(0);
-        Assert.IsTrue(readOnlyObservableList[0] == 2);
-        Assert.IsTrue(readOnlyObservableList.Count == 9);
+        Assert.AreEqual(2, readOnlyObservableList[0]);
+        Assert.AreEqual(9, readOnlyObservableList.Count);
         Assert.IsTrue(triggered);
     }
 
@@ -89,16 +92,17 @@ public class ReadOnlyObservableListTests
         readOnlyObservableList.CollectionChanged += (s, e) =>
         {
             triggered = true;
-            Assert.IsTrue(
-                e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset
+            Assert.AreEqual(
+                System.Collections.Specialized.NotifyCollectionChangedAction.Reset,
+                e.Action
             );
-            Assert.IsTrue(e.OldItems?[0] == null);
-            Assert.IsTrue(e.NewItems?[0] == null);
-            Assert.IsTrue(e.NewStartingIndex == -1);
-            Assert.IsTrue(e.OldStartingIndex == -1);
+            Assert.IsNull(e.OldItems?[0]);
+            Assert.IsNull(e.NewItems?[0]);
+            Assert.AreEqual(-1, e.NewStartingIndex);
+            Assert.AreEqual(-1, e.OldStartingIndex);
         };
         observableList.Clear();
-        Assert.IsTrue(readOnlyObservableList.Count == 0);
+        Assert.AreEqual(0, readOnlyObservableList.Count);
         Assert.IsTrue(triggered);
     }
     #endregion
@@ -110,11 +114,11 @@ public class ReadOnlyObservableListTests
             new ObservableList<int>(Enumerable.Range(1, 10))
         );
 
-        Assert.IsTrue(readOnlyObservableList.Find(x => x == 1) == 1);
+        Assert.AreEqual(1, readOnlyObservableList.Find(x => x == 1));
         Assert.IsTrue(readOnlyObservableList.Find(1, x => x == 2) == (1, 2));
         Assert.IsTrue(readOnlyObservableList.Find(1, 3, x => x == 3) == (2, 3));
 
-        Assert.IsTrue(readOnlyObservableList.Find(x => x == -1) == default);
+        Assert.AreEqual(default, readOnlyObservableList.Find(x => x == -1));
         Assert.IsTrue(readOnlyObservableList.Find(1, x => x == -1) == (-1, default));
         Assert.IsTrue(readOnlyObservableList.Find(1, 3, x => x == -1) == (-1, default));
     }
@@ -126,13 +130,13 @@ public class ReadOnlyObservableListTests
             new ObservableList<int>(Enumerable.Range(1, 10))
         );
 
-        Assert.IsTrue(readOnlyObservableList.FindIndex(x => x == 1) == 0);
-        Assert.IsTrue(readOnlyObservableList.FindIndex(1, x => x == 2) == 1);
-        Assert.IsTrue(readOnlyObservableList.FindIndex(1, 3, x => x == 3) == 2);
+        Assert.AreEqual(0, readOnlyObservableList.FindIndex(x => x == 1));
+        Assert.AreEqual(1, readOnlyObservableList.FindIndex(1, x => x == 2));
+        Assert.AreEqual(2, readOnlyObservableList.FindIndex(1, 3, x => x == 3));
 
-        Assert.IsTrue(readOnlyObservableList.FindIndex(x => x == -1) == -1);
-        Assert.IsTrue(readOnlyObservableList.FindIndex(1, x => x == -1) == -1);
-        Assert.IsTrue(readOnlyObservableList.FindIndex(1, 3, x => x == -1) == -1);
+        Assert.AreEqual(-1, readOnlyObservableList.FindIndex(x => x == -1));
+        Assert.AreEqual(-1, readOnlyObservableList.FindIndex(1, x => x == -1));
+        Assert.AreEqual(-1, readOnlyObservableList.FindIndex(1, 3, x => x == -1));
     }
 
     [TestMethod]
@@ -142,11 +146,11 @@ public class ReadOnlyObservableListTests
             new ObservableList<int>(Enumerable.Range(1, 10))
         );
 
-        Assert.IsTrue(readOnlyObservableList.FindLast(x => x == 1) == 1);
+        Assert.AreEqual(1, readOnlyObservableList.FindLast(x => x == 1));
         Assert.IsTrue(readOnlyObservableList.FindLast(1, x => x == 2) == (1, 2));
         Assert.IsTrue(readOnlyObservableList.FindLast(4, 3, x => x == 3) == (2, 3));
 
-        Assert.IsTrue(readOnlyObservableList.FindLast(x => x == -1) == default);
+        Assert.AreEqual(default, readOnlyObservableList.FindLast(x => x == -1));
         Assert.IsTrue(readOnlyObservableList.FindLast(1, x => x == -1) == (-1, default));
         Assert.IsTrue(readOnlyObservableList.FindLast(4, 3, x => x == -1) == (-1, default));
     }
@@ -158,13 +162,13 @@ public class ReadOnlyObservableListTests
             new ObservableList<int>(Enumerable.Range(1, 10))
         );
 
-        Assert.IsTrue(readOnlyObservableList.FindLastIndex(x => x == 1) == 0);
-        Assert.IsTrue(readOnlyObservableList.FindLastIndex(1, x => x == 2) == 1);
-        Assert.IsTrue(readOnlyObservableList.FindLastIndex(4, 3, x => x == 3) == 2);
+        Assert.AreEqual(0, readOnlyObservableList.FindLastIndex(x => x == 1));
+        Assert.AreEqual(1, readOnlyObservableList.FindLastIndex(1, x => x == 2));
+        Assert.AreEqual(2, readOnlyObservableList.FindLastIndex(4, 3, x => x == 3));
 
-        Assert.IsTrue(readOnlyObservableList.FindLastIndex(x => x == -1) == -1);
-        Assert.IsTrue(readOnlyObservableList.FindLastIndex(1, x => x == -1) == -1);
-        Assert.IsTrue(readOnlyObservableList.FindLastIndex(4, 3, x => x == -1) == -1);
+        Assert.AreEqual(-1, readOnlyObservableList.FindLastIndex(x => x == -1));
+        Assert.AreEqual(-1, readOnlyObservableList.FindLastIndex(1, x => x == -1));
+        Assert.AreEqual(-1, readOnlyObservableList.FindLastIndex(4, 3, x => x == -1));
     }
     #endregion
 }

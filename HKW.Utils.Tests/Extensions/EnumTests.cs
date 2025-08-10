@@ -27,12 +27,12 @@ public class EnumTests
     [TestMethod]
     public void AddFlag()
     {
-        Assert.IsTrue(TestEnum.A.AddFlag(TestEnum.B) == (TestEnum.A | TestEnum.B));
+        Assert.AreEqual(TestEnum.A | TestEnum.B, TestEnum.A.AddFlag(TestEnum.B));
     }
 
     [TestMethod]
     public void RemoveFlag()
     {
-        Assert.IsTrue(TestEnum.A.RemoveFlag(TestEnum.B) == (TestEnum.A & ~TestEnum.B));
+        Assert.AreEqual(TestEnum.A & ~TestEnum.B, TestEnum.A.RemoveFlag(TestEnum.B));
     }
 }

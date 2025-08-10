@@ -11,8 +11,8 @@ public class ObservableSelectableCollectionTests
     public void ObservableSelectableList()
     {
         var list = new ObservableSelectableList<int>();
-        Assert.IsTrue(list.SelectedIndex == -1);
-        Assert.IsTrue(list.SelectedItem == default);
+        Assert.AreEqual(-1, list.SelectedIndex);
+        Assert.AreEqual(default, list.SelectedItem);
         IListTTestUtils.Test<int>(
             list,
             Enumerable.Range(1, 10).ToList(),
@@ -20,51 +20,51 @@ public class ObservableSelectableCollectionTests
         );
 
         list = new ObservableSelectableList<int>(Enumerable.Range(1, 10), 0);
-        Assert.IsTrue(list.SelectedIndex == 0);
-        Assert.IsTrue(list.SelectedItem == 1);
+        Assert.AreEqual(0, list.SelectedIndex);
+        Assert.AreEqual(1, list.SelectedItem);
 
         list.SelectedItem = 5;
-        Assert.IsTrue(list.SelectedIndex == 4);
-        Assert.IsTrue(list.SelectedItem == 5);
+        Assert.AreEqual(4, list.SelectedIndex);
+        Assert.AreEqual(5, list.SelectedItem);
 
         list.Remove(5);
-        Assert.IsTrue(list.SelectedIndex == -1);
-        Assert.IsTrue(list.SelectedItem == default);
+        Assert.AreEqual(-1, list.SelectedIndex);
+        Assert.AreEqual(default, list.SelectedItem);
 
         list.SelectedItem = 4;
-        Assert.IsTrue(list.SelectedIndex == 3);
-        Assert.IsTrue(list.SelectedItem == 4);
+        Assert.AreEqual(3, list.SelectedIndex);
+        Assert.AreEqual(4, list.SelectedItem);
 
         list.Insert(3, 11);
-        Assert.IsTrue(list.SelectedIndex == 4);
-        Assert.IsTrue(list.SelectedItem == 4);
+        Assert.AreEqual(4, list.SelectedIndex);
+        Assert.AreEqual(4, list.SelectedItem);
 
         list.Add(99);
-        Assert.IsTrue(list.SelectedIndex == 4);
-        Assert.IsTrue(list.SelectedItem == 4);
+        Assert.AreEqual(4, list.SelectedIndex);
+        Assert.AreEqual(4, list.SelectedItem);
 
         list.Remove(11);
-        Assert.IsTrue(list.SelectedIndex == 3);
-        Assert.IsTrue(list.SelectedItem == 4);
+        Assert.AreEqual(3, list.SelectedIndex);
+        Assert.AreEqual(4, list.SelectedItem);
 
         list.Remove(10);
-        Assert.IsTrue(list.SelectedIndex == 3);
-        Assert.IsTrue(list.SelectedItem == 4);
+        Assert.AreEqual(3, list.SelectedIndex);
+        Assert.AreEqual(4, list.SelectedItem);
 
         list[3] = 40;
-        Assert.IsTrue(list.SelectedIndex == 3);
-        Assert.IsTrue(list.SelectedItem == 40);
+        Assert.AreEqual(3, list.SelectedIndex);
+        Assert.AreEqual(40, list.SelectedItem);
 
         list.Clear();
-        Assert.IsTrue(list.SelectedIndex == -1);
-        Assert.IsTrue(list.SelectedItem == default);
+        Assert.AreEqual(-1, list.SelectedIndex);
+        Assert.AreEqual(default, list.SelectedItem);
     }
 
     [TestMethod]
     public void ObservableSelectableSet()
     {
         var set = new ObservableSelectableSet<int>();
-        Assert.IsTrue(set.SelectedItem == default);
+        Assert.AreEqual(default, set.SelectedItem);
         ISetTestUtils.Test<int>(
             set,
             Enumerable.Range(1, 10).ToHashSet(),

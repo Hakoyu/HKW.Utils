@@ -87,9 +87,9 @@ public class ObservableDictionaryTests
         )
         {
             triggered = true;
-            Assert.IsTrue(e.Action is DictionaryChangeAction.Add);
+            Assert.AreEqual(DictionaryChangeAction.Add, e.Action);
             Assert.IsTrue(e.NewPair?.EqualsContent(newPair));
-            Assert.IsTrue(e.OldPair is null);
+            Assert.IsNull(e.OldPair);
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
@@ -123,9 +123,9 @@ public class ObservableDictionaryTests
         )
         {
             triggered = true;
-            Assert.IsTrue(e.Action is DictionaryChangeAction.Add);
+            Assert.AreEqual(DictionaryChangeAction.Add, e.Action);
             Assert.IsTrue(e.NewPair?.EqualsContent(newPair));
-            Assert.IsTrue(e.OldPair is null);
+            Assert.IsNull(e.OldPair);
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
@@ -196,9 +196,9 @@ public class ObservableDictionaryTests
         )
         {
             triggered = true;
-            Assert.IsTrue(e.Action is DictionaryChangeAction.Add);
+            Assert.AreEqual(DictionaryChangeAction.Add, e.Action);
             Assert.IsTrue(e.NewPair?.EqualsContent(newPair));
-            Assert.IsTrue(e.OldPair is null);
+            Assert.IsNull(e.OldPair);
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
@@ -258,8 +258,8 @@ public class ObservableDictionaryTests
         )
         {
             triggered = true;
-            Assert.IsTrue(e.Action is DictionaryChangeAction.Remove);
-            Assert.IsTrue(e.NewPair is null);
+            Assert.AreEqual(DictionaryChangeAction.Remove, e.Action);
+            Assert.IsNull(e.NewPair);
             Assert.IsTrue(e.OldPair?.EqualsContent(removePair));
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
@@ -319,9 +319,9 @@ public class ObservableDictionaryTests
         )
         {
             triggered = true;
-            Assert.IsTrue(e.Action is DictionaryChangeAction.Clear);
-            Assert.IsTrue(e.NewPair is null);
-            Assert.IsTrue(e.OldPair is null);
+            Assert.AreEqual(DictionaryChangeAction.Clear, e.Action);
+            Assert.IsNull(e.NewPair);
+            Assert.IsNull(e.OldPair);
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
@@ -354,7 +354,7 @@ public class ObservableDictionaryTests
         )
         {
             triggered = true;
-            Assert.IsTrue(e.Action is DictionaryChangeAction.Replace);
+            Assert.AreEqual(DictionaryChangeAction.Replace, e.Action);
             Assert.IsTrue(e.NewPair?.EqualsContent(oldPair.Key, newValue));
             Assert.IsTrue(e.OldPair?.EqualsContent(oldPair));
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
@@ -391,9 +391,9 @@ public class ObservableDictionaryTests
         )
         {
             triggered = true;
-            Assert.IsTrue(e.Action is DictionaryChangeAction.Add);
+            Assert.AreEqual(DictionaryChangeAction.Add, e.Action);
             Assert.IsTrue(e.NewPair?.EqualsContent(newPair));
-            Assert.IsTrue(e.OldPair is null);
+            Assert.IsNull(e.OldPair);
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
@@ -427,9 +427,9 @@ public class ObservableDictionaryTests
         )
         {
             triggered = true;
-            Assert.IsTrue(e.Action is DictionaryChangeAction.Add);
+            Assert.AreEqual(DictionaryChangeAction.Add, e.Action);
             Assert.IsTrue(e.NewPair?.EqualsContent(newPair));
-            Assert.IsTrue(e.OldPair is null);
+            Assert.IsNull(e.OldPair);
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
@@ -500,9 +500,9 @@ public class ObservableDictionaryTests
         )
         {
             triggered = true;
-            Assert.IsTrue(e.Action is DictionaryChangeAction.Add);
+            Assert.AreEqual(DictionaryChangeAction.Add, e.Action);
             Assert.IsTrue(e.NewPair?.EqualsContent(newPair));
-            Assert.IsTrue(e.OldPair is null);
+            Assert.IsNull(e.OldPair);
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
@@ -562,8 +562,8 @@ public class ObservableDictionaryTests
         )
         {
             triggered = true;
-            Assert.IsTrue(e.Action is DictionaryChangeAction.Remove);
-            Assert.IsTrue(e.NewPair is null);
+            Assert.AreEqual(DictionaryChangeAction.Remove, e.Action);
+            Assert.IsNull(e.NewPair);
             Assert.IsTrue(e.OldPair?.EqualsContent(removePair));
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
@@ -623,9 +623,9 @@ public class ObservableDictionaryTests
         )
         {
             triggered = true;
-            Assert.IsTrue(e.Action is DictionaryChangeAction.Clear);
-            Assert.IsTrue(e.NewPair is null);
-            Assert.IsTrue(e.OldPair is null);
+            Assert.AreEqual(DictionaryChangeAction.Clear, e.Action);
+            Assert.IsNull(e.NewPair);
+            Assert.IsNull(e.OldPair);
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
@@ -658,7 +658,7 @@ public class ObservableDictionaryTests
         )
         {
             triggered = true;
-            Assert.IsTrue(e.Action is DictionaryChangeAction.Replace);
+            Assert.AreEqual(DictionaryChangeAction.Replace, e.Action);
             Assert.IsTrue(e.NewPair?.EqualsContent(oldPair.Key, newValue));
             Assert.IsTrue(e.OldPair?.EqualsContent(oldPair));
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));

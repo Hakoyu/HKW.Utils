@@ -24,10 +24,10 @@ public class UndoableListTests
     {
         var list = new UndoableList<int>(Enumerable.Range(0, 10));
         list.Undo();
-        Assert.IsTrue(list.UndoStack.Count == 1);
-        Assert.IsTrue(list.UndoStack.First() == 9);
-        Assert.IsTrue(list.Count == 9);
-        Assert.IsTrue(list.Last() == 8);
+        Assert.AreEqual(1, list.UndoStack.Count);
+        Assert.AreEqual(9, list.UndoStack.First());
+        Assert.AreEqual(9, list.Count);
+        Assert.AreEqual(8, list.Last());
     }
 
     [TestMethod]
@@ -35,10 +35,10 @@ public class UndoableListTests
     {
         var list = new UndoableList<int>(Enumerable.Range(0, 10));
         list.Undo(5);
-        Assert.IsTrue(list.UndoStack.Count == 5);
+        Assert.AreEqual(5, list.UndoStack.Count);
         Assert.IsTrue(list.UndoStack.SequenceEqual(Enumerable.Range(5, 5)));
-        Assert.IsTrue(list.Count == 5);
-        Assert.IsTrue(list.Last() == 4);
+        Assert.AreEqual(5, list.Count);
+        Assert.AreEqual(4, list.Last());
     }
 
     [TestMethod]
@@ -47,9 +47,9 @@ public class UndoableListTests
         var list = new UndoableList<int>(Enumerable.Range(0, 10));
         list.Undo();
         list.Redo();
-        Assert.IsTrue(list.UndoStack.Count == 0);
-        Assert.IsTrue(list.Count == 10);
-        Assert.IsTrue(list.Last() == 9);
+        Assert.AreEqual(0, list.UndoStack.Count);
+        Assert.AreEqual(10, list.Count);
+        Assert.AreEqual(9, list.Last());
     }
 
     [TestMethod]
@@ -58,14 +58,14 @@ public class UndoableListTests
         var list = new UndoableList<int>(Enumerable.Range(0, 10));
         list.Undo(5);
         list.Redo(5);
-        Assert.IsTrue(list.UndoStack.Count == 0);
-        Assert.IsTrue(list.Count == 10);
-        Assert.IsTrue(list.Last() == 9);
+        Assert.AreEqual(0, list.UndoStack.Count);
+        Assert.AreEqual(10, list.Count);
+        Assert.AreEqual(9, list.Last());
         list.Undo(5);
         list.Redo(3);
-        Assert.IsTrue(list.UndoStack.Count == 2);
+        Assert.AreEqual(2, list.UndoStack.Count);
         Assert.IsTrue(list.UndoStack.SequenceEqual(Enumerable.Range(8, 2)));
-        Assert.IsTrue(list.Count == 8);
-        Assert.IsTrue(list.Last() == 7);
+        Assert.AreEqual(8, list.Count);
+        Assert.AreEqual(7, list.Last());
     }
 }

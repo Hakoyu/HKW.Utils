@@ -15,7 +15,7 @@ public class IListTests
     {
         IList<int> set = Enumerable.Range(1, 10).ToList();
         var randomItem = set.Random();
-        Assert.IsTrue(set.Contains(randomItem));
+        Assert.Contains(randomItem, set);
     }
 
     #region IListFind
@@ -24,11 +24,11 @@ public class IListTests
     {
         IList<int> list = Enumerable.Range(1, 10).ToList();
 
-        Assert.IsTrue(list.Find(x => x == 1) == 1);
+        Assert.AreEqual(1, list.Find(x => x == 1));
         Assert.IsTrue(list.Find(1, x => x == 2) == (1, 2));
         Assert.IsTrue(list.Find(1, 3, x => x == 3) == (2, 3));
 
-        Assert.IsTrue(list.Find(x => x == -1) == default);
+        Assert.AreEqual(default, list.Find(x => x == -1));
         Assert.IsTrue(list.Find(1, x => x == -1) == (-1, default));
         Assert.IsTrue(list.Find(1, 3, x => x == -1) == (-1, default));
     }
@@ -52,11 +52,11 @@ public class IListTests
     {
         IList<int> list = Enumerable.Range(1, 10).ToList();
 
-        Assert.IsTrue(list.FindLast(x => x == 1) == 1);
+        Assert.AreEqual(1, list.FindLast(x => x == 1));
         Assert.IsTrue(list.FindLast(1, x => x == 2) == (1, 2));
         Assert.IsTrue(list.FindLast(4, 3, x => x == 3) == (2, 3));
 
-        Assert.IsTrue(list.FindLast(x => x == -1) == default);
+        Assert.AreEqual(default, list.FindLast(x => x == -1));
         Assert.IsTrue(list.FindLast(1, x => x == -1) == (-1, default));
         Assert.IsTrue(list.FindLast(4, 3, x => x == -1) == (-1, default));
     }

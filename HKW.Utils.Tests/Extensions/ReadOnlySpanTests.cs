@@ -11,7 +11,7 @@ public class ReadOnlySpanTests
         string str = "666 666 666";
         foreach (var six in str.AsSpan().Split(' '))
         {
-            Assert.AreEqual(six.ToString(), "666");
+            Assert.AreEqual("666", six.ToString());
         }
     }
 }
