@@ -144,7 +144,7 @@ public class ReadOnlyFilterList<T, TFilteredList>
                 _filteredListIndex.Add(i);
             }
         }
-        else if (_list.HasValue())
+        else if (_list.HasValue)
         {
             for (var i = 0; i < _list.Count; i++)
             {

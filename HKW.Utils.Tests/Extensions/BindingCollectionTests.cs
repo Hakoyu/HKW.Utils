@@ -42,7 +42,7 @@ public class BindingCollectionTests
     {
         var obList = new ObservableList<int>();
         var list = new List<int>();
-        obList.BindingListX(list);
+        obList.BindingList(list);
         obList.Add(1);
         obList.Add(2);
         obList.Add(3);
@@ -57,7 +57,7 @@ public class BindingCollectionTests
         Assert.IsTrue(obList.SequenceEqual(list));
         obList.Clear();
         Assert.IsTrue(obList.SequenceEqual(list));
-        obList.BindingListX(list, true);
+        obList.BindingList(list, true);
         obList.Add(1);
         Assert.IsTrue(obList.SequenceEqual(list) is false);
     }

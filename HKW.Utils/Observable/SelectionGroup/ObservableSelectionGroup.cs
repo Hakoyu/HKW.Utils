@@ -52,9 +52,8 @@ public partial class ObservableSelectionGroup<TMember>
 /// <typeparam name="TMemberCollection">成员集合类型</typeparam>
 [DebuggerDisplay("Leader = {Leader.Value}, Count = {Count}, SelectedCount = {SelectedCount}")]
 public partial class ObservableSelectionGroup<TLeader, TMember, TMemberCollection>
-    : ReactiveObjectX,
-        ICollection<TMember>,
-        IDisposable
+    : DisposableReactiveObject,
+        ICollection<TMember>
     where TLeader : INotifyPropertyChanged
     where TMember : INotifyPropertyChanged
     where TMemberCollection : IObservableCollection<TMember>

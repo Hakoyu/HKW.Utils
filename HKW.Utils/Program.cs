@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
@@ -11,18 +12,24 @@ using HKW.HKWReactiveUI;
 using HKW.HKWUtils;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Drawing;
+using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
 using ReactiveUI;
 
 namespace HKW;
 
+#pragma warning disable S1144,S2223,S1643,S3626,S2342,S1481
 internal class Program
 {
     private static System.Diagnostics.Stopwatch stopWatch = new();
+
     public static I18nCore I18nCore = new();
-    public static I18nResource<string, string> I18nResource =
-        new("", I18nCore.Default) { DefaultValue = string.Empty, FillDefaultValueToData = true };
+    public static I18nResource<string, string> I18nResource = new("", I18nCore.Default)
+    {
+        DefaultValue = string.Empty,
+        FillDefaultValueToData = true,
+    };
     public IntegratedReadOnlyList<int, List<int>, ReadOnlyCollection<int>> List { get; } =
         new(new(), l => new(l));
     public ReadOnlyCollection<int> ReadOnlyList => List.ReadOnlyList;
@@ -32,29 +39,20 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-        var str = "aaa_bbb ccc-ddd".ToPascal(SearchValues.Create([' ', '-', '_']));
-        //var vm = new TestModel();
-        //var p = new ObservableWrapper<TestModel, bool>(
-        //    vm,
-        //    static vm => vm.CanExecute,
-        //    static (vm, x) => vm.CanExecute = x
-        //);
-        //var r = FileUtils.Compare("D:\\Downloads\\G2151.7z1", "D:\\Downloads\\G2151.7z1");
-        //var text = "Chinese_name".ToPascal('_', sourceToLower: false);
-        //var l = new ObservableList<int>();
-        //l.AddRange(new[] { 1, 2, 3 });
-        //var its = typeof(TestModel1).GetInterfaces();
-        //var it = its.LastOrDefault(i => i.Name == typeof(IEnableLogger<>).Name);
-        //var enums = Enum.GetValues<TestEnum1>()
-        //    .Where(x =>
-        //        NumberUtils.CompareX(
-        //            x,
-        //            0,
-        //            Enum.GetUnderlyingType(typeof(TestEnum1)),
-        //            ComparisonOperatorType.Inequality
-        //        )
-        //    )
-        //    .ToFrozenSet();
+        try
+        {
+            var e = StringSplitOptions.RemoveEmptyEntries;
+            ArgumentException.ThrowIfAllNotEquals(
+                e,
+                StringSplitOptions.None,
+                StringSplitOptions.TrimEntries
+            );
+            //c.Add('c');
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
 #endif
     }
 

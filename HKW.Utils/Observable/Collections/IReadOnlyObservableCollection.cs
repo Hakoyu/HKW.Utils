@@ -6,7 +6,7 @@ namespace HKW.HKWUtils.Observable;
 /// <summary>
 /// 只读可观测集合接口
 /// </summary>
-public interface IReadOnlyObservableCollection<T>
+public interface IReadOnlyObservableCollection<out T>
     : IReadOnlyCollection<T>,
         INotifyCollectionChanged,
         INotifyPropertyChanged { }

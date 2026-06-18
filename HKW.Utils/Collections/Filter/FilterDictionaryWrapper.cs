@@ -91,7 +91,7 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
         FilteredDictionary.Clear();
         if (Filter is null)
             FilteredDictionary.AddRange(BaseDictionary);
-        else if (BaseDictionary.HasValue())
+        else if (BaseDictionary.HasValue)
             FilteredDictionary.AddRange(BaseDictionary.Where(i => Filter(i)));
     }
 

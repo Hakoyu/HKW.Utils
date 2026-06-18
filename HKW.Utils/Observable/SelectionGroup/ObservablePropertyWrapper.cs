@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using HKW.HKWReactiveUI;
 using ReactiveUI;
 
@@ -12,9 +13,8 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TValue">值类型</typeparam>
 [DebuggerDisplay("Source = {Source}, PropertyName = {PropertyName}")]
 public partial class ObservablePropertyWrapper<TSource, TValue>
-    : ReactiveObjectX,
-        ICloneable<ObservablePropertyWrapper<TSource, TValue>>,
-        IDisposable
+    : DisposableReactiveObject,
+        ICloneable<ObservablePropertyWrapper<TSource, TValue>>
     where TSource : INotifyPropertyChanged
 {
     /// <inheritdoc/>
@@ -48,7 +48,7 @@ public partial class ObservablePropertyWrapper<TSource, TValue>
     /// <summary>
     /// 源
     /// </summary>
-    public TSource Source { get; } = default!;
+    public TSource Source { get; }
 
     /// <summary>
     /// 属性名

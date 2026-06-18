@@ -1,6 +1,7 @@
 ﻿using System.Collections.Frozen;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HKW.HKWUtils.Extensions;
 
@@ -11,7 +12,7 @@ namespace HKW.HKWUtils;
 /// </summary>
 /// <typeparam name="TEnum">枚举类型</typeparam>
 [DebuggerDisplay("{Value}")]
-public class EnumInfo<TEnum> : IEnumInfo<TEnum>
+public sealed class EnumInfo<TEnum> : IEnumInfo<TEnum>
     where TEnum : struct, Enum
 {
     /// <inheritdoc/>
@@ -137,7 +138,9 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     IEnumerable<Enum> IEnumInfo.GetFlags()
     {
         if (IsFlagable is false)
-            throw new Exception($"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\".");
+            throw new EnumInfoException(
+                $"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\"."
+            );
         return ValidValues.Where(x => Value.HasFlag(x)).Cast<Enum>();
     }
 
@@ -145,7 +148,9 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     IEnumerable<IEnumInfo> IEnumInfo.GetFlagInfos()
     {
         if (IsFlagable is false)
-            throw new Exception($"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\".");
+            throw new EnumInfoException(
+                $"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\"."
+            );
         return ValidInfos.Values.Where(x => Value.HasFlag(x.Value));
     }
     #endregion
@@ -167,7 +172,9 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     public IEnumerable<TEnum> GetFlags()
     {
         if (IsFlagable is false)
-            throw new Exception($"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\".");
+            throw new EnumInfoException(
+                $"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\"."
+            );
         return ValidValues.Where(x => Value.HasFlag(x));
     }
 
@@ -175,7 +182,9 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     public IEnumerable<IEnumInfo<TEnum>> GetFlagInfos()
     {
         if (IsFlagable is false)
-            throw new Exception($"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\".");
+            throw new EnumInfoException(
+                $"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\"."
+            );
         return ValidInfos.Values.Cast<EnumInfo<TEnum>>().Where(x => Value.HasFlag(x));
     }
 
@@ -434,4 +443,17 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     #endregion
 
     #endregion
+}
+
+/// <summary>
+/// 枚举信息异常
+/// </summary>
+public class EnumInfoException : Exception
+{
+    /// <inheritdoc/>
+    public EnumInfoException() { }
+
+    /// <inheritdoc/>
+    public EnumInfoException(string? message)
+        : base(message) { }
 }

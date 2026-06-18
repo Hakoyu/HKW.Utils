@@ -18,8 +18,8 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="TObject">对象类型</typeparam>
 /// <typeparam name="TProperty">属性类型</typeparam>
-[DebuggerDisplay("{Source = {Source}, Value = {Value}}")]
-public partial class ObservableWrapper<TObject, TProperty> : ReactiveObjectX
+[DebuggerDisplay("Source = {Source}, Value = {Value}")]
+public partial class ObservableWrapper<TObject, TProperty> : DisposableReactiveObject
     where TObject : INotifyPropertyChanged
 {
     #region Ctor

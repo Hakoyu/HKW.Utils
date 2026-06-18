@@ -190,11 +190,18 @@ public class ObservableSetWrapper<TItem, TSet>
         return ((IEnumerable)BaseSet).GetEnumerator();
     }
 
-    /// <inheritdoc cref="HashSet{T}.TrimExcess"/>
+    /// <inheritdoc cref="HashSet{T}.TrimExcess()"/>
     public void TrimExcess()
     {
         if (BaseSet is HashSet<TItem> set)
             set.TrimExcess();
+    }
+
+    /// <inheritdoc cref="HashSet{T}.TrimExcess(int)"/>
+    public void TrimExcess(int capacity)
+    {
+        if (BaseSet is HashSet<TItem> set)
+            set.TrimExcess(capacity);
     }
 
     #endregion ISet
@@ -236,7 +243,7 @@ public class ObservableSetWrapper<TItem, TSet>
                 {
                     _removeIndexs.Add(index);
                     removeItems.Remove(item);
-                    if (removeItems.HasValue() is false)
+                    if (removeItems.HasValue is false)
                         break;
                 }
             }
@@ -280,7 +287,7 @@ public class ObservableSetWrapper<TItem, TSet>
                 {
                     _removeIndexs.Add(index);
                     removeItems.Remove(item);
-                    if (removeItems.HasValue() is false)
+                    if (removeItems.HasValue is false)
                         break;
                 }
             }
@@ -294,7 +301,8 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     protected virtual void OnSetChanging(NotifySetChangeEventArgs<TItem> args)
     {
-        SetChanging?.Invoke(this, SetChangeEventArgs = args);
+        SetChangeEventArgs = args;
+        SetChanging?.Invoke(this, args);
     }
 
     /// <inheritdoc/>

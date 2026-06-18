@@ -78,7 +78,7 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
         FilteredList.Clear();
         if (Filter is null)
             FilteredList.AddRange(BaseList);
-        else if (BaseList.HasValue())
+        else if (BaseList.HasValue)
             FilteredList.AddRange(BaseList.Where(i => Filter(i)));
     }
 
@@ -167,7 +167,7 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
             return;
         if (Filter(item))
         {
-            if (FilteredList.HasValue() is false)
+            if (FilteredList.HasValue is false)
                 FilteredList.Add(item);
             else
             {
@@ -229,7 +229,6 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     }
 
     /// <inheritdoc/>
-
     bool IList.Contains(object? value)
     {
         return Contains((TItem)value!);

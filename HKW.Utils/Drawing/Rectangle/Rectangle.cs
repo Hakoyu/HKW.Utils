@@ -15,7 +15,7 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
     /// <summary>
     /// 空
     /// </summary>
-    public static Rectangle<T> Empty = new(default, default, default, default);
+    public static Rectangle<T> Empty { get; } = new(default, default, default, default);
 
     /// <inheritdoc/>
     /// <param name="rectangle">矩形</param>
@@ -65,15 +65,16 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
     /// <param name="separator">分割符</param>
     public Rectangle(string data, char separator = ',')
     {
-        var datas = data.AsSpan().Split(separator);
+        var span = data.AsSpan();
+        var datas = span.Split(separator);
         datas.MoveNext();
-        X = T.Parse(datas.Current, null);
+        X = T.Parse(span[datas.Current], null);
         datas.MoveNext();
-        Y = T.Parse(datas.Current, null);
+        Y = T.Parse(span[datas.Current], null);
         datas.MoveNext();
-        Width = T.Parse(datas.Current, null);
+        Width = T.Parse(span[datas.Current], null);
         datas.MoveNext();
-        Height = T.Parse(datas.Current, null);
+        Height = T.Parse(span[datas.Current], null);
     }
 
     #region Size

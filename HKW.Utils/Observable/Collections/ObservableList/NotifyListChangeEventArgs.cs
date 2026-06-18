@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using HKW.HKWUtils.Exceptions;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -37,8 +38,7 @@ public class NotifyListChangeEventArgs<T> : EventArgs
     /// <param name="action">改变行动</param>
     public NotifyListChangeEventArgs(ListChangeAction action)
     {
-        if (action is not ListChangeAction.Clear)
-            throw new ArgumentException(nameof(action));
+        ArgumentException.ThrowIfNotEquals(action, ListChangeAction.Clear);
         Action = action;
     }
 
@@ -46,21 +46,18 @@ public class NotifyListChangeEventArgs<T> : EventArgs
     /// <summary>仅用于:
     /// <see cref="ListChangeAction.Add"/>
     /// <see cref="ListChangeAction.Remove"/>
-    /// <see cref="ListChangeAction.Clear"/>
     /// </summary>
     /// <param name="action">改变行动</param>
     /// <param name="item">项目</param>
     /// <param name="index">索引</param>
     public NotifyListChangeEventArgs(ListChangeAction action, T item, int index)
     {
-        if (
-            action is not ListChangeAction.Add
-            && action is not ListChangeAction.Remove
-            && action is not ListChangeAction.Clear
-        )
-            throw new ArgumentException(nameof(action));
-        if (index < 0)
-            throw new ArgumentOutOfRangeException(nameof(index));
+        ArgumentException.ThrowIfAllNotEquals(
+            action,
+            ListChangeAction.Add,
+            ListChangeAction.Remove
+        );
+        ArgumentOutOfRangeException.ThrowIfLessThan(index, 0);
         Action = action;
         Index = index;
         if (action is ListChangeAction.Add)
@@ -79,10 +76,9 @@ public class NotifyListChangeEventArgs<T> : EventArgs
     /// <param name="index">索引</param>
     public NotifyListChangeEventArgs(ListChangeAction action, T newItem, T oldItem, int index)
     {
-        if (action != ListChangeAction.Replace)
-            throw new ArgumentException(nameof(action));
-        if (index < 0)
-            throw new ArgumentOutOfRangeException(nameof(index));
+        ArgumentException.ThrowIfNotEquals(action, ListChangeAction.Replace);
+        ArgumentOutOfRangeException.ThrowIfLessThan(index, 0);
+
         Action = action;
         Index = index;
         NewItem = newItem;

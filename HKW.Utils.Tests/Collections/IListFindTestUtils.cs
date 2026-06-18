@@ -25,12 +25,12 @@ public class IListFindTestUtils
         list.AddRange(comparisonList);
 
         Assert.AreEqual(comparisonList.Find(x => x == 1), list.Find(x => x == 1));
-        Assert.IsTrue(list.Find(1, x => x == 2) == (1, comparisonList.Find(x => x == 2)));
-        Assert.IsTrue(list.Find(1, 3, x => x == 3) == (2, comparisonList.Find(x => x == 3)));
+        Assert.IsTrue(list.FindPair(1, x => x == 2) == (1, comparisonList.Find(x => x == 2)));
+        Assert.IsTrue(list.FindPair(1, 3, x => x == 3) == (2, comparisonList.Find(x => x == 3)));
 
         Assert.AreEqual(default, list.Find(x => x == -1));
-        Assert.IsTrue(list.Find(1, x => x == -1) == (-1, default));
-        Assert.IsTrue(list.Find(1, 3, x => x == -1) == (-1, default));
+        Assert.IsTrue(list.FindPair(1, x => x == -1) == (-1, default));
+        Assert.IsTrue(list.FindPair(1, 3, x => x == -1) == (-1, default));
 
         list.Clear();
     }
@@ -69,15 +69,16 @@ public class IListFindTestUtils
 
         Assert.AreEqual(comparisonList.FindLast(x => x == 1), comparisonList.FindLast(x => x == 1));
         Assert.IsTrue(
-            comparisonList.FindLast(1, x => x == 2) == (1, comparisonList.FindLast(x => x == 2))
+            comparisonList.FindLastPair(1, x => x == 2) == (1, comparisonList.FindLast(x => x == 2))
         );
         Assert.IsTrue(
-            comparisonList.FindLast(4, 3, x => x == 3) == (2, comparisonList.FindLast(x => x == 3))
+            comparisonList.FindLastPair(4, 3, x => x == 3)
+                == (2, comparisonList.FindLast(x => x == 3))
         );
 
         Assert.AreEqual(default, comparisonList.FindLast(x => x == -1));
-        Assert.IsTrue(comparisonList.FindLast(1, x => x == -1) == (-1, default));
-        Assert.IsTrue(comparisonList.FindLast(4, 3, x => x == -1) == (-1, default));
+        Assert.IsTrue(comparisonList.FindLastPair(1, x => x == -1) == (-1, default));
+        Assert.IsTrue(comparisonList.FindLastPair(4, 3, x => x == -1) == (-1, default));
 
         list.Clear();
     }

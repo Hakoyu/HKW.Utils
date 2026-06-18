@@ -41,20 +41,20 @@ public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
     public int Count => _dictionary.Count;
 
     /// <inheritdoc/>
-    public ICollection<TKey> Keys => _dictionary.Keys;
+    ICollection<TKey> IDictionary<TKey, TReadOnlyValue>.Keys => _dictionary.Keys;
 
     /// <inheritdoc/>
-    public ICollection<TReadOnlyValue> Values => _dictionary.Values.Cast<TReadOnlyValue>().ToList();
+    ICollection<TReadOnlyValue> IDictionary<TKey, TReadOnlyValue>.Values =>
+        _dictionary.Values.Cast<TReadOnlyValue>().ToList();
 
     /// <inheritdoc/>
     public bool IsReadOnly => true;
 
     /// <inheritdoc/>
-    IEnumerable<TKey> IReadOnlyDictionary<TKey, TReadOnlyValue>.Keys => _dictionary.Keys;
+    public IEnumerable<TKey> Keys => _dictionary.Keys;
 
     /// <inheritdoc/>
-    IEnumerable<TReadOnlyValue> IReadOnlyDictionary<TKey, TReadOnlyValue>.Values =>
-        _dictionary.Values.Cast<TReadOnlyValue>();
+    public IEnumerable<TReadOnlyValue> Values => _dictionary.Values.Cast<TReadOnlyValue>();
 
     /// <inheritdoc/>
     public TReadOnlyValue this[TKey key] => _dictionary[key];

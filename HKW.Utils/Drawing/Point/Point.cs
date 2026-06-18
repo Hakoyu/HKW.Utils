@@ -37,11 +37,12 @@ public struct Point<T> : IEquatable<IReadOnlyPoint<T>>, IPoint<T>
     /// <param name="separator">分割符</param>
     public Point(string data, char separator = ',')
     {
-        var datas = data.AsSpan().Split(separator);
+        var span = data.AsSpan();
+        var datas = span.Split(separator);
         datas.MoveNext();
-        X = T.Parse(datas.Current, null);
+        X = T.Parse(span[datas.Current], null);
         datas.MoveNext();
-        Y = T.Parse(datas.Current, null);
+        Y = T.Parse(span[datas.Current], null);
     }
     #endregion
     /// <inheritdoc/>

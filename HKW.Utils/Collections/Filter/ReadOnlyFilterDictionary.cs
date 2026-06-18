@@ -175,7 +175,7 @@ public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
         FilteredDictionary.Clear();
         if (Filter is null)
             FilteredDictionary.AddRange(_dictionary);
-        else if (_dictionary.HasValue())
+        else if (_dictionary.HasValue)
             FilteredDictionary.AddRange(_dictionary.Where(i => Filter(i)));
     }
 

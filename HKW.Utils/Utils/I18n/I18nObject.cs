@@ -86,7 +86,7 @@ public sealed class I18nObject<TKey, TValue> : IEquatable<I18nObject<TKey, TValu
         bool retentionValueOnKeyChange = false
     )
     {
-        var result = KeyNameToTargetNames.GetOrCreate(keyPropertyName).Add(targetPropertyName);
+        var result = KeyNameToTargetNames.GetValueOrCreate(keyPropertyName).Add(targetPropertyName);
         if (result is false)
             return;
 
@@ -95,7 +95,7 @@ public sealed class I18nObject<TKey, TValue> : IEquatable<I18nObject<TKey, TValu
 
         KeyNameToGetKey[keyPropertyName] = getKey;
 
-        KeyToTargetNames.GetOrCreate(getKey(Source)).Add(targetPropertyName);
+        KeyToTargetNames.GetValueOrCreate(getKey(Source)).Add(targetPropertyName);
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -126,7 +126,7 @@ public sealed class I18nObject<TKey, TValue> : IEquatable<I18nObject<TKey, TValu
                 KeyToTargetNames.TryGetValueOrCreate(
                     newValue,
                     out var newTargetPropertyNamesWithKey,
-                    () => targetPropertyNamesWithKeyPropertyName.ToHashSet()
+                    object.Create(() => targetPropertyNamesWithKeyPropertyName.ToHashSet())
                 )
             )
             {
@@ -138,7 +138,7 @@ public sealed class I18nObject<TKey, TValue> : IEquatable<I18nObject<TKey, TValu
                 // 从旧键中去除ID对应的属性名
                 oldTargetPropertyNamesWithKey.ExceptWith(targetPropertyNamesWithKeyPropertyName);
                 // 如果旧键不存在值则删除
-                if (oldTargetPropertyNamesWithKey.HasValue() is false)
+                if (oldTargetPropertyNamesWithKey.HasValue is false)
                     KeyToTargetNames.Remove(_oldKeyValue);
             }
             if (RetentionValueOnKeyChangePropertyNames.Contains(e.PropertyName))

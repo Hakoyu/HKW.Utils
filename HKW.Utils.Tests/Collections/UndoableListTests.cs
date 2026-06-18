@@ -24,7 +24,7 @@ public class UndoableListTests
     {
         var list = new UndoableList<int>(Enumerable.Range(0, 10));
         list.Undo();
-        Assert.AreEqual(1, list.UndoStack.Count);
+        Assert.HasCount(1, list.UndoStack);
         Assert.AreEqual(9, list.UndoStack.First());
         Assert.AreEqual(9, list.Count);
         Assert.AreEqual(8, list.Last());
@@ -35,7 +35,7 @@ public class UndoableListTests
     {
         var list = new UndoableList<int>(Enumerable.Range(0, 10));
         list.Undo(5);
-        Assert.AreEqual(5, list.UndoStack.Count);
+        Assert.HasCount(5, list.UndoStack);
         Assert.IsTrue(list.UndoStack.SequenceEqual(Enumerable.Range(5, 5)));
         Assert.AreEqual(5, list.Count);
         Assert.AreEqual(4, list.Last());
@@ -47,7 +47,7 @@ public class UndoableListTests
         var list = new UndoableList<int>(Enumerable.Range(0, 10));
         list.Undo();
         list.Redo();
-        Assert.AreEqual(0, list.UndoStack.Count);
+        Assert.IsEmpty(list.UndoStack);
         Assert.AreEqual(10, list.Count);
         Assert.AreEqual(9, list.Last());
     }
@@ -58,12 +58,12 @@ public class UndoableListTests
         var list = new UndoableList<int>(Enumerable.Range(0, 10));
         list.Undo(5);
         list.Redo(5);
-        Assert.AreEqual(0, list.UndoStack.Count);
+        Assert.IsEmpty(list.UndoStack);
         Assert.AreEqual(10, list.Count);
         Assert.AreEqual(9, list.Last());
         list.Undo(5);
         list.Redo(3);
-        Assert.AreEqual(2, list.UndoStack.Count);
+        Assert.HasCount(2, list.UndoStack);
         Assert.IsTrue(list.UndoStack.SequenceEqual(Enumerable.Range(8, 2)));
         Assert.AreEqual(8, list.Count);
         Assert.AreEqual(7, list.Last());

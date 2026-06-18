@@ -76,7 +76,7 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     {
         if (Filter is null)
             FilteredSet.AddRange(BaseSet);
-        else if (BaseSet.HasValue())
+        else if (BaseSet.HasValue)
             FilteredSet.AddRange(BaseSet.Where(i => Filter(i)));
     }
 

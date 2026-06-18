@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Data;
@@ -17,7 +18,8 @@ namespace HKW.HKWUtils.Observable;
 [DebuggerTypeProxy(typeof(ICollectionDebugView))]
 public class ReadOnlyObservableDictionary<TKey, TValue>
     : IObservableDictionary<TKey, TValue>,
-        IReadOnlyObservableDictionary<TKey, TValue>
+        IReadOnlyObservableDictionary<TKey, TValue>,
+        IDisposable
     where TKey : notnull
 {
     /// <summary>
@@ -40,12 +42,8 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
         _dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
         _dictionary.CollectionChanged += Dictionary_CollectionChanged;
         _dictionary.PropertyChanged += Dictionary_PropertyChanged;
-        ObservableKeys = new ReadOnlyObservableList<TKey>(
-            (IObservableList<TKey>)_dictionary.ObservableKeys
-        );
-        ObservableValues = new ReadOnlyObservableList<TValue>(
-            (IObservableList<TValue>)_dictionary.ObservableValues
-        );
+        ObservableKeys = _dictionary.ObservableKeys;
+        ObservableValues = _dictionary.ObservableValues;
     }
 
     private void Dictionary_DictionaryChanging(
@@ -88,7 +86,9 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
         Dispose(false);
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// 解除对引用列表注册的所有观测事件
+    /// </summary>
     public void Dispose()
     {
         //必须为true
@@ -97,18 +97,7 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>
-    /// 关闭
-    /// </summary>
-    public void Close()
-    {
-        Dispose();
-    }
-
-    /// <summary>
-    /// 非密封类可重写的Dispose方法，方便子类继承时可重写
-    /// </summary>
-    /// <param name="disposing">释放中</param>
+    /// <inheritdoc/>
     protected virtual void Dispose(bool disposing)
     {
         if (_disposed)

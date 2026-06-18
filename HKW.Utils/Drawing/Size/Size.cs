@@ -37,11 +37,12 @@ public struct Size<T> : IEquatable<IReadOnlySize<T>>, ISize<T>
     /// <param name="separator">分割符</param>
     public Size(string data, char separator = ',')
     {
-        var datas = data.AsSpan().Split(separator);
+        var span = data.AsSpan();
+        var datas = span.Split(separator);
         datas.MoveNext();
-        Width = T.Parse(datas.Current, null);
+        Width = T.Parse(span[datas.Current], null);
         datas.MoveNext();
-        Height = T.Parse(datas.Current, null);
+        Height = T.Parse(span[datas.Current], null);
     }
     #endregion
 

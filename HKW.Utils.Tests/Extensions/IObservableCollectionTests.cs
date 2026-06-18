@@ -17,7 +17,7 @@ public class IObservableCollectionTests
     {
         var o = new ObservableList<int>();
         var t = new List<int>();
-        o.BindingListX(t);
+        o.BindingList(t);
         o.Add(1);
         Assert.IsTrue(o.SequenceEqual(t));
         o.Add(2);

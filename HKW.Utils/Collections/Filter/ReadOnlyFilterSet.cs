@@ -73,7 +73,7 @@ public class ReadOnlyFilterSet<T, TFilteredSet>
     {
         if (Filter is null)
             FilteredSet.AddRange(_set);
-        else if (_set.HasValue())
+        else if (_set.HasValue)
             FilteredSet.AddRange(_set.Where(i => Filter(i)));
     }
 

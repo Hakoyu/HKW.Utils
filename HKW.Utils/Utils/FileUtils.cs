@@ -1,4 +1,10 @@
-﻿namespace HKW.HKWUtils;
+﻿using System.Buffers;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
+using HKW.HKWUtils.Extensions;
+
+namespace HKW.HKWUtils;
 
 /// <summary>
 /// 文件工具
@@ -24,7 +30,7 @@ public static class FileUtils
     /// </summary>
     /// <param name="fileInfo1">文件1</param>
     /// <param name="fileInfo2">文件2</param>
-    /// <param name="chunkSize">缓冲区大小</param>
+    /// <param name="chunkSize">byte缓冲区大小, 大于 4096 时将使用内存池</param>
     /// <returns>相同为 <see langword="true"/>, 不相同为 <see langword="false"/></returns>
     public static bool Compare(FileInfo fileInfo1, FileInfo fileInfo2, int chunkSize = 4096)
     {
@@ -33,26 +39,39 @@ public static class FileUtils
         if (fileInfo1.Length != fileInfo2.Length)
             return false;
 
+        var result = false;
+
+        var usePool = chunkSize > 4096;
+        byte[] buffer1Array = usePool ? ArrayPool<byte>.Shared.Rent(chunkSize) : default!;
+        byte[] buffer2Array = usePool ? ArrayPool<byte>.Shared.Rent(chunkSize) : default!;
+        Span<byte> buffer1 = usePool ? buffer1Array : stackalloc byte[chunkSize];
+        Span<byte> buffer2 = usePool ? buffer2Array : stackalloc byte[chunkSize];
+
         using var stream1 = fileInfo1.OpenRead();
         using var stream2 = fileInfo2.OpenRead();
-        var buffer1 = new byte[chunkSize];
-        var buffer2 = new byte[chunkSize];
-
         while (true)
         {
-            var count1 = StreamUtils.ReadIntoBuffer(stream1, buffer1);
-            var count2 = StreamUtils.ReadIntoBuffer(stream2, buffer2);
+            var count1 = stream1.Read(buffer1);
+            var count2 = stream2.Read(buffer2);
 
             if (count1 != count2)
-                return false;
+                break;
 
             if (count1 == 0)
-                return true;
+            {
+                result = true;
+                break;
+            }
 
-            Span<byte> span1 = buffer1;
-            Span<byte> span2 = buffer2;
-            if (span1.SequenceEqual(span2) is false)
-                return false;
+            if (buffer1.SequenceEqual(buffer2) is false)
+                break;
         }
+
+        if (usePool)
+        {
+            ArrayPool<byte>.Shared.Return(buffer1Array);
+            ArrayPool<byte>.Shared.Return(buffer2Array);
+        }
+        return result;
     }
 }

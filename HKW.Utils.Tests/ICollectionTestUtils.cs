@@ -17,7 +17,7 @@ public class ICollectionTestUtils
         else
             _testCompletedTypes.Add(collection.GetType());
 
-        if (items.HasValue() is false)
+        if (items.HasValue is false)
             throw new ArgumentException("ComparisonCollection must has value", nameof(items));
         var cCollection = items.ToList();
         collection.AddRange(cCollection);
@@ -64,7 +64,7 @@ public class ICollectionTestUtils
 
         cCollection.Clear();
         collection.Clear();
-        Assert.AreEqual(cCollection.Count, collection.Count);
+        Assert.HasCount(cCollection.Count, collection);
         Assert.IsTrue(collection.SequenceEqual(cCollection));
 
         collection.Clear();

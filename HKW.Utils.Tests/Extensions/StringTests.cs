@@ -7,6 +7,12 @@ namespace HKW.HKWUtils.Tests.Extensions;
 public class StringTests
 {
     [TestMethod]
+    public void FirstToLower()
+    {
+        Assert.AreEqual("rED", "RED".FirstToLower());
+    }
+
+    [TestMethod]
     public void FirstToUpper()
     {
         Assert.AreEqual("Red", "red".FirstToUpper());

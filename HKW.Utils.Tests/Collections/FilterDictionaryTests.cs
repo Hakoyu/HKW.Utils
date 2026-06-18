@@ -7,6 +7,7 @@ using HKW.HKWUtils.Collections;
 
 namespace HKW.HKWUtils.Tests.Collections;
 
+[TestClass]
 public class FilterDictionaryTests
 {
     bool Filter(KeyValuePair<int, int> kv) => kv.Key > 5 && kv.Value > 5;
@@ -22,13 +23,10 @@ public class FilterDictionaryTests
         >(new(), filteredDictionary: new(), Filter);
         Assert.AreEqual(filterDictionary.FilteredDictionary.Count, filterDictionary.Count);
         filterDictionary.Add(5, 5);
-        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, 0);
+        Assert.IsEmpty(filterDictionary.FilteredDictionary);
         filterDictionary.Add(6, 6);
-        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, 1);
-        Assert.AreEqual(
-            filterDictionary.FilteredDictionary.Count,
-            filterDictionary.Where(Filter).Count()
-        );
+        Assert.HasCount(1, filterDictionary.FilteredDictionary);
+        Assert.HasCount(filterDictionary.FilteredDictionary.Count, filterDictionary.Where(Filter));
     }
 
     [TestMethod]
@@ -40,19 +38,13 @@ public class FilterDictionaryTests
             Dictionary<int, int>,
             Dictionary<int, int>
         >(Enumerable.Range(0, 10).ToDictionary(i => i, i => i), filteredDictionary: new(), Filter);
-        Assert.AreEqual(
-            filterDictionary.FilteredDictionary.Count,
-            filterDictionary.Where(Filter).Count()
-        );
+        Assert.HasCount(filterDictionary.FilteredDictionary.Count, filterDictionary.Where(Filter));
         var oldCount = filterDictionary.FilteredDictionary.Count;
         filterDictionary.Remove(5);
         Assert.AreEqual(filterDictionary.FilteredDictionary.Count, oldCount);
         filterDictionary.Remove(6);
         Assert.AreEqual(filterDictionary.FilteredDictionary.Count, oldCount - 1);
-        Assert.AreEqual(
-            filterDictionary.FilteredDictionary.Count,
-            filterDictionary.Where(Filter).Count()
-        );
+        Assert.HasCount(filterDictionary.FilteredDictionary.Count, filterDictionary.Where(Filter));
     }
 
     [TestMethod]
@@ -64,19 +56,13 @@ public class FilterDictionaryTests
             Dictionary<int, int>,
             Dictionary<int, int>
         >(Enumerable.Range(0, 10).ToDictionary(i => i, i => i), filteredDictionary: new(), Filter);
-        Assert.AreEqual(
-            filterDictionary.FilteredDictionary.Count,
-            filterDictionary.Where(Filter).Count()
-        );
+        Assert.HasCount(filterDictionary.FilteredDictionary.Count, filterDictionary.Where(Filter));
         var oldCount = filterDictionary.FilteredDictionary.Count;
         filterDictionary[10] = 5;
         Assert.AreEqual(filterDictionary.FilteredDictionary.Count, oldCount);
         filterDictionary[10] = 6;
         Assert.AreEqual(filterDictionary.FilteredDictionary.Count, oldCount + 1);
-        Assert.AreEqual(
-            filterDictionary.FilteredDictionary.Count,
-            filterDictionary.Where(Filter).Count()
-        );
+        Assert.HasCount(filterDictionary.FilteredDictionary.Count, filterDictionary.Where(Filter));
     }
 
     [TestMethod]
@@ -88,10 +74,7 @@ public class FilterDictionaryTests
             Dictionary<int, int>,
             Dictionary<int, int>
         >(Enumerable.Range(0, 10).ToDictionary(i => i, i => i), filteredDictionary: new(), Filter);
-        Assert.AreEqual(
-            filterDictionary.FilteredDictionary.Count,
-            filterDictionary.Where(Filter).Count()
-        );
+        Assert.HasCount(filterDictionary.FilteredDictionary.Count, filterDictionary.Where(Filter));
         filterDictionary.Clear();
         Assert.AreEqual(filterDictionary.FilteredDictionary.Count, filterDictionary.Count);
         Assert.AreEqual(0, filterDictionary.Count);

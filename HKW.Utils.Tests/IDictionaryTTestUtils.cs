@@ -63,7 +63,7 @@ public class IDictionaryTTestUtils
 
         cDictionary.Clear();
         dictionary.Clear();
-        Assert.AreEqual(cDictionary.Count, dictionary.Count);
+        Assert.HasCount(cDictionary.Count, dictionary);
         Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
 
         dictionary.Clear();

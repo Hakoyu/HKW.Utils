@@ -185,7 +185,7 @@ public class ObservableCollectionTests
             triggered = true;
             Assert.IsTrue(sender?.Equals(collection));
             Assert.AreEqual(nameof(collection.Count), e.PropertyName);
-            Assert.AreEqual(collection.Count, cCollection.Count);
+            Assert.HasCount(collection.Count, cCollection);
         }
     }
 
@@ -214,7 +214,7 @@ public class ObservableCollectionTests
             triggered = true;
             Assert.IsTrue(sender?.Equals(collection));
             Assert.AreEqual(nameof(collection.Count), e.PropertyName);
-            Assert.AreEqual(collection.Count, cCollection.Count);
+            Assert.HasCount(collection.Count, cCollection);
         }
     }
 
@@ -267,7 +267,7 @@ public class ObservableCollectionTests
             triggered = true;
             Assert.IsTrue(sender?.Equals(collection));
             Assert.AreEqual(nameof(collection.Count), e.PropertyName);
-            Assert.AreEqual(collection.Count, cCollection.Count);
+            Assert.HasCount(collection.Count, cCollection);
         }
     }
     #endregion

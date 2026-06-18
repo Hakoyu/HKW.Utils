@@ -115,12 +115,12 @@ public class ReadOnlyObservableListTests
         );
 
         Assert.AreEqual(1, readOnlyObservableList.Find(x => x == 1));
-        Assert.IsTrue(readOnlyObservableList.Find(1, x => x == 2) == (1, 2));
-        Assert.IsTrue(readOnlyObservableList.Find(1, 3, x => x == 3) == (2, 3));
+        Assert.IsTrue(readOnlyObservableList.FindPair(1, x => x == 2) == (1, 2));
+        Assert.IsTrue(readOnlyObservableList.FindPair(1, 3, x => x == 3) == (2, 3));
 
         Assert.AreEqual(default, readOnlyObservableList.Find(x => x == -1));
-        Assert.IsTrue(readOnlyObservableList.Find(1, x => x == -1) == (-1, default));
-        Assert.IsTrue(readOnlyObservableList.Find(1, 3, x => x == -1) == (-1, default));
+        Assert.IsTrue(readOnlyObservableList.FindPair(1, x => x == -1) == (-1, default));
+        Assert.IsTrue(readOnlyObservableList.FindPair(1, 3, x => x == -1) == (-1, default));
     }
 
     [TestMethod]
@@ -147,12 +147,12 @@ public class ReadOnlyObservableListTests
         );
 
         Assert.AreEqual(1, readOnlyObservableList.FindLast(x => x == 1));
-        Assert.IsTrue(readOnlyObservableList.FindLast(1, x => x == 2) == (1, 2));
-        Assert.IsTrue(readOnlyObservableList.FindLast(4, 3, x => x == 3) == (2, 3));
+        Assert.IsTrue(readOnlyObservableList.FindLastPair(1, x => x == 2) == (1, 2));
+        Assert.IsTrue(readOnlyObservableList.FindLastPair(4, 3, x => x == 3) == (2, 3));
 
         Assert.AreEqual(default, readOnlyObservableList.FindLast(x => x == -1));
-        Assert.IsTrue(readOnlyObservableList.FindLast(1, x => x == -1) == (-1, default));
-        Assert.IsTrue(readOnlyObservableList.FindLast(4, 3, x => x == -1) == (-1, default));
+        Assert.IsTrue(readOnlyObservableList.FindLastPair(1, x => x == -1) == (-1, default));
+        Assert.IsTrue(readOnlyObservableList.FindLastPair(4, 3, x => x == -1) == (-1, default));
     }
 
     [TestMethod]

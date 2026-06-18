@@ -497,7 +497,7 @@ public class I18nResource<TKey, TValue>
         }
 
         // 如果旧值不存在数据,尝试新键新值
-        if (oldDatas.HasValue() is false)
+        if (oldDatas.HasValue is false)
         {
             CultureDatas.TryAdd(e.NewKey, new() { Key = e.NewKey });
             // 如果未被使用,则删除

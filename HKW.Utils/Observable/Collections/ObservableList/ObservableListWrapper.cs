@@ -47,7 +47,7 @@ public class ObservableListWrapper<TItem, TList>
         set
         {
             var oldValue = BaseList[index];
-            if (oldValue?.Equals(value) is true)
+            if (EqualityComparer<TItem>.Default.Equals(oldValue, value) is true)
                 return;
             OnListReplacing(value, oldValue, index);
             BaseList[index] = value;
@@ -62,7 +62,10 @@ public class ObservableListWrapper<TItem, TList>
         set
         {
             var oldValue = BaseList[index];
-            if (skipCheck is false && oldValue?.Equals(value) is true)
+            if (
+                skipCheck is false
+                && EqualityComparer<TItem>.Default.Equals(oldValue, value) is true
+            )
                 return;
             OnListReplacing(value, oldValue, index);
             BaseList[index] = value;
@@ -266,7 +269,8 @@ public class ObservableListWrapper<TItem, TList>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     protected virtual void OnListChanging(NotifyListChangeEventArgs<TItem> args)
     {
-        ListChanging?.Invoke(this, ListChangeEventArgs = args);
+        ListChangeEventArgs = args;
+        ListChanging?.Invoke(this, args);
     }
 
     /// <inheritdoc/>

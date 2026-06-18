@@ -17,7 +17,9 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TDictionary">字典类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(ICollectionDebugView))]
+#pragma warning disable S2436
 public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
+#pragma warning restore S2436
     : IObservableDictionary<TKey, TValue>,
         IReadOnlyObservableDictionary<TKey, TValue>,
         IDictionaryWrapper<TKey, TValue, TDictionary>
@@ -269,7 +271,8 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     protected virtual void OnDictionaryChanging(NotifyDictionaryChangeEventArgs<TKey, TValue> args)
     {
-        DictionaryChanging?.Invoke(this, DictionaryChangeEventArgs = args);
+        DictionaryChangeEventArgs = args;
+        DictionaryChanging?.Invoke(this, args);
     }
 
     /// <inheritdoc/>

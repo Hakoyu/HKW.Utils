@@ -62,7 +62,7 @@ public partial class ObservableSelectableListWrapper<TItem, TList>
         if (_changing)
             return;
         _changing = true;
-        if (BaseList.ContainsIndex(newValue))
+        if (BaseList.IsValidIndex(newValue))
             SelectedItem = BaseList[newValue];
         else
             SelectedItem = default;
@@ -154,7 +154,6 @@ public partial class ObservableSelectableListWrapper<TItem, TList>
         var result = BaseList.Remove(item, out var index);
         if (SelectedIndex == index)
             SelectedIndex = -1;
-
         if (SelectedIndex > index)
             SelectedIndex -= 1;
 
@@ -225,7 +224,7 @@ public partial class ObservableSelectableListWrapper<TItem, TList>
 
     void IList.Remove(object? value)
     {
-        var result = BaseList.Remove((TItem)value!, out var index);
+        BaseList.Remove((TItem)value!, out var index);
         if (SelectedIndex == index)
             SelectedIndex = -1;
     }

@@ -15,7 +15,9 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TDictionary">字典类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(ICollectionDebugView))]
+#pragma warning disable S2436
 public partial class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictionary>
+#pragma warning restore S2436
     : ReactiveObjectX,
         IDictionary<TKey, TValue>,
         IDictionaryWrapper<TKey, TValue, TDictionary>

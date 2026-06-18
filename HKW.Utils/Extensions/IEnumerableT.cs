@@ -1,0 +1,227 @@
+﻿using System.Collections;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace HKW.HKWUtils.Extensions;
+
+public static partial class HKWExtensions
+{
+    /// <typeparam name="T">项类型</typeparam>
+    /// <param name="source">源</param>
+    extension<T>(IEnumerable<T> source)
+    {
+        /// <summary>
+        /// 枚举出带有索引值的枚举值
+        /// </summary>
+        /// <returns>带有索引的枚举值(索引, 枚举值)</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IEnumerable<(int Index, T Item)> EnumerateIndex()
+        {
+            var index = 0;
+            foreach (var item in source)
+                yield return (index++, item);
+        }
+
+        /// <summary>
+        /// 尝试使用索引值获取项目
+        /// </summary>
+        /// <param name="index">索引值</param>
+        /// <param name="item">项目</param>
+        /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryElementAt(int index, [MaybeNullWhen(false)] out T item)
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThan(index, 0);
+            if (source is IList<T> list)
+            {
+                item = list[index];
+                return true;
+            }
+            var tempIndex = 0;
+            using var e = source.GetEnumerator();
+            while (e.MoveNext())
+            {
+                if (tempIndex++ == index)
+                {
+                    item = e.Current;
+                    return true;
+                }
+            }
+            item = default;
+            return false;
+        }
+
+        /// <summary>
+        /// 获取索引
+        /// </summary>
+        /// <param name="item">项目</param>
+        /// <returns>项目的索引, 若项目不存在则为 <see langword="-1"/> </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int IndexOf(T item)
+        {
+            foreach ((var index, var i) in source.EnumerateIndex())
+            {
+                if (i?.Equals(item) is true)
+                    return index;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// 获取索引
+        /// </summary>
+        /// <param name="match">匹配</param>
+        /// <returns>项目的索引, 若项目不存在则为 <see langword="-1"/> </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int IndexOf(Func<T, bool> match)
+        {
+            if (source is IList<T> list)
+            {
+                for (var i = 0; i < list.Count; i++)
+                    if (match(list[i]) is true)
+                        return i;
+            }
+            else
+            {
+                foreach ((var index, var item) in source.EnumerateIndex())
+                {
+                    if (match(item) is true)
+                        return index;
+                }
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// 判断两个集合的值是否全部相等 (无视顺序)
+        /// </summary>
+        /// <param name="target">目标</param>
+        /// <returns>相等为 <see langword="true"/> 不相等为 <see langword="false"/></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool ItemsEqual(IEnumerable<T> target)
+        {
+            return source.Except(target).Any() is false;
+        }
+
+        /// <summary>
+        /// 获取枚举中一个随机的值
+        /// </summary>
+        /// <param name="random">随机类, 若为 <see langword="null"/> 则使用 <see cref="System.Random.Shared"/></param>
+        /// <returns>随机的一个值</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T Random(Random? random = null)
+        {
+            random ??= System.Random.Shared;
+            return source.ElementAt(random.Next(source.Count()));
+        }
+
+        /// <summary>
+        /// 随机排序
+        /// </summary>
+        /// <param name="random">随机类, 若为 <see langword="null"/> 则使用 <see cref="System.Random.Shared"/></param>
+        /// <returns>随机的一个值</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IOrderedEnumerable<T> RandomOrder(Random? random = null)
+        {
+            random ??= System.Random.Shared;
+            return source.OrderBy(x => random.Next(source.Count()));
+        }
+
+        /// <summary>
+        /// 可使用匿名方法作为比较器的序列相等
+        /// </summary>
+        /// <param name="second">第二个集合</param>
+        /// <param name="comparer">比较器</param>
+        /// <returns>相等为 <see langword="true"/> 不相等为 <see langword="false"/></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool SequenceEqual(IEnumerable<T> second, Func<T, T, bool> comparer)
+        {
+            ArgumentNullException.ThrowIfNull(second);
+            ArgumentNullException.ThrowIfNull(comparer);
+            if (source is ICollection<T> sourceCol && second is ICollection<T> secondCol)
+            {
+                if (sourceCol.Count != secondCol.Count)
+                    return false;
+
+                if (sourceCol is IList<T> firstList && secondCol is IList<T> secondList)
+                {
+                    for (var i = 0; i < sourceCol.Count; i++)
+                    {
+                        if (comparer(firstList[i], secondList[i]) is false)
+                            return false;
+                    }
+
+                    return true;
+                }
+            }
+
+            using var e1 = source.GetEnumerator();
+            using var e2 = second.GetEnumerator();
+
+            while (e1.MoveNext())
+            {
+                if ((e2.MoveNext() && comparer(e1.Current, e2.Current)) is false)
+                {
+                    return false;
+                }
+            }
+
+            return e2.MoveNext() is false;
+        }
+
+        /// <summary>
+        /// 转换为字符串
+        /// </summary>
+        /// <param name="separator">分隔符</param>
+        /// <returns>字符串</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string ToStringX(string separator = ", ")
+        {
+            return string.Join(separator, source);
+        }
+    }
+
+    /// <summary>
+    /// 处理枚举中的全部项目
+    /// </summary>
+    /// <typeparam name="T">可处理项目</typeparam>
+    /// <param name="values">集合</param>
+    public static void DisposeAll<T>(this IEnumerable<T> values)
+        where T : IDisposable
+    {
+        foreach (var value in values)
+            value.Dispose();
+    }
+
+    /// <summary>
+    /// 尝试获取区块
+    /// </summary>
+    /// <typeparam name="TSource">源类型</typeparam>
+    /// <param name="source">源</param>
+    /// <param name="span">区块</param>
+    /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryGetSpan<TSource>(
+        this IEnumerable<TSource> source,
+        out ReadOnlySpan<TSource> span
+    )
+    {
+        bool result = true;
+        if (source.GetType() == typeof(TSource[]))
+        {
+            span = Unsafe.As<TSource[]>(source);
+        }
+        else if (source.GetType() == typeof(List<TSource>))
+        {
+            span = CollectionsMarshal.AsSpan(Unsafe.As<List<TSource>>(source));
+        }
+        else
+        {
+            span = default(ReadOnlySpan<TSource>);
+            result = false;
+        }
+
+        return result;
+    }
+}
