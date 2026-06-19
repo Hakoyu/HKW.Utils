@@ -16,11 +16,10 @@ public static partial class HKWExtensions
         /// <param name="pair2">键值对2</param>
         /// <returns>内容相同为 <see langword="true"/> 不相同为 <see langword="false"/></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool EqualsContent(KeyValuePair<TKey, TValue>? pair2)
+        public bool ContentEquals(KeyValuePair<TKey, TValue> pair2)
         {
-            ArgumentNullException.ThrowIfNull(pair2);
-            return pair1.Key?.Equals(pair2.Value.Key) is true
-                && pair1.Value?.Equals(pair2.Value.Value) is true;
+            return EqualityComparer<TKey>.Default.Equals(pair1.Key, pair2.Key)
+                && EqualityComparer<TValue>.Default.Equals(pair1.Value, pair2.Value);
         }
 
         /// <summary>
@@ -29,11 +28,10 @@ public static partial class HKWExtensions
         /// <param name="pair2">键值对2</param>
         /// <returns>内容相同为 <see langword="true"/> 不相同为 <see langword="false"/></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool EqualsContent((TKey Key, TValue Value)? pair2)
+        public bool ContentEquals((TKey Key, TValue Value) pair2)
         {
-            ArgumentNullException.ThrowIfNull(pair2);
-            return pair1.Key?.Equals(pair2.Value.Key) is true
-                && pair1.Value?.Equals(pair2.Value.Value) is true;
+            return EqualityComparer<TKey>.Default.Equals(pair1.Key, pair2.Key)
+                && EqualityComparer<TValue>.Default.Equals(pair1.Value, pair2.Value);
         }
 
         /// <summary>
@@ -43,9 +41,10 @@ public static partial class HKWExtensions
         /// <param name="value">值</param>
         /// <returns>内容相同为 <see langword="true"/> 不相同为 <see langword="false"/></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool EqualsContent(TKey key, TValue value)
+        public bool ContentEquals(TKey key, TValue value)
         {
-            return pair1.Key?.Equals(key) is true && pair1.Value?.Equals(value) is true;
+            return EqualityComparer<TKey>.Default.Equals(pair1.Key, key)
+                && EqualityComparer<TValue>.Default.Equals(pair1.Value, value);
         }
     }
 }

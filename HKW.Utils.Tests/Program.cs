@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Tests.Extensions;
+using HKW.HKWUtils.Tests.Utils;
 
 namespace HKW;
 
@@ -14,7 +15,7 @@ internal class Program
 #if !Release
         try
         {
-            new IListTests().Find();
+            new CyclicEnumeratorTests().List();
         }
         catch (Exception ex)
         {
