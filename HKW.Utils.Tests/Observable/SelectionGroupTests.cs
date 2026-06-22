@@ -7,7 +7,7 @@ using HKW.HKWReactiveUI;
 using HKW.HKWUtils.Observable;
 using ReactiveUI;
 
-namespace HKW.HKWUtils.Tests.Observable;
+namespace HKW.HKWUtilsTests.Observable;
 
 [TestClass]
 [ReferenceType(typeof(ReactiveObject))]

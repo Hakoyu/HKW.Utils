@@ -1,8 +1,8 @@
 ﻿using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Observable;
-using HKW.HKWUtils.Tests.Extensions;
+using HKW.HKWUtilsTests.Extensions;
 
-namespace HKW.HKWUtils.Tests.Observable;
+namespace HKW.HKWUtilsTests.Observable;
 
 [TestClass]
 public class ObservableSelectableCollectionTests

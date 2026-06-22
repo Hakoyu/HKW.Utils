@@ -3,6 +3,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HKW.HKWUtils.Extensions;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -14,7 +15,9 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TValue">值</typeparam>
 /// <typeparam name="TReadOnlyValue">只读值</typeparam>
 [DebuggerDisplay("Count = {Count}")]
+#pragma warning disable S2436
 public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
+#pragma warning restore S2436
     : IDictionary<TKey, TReadOnlyValue>,
         IReadOnlyDictionary<TKey, TReadOnlyValue>
     where TKey : notnull
@@ -63,7 +66,7 @@ public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
     TReadOnlyValue IDictionary<TKey, TReadOnlyValue>.this[TKey key]
     {
         get => _dictionary[key];
-        set => throw new ReadOnlyException();
+        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -79,13 +82,13 @@ public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
     /// <inheritdoc/>
     void IDictionary<TKey, TReadOnlyValue>.Add(TKey key, TReadOnlyValue value)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     bool IDictionary<TKey, TReadOnlyValue>.Remove(TKey key)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -93,13 +96,13 @@ public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
         KeyValuePair<TKey, TReadOnlyValue> item
     )
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ICollection<KeyValuePair<TKey, TReadOnlyValue>>.Clear()
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -107,7 +110,7 @@ public class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>
         KeyValuePair<TKey, TReadOnlyValue> item
     )
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>

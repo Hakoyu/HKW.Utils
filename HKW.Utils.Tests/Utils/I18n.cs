@@ -4,8 +4,9 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HKW.HKWUtils;
 
-namespace HKW.HKWUtils.Tests.Utils;
+namespace HKW.HKWUtilsTests.Utils;
 
 [TestClass]
 public class I18n

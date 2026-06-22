@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using HKW.HKWUtils.Exceptions;
 
-namespace HKW.HKWUtils.Tests.Exceptions;
+namespace HKW.HKWUtilsTests.Exceptions;
 
 [TestClass]
 public class ArgumentExceptionTests

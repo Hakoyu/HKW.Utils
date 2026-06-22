@@ -7,7 +7,7 @@ using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
 
-namespace HKW.HKWUtils.Tests.Extensions;
+namespace HKW.HKWUtilsTests.Extensions;
 
 [TestClass]
 public class IObservableCollectionTests

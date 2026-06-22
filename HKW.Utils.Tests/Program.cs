@@ -2,8 +2,8 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using HKW.HKWUtils.Extensions;
-using HKW.HKWUtils.Tests.Extensions;
-using HKW.HKWUtils.Tests.Utils;
+using HKW.HKWUtilsTests.Extensions;
+using HKW.HKWUtilsTests.Utils;
 
 namespace HKW;
 
@@ -13,14 +13,14 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
-        try
-        {
-            new CyclicEnumeratorTests().List();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.ToString());
-        }
+        //try
+        //{
+        //    new CyclicEnumeratorTests().List();
+        //}
+        //catch (Exception ex)
+        //{
+        //    Console.WriteLine(ex.ToString());
+        //}
 #endif
     }
 }

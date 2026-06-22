@@ -2,6 +2,7 @@
 using System.Data;
 using System.Diagnostics;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Collections;
@@ -15,7 +16,9 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TFilteredList">已过滤列表类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(ICollectionDebugView))]
+#pragma warning disable S2436
 public class FilterListWrapper<TItem, TList, TFilteredList>
+#pragma warning restore S2436
     : IList<TItem>,
         IReadOnlyList<TItem>,
         IFilterCollection<TItem, TList, TFilteredList>,
@@ -31,9 +34,13 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     /// <param name="filter">过滤器</param>
     public FilterListWrapper(TList list, TFilteredList filteredList, Predicate<TItem> filter)
     {
-        if (filteredList.IsReadOnly)
-            throw new ReadOnlyException("FilteredList is read only");
-        BaseList = list;
+        ArgumentNullException.ThrowIfNull(list);
+        ArgumentNullException.ThrowIfNull(filteredList);
+        ArgumentNullException.ThrowIfNull(filter);
+        ArgumentException.ThrowIfReadOnlyCollection(list);
+        ArgumentException.ThrowIfReadOnlyCollection(filteredList);
+
+        SourceList = list;
         FilteredList = filteredList;
         Filter = filter;
     }
@@ -42,34 +49,29 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     /// <inheritdoc/>
     public bool AutoFilter { get; set; } = true;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private Predicate<TItem> _filter = null!;
-
     /// <summary>
     /// 过滤器
     /// </summary>
     public Predicate<TItem> Filter
     {
-        get => _filter;
+        get => field;
         set
         {
-            _filter = value;
+            field = value;
             Refresh();
         }
     }
 
     /// <inheritdoc/>
-    public TList BaseList { get; }
+    public TList SourceList { get; }
 
     /// <summary>
     /// 过滤完成的列表
     /// </summary>
     public TFilteredList FilteredList { get; }
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    TList IFilterCollection<TItem, TList, TFilteredList>.BaseCollection => BaseList;
+    TList IFilterCollection<TItem, TList, TFilteredList>.SourceCollection => SourceList;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     TFilteredList IFilterCollection<TItem, TList, TFilteredList>.FilteredCollection => FilteredList;
 
     /// <inheritdoc/>
@@ -77,20 +79,20 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     {
         FilteredList.Clear();
         if (Filter is null)
-            FilteredList.AddRange(BaseList);
-        else if (BaseList.HasValue)
-            FilteredList.AddRange(BaseList.Where(i => Filter(i)));
+            FilteredList.AddRange(SourceList);
+        else if (SourceList.HasValue)
+            FilteredList.AddRange(SourceList.Where(i => Filter(i)));
     }
 
     #region IList
     /// <inheritdoc/>
     public TItem this[int index]
     {
-        get => ((IList<TItem>)BaseList)[index];
+        get => ((IList<TItem>)SourceList)[index];
         set
         {
-            var oldValue = BaseList[index];
-            ((IList<TItem>)BaseList)[index] = value;
+            var oldValue = SourceList[index];
+            ((IList<TItem>)SourceList)[index] = value;
             if (AutoFilter is false)
                 return;
             if (Filter(value) is false)
@@ -104,24 +106,24 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     }
 
     /// <inheritdoc/>
-    public int Count => ((ICollection<TItem>)BaseList).Count;
+    public int Count => ((ICollection<TItem>)SourceList).Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<TItem>)BaseList).IsReadOnly;
+    public bool IsReadOnly => ((ICollection<TItem>)SourceList).IsReadOnly;
 
     /// <inheritdoc/>
-    public bool IsFixedSize => ((IList)BaseList).IsFixedSize;
+    public bool IsFixedSize => ((IList)SourceList).IsFixedSize;
 
     /// <inheritdoc/>
-    public bool IsSynchronized => ((ICollection)BaseList).IsSynchronized;
+    public bool IsSynchronized => ((ICollection)SourceList).IsSynchronized;
 
     /// <inheritdoc/>
-    public object SyncRoot => ((ICollection)BaseList).SyncRoot;
+    public object SyncRoot => ((ICollection)SourceList).SyncRoot;
 
     /// <inheritdoc/>
     public void Add(TItem item)
     {
-        ((ICollection<TItem>)BaseList).Add(item);
+        ((ICollection<TItem>)SourceList).Add(item);
         if (AutoFilter is false)
             return;
         if (Filter(item))
@@ -131,38 +133,38 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     /// <inheritdoc/>
     public void Clear()
     {
-        ((ICollection<TItem>)BaseList).Clear();
+        ((ICollection<TItem>)SourceList).Clear();
         FilteredList.Clear();
     }
 
     /// <inheritdoc/>
     public bool Contains(TItem item)
     {
-        return ((ICollection<TItem>)BaseList).Contains(item);
+        return ((ICollection<TItem>)SourceList).Contains(item);
     }
 
     /// <inheritdoc/>
     public void CopyTo(TItem[] array, int arrayIndex)
     {
-        ((ICollection<TItem>)BaseList).CopyTo(array, arrayIndex);
+        ((ICollection<TItem>)SourceList).CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
     public IEnumerator<TItem> GetEnumerator()
     {
-        return ((IEnumerable<TItem>)BaseList).GetEnumerator();
+        return ((IEnumerable<TItem>)SourceList).GetEnumerator();
     }
 
     /// <inheritdoc/>
     public int IndexOf(TItem item)
     {
-        return ((IList<TItem>)BaseList).IndexOf(item);
+        return ((IList<TItem>)SourceList).IndexOf(item);
     }
 
     /// <inheritdoc/>
     public void Insert(int index, TItem item)
     {
-        ((IList<TItem>)BaseList).Insert(index, item);
+        ((IList<TItem>)SourceList).Insert(index, item);
         if (AutoFilter is false)
             return;
         if (Filter(item))
@@ -171,7 +173,7 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
                 FilteredList.Add(item);
             else
             {
-                var set = BaseList.Take(index).ToHashSet();
+                var set = SourceList.Take(index).ToHashSet();
                 var last1 = FilteredList.FindLastIndex(x => set.Contains(x));
                 if (last1 == -1)
                     FilteredList.Insert(0, item);
@@ -189,7 +191,7 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     /// <inheritdoc/>
     public bool Remove(TItem item)
     {
-        var result = ((ICollection<TItem>)BaseList).Remove(item);
+        var result = ((ICollection<TItem>)SourceList).Remove(item);
         if (AutoFilter is false)
             return result;
         if (result)
@@ -200,9 +202,9 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     /// <inheritdoc/>
     public void RemoveAt(int index)
     {
-        if (BaseList.TryGetValue(index, out var value) is false)
+        if (SourceList.TryGetValue(index, out var value) is false)
             return;
-        BaseList.RemoveAt(index);
+        SourceList.RemoveAt(index);
         if (AutoFilter is false)
             return;
         FilteredList.Remove(value);
@@ -210,7 +212,7 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)BaseList).GetEnumerator();
+        return ((IEnumerable)SourceList).GetEnumerator();
     }
     #endregion
 
@@ -237,7 +239,7 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     /// <inheritdoc/>
     int IList.IndexOf(object? value)
     {
-        return ((IList)BaseList).IndexOf(value);
+        return ((IList)SourceList).IndexOf(value);
     }
 
     /// <inheritdoc/>
@@ -255,7 +257,7 @@ public class FilterListWrapper<TItem, TList, TFilteredList>
     /// <inheritdoc/>
     void ICollection.CopyTo(Array array, int index)
     {
-        ((ICollection)BaseList).CopyTo(array, index);
+        ((ICollection)SourceList).CopyTo(array, index);
     }
     #endregion
 }

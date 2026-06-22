@@ -3,7 +3,9 @@ using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Extensions;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -17,7 +19,9 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TFilteredDictionary">已过滤字典类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(ICollectionDebugView))]
+#pragma warning disable S2436
 public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDictionary>
+#pragma warning restore S2436
     : IDictionary<TKey, TValue>,
         IReadOnlyDictionary<TKey, TValue>,
         IDictionary,
@@ -38,9 +42,13 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
         Predicate<KeyValuePair<TKey, TValue>> filter
     )
     {
-        if (filteredDictionary.IsReadOnly)
-            throw new ReadOnlyException("FilteredDictionary is read only");
-        BaseDictionary = dictionary;
+        ArgumentNullException.ThrowIfNull(dictionary);
+        ArgumentNullException.ThrowIfNull(filteredDictionary);
+        ArgumentNullException.ThrowIfNull(filter);
+        ArgumentException.ThrowIfReadOnlyCollection(dictionary);
+        ArgumentException.ThrowIfReadOnlyCollection(filteredDictionary);
+
+        SourceDictionary = dictionary;
         FilteredDictionary = filteredDictionary;
         Filter = filter;
     }
@@ -49,36 +57,31 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
     /// <inheritdoc/>
     public bool AutoFilter { get; set; } = true;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private Predicate<KeyValuePair<TKey, TValue>> _filter = null!;
-
     /// <inheritdoc/>
     public Predicate<KeyValuePair<TKey, TValue>> Filter
     {
-        get => _filter;
+        get => field;
         set
         {
-            _filter = value;
+            field = value;
             Refresh();
         }
     }
 
     /// <inheritdoc/>
-    public TDictionary BaseDictionary { get; }
+    public TDictionary SourceDictionary { get; }
 
     /// <summary>
     /// 过滤完成的字典
     /// </summary>
     public TFilteredDictionary FilteredDictionary { get; }
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     TDictionary IFilterCollection<
         KeyValuePair<TKey, TValue>,
         TDictionary,
         TFilteredDictionary
-    >.BaseCollection => BaseDictionary;
+    >.SourceCollection => SourceDictionary;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     TFilteredDictionary IFilterCollection<
         KeyValuePair<TKey, TValue>,
         TDictionary,
@@ -89,45 +92,44 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
     public void Refresh()
     {
         FilteredDictionary.Clear();
-        if (Filter is null)
-            FilteredDictionary.AddRange(BaseDictionary);
-        else if (BaseDictionary.HasValue)
-            FilteredDictionary.AddRange(BaseDictionary.Where(i => Filter(i)));
+        if (SourceDictionary.HasValue)
+            FilteredDictionary.AddRange(SourceDictionary.Where(i => Filter(i)));
     }
 
     #region IDictionary
     /// <inheritdoc/>
-    public ICollection<TKey> Keys => ((IDictionary<TKey, TValue>)BaseDictionary).Keys;
+    public ICollection<TKey> Keys => ((IDictionary<TKey, TValue>)SourceDictionary).Keys;
 
     /// <inheritdoc/>
-    public ICollection<TValue> Values => ((IDictionary<TKey, TValue>)BaseDictionary).Values;
+    public ICollection<TValue> Values => ((IDictionary<TKey, TValue>)SourceDictionary).Values;
 
     /// <inheritdoc/>
-    public int Count => ((ICollection<KeyValuePair<TKey, TValue>>)BaseDictionary).Count;
+    public int Count => ((ICollection<KeyValuePair<TKey, TValue>>)SourceDictionary).Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<KeyValuePair<TKey, TValue>>)BaseDictionary).IsReadOnly;
+    public bool IsReadOnly =>
+        ((ICollection<KeyValuePair<TKey, TValue>>)SourceDictionary).IsReadOnly;
 
     IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys =>
-        ((IReadOnlyDictionary<TKey, TValue>)BaseDictionary).Keys;
+        ((IReadOnlyDictionary<TKey, TValue>)SourceDictionary).Keys;
 
     IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values =>
-        ((IReadOnlyDictionary<TKey, TValue>)BaseDictionary).Values;
+        ((IReadOnlyDictionary<TKey, TValue>)SourceDictionary).Values;
 
     /// <inheritdoc/>
-    public bool IsFixedSize => ((IDictionary)BaseDictionary).IsFixedSize;
+    public bool IsFixedSize => ((IDictionary)SourceDictionary).IsFixedSize;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    ICollection IDictionary.Keys => ((IDictionary)BaseDictionary).Keys;
+    ICollection IDictionary.Keys => ((IDictionary)SourceDictionary).Keys;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    ICollection IDictionary.Values => ((IDictionary)BaseDictionary).Values;
+    ICollection IDictionary.Values => ((IDictionary)SourceDictionary).Values;
 
     /// <inheritdoc/>
-    public bool IsSynchronized => ((ICollection)BaseDictionary).IsSynchronized;
+    public bool IsSynchronized => ((ICollection)SourceDictionary).IsSynchronized;
 
     /// <inheritdoc/>
-    public object SyncRoot => ((ICollection)BaseDictionary).SyncRoot;
+    public object SyncRoot => ((ICollection)SourceDictionary).SyncRoot;
 
     object? IDictionary.this[object key]
     {
@@ -138,25 +140,23 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
     /// <inheritdoc/>
     public TValue this[TKey key]
     {
-        get => ((IDictionary<TKey, TValue>)BaseDictionary)[key];
+        get => ((IDictionary<TKey, TValue>)SourceDictionary)[key];
         set
         {
-            ((IDictionary<TKey, TValue>)BaseDictionary)[key] = value;
+            ((IDictionary<TKey, TValue>)SourceDictionary)[key] = value;
             if (AutoFilter is false)
                 return;
             if (Filter(new(key, value)) is false)
                 return;
-            if (FilteredDictionary.ContainsKey(key))
-                FilteredDictionary[key] = value;
-            else
-                Refresh();
+
+            FilteredDictionary[key] = value;
         }
     }
 
     /// <inheritdoc/>
     public void Add(TKey key, TValue value)
     {
-        ((IDictionary<TKey, TValue>)BaseDictionary).Add(key, value);
+        ((IDictionary<TKey, TValue>)SourceDictionary).Add(key, value);
         if (AutoFilter is false)
             return;
         if (Filter(new(key, value)))
@@ -166,13 +166,13 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
     /// <inheritdoc/>
     public bool ContainsKey(TKey key)
     {
-        return ((IDictionary<TKey, TValue>)BaseDictionary).ContainsKey(key);
+        return ((IDictionary<TKey, TValue>)SourceDictionary).ContainsKey(key);
     }
 
     /// <inheritdoc/>
     public bool Remove(TKey key)
     {
-        var result = ((IDictionary<TKey, TValue>)BaseDictionary).Remove(key);
+        var result = ((IDictionary<TKey, TValue>)SourceDictionary).Remove(key);
         if (AutoFilter is false)
             return result;
         if (result)
@@ -183,13 +183,13 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
     /// <inheritdoc/>
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
-        return ((IDictionary<TKey, TValue>)BaseDictionary).TryGetValue(key, out value);
+        return ((IDictionary<TKey, TValue>)SourceDictionary).TryGetValue(key, out value);
     }
 
     /// <inheritdoc/>
     public void Add(KeyValuePair<TKey, TValue> item)
     {
-        ((ICollection<KeyValuePair<TKey, TValue>>)BaseDictionary).Add(item);
+        ((ICollection<KeyValuePair<TKey, TValue>>)SourceDictionary).Add(item);
         if (AutoFilter is false)
             return;
         if (Filter(item))
@@ -199,27 +199,29 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
     /// <inheritdoc/>
     public void Clear()
     {
-        ((ICollection<KeyValuePair<TKey, TValue>>)BaseDictionary).Clear();
+        ((ICollection<KeyValuePair<TKey, TValue>>)SourceDictionary).Clear();
         FilteredDictionary.Clear();
     }
 
     /// <inheritdoc/>
     public bool Contains(KeyValuePair<TKey, TValue> item)
     {
-        return ((ICollection<KeyValuePair<TKey, TValue>>)BaseDictionary).Contains(item);
+        return ((ICollection<KeyValuePair<TKey, TValue>>)SourceDictionary).Contains(item);
     }
 
     /// <inheritdoc/>
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
     {
-        ((ICollection<KeyValuePair<TKey, TValue>>)BaseDictionary).CopyTo(array, arrayIndex);
+        ((ICollection<KeyValuePair<TKey, TValue>>)SourceDictionary).CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
     public bool Remove(KeyValuePair<TKey, TValue> item)
     {
-        var result = ((ICollection<KeyValuePair<TKey, TValue>>)BaseDictionary).Remove(item);
-        if (AutoFilter is false || result is false)
+        var result = ((ICollection<KeyValuePair<TKey, TValue>>)SourceDictionary).Remove(item);
+        if (AutoFilter is false)
+            return result;
+        if (result)
             FilteredDictionary.Remove(item);
         return result;
     }
@@ -227,12 +229,12 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
     /// <inheritdoc/>
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
-        return ((IEnumerable<KeyValuePair<TKey, TValue>>)BaseDictionary).GetEnumerator();
+        return ((IEnumerable<KeyValuePair<TKey, TValue>>)SourceDictionary).GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)BaseDictionary).GetEnumerator();
+        return ((IEnumerable)SourceDictionary).GetEnumerator();
     }
 
     /// <inheritdoc/>
@@ -244,13 +246,13 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
     /// <inheritdoc/>
     bool IDictionary.Contains(object key)
     {
-        return ((IDictionary)BaseDictionary).Contains(key);
+        return ((IDictionary)SourceDictionary).Contains(key);
     }
 
     /// <inheritdoc/>
     IDictionaryEnumerator IDictionary.GetEnumerator()
     {
-        return ((IDictionary)BaseDictionary).GetEnumerator();
+        return ((IDictionary)SourceDictionary).GetEnumerator();
     }
 
     /// <inheritdoc/>
@@ -262,7 +264,7 @@ public class FilterDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDiction
     /// <inheritdoc/>
     void ICollection.CopyTo(Array array, int index)
     {
-        ((ICollection)BaseDictionary).CopyTo(array, index);
+        ((ICollection)SourceDictionary).CopyTo(array, index);
     }
     #endregion
 }

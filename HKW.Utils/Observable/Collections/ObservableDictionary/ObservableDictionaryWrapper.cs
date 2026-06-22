@@ -29,29 +29,30 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     /// <inheritdoc/>
     public ObservableDictionaryWrapper(TDictionary dictionary)
     {
-        BaseDictionary = dictionary;
-        _observableKeys.BaseList.AddRange(BaseDictionary.Keys);
-        _observableValues.BaseList.AddRange(BaseDictionary.Values);
+        SourceDictionary = dictionary;
+        _observableKeys.SourceList.AddRange(SourceDictionary.Keys);
+        _observableValues.SourceList.AddRange(SourceDictionary.Values);
         ObservableKeys = new ReadOnlyObservableList<TKey>(_observableKeys);
         ObservableValues = new ReadOnlyObservableList<TValue>(_observableValues);
     }
 
     /// <inheritdoc/>
-    public TDictionary BaseDictionary { get; }
+    public TDictionary SourceDictionary { get; }
 
     #region IDictionaryT
 
     /// <inheritdoc/>
-    public int Count => BaseDictionary.Count;
+    public int Count => SourceDictionary.Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<KeyValuePair<TKey, TValue>>)BaseDictionary).IsReadOnly;
+    public bool IsReadOnly =>
+        ((ICollection<KeyValuePair<TKey, TValue>>)SourceDictionary).IsReadOnly;
 
     /// <inheritdoc/>
-    public ICollection<TKey> Keys => BaseDictionary.Keys;
+    public ICollection<TKey> Keys => SourceDictionary.Keys;
 
     /// <inheritdoc/>
-    public ICollection<TValue> Values => BaseDictionary.Values;
+    public ICollection<TValue> Values => SourceDictionary.Values;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private ObservableList<TKey> _observableKeys = [];
@@ -65,9 +66,9 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     /// <inheritdoc/>
     public IReadOnlyObservableCollection<TValue> ObservableValues { get; }
 
-    IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => BaseDictionary.Keys;
+    IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => SourceDictionary.Keys;
 
-    IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => BaseDictionary.Values;
+    IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => SourceDictionary.Values;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private int _removeIndex = -1;
@@ -77,15 +78,15 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     /// <inheritdoc/>
     public TValue this[TKey key]
     {
-        get => BaseDictionary[key];
+        get => SourceDictionary[key];
         set
         {
-            if (BaseDictionary.TryGetValue(key, out var oldValue) is false)
+            if (SourceDictionary.TryGetValue(key, out var oldValue) is false)
             {
                 var pair = KeyValuePair.Create(key, value);
                 // 字典允许不存在的 key 作为键,会创建新的键值对
                 OnDictionaryAdding(pair);
-                BaseDictionary[key] = value;
+                SourceDictionary[key] = value;
                 OnDictionaryAdded(pair);
             }
             else
@@ -95,7 +96,7 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
                 var newPair = KeyValuePair.Create(key, value);
                 var oldPair = KeyValuePair.Create(key, oldValue);
                 OnDictionaryReplacing(newPair, oldPair);
-                BaseDictionary[key] = value;
+                SourceDictionary[key] = value;
                 OnDictionaryReplaced(newPair, oldPair);
             }
         }
@@ -104,15 +105,15 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     /// <inheritdoc/>
     public TValue this[TKey key, bool skipCheck]
     {
-        get => BaseDictionary[key];
+        get => SourceDictionary[key];
         set
         {
-            if (BaseDictionary.TryGetValue(key, out var oldValue) is false)
+            if (SourceDictionary.TryGetValue(key, out var oldValue) is false)
             {
                 var pair = KeyValuePair.Create(key, value);
                 // 字典允许不存在的 key 作为键,会创建新的键值对
                 OnDictionaryAdding(pair);
-                BaseDictionary[key] = value;
+                SourceDictionary[key] = value;
                 OnDictionaryAdded(pair);
             }
             else
@@ -122,7 +123,7 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
                 var newPair = KeyValuePair.Create(key, value);
                 var oldPair = KeyValuePair.Create(key, oldValue);
                 OnDictionaryReplacing(newPair, oldPair);
-                BaseDictionary[key] = value;
+                SourceDictionary[key] = value;
                 OnDictionaryReplaced(newPair, oldPair);
             }
         }
@@ -136,12 +137,12 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     /// <inheritdoc/>
     public void Add(TKey key, TValue value)
     {
-        if (BaseDictionary.ContainsKey(key))
-            BaseDictionary.Add(key, value);
+        if (SourceDictionary.ContainsKey(key))
+            SourceDictionary.Add(key, value);
 
         var pair = KeyValuePair.Create(key, value);
         OnDictionaryAdding(pair);
-        BaseDictionary.Add(key, value);
+        SourceDictionary.Add(key, value);
         OnDictionaryAdded(pair);
     }
 
@@ -154,10 +155,10 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     /// <inheritdoc/>
     public bool Remove(TKey key)
     {
-        if (BaseDictionary.TryGetPair(key, out var pair) is false)
+        if (SourceDictionary.TryGetPair(key, out var pair) is false)
             return false;
         OnDictionaryRemoving(pair);
-        var result = BaseDictionary.Remove(key);
+        var result = SourceDictionary.Remove(key);
         if (result)
             OnDictionaryRemoved(pair);
         return result;
@@ -173,7 +174,7 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     public void Clear()
     {
         OnDictionaryClearing();
-        BaseDictionary.Clear();
+        SourceDictionary.Clear();
         OnDictionaryCleared();
     }
 
@@ -182,37 +183,37 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     /// <inheritdoc/>
     public bool Contains(KeyValuePair<TKey, TValue> item)
     {
-        return BaseDictionary.ContainsKey(item.Key);
+        return SourceDictionary.ContainsKey(item.Key);
     }
 
     /// <inheritdoc/>
     public bool ContainsKey(TKey key)
     {
-        return BaseDictionary.ContainsKey(key);
+        return SourceDictionary.ContainsKey(key);
     }
 
     /// <inheritdoc/>
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
     {
-        ((ICollection<KeyValuePair<TKey, TValue>>)BaseDictionary).CopyTo(array, arrayIndex);
+        ((ICollection<KeyValuePair<TKey, TValue>>)SourceDictionary).CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
-        return BaseDictionary.GetEnumerator();
+        return SourceDictionary.GetEnumerator();
     }
 
     /// <inheritdoc/>
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
-        return BaseDictionary.TryGetValue(key, out value);
+        return SourceDictionary.TryGetValue(key, out value);
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)BaseDictionary).GetEnumerator();
+        return ((IEnumerable)SourceDictionary).GetEnumerator();
     }
 
     #endregion IDictionaryT
@@ -238,7 +239,7 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
         if (DictionaryChanging is not null)
             OnDictionaryChanging(new(DictionaryChangeAction.Remove, pair));
         if (CollectionChanged is not null)
-            _removeIndex = BaseDictionary.IndexOf(pair);
+            _removeIndex = SourceDictionary.IndexOf(pair);
     }
 
     /// <summary>
@@ -292,7 +293,7 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
             OnDictionaryChanged(DictionaryChangeEventArgs ?? new(DictionaryChangeAction.Add, pair));
         if (CollectionChanged is not null)
         {
-            var list = new SimpleSingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(pair);
+            var list = new SingleItemReadOnlyList<KeyValuePair<TKey, TValue>>(pair);
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, list, Count - 1));
         }
         _observableKeys.Add(pair.Key);
@@ -333,7 +334,7 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
             );
         if (CollectionChanged is not null)
         {
-            var index = BaseDictionary.IndexOf((p => p.Key.Equals(oldPair.Key)));
+            var index = SourceDictionary.IndexOf((p => p.Key.Equals(oldPair.Key)));
             OnCollectionChanged(
                 new(NotifyCollectionChangedAction.Replace, newPair, oldPair, index)
             );

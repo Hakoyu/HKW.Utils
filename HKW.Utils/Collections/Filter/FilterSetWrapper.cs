@@ -2,6 +2,7 @@
 using System.Data;
 using System.Diagnostics;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Collections;
@@ -15,7 +16,9 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TFilteredSet">已过滤集合类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(ICollectionDebugView))]
+#pragma warning disable S2436
 public class FilterSetWrapper<TItem, TSet, TFilteredSet>
+#pragma warning restore S2436
     : ISet<TItem>,
         IReadOnlySet<TItem>,
         IFilterCollection<TItem, TSet, TFilteredSet>,
@@ -30,9 +33,13 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     /// <param name="filter">过滤器</param>
     public FilterSetWrapper(TSet set, TFilteredSet filteredSet, Predicate<TItem> filter)
     {
-        if (filteredSet.IsReadOnly)
-            throw new ReadOnlyException("FilteredSet is read only");
-        BaseSet = set;
+        ArgumentNullException.ThrowIfNull(set);
+        ArgumentNullException.ThrowIfNull(filteredSet);
+        ArgumentNullException.ThrowIfNull(filter);
+        ArgumentException.ThrowIfReadOnlyCollection(set);
+        ArgumentException.ThrowIfReadOnlyCollection(filteredSet);
+
+        SourceSet = set;
         FilteredSet = filteredSet;
         Filter = filter;
     }
@@ -41,24 +48,21 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     /// <inheritdoc/>
     public bool AutoFilter { get; set; }
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private Predicate<TItem> _filter = null!;
-
     /// <summary>
     /// 过滤器
     /// </summary>
     public Predicate<TItem> Filter
     {
-        get => _filter;
+        get => field;
         set
         {
-            _filter = value;
+            field = value;
             Refresh();
         }
     }
 
     /// <inheritdoc/>
-    public TSet BaseSet { get; }
+    public TSet SourceSet { get; }
 
     /// <summary>
     /// 过滤完成的集合
@@ -66,7 +70,7 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     public TFilteredSet FilteredSet { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    TSet IFilterCollection<TItem, TSet, TFilteredSet>.BaseCollection => BaseSet;
+    TSet IFilterCollection<TItem, TSet, TFilteredSet>.SourceCollection => SourceSet;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     TFilteredSet IFilterCollection<TItem, TSet, TFilteredSet>.FilteredCollection => FilteredSet;
@@ -75,22 +79,22 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     public void Refresh()
     {
         if (Filter is null)
-            FilteredSet.AddRange(BaseSet);
-        else if (BaseSet.HasValue)
-            FilteredSet.AddRange(BaseSet.Where(i => Filter(i)));
+            FilteredSet.AddRange(SourceSet);
+        else if (SourceSet.HasValue)
+            FilteredSet.AddRange(SourceSet.Where(i => Filter(i)));
     }
 
     #region ISet
     /// <inheritdoc/>
-    public int Count => ((ICollection<TItem>)BaseSet).Count;
+    public int Count => ((ICollection<TItem>)SourceSet).Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<TItem>)BaseSet).IsReadOnly;
+    public bool IsReadOnly => ((ICollection<TItem>)SourceSet).IsReadOnly;
 
     /// <inheritdoc/>
     public bool Add(TItem item)
     {
-        var result = ((ISet<TItem>)BaseSet).Add(item);
+        var result = ((ISet<TItem>)SourceSet).Add(item);
         if (AutoFilter && result && Filter(item))
             FilteredSet.Add(item);
         return result;
@@ -99,26 +103,26 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     /// <inheritdoc/>
     public void Clear()
     {
-        ((ICollection<TItem>)BaseSet).Clear();
+        ((ICollection<TItem>)SourceSet).Clear();
         FilteredSet.Clear();
     }
 
     /// <inheritdoc/>
     public bool Contains(TItem item)
     {
-        return ((ICollection<TItem>)BaseSet).Contains(item);
+        return ((ICollection<TItem>)SourceSet).Contains(item);
     }
 
     /// <inheritdoc/>
     public void CopyTo(TItem[] array, int arrayIndex)
     {
-        ((ICollection<TItem>)BaseSet).CopyTo(array, arrayIndex);
+        ((ICollection<TItem>)SourceSet).CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
     public void ExceptWith(IEnumerable<TItem> other)
     {
-        ((ISet<TItem>)BaseSet).ExceptWith(other);
+        ((ISet<TItem>)SourceSet).ExceptWith(other);
         if (AutoFilter is false)
             return;
         FilteredSet.ExceptWith(other.Where(i => Filter(i)));
@@ -127,13 +131,13 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     /// <inheritdoc/>
     public IEnumerator<TItem> GetEnumerator()
     {
-        return ((IEnumerable<TItem>)BaseSet).GetEnumerator();
+        return ((IEnumerable<TItem>)SourceSet).GetEnumerator();
     }
 
     /// <inheritdoc/>
     public void IntersectWith(IEnumerable<TItem> other)
     {
-        ((ISet<TItem>)BaseSet).IntersectWith(other);
+        ((ISet<TItem>)SourceSet).IntersectWith(other);
         if (AutoFilter is false)
             return;
         FilteredSet.IntersectWith(other.Where(i => Filter(i)));
@@ -142,37 +146,37 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     /// <inheritdoc/>
     public bool IsProperSubsetOf(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).IsProperSubsetOf(other);
+        return ((ISet<TItem>)SourceSet).IsProperSubsetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsProperSupersetOf(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).IsProperSupersetOf(other);
+        return ((ISet<TItem>)SourceSet).IsProperSupersetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsSubsetOf(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).IsSubsetOf(other);
+        return ((ISet<TItem>)SourceSet).IsSubsetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsSupersetOf(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).IsSupersetOf(other);
+        return ((ISet<TItem>)SourceSet).IsSupersetOf(other);
     }
 
     /// <inheritdoc/>
     public bool Overlaps(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).Overlaps(other);
+        return ((ISet<TItem>)SourceSet).Overlaps(other);
     }
 
     /// <inheritdoc/>
     public bool Remove(TItem item)
     {
-        var result = ((ICollection<TItem>)BaseSet).Remove(item);
+        var result = ((ICollection<TItem>)SourceSet).Remove(item);
         FilteredSet.Remove(item);
         return result;
     }
@@ -180,13 +184,13 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     /// <inheritdoc/>
     public bool SetEquals(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).SetEquals(other);
+        return ((ISet<TItem>)SourceSet).SetEquals(other);
     }
 
     /// <inheritdoc/>
     public void SymmetricExceptWith(IEnumerable<TItem> other)
     {
-        ((ISet<TItem>)BaseSet).SymmetricExceptWith(other);
+        ((ISet<TItem>)SourceSet).SymmetricExceptWith(other);
         if (AutoFilter is false)
             return;
         FilteredSet.SymmetricExceptWith(other.Where(i => Filter(i)));
@@ -195,7 +199,7 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
     /// <inheritdoc/>
     public void UnionWith(IEnumerable<TItem> other)
     {
-        ((ISet<TItem>)BaseSet).UnionWith(other);
+        ((ISet<TItem>)SourceSet).UnionWith(other);
         if (AutoFilter is false)
             return;
         FilteredSet.UnionWith(other.Where(i => Filter(i)));
@@ -203,7 +207,7 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
 
     void ICollection<TItem>.Add(TItem item)
     {
-        ((ICollection<TItem>)BaseSet).Add(item);
+        ((ICollection<TItem>)SourceSet).Add(item);
         if (AutoFilter is false)
             return;
         if (Filter(item))
@@ -212,7 +216,7 @@ public class FilterSetWrapper<TItem, TSet, TFilteredSet>
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)BaseSet).GetEnumerator();
+        return ((IEnumerable)SourceSet).GetEnumerator();
     }
     #endregion
 }

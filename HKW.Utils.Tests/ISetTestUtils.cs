@@ -1,6 +1,6 @@
 ﻿using HKW.HKWUtils.Extensions;
 
-namespace HKW.HKWUtils.Tests;
+namespace HKW.HKWUtilsTests;
 
 public class ISetTestUtils
 {

@@ -1,6 +1,6 @@
 ﻿using HKW.HKWUtils.Collections;
 
-namespace HKW.HKWUtils.Tests.Collections;
+namespace HKW.HKWUtilsTests.Collections;
 
 [TestClass]
 public class ReadOnlySetTests

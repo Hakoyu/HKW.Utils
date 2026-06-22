@@ -6,7 +6,7 @@
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <RootNamespace>HKW.HKWUtils.Tests</RootNamespace>
+    <RootNamespace>HKW.HKWUtilsTests</RootNamespace>
     <Configurations>Debug;Release</Configurations>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <StartupObject>HKW.Program</StartupObject>

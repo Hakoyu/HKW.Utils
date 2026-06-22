@@ -130,7 +130,7 @@ public class OrderedSet<T> : ISet<T>
     /// <inheritdoc/>
     public void SymmetricExceptWith(IEnumerable<T> other)
     {
-        var oldItems = new SimpleReadOnlyList<T>(other.Intersect(_set, _set.Comparer));
+        var oldItems = new ReadOnlyList<T>(other.Intersect(_set, _set.Comparer));
         foreach (var item in oldItems)
             _linkedList.Remove(item);
         foreach (var item in other.Except(oldItems, _set.Comparer))

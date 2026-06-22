@@ -21,13 +21,13 @@ public class UndoableListWrapper<TItem, TList>
     /// <inheritdoc/>
     public UndoableListWrapper(TList list)
     {
-        BaseList = list;
+        SourceList = list;
     }
 
     /// <summary>
     /// 基础列表
     /// </summary>
-    public TList BaseList { get; }
+    public TList SourceList { get; }
 
     /// <summary>
     /// 撤销栈
@@ -38,15 +38,15 @@ public class UndoableListWrapper<TItem, TList>
     /// <inheritdoc/>
     public TItem this[int index]
     {
-        get => BaseList[index];
-        set => BaseList[index] = value;
+        get => SourceList[index];
+        set => SourceList[index] = value;
     }
 
     /// <inheritdoc/>
-    public int Count => BaseList.Count;
+    public int Count => SourceList.Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => BaseList.IsReadOnly;
+    public bool IsReadOnly => SourceList.IsReadOnly;
 
     /// <summary>
     /// 添加项
@@ -56,7 +56,7 @@ public class UndoableListWrapper<TItem, TList>
     /// </summary>
     public void Add(TItem item)
     {
-        BaseList.Add(item);
+        SourceList.Add(item);
         UndoStack.Clear();
     }
 
@@ -68,56 +68,56 @@ public class UndoableListWrapper<TItem, TList>
     /// </summary>
     public void Clear()
     {
-        BaseList.Clear();
+        SourceList.Clear();
         UndoStack.Clear();
     }
 
     /// <inheritdoc/>
     public bool Contains(TItem item)
     {
-        return BaseList.Contains(item);
+        return SourceList.Contains(item);
     }
 
     /// <inheritdoc/>
     public void CopyTo(TItem[] array, int arrayIndex)
     {
-        BaseList.CopyTo(array, arrayIndex);
+        SourceList.CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
     public int IndexOf(TItem item)
     {
-        return BaseList.IndexOf(item);
+        return SourceList.IndexOf(item);
     }
 
     /// <inheritdoc/>
     public void Insert(int index, TItem item)
     {
-        BaseList.Insert(index, item);
+        SourceList.Insert(index, item);
     }
 
     /// <inheritdoc/>
     public bool Remove(TItem item)
     {
-        return BaseList.Remove(item);
+        return SourceList.Remove(item);
     }
 
     /// <inheritdoc/>
     public void RemoveAt(int index)
     {
-        BaseList.RemoveAt(index);
+        SourceList.RemoveAt(index);
     }
 
     /// <inheritdoc/>
     public IEnumerator<TItem> GetEnumerator()
     {
-        return BaseList.GetEnumerator();
+        return SourceList.GetEnumerator();
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)BaseList).GetEnumerator();
+        return ((IEnumerable)SourceList).GetEnumerator();
     }
 
     #endregion
@@ -125,9 +125,9 @@ public class UndoableListWrapper<TItem, TList>
     /// <inheritdoc/>
     public TItem Undo()
     {
-        var i = BaseList.Count - 1;
-        var item = BaseList[i];
-        BaseList.RemoveAt(i);
+        var i = SourceList.Count - 1;
+        var item = SourceList[i];
+        SourceList.RemoveAt(i);
         UndoStack.Push(item);
         return item;
     }
@@ -142,8 +142,8 @@ public class UndoableListWrapper<TItem, TList>
         var temp = Count - count;
         for (var i = Count - 1; i >= temp; i--)
         {
-            var item = BaseList[i];
-            BaseList.RemoveAt(i);
+            var item = SourceList[i];
+            SourceList.RemoveAt(i);
             UndoStack.Push(item);
         }
         return true;
@@ -159,7 +159,7 @@ public class UndoableListWrapper<TItem, TList>
     public TItem Redo()
     {
         var item = UndoStack.Pop();
-        BaseList.Add(item);
+        SourceList.Add(item);
         return item;
     }
 
@@ -172,7 +172,7 @@ public class UndoableListWrapper<TItem, TList>
             return false;
         for (var i = 0; i < count; i++)
         {
-            BaseList.Add(UndoStack.Pop());
+            SourceList.Add(UndoStack.Pop());
         }
         return true;
     }

@@ -1,1 +1,1 @@
-# HKW.HKWUtils.Tests
+# HKW.HKWUtilsTests

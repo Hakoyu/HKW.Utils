@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace HKW.HKWUtils.Tests;
+namespace HKW.HKWUtilsTests;
 
 public static class TestExtensions
 {

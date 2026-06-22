@@ -208,5 +208,23 @@ public static partial class HKWExceptions
             );
         }
         #endregion
+
+        /// <summary>
+        /// 当 <paramref name="argument"/> 为只读集合时，抛出 <see cref="System.ArgumentException"/>。
+        /// </summary>
+        /// <param name="argument">需要校验的参数值。</param>
+        /// <param name="paramName">
+        /// 触发异常时使用的参数名。默认通过 <see cref="System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/> 自动捕获 <paramref name="argument"/> 的表达式文本。
+        /// </param>
+        /// <exception cref="System.ArgumentException">当 <paramref name="argument"/> 只读集合时抛出。</exception>
+        public static void ThrowIfReadOnlyCollection<T>(
+            ICollection<T> argument,
+            [CallerArgumentExpression("argument")] string? paramName = null
+        )
+        {
+            if (argument.IsReadOnly is false)
+                return;
+            throw new ArgumentException($"Collection is read-only.", paramName);
+        }
     }
 }

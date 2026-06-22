@@ -2,7 +2,7 @@
 using HKW.HKWUtils;
 using HKW.HKWUtils.Extensions;
 
-namespace HKW.HKWUtils.Tests.Utils;
+namespace HKW.HKWUtilsTests.Utils;
 
 [TestClass]
 public class CultureUtilsTests

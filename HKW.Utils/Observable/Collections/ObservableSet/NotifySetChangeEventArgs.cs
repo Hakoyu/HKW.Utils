@@ -60,7 +60,7 @@ public class NotifySetChangeEventArgs<T> : EventArgs
     {
         ArgumentException.ThrowIfAllNotEquals(action, SetChangeAction.Add, SetChangeAction.Remove);
         Action = action;
-        var list = items.IsReadOnly ? items : new SimpleReadOnlyList<T>(items);
+        var list = items.IsReadOnly ? items : new ReadOnlyList<T>(items);
         if (action is SetChangeAction.Add)
             NewItems = list;
         else
@@ -96,21 +96,21 @@ public class NotifySetChangeEventArgs<T> : EventArgs
         if (otherItems.IsReadOnly)
             OtherItems = otherItems;
         else
-            OtherItems = new SimpleReadOnlyList<T>(otherItems);
+            OtherItems = new ReadOnlyList<T>(otherItems);
 
         if (newItems is null)
             NewItems = null;
         else if (newItems.IsReadOnly)
             NewItems = newItems;
         else
-            NewItems = new SimpleReadOnlyList<T>(newItems);
+            NewItems = new ReadOnlyList<T>(newItems);
 
         if (oldItems is null)
             OldItems = null;
         else if (oldItems.IsReadOnly)
             OldItems = oldItems;
         else
-            OldItems = new SimpleReadOnlyList<T>(oldItems);
+            OldItems = new ReadOnlyList<T>(oldItems);
     }
     #endregion
 }

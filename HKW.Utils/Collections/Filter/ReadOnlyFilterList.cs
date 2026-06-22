@@ -2,7 +2,9 @@
 using System.Data;
 using System.Diagnostics;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Extensions;
+using HKW.HKWUtils.Natives;
 using HKW.HKWUtils.Observable;
 
 namespace HKW.HKWUtils.Collections;
@@ -35,11 +37,17 @@ public class ReadOnlyFilterList<T, TFilteredList>
         Predicate<T> filter
     )
     {
-        if (filteredList.IsReadOnly)
-            throw new ReadOnlyException("FilteredList is read only");
+        ArgumentNullException.ThrowIfNull(list);
+        ArgumentNullException.ThrowIfNull(filteredList);
+        ArgumentNullException.ThrowIfNull(filter);
+        ArgumentException.ThrowIfReadOnlyCollection(list);
+        ArgumentException.ThrowIfReadOnlyCollection(filteredList);
+
         _list = list;
         FilteredList = filteredList;
         Filter = filter;
+
+        _list.ListChanged -= List_ListChanged;
         _list.ListChanged += List_ListChanged;
     }
 
@@ -97,18 +105,15 @@ public class ReadOnlyFilterList<T, TFilteredList>
     /// <inheritdoc/>
     bool IFilterCollection<T, IObservableList<T>, TFilteredList>.AutoFilter { get; set; } = true;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private Predicate<T> _filter = null!;
-
     /// <summary>
     /// 过滤器
     /// </summary>
     public Predicate<T> Filter
     {
-        get => _filter;
+        get => field;
         set
         {
-            _filter = value;
+            field = value;
             Refresh();
         }
     }
@@ -121,13 +126,11 @@ public class ReadOnlyFilterList<T, TFilteredList>
     /// <summary>
     /// 索引表
     /// </summary>
-    private List<int> _filteredListIndex = [];
+    private readonly List<int> _filteredListIndex = [];
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    IObservableList<T> IFilterCollection<T, IObservableList<T>, TFilteredList>.BaseCollection =>
-        throw new ReadOnlyException();
+    IObservableList<T> IFilterCollection<T, IObservableList<T>, TFilteredList>.SourceCollection =>
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     TFilteredList IFilterCollection<T, IObservableList<T>, TFilteredList>.FilteredCollection =>
         FilteredList;
 
@@ -161,7 +164,7 @@ public class ReadOnlyFilterList<T, TFilteredList>
     public T this[int index]
     {
         get => ((IList<T>)_list)[index];
-        set => throw new ReadOnlyException();
+        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -182,19 +185,19 @@ public class ReadOnlyFilterList<T, TFilteredList>
     /// <inheritdoc/>
     void ICollection<T>.Add(T item)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ICollection<T>.Clear()
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void IList.Clear()
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -224,25 +227,25 @@ public class ReadOnlyFilterList<T, TFilteredList>
     /// <inheritdoc/>
     void IList<T>.Insert(int index, T item)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     bool ICollection<T>.Remove(T item)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void IList<T>.RemoveAt(int index)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void IList.RemoveAt(int index)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -255,17 +258,16 @@ public class ReadOnlyFilterList<T, TFilteredList>
     object? IList.this[int index]
     {
         get => this[index];
-        set => throw new ReadOnlyException();
+        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     int IList.Add(object? value)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
-
     bool IList.Contains(object? value)
     {
         return Contains((T)value!);
@@ -280,13 +282,13 @@ public class ReadOnlyFilterList<T, TFilteredList>
     /// <inheritdoc/>
     void IList.Insert(int index, object? value)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void IList.Remove(object? value)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>

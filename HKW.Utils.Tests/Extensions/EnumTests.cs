@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HKW.HKWUtils.Extensions;
 
-namespace HKW.HKWUtils.Tests.Extensions;
+namespace HKW.HKWUtilsTests.Extensions;
 
 [Flags]
 internal enum TestEnum

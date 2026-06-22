@@ -2,6 +2,7 @@
 using System.Data;
 using System.Diagnostics;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -10,10 +11,10 @@ namespace HKW.HKWUtils.Collections;
 /// </summary>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(ICollectionDebugView))]
-public sealed class SimpleSingleItemReadOnlyList<T> : IList<T>, IList
+public sealed class SingleItemReadOnlyList<T> : IList<T>, IReadOnlyList<T>, IList
 {
     /// <inheritdoc/>
-    public SimpleSingleItemReadOnlyList(T item) => _item = item;
+    public SingleItemReadOnlyList(T item) => _item = item;
 
     private readonly T _item;
 
@@ -28,7 +29,7 @@ public sealed class SimpleSingleItemReadOnlyList<T> : IList<T>, IList
 
             return _item;
         }
-        set => throw new ReadOnlyException();
+        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -40,43 +41,43 @@ public sealed class SimpleSingleItemReadOnlyList<T> : IList<T>, IList
     /// <inheritdoc/>
     void ICollection<T>.Add(T item)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ICollection<T>.Clear()
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void IList.Clear()
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void IList<T>.Insert(int index, T item)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     bool ICollection<T>.Remove(T item)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void IList<T>.RemoveAt(int index)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void IList.RemoveAt(int index)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -127,22 +128,22 @@ public sealed class SimpleSingleItemReadOnlyList<T> : IList<T>, IList
             }
             return _item;
         }
-        set => throw new ReadOnlyException();
+        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     int IList.Add(object? value)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void IList.Insert(int index, object? value)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void IList.Remove(object? value)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     bool IList.Contains(object? value)

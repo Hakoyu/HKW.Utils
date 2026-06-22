@@ -9,7 +9,7 @@ public interface ISetWrapper<TItem, TSet>
     where TSet : ISet<TItem>
 {
     /// <summary>
-    /// 基础集合
+    /// 原始集合
     /// </summary>
-    public TSet BaseSet { get; }
+    public TSet SourceSet { get; }
 }

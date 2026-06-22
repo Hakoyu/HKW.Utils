@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Extensions;
 
-namespace HKW.HKWUtils.Tests.Collections;
+namespace HKW.HKWUtilsTests.Collections;
 
 [TestClass]
 public class FilterListTests

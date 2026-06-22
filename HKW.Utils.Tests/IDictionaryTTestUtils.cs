@@ -1,7 +1,7 @@
 ﻿using HKW.HKWUtils.Extensions;
-using HKW.HKWUtils.Tests.Extensions;
+using HKW.HKWUtilsTests.Extensions;
 
-namespace HKW.HKWUtils.Tests;
+namespace HKW.HKWUtilsTests;
 
 public class IDictionaryTTestUtils
 {

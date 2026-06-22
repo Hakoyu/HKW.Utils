@@ -22,7 +22,7 @@ public partial class ObservableSelectableSetWrapper<TItem, TSet>
     /// <param name="set">集合</param>
     public ObservableSelectableSetWrapper(TSet set)
     {
-        BaseSet = set;
+        SourceSet = set;
     }
 
     /// <inheritdoc/>
@@ -35,7 +35,7 @@ public partial class ObservableSelectableSetWrapper<TItem, TSet>
     }
 
     /// <inheritdoc/>
-    public TSet BaseSet { get; }
+    public TSet SourceSet { get; }
 
     /// <summary>
     /// 选中的项目
@@ -45,21 +45,21 @@ public partial class ObservableSelectableSetWrapper<TItem, TSet>
 
     #region ISet
     /// <inheritdoc/>
-    public int Count => ((ISet<TItem>)BaseSet).Count;
+    public int Count => ((ISet<TItem>)SourceSet).Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ISet<TItem>)BaseSet).IsReadOnly;
+    public bool IsReadOnly => ((ISet<TItem>)SourceSet).IsReadOnly;
 
     /// <inheritdoc/>
     public bool Add(TItem item)
     {
-        return ((ISet<TItem>)BaseSet).Add(item);
+        return ((ISet<TItem>)SourceSet).Add(item);
     }
 
     /// <inheritdoc/>
     public bool Remove(TItem item)
     {
-        var result = BaseSet.Remove(item);
+        var result = SourceSet.Remove(item);
         if (result && item?.Equals(SelectedItem) is true)
             SelectedItem = default;
         return result;
@@ -67,103 +67,103 @@ public partial class ObservableSelectableSetWrapper<TItem, TSet>
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)BaseSet).GetEnumerator();
+        return ((IEnumerable)SourceSet).GetEnumerator();
     }
 
     /// <inheritdoc/>
     public void ExceptWith(IEnumerable<TItem> other)
     {
-        BaseSet.ExceptWith(other);
-        if (SelectedItem is not null && BaseSet.Contains(SelectedItem) is false)
+        SourceSet.ExceptWith(other);
+        if (SelectedItem is not null && SourceSet.Contains(SelectedItem) is false)
             SelectedItem = default;
     }
 
     /// <inheritdoc/>
     public void IntersectWith(IEnumerable<TItem> other)
     {
-        BaseSet.IntersectWith(other);
-        if (SelectedItem is not null && BaseSet.Contains(SelectedItem) is false)
+        SourceSet.IntersectWith(other);
+        if (SelectedItem is not null && SourceSet.Contains(SelectedItem) is false)
             SelectedItem = default;
     }
 
     /// <inheritdoc/>
     public void SymmetricExceptWith(IEnumerable<TItem> other)
     {
-        BaseSet.SymmetricExceptWith(other);
-        if (SelectedItem is not null && BaseSet.Contains(SelectedItem) is false)
+        SourceSet.SymmetricExceptWith(other);
+        if (SelectedItem is not null && SourceSet.Contains(SelectedItem) is false)
             SelectedItem = default;
     }
 
     /// <inheritdoc/>
     public void UnionWith(IEnumerable<TItem> other)
     {
-        BaseSet.UnionWith(other);
+        SourceSet.UnionWith(other);
     }
 
     void ICollection<TItem>.Add(TItem item)
     {
-        BaseSet.Add(item);
+        SourceSet.Add(item);
     }
 
     /// <inheritdoc/>
     public bool IsProperSubsetOf(IEnumerable<TItem> other)
     {
-        return BaseSet.IsProperSubsetOf(other);
+        return SourceSet.IsProperSubsetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsProperSupersetOf(IEnumerable<TItem> other)
     {
-        return BaseSet.IsProperSupersetOf(other);
+        return SourceSet.IsProperSupersetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsSubsetOf(IEnumerable<TItem> other)
     {
-        return BaseSet.IsSubsetOf(other);
+        return SourceSet.IsSubsetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsSupersetOf(IEnumerable<TItem> other)
     {
-        return BaseSet.IsSupersetOf(other);
+        return SourceSet.IsSupersetOf(other);
     }
 
     /// <inheritdoc/>
     public bool Overlaps(IEnumerable<TItem> other)
     {
-        return BaseSet.Overlaps(other);
+        return SourceSet.Overlaps(other);
     }
 
     /// <inheritdoc/>
     public bool SetEquals(IEnumerable<TItem> other)
     {
-        return BaseSet.SetEquals(other);
+        return SourceSet.SetEquals(other);
     }
 
     /// <inheritdoc/>
     public void Clear()
     {
-        ((ISet<TItem>)BaseSet).Clear();
+        ((ISet<TItem>)SourceSet).Clear();
         SelectedItem = default;
     }
 
     /// <inheritdoc/>
     public bool Contains(TItem item)
     {
-        return ((ISet<TItem>)BaseSet).Contains(item);
+        return ((ISet<TItem>)SourceSet).Contains(item);
     }
 
     /// <inheritdoc/>
     public void CopyTo(TItem[] array, int arrayIndex)
     {
-        ((ISet<TItem>)BaseSet).CopyTo(array, arrayIndex);
+        ((ISet<TItem>)SourceSet).CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
     public IEnumerator<TItem> GetEnumerator()
     {
-        return ((IEnumerable<TItem>)BaseSet).GetEnumerator();
+        return ((IEnumerable<TItem>)SourceSet).GetEnumerator();
     }
 
     #endregion

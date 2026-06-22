@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Extensions;
-using HKW.HKWUtils.Tests.Collections;
+using HKW.HKWUtilsTests.Collections;
 
-namespace HKW.HKWUtils.Tests;
+namespace HKW.HKWUtilsTests;
 
 public class IListTTestUtils
 {

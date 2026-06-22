@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HKW.HKWUtils.Collections;
 
-namespace HKW.HKWUtils.Tests.Collections;
+namespace HKW.HKWUtilsTests.Collections;
 
 [TestClass]
 public class FilterDictionaryTests

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using HKW.HKWReactiveUI;
 using HKW.HKWUtils.Observable;
 
-namespace HKW.HKWUtils.Tests.Observable;
+namespace HKW.HKWUtilsTests.Observable;
 
 [TestClass]
 public class ObservableTests

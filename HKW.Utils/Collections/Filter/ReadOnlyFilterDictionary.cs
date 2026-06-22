@@ -3,7 +3,9 @@ using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Extensions;
+using HKW.HKWUtils.Natives;
 using HKW.HKWUtils.Observable;
 
 namespace HKW.HKWUtils.Collections;
@@ -17,7 +19,9 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TFilteredDictionary">已过滤字典类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(ICollectionDebugView))]
+#pragma warning disable S2436
 public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
+#pragma warning restore S2436
     : IDictionary<TKey, TValue>,
         IReadOnlyDictionary<TKey, TValue>,
         IDictionary,
@@ -43,11 +47,16 @@ public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
         Predicate<KeyValuePair<TKey, TValue>> filter
     )
     {
-        if (filteredDictionary.IsReadOnly)
-            throw new ReadOnlyException("FilteredDictionary is read only");
+        ArgumentNullException.ThrowIfNull(dictionary);
+        ArgumentNullException.ThrowIfNull(filteredDictionary);
+        ArgumentNullException.ThrowIfNull(filter);
+        ArgumentException.ThrowIfReadOnlyCollection(dictionary);
+        ArgumentException.ThrowIfReadOnlyCollection(filteredDictionary);
+
         _dictionary = dictionary;
         FilteredDictionary = filteredDictionary;
         Filter = filter;
+
         _dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
         _dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
     }
@@ -60,6 +69,8 @@ public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
         if (e.Action is DictionaryChangeAction.Add)
         {
             if (e.TryGetNewPair(out var newPair) is false)
+                return;
+            if (Filter(newPair) is false)
                 return;
             FilteredDictionary.Add(newPair);
         }
@@ -75,7 +86,12 @@ public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
                 return;
             if (e.TryGetNewPair(out var newPair) is false)
                 return;
-            FilteredDictionary[newPair.Key] = newPair.Value;
+            if (Filter(newPair) is false)
+            {
+                FilteredDictionary.Remove(oldPair);
+                return;
+            }
+            FilteredDictionary[oldPair.Key] = newPair.Value;
         }
         else if (e.Action is DictionaryChangeAction.Clear)
         {
@@ -87,45 +103,30 @@ public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
     #region IDisposable
     private bool _disposed;
 
-    /// <summary>
-    /// 为了防止忘记显式的调用Dispose方法
-    /// </summary>
+    /// <inheritdoc/>
     ~ReadOnlyFilterDictionary()
     {
-        //必须为false
         Dispose(false);
     }
 
     /// <inheritdoc/>
     public void Dispose()
     {
-        //必须为true
         Dispose(true);
-        //通知垃圾回收器不再调用终结器
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>
-    /// 关闭
-    /// </summary>
-    public void Close()
-    {
-        Dispose();
-    }
-
-    /// <summary>
-    /// 非密封类可重写的Dispose方法，方便子类继承时可重写
-    /// </summary>
-    /// <param name="disposing">释放中</param>
+    /// <inheritdoc/>
     protected virtual void Dispose(bool disposing)
     {
         if (_disposed)
             return;
-        //清理托管资源
-        if (disposing) { }
-        //清理非托管资源
 
-        //告诉自己已经被释放
+        if (disposing)
+        {
+            _dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
+        }
+
         _disposed = true;
     }
     #endregion
@@ -136,16 +137,13 @@ public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
         TFilteredDictionary
     >.AutoFilter { get; set; } = true;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private Predicate<KeyValuePair<TKey, TValue>> _filter = null!;
-
     /// <inheritdoc/>
     public Predicate<KeyValuePair<TKey, TValue>> Filter
     {
-        get => _filter;
+        get => field;
         set
         {
-            _filter = value;
+            field = value;
             Refresh();
         }
     }
@@ -160,7 +158,7 @@ public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
         KeyValuePair<TKey, TValue>,
         IObservableDictionary<TKey, TValue>,
         TFilteredDictionary
-    >.BaseCollection => throw new ReadOnlyException();
+    >.SourceCollection => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     TFilteredDictionary IFilterCollection<
@@ -216,20 +214,20 @@ public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
     object? IDictionary.this[object key]
     {
         get => this[(TKey)key];
-        set => throw new ReadOnlyException();
+        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     public TValue this[TKey key]
     {
         get => ((IDictionary<TKey, TValue>)_dictionary)[key];
-        set => throw new ReadOnlyException();
+        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void IDictionary<TKey, TValue>.Add(TKey key, TValue value)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -241,7 +239,7 @@ public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
     /// <inheritdoc/>
     bool IDictionary<TKey, TValue>.Remove(TKey key)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -253,13 +251,13 @@ public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
     /// <inheritdoc/>
     void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ICollection<KeyValuePair<TKey, TValue>>.Clear()
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -277,7 +275,7 @@ public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
     /// <inheritdoc/>
     bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -294,7 +292,7 @@ public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
     /// <inheritdoc/>
     void IDictionary.Add(object key, object? value)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -312,13 +310,13 @@ public class ReadOnlyFilterDictionary<TKey, TValue, TFilteredDictionary>
     /// <inheritdoc/>
     void IDictionary.Remove(object key)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void IDictionary.Clear()
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>

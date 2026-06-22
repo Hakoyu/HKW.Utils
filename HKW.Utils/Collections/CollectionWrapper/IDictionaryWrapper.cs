@@ -13,7 +13,7 @@ public interface IDictionaryWrapper<TKey, TValue, TDictionary>
     where TDictionary : IDictionary<TKey, TValue>
 {
     /// <summary>
-    /// 基础字典
+    /// 原始字典
     /// </summary>
-    public TDictionary BaseDictionary { get; }
+    public TDictionary SourceDictionary { get; }
 }

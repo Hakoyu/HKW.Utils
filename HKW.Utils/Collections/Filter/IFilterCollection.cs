@@ -6,7 +6,9 @@
 /// <typeparam name="T">项类型</typeparam>
 /// <typeparam name="TCollection">集合类型</typeparam>
 /// <typeparam name="TFilteredCollection">已过滤集合类型</typeparam>
+#pragma warning disable S2436
 public interface IFilterCollection<T, TCollection, TFilteredCollection> : ICollection<T>
+#pragma warning restore S2436
     where TCollection : ICollection<T>
     where TFilteredCollection : ICollection<T>
 {
@@ -21,10 +23,10 @@ public interface IFilterCollection<T, TCollection, TFilteredCollection> : IColle
     public Predicate<T> Filter { get; set; }
 
     /// <summary>
-    /// 集合
+    /// 源集合
     /// <para>使用此属性修改集合时不会同步至 <see cref="FilteredCollection"/></para>
     /// </summary>
-    public TCollection BaseCollection { get; }
+    public TCollection SourceCollection { get; }
 
     /// <summary>
     /// 已过滤集合

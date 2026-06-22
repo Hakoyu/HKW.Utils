@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 
 namespace HKW.HKWUtils;
 
 /// <summary>
-/// 循环迭代器
+/// 可观测循环迭代器
 /// </summary>
 /// <typeparam name="T">项目类型</typeparam>
 [DebuggerDisplay("Index = {CurrentIndex}, Current = {Current}")]
-public struct CyclicEnumerator<T> : IEnumerator<T>
+public class ObservableCyclicEnumerator<T> : IEnumerator<T>, INotifyPropertyChanged
 {
     private readonly IEnumerable<T> _enumerable;
 
@@ -36,7 +37,7 @@ public struct CyclicEnumerator<T> : IEnumerator<T>
     /// <inheritdoc/>
     /// <param name="enumerable">枚举器</param>
     /// <param name="autoReset">自动重置</param>
-    public CyclicEnumerator(IEnumerable<T> enumerable, bool autoReset = false)
+    public ObservableCyclicEnumerator(IEnumerable<T> enumerable, bool autoReset = false)
     {
         _enumerable = enumerable;
         _enumerator = enumerable.GetEnumerator();
@@ -55,7 +56,11 @@ public struct CyclicEnumerator<T> : IEnumerator<T>
         }
 
         if (result)
+        {
             CurrentIndex++;
+            PropertyChanged?.Invoke(this, new(nameof(Current)));
+            PropertyChanged?.Invoke(this, new(nameof(CurrentIndex)));
+        }
 
         return result;
     }
@@ -75,29 +80,61 @@ public struct CyclicEnumerator<T> : IEnumerator<T>
         }
     }
 
-    /// <summary>
-    /// 解除对引用列表注册的所有观测事件
-    /// </summary>
+    #region IDisposable
+    private bool _disposed;
+
+    /// <inheritdoc/>
+    ~ObservableCyclicEnumerator()
+    {
+        //必须为false
+        Dispose(false);
+    }
+
+    /// <inheritdoc/>
     public void Dispose()
     {
-        _enumerator.Dispose();
+        //必须为true
+        Dispose(true);
+        //通知垃圾回收器不再调用终结器
+        GC.SuppressFinalize(this);
     }
+
+    /// <inheritdoc/>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+
+        if (disposing)
+        {
+            _enumerator.Dispose();
+        }
+        _disposed = true;
+    }
+    #endregion
+
+
+    /// <inheritdoc/>
+    public event PropertyChangedEventHandler? PropertyChanged;
 }
 
 /// <summary>
-/// 循环迭代器
+/// 可观测循环迭代器
 /// </summary>
-public static class CyclicEnumerator
+public static class ObservableCyclicEnumerator
 {
     /// <summary>
-    /// 创建循环迭代器
+    /// 创建可观测循环迭代器
     /// </summary>
     /// <param name="enumerable">枚举</param>
     /// <param name="autoReset">自动重置</param>
     /// <typeparam name="T">项目类型</typeparam>
-    /// <returns>循环迭代器</returns>
-    public static CyclicEnumerator<T> Create<T>(IEnumerable<T> enumerable, bool autoReset = false)
+    /// <returns>可观测循环迭代器</returns>
+    public static ObservableCyclicEnumerator<T> Create<T>(
+        IEnumerable<T> enumerable,
+        bool autoReset = false
+    )
     {
-        return new CyclicEnumerator<T>(enumerable, autoReset);
+        return new ObservableCyclicEnumerator<T>(enumerable, autoReset);
     }
 }

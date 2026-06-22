@@ -5,7 +5,7 @@ using ReactiveUI;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 枚举命令
+/// 可观测枚举
 /// </summary>
 /// <typeparam name="TEnum">枚举类型</typeparam>
 public partial class ObservableEnum<TEnum> : ReactiveObjectX, ICloneable<ObservableEnum<TEnum>>

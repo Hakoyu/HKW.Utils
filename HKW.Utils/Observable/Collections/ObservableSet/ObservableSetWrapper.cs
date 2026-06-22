@@ -22,20 +22,20 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public ObservableSetWrapper(TSet set, IEqualityComparer<TItem> comparer)
     {
-        BaseSet = set;
+        SourceSet = set;
         Comparer = comparer;
     }
 
     /// <inheritdoc/>
-    public TSet BaseSet { get; }
+    public TSet SourceSet { get; }
 
     #region ISet
 
     /// <inheritdoc/>
-    public int Count => ((ICollection<TItem>)BaseSet).Count;
+    public int Count => ((ICollection<TItem>)SourceSet).Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<TItem>)BaseSet).IsReadOnly;
+    public bool IsReadOnly => ((ICollection<TItem>)SourceSet).IsReadOnly;
 
     /// <inheritdoc cref="HashSet{T}.Comparer"/>
     public IEqualityComparer<TItem> Comparer { get; }
@@ -50,9 +50,9 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public bool Add(TItem item)
     {
-        var list = new SimpleSingleItemReadOnlyList<TItem>(item);
+        var list = new SingleItemReadOnlyList<TItem>(item);
         OnSetAdding(list);
-        var result = BaseSet.Add(item);
+        var result = SourceSet.Add(item);
         if (result)
             OnSetAdded(list);
         return result;
@@ -61,9 +61,9 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public bool Remove(TItem item)
     {
-        var list = new SimpleSingleItemReadOnlyList<TItem>(item);
+        var list = new SingleItemReadOnlyList<TItem>(item);
         OnSetRemoving(list);
-        var result = BaseSet.Remove(item);
+        var result = SourceSet.Remove(item);
         if (result)
             OnSetRemoved(list);
         return result;
@@ -73,41 +73,41 @@ public class ObservableSetWrapper<TItem, TSet>
     public void Clear()
     {
         OnSetClearing();
-        BaseSet.Clear();
+        SourceSet.Clear();
         OnSetCleared();
     }
 
     /// <inheritdoc/>
     public void IntersectWith(IEnumerable<TItem> other)
     {
-        var oldItems = new SimpleReadOnlyList<TItem>(BaseSet.Except(other, Comparer));
-        var otherItems = new SimpleReadOnlyList<TItem>(other);
+        var oldItems = new ReadOnlyList<TItem>(SourceSet.Except(other, Comparer));
+        var otherItems = new ReadOnlyList<TItem>(other);
         OnSetOperating(SetChangeAction.Intersect, otherItems, null, oldItems);
-        BaseSet.IntersectWith(otherItems);
+        SourceSet.IntersectWith(otherItems);
         OnSetOperated(SetChangeAction.Intersect, otherItems, null, oldItems);
     }
 
     /// <inheritdoc/>
     public void ExceptWith(IEnumerable<TItem> other)
     {
-        var oldItems = new SimpleReadOnlyList<TItem>(BaseSet.Intersect(other));
-        var otherItems = new SimpleReadOnlyList<TItem>(other);
+        var oldItems = new ReadOnlyList<TItem>(SourceSet.Intersect(other));
+        var otherItems = new ReadOnlyList<TItem>(other);
         OnSetOperating(SetChangeAction.Except, otherItems, null, oldItems);
-        BaseSet.ExceptWith(otherItems);
+        SourceSet.ExceptWith(otherItems);
         OnSetOperated(SetChangeAction.Except, otherItems, null, oldItems);
     }
 
     /// <inheritdoc/>
     public void SymmetricExceptWith(IEnumerable<TItem> other)
     {
-        var otherItems = new SimpleReadOnlyList<TItem>(other);
-        var oldItems = new SimpleReadOnlyList<TItem>(otherItems.Intersect(BaseSet, Comparer));
-        var newItems = new SimpleReadOnlyList<TItem>(otherItems.Except(oldItems, Comparer));
+        var otherItems = new ReadOnlyList<TItem>(other);
+        var oldItems = new ReadOnlyList<TItem>(otherItems.Intersect(SourceSet, Comparer));
+        var newItems = new ReadOnlyList<TItem>(otherItems.Except(oldItems, Comparer));
         OnSetOperating(SetChangeAction.SymmetricExcept, otherItems, newItems, oldItems);
         if (other is HashSet<TItem> otherSet)
-            BaseSet.SymmetricExceptWith(otherSet);
+            SourceSet.SymmetricExceptWith(otherSet);
         else
-            BaseSet.SymmetricExceptWith(otherItems);
+            SourceSet.SymmetricExceptWith(otherItems);
         OnSetOperated(SetChangeAction.SymmetricExcept, otherItems, newItems, oldItems);
     }
 
@@ -115,10 +115,10 @@ public class ObservableSetWrapper<TItem, TSet>
     public void UnionWith(IEnumerable<TItem> other)
     {
         TrimExcess();
-        var otherItems = new SimpleReadOnlyList<TItem>(other);
-        var newItems = new SimpleReadOnlyList<TItem>(other.Except(BaseSet, Comparer));
+        var otherItems = new ReadOnlyList<TItem>(other);
+        var newItems = new ReadOnlyList<TItem>(other.Except(SourceSet, Comparer));
         OnSetOperating(SetChangeAction.Union, otherItems, newItems, null);
-        BaseSet.UnionWith(otherItems);
+        SourceSet.UnionWith(otherItems);
         OnSetOperated(SetChangeAction.Union, otherItems, newItems, null);
     }
 
@@ -133,74 +133,74 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public bool Contains(TItem item)
     {
-        return ((ICollection<TItem>)BaseSet).Contains(item);
+        return ((ICollection<TItem>)SourceSet).Contains(item);
     }
 
     /// <inheritdoc/>
     public void CopyTo(TItem[] array, int arrayIndex)
     {
-        ((ICollection<TItem>)BaseSet).CopyTo(array, arrayIndex);
+        ((ICollection<TItem>)SourceSet).CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
     public IEnumerator<TItem> GetEnumerator()
     {
-        return ((IEnumerable<TItem>)BaseSet).GetEnumerator();
+        return ((IEnumerable<TItem>)SourceSet).GetEnumerator();
     }
 
     /// <inheritdoc/>
     public bool IsProperSubsetOf(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).IsProperSubsetOf(other);
+        return ((ISet<TItem>)SourceSet).IsProperSubsetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsProperSupersetOf(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).IsProperSupersetOf(other);
+        return ((ISet<TItem>)SourceSet).IsProperSupersetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsSubsetOf(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).IsSubsetOf(other);
+        return ((ISet<TItem>)SourceSet).IsSubsetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsSupersetOf(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).IsSupersetOf(other);
+        return ((ISet<TItem>)SourceSet).IsSupersetOf(other);
     }
 
     /// <inheritdoc/>
     public bool Overlaps(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).Overlaps(other);
+        return ((ISet<TItem>)SourceSet).Overlaps(other);
     }
 
     /// <inheritdoc/>
     public bool SetEquals(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).SetEquals(other);
+        return ((ISet<TItem>)SourceSet).SetEquals(other);
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)BaseSet).GetEnumerator();
+        return ((IEnumerable)SourceSet).GetEnumerator();
     }
 
     /// <inheritdoc cref="HashSet{T}.TrimExcess()"/>
     public void TrimExcess()
     {
-        if (BaseSet is HashSet<TItem> set)
+        if (SourceSet is HashSet<TItem> set)
             set.TrimExcess();
     }
 
     /// <inheritdoc cref="HashSet{T}.TrimExcess(int)"/>
     public void TrimExcess(int capacity)
     {
-        if (BaseSet is HashSet<TItem> set)
+        if (SourceSet is HashSet<TItem> set)
             set.TrimExcess(capacity);
     }
 
@@ -237,7 +237,7 @@ public class ObservableSetWrapper<TItem, TSet>
         {
             _removeIndexs.Clear();
             var removeItems = items.ToHashSet();
-            foreach ((var index, var item) in BaseSet.ReverseEnumerateIndex())
+            foreach ((var index, var item) in SourceSet.ReverseEnumerateIndex())
             {
                 if (removeItems.Contains(item))
                 {
@@ -281,7 +281,7 @@ public class ObservableSetWrapper<TItem, TSet>
         {
             _removeIndexs.Clear();
             var removeItems = oldItems.ToHashSet();
-            foreach ((var index, var item) in BaseSet.ReverseEnumerateIndex())
+            foreach ((var index, var item) in SourceSet.ReverseEnumerateIndex())
             {
                 if (removeItems.Contains(item))
                 {
@@ -388,7 +388,7 @@ public class ObservableSetWrapper<TItem, TSet>
             }
             if (newItems is not null)
             {
-                var index = BaseSet.Count - newItems.Count;
+                var index = SourceSet.Count - newItems.Count;
                 foreach (var item in newItems)
                 {
                     OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item, index++));

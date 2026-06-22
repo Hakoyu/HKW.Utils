@@ -1,9 +1,9 @@
 ﻿using System.Collections.Specialized;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
-using HKW.HKWUtils.Tests.Collections;
+using HKW.HKWUtilsTests.Collections;
 
-namespace HKW.HKWUtils.Tests.Observable;
+namespace HKW.HKWUtilsTests.Observable;
 
 [TestClass]
 public class ObservableListTests

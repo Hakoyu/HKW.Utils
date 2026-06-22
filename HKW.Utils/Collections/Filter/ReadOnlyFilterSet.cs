@@ -2,7 +2,9 @@
 using System.Data;
 using System.Diagnostics;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Extensions;
+using HKW.HKWUtils.Natives;
 using HKW.HKWUtils.Observable;
 
 namespace HKW.HKWUtils.Collections;
@@ -28,8 +30,12 @@ public class ReadOnlyFilterSet<T, TFilteredSet>
     /// <param name="filter">过滤器</param>
     public ReadOnlyFilterSet(IObservableSet<T> set, TFilteredSet filteredSet, Predicate<T> filter)
     {
-        if (filteredSet.IsReadOnly)
-            throw new ReadOnlyException("FilteredSet is read only");
+        ArgumentNullException.ThrowIfNull(set);
+        ArgumentNullException.ThrowIfNull(filteredSet);
+        ArgumentNullException.ThrowIfNull(filter);
+        ArgumentException.ThrowIfReadOnlyCollection(set);
+        ArgumentException.ThrowIfReadOnlyCollection(filteredSet);
+
         _set = set;
         FilteredSet = filteredSet;
         Filter = filter;
@@ -39,18 +45,15 @@ public class ReadOnlyFilterSet<T, TFilteredSet>
     /// <inheritdoc/>
     bool IFilterCollection<T, IObservableSet<T>, TFilteredSet>.AutoFilter { get; set; } = true;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private Predicate<T> _filter = null!;
-
     /// <summary>
     /// 过滤器
     /// </summary>
     public Predicate<T> Filter
     {
-        get => _filter;
+        get => field;
         set
         {
-            _filter = value;
+            field = value;
             Refresh();
         }
     }
@@ -60,11 +63,9 @@ public class ReadOnlyFilterSet<T, TFilteredSet>
     /// </summary>
     public TFilteredSet FilteredSet { get; }
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    IObservableSet<T> IFilterCollection<T, IObservableSet<T>, TFilteredSet>.BaseCollection =>
-        throw new ReadOnlyException();
+    IObservableSet<T> IFilterCollection<T, IObservableSet<T>, TFilteredSet>.SourceCollection =>
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     TFilteredSet IFilterCollection<T, IObservableSet<T>, TFilteredSet>.FilteredCollection =>
         FilteredSet;
 
@@ -87,13 +88,13 @@ public class ReadOnlyFilterSet<T, TFilteredSet>
     /// <inheritdoc/>
     bool ISet<T>.Add(T item)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ICollection<T>.Clear()
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -111,7 +112,7 @@ public class ReadOnlyFilterSet<T, TFilteredSet>
     /// <inheritdoc/>
     void ISet<T>.ExceptWith(IEnumerable<T> other)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -123,7 +124,7 @@ public class ReadOnlyFilterSet<T, TFilteredSet>
     /// <inheritdoc/>
     void ISet<T>.IntersectWith(IEnumerable<T> other)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -159,7 +160,7 @@ public class ReadOnlyFilterSet<T, TFilteredSet>
     /// <inheritdoc/>
     bool ICollection<T>.Remove(T item)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -171,18 +172,18 @@ public class ReadOnlyFilterSet<T, TFilteredSet>
     /// <inheritdoc/>
     void ISet<T>.SymmetricExceptWith(IEnumerable<T> other)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     void ISet<T>.UnionWith(IEnumerable<T> other)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ICollection<T>.Add(T item)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     IEnumerator IEnumerable.GetEnumerator()

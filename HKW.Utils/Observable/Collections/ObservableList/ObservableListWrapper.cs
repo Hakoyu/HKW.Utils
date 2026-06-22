@@ -24,33 +24,33 @@ public class ObservableListWrapper<TItem, TList>
     /// <inheritdoc/>
     public ObservableListWrapper(TList list)
     {
-        BaseList = list;
+        SourceList = list;
     }
 
     /// <inheritdoc/>
-    public TList BaseList { get; }
+    public TList SourceList { get; }
 
     #region IListT
 
     /// <inheritdoc/>
-    public int Count => BaseList.Count;
+    public int Count => SourceList.Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<TItem>)BaseList).IsReadOnly;
+    public bool IsReadOnly => ((ICollection<TItem>)SourceList).IsReadOnly;
 
     #region Change
 
     /// <inheritdoc/>
     public TItem this[int index]
     {
-        get => BaseList[index];
+        get => SourceList[index];
         set
         {
-            var oldValue = BaseList[index];
+            var oldValue = SourceList[index];
             if (EqualityComparer<TItem>.Default.Equals(oldValue, value) is true)
                 return;
             OnListReplacing(value, oldValue, index);
-            BaseList[index] = value;
+            SourceList[index] = value;
             OnListReplaced(value, oldValue, index);
         }
     }
@@ -58,17 +58,17 @@ public class ObservableListWrapper<TItem, TList>
     /// <inheritdoc/>
     public TItem this[int index, bool skipCheck]
     {
-        get => BaseList[index];
+        get => SourceList[index];
         set
         {
-            var oldValue = BaseList[index];
+            var oldValue = SourceList[index];
             if (
                 skipCheck is false
                 && EqualityComparer<TItem>.Default.Equals(oldValue, value) is true
             )
                 return;
             OnListReplacing(value, oldValue, index);
-            BaseList[index] = value;
+            SourceList[index] = value;
             OnListReplaced(value, oldValue, index);
         }
     }
@@ -81,26 +81,26 @@ public class ObservableListWrapper<TItem, TList>
     /// <inheritdoc/>
     public void Add(TItem item)
     {
-        var index = BaseList.Count;
+        var index = SourceList.Count;
         OnListAdding(item, index);
-        BaseList.Add(item);
+        SourceList.Add(item);
         OnListAdded(item, index);
     }
 
     /// <inheritdoc/>
     public void Insert(int index, TItem item)
     {
-        if (index < 0 || index > BaseList.Count)
-            BaseList.Insert(index, item);
+        if (index < 0 || index > SourceList.Count)
+            SourceList.Insert(index, item);
         OnListAdding(item, index);
-        BaseList.Insert(index, item);
+        SourceList.Insert(index, item);
         OnListAdded(item, index);
     }
 
     /// <inheritdoc/>
     public bool Remove(TItem item)
     {
-        var index = BaseList.IndexOf(item);
+        var index = SourceList.IndexOf(item);
         if (index >= 0)
         {
             RemoveAt(index);
@@ -112,9 +112,9 @@ public class ObservableListWrapper<TItem, TList>
     /// <inheritdoc/>
     public void RemoveAt(int index)
     {
-        var item = BaseList[index];
+        var item = SourceList[index];
         OnListRemoving(item, index);
-        BaseList.RemoveAt(index);
+        SourceList.RemoveAt(index);
         OnListRemoved(item, index);
     }
 
@@ -122,7 +122,7 @@ public class ObservableListWrapper<TItem, TList>
     public void Clear()
     {
         OnListClearing();
-        BaseList.Clear();
+        SourceList.Clear();
         OnListCleared();
     }
 
@@ -131,49 +131,49 @@ public class ObservableListWrapper<TItem, TList>
     /// <inheritdoc/>
     public bool Contains(TItem item)
     {
-        return BaseList.Contains(item);
+        return SourceList.Contains(item);
     }
 
     /// <inheritdoc/>
     public void CopyTo(TItem[] array, int arrayIndex)
     {
-        BaseList.CopyTo(array, arrayIndex);
+        SourceList.CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
     public IEnumerator<TItem> GetEnumerator()
     {
-        return BaseList.GetEnumerator();
+        return SourceList.GetEnumerator();
     }
 
     /// <inheritdoc/>
     public int IndexOf(TItem item)
     {
-        return BaseList.IndexOf(item);
+        return SourceList.IndexOf(item);
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)BaseList).GetEnumerator();
+        return ((IEnumerable)SourceList).GetEnumerator();
     }
 
     #endregion IListT
 
     #region IList
-    bool IList.IsFixedSize => ((IList)BaseList).IsFixedSize;
-    bool ICollection.IsSynchronized => ((ICollection)BaseList).IsSynchronized;
-    object ICollection.SyncRoot => ((ICollection)BaseList).SyncRoot;
+    bool IList.IsFixedSize => ((IList)SourceList).IsFixedSize;
+    bool ICollection.IsSynchronized => ((ICollection)SourceList).IsSynchronized;
+    object ICollection.SyncRoot => ((ICollection)SourceList).SyncRoot;
     object? IList.this[int index]
     {
-        get => BaseList[index];
+        get => SourceList[index];
         set
         {
-            var oldValue = BaseList[index];
+            var oldValue = SourceList[index];
             if (oldValue?.Equals(value) is true)
                 return;
             OnListReplacing((TItem)value!, oldValue, index);
-            BaseList[index] = (TItem)value!;
+            SourceList[index] = (TItem)value!;
             OnListReplaced((TItem)value!, oldValue, index);
         }
     }
@@ -200,18 +200,18 @@ public class ObservableListWrapper<TItem, TList>
     bool IList.Contains(object? value)
     {
         var item = (TItem)value!;
-        return BaseList.Contains(item);
+        return SourceList.Contains(item);
     }
 
     int IList.IndexOf(object? value)
     {
         var item = (TItem)value!;
-        return BaseList.IndexOf(item);
+        return SourceList.IndexOf(item);
     }
 
     void ICollection.CopyTo(Array array, int index)
     {
-        ((ICollection)BaseList).CopyTo(array, index);
+        ((ICollection)SourceList).CopyTo(array, index);
     }
 
     #endregion
@@ -293,7 +293,7 @@ public class ObservableListWrapper<TItem, TList>
             OnCollectionChanged(
                 new(
                     NotifyCollectionChangedAction.Add,
-                    new SimpleSingleItemReadOnlyList<TItem>(item),
+                    new SingleItemReadOnlyList<TItem>(item),
                     index
                 )
             );
@@ -313,7 +313,7 @@ public class ObservableListWrapper<TItem, TList>
             OnCollectionChanged(
                 new(
                     NotifyCollectionChangedAction.Remove,
-                    new SimpleSingleItemReadOnlyList<TItem>(item),
+                    new SingleItemReadOnlyList<TItem>(item),
                     index
                 )
             );
@@ -348,8 +348,8 @@ public class ObservableListWrapper<TItem, TList>
             OnCollectionChanged(
                 new(
                     NotifyCollectionChangedAction.Replace,
-                    new SimpleSingleItemReadOnlyList<TItem>(newItem),
-                    new SimpleSingleItemReadOnlyList<TItem>(oldItem),
+                    new SingleItemReadOnlyList<TItem>(newItem),
+                    new SingleItemReadOnlyList<TItem>(oldItem),
                     index
                 )
             );

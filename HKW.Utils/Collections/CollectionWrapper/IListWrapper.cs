@@ -9,7 +9,7 @@ public interface IListWrapper<TItem, TList>
     where TList : IList<TItem>
 {
     /// <summary>
-    /// 基础列表
+    /// 原始列表
     /// </summary>
-    public TList BaseList { get; }
+    public TList SourceList { get; }
 }

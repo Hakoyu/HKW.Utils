@@ -24,7 +24,7 @@ public partial class ObservableSelectableListWrapper<TItem, TList>
     /// <param name="list">列表</param>
     public ObservableSelectableListWrapper(TList list)
     {
-        BaseList = list;
+        SourceList = list;
     }
 
     /// <inheritdoc/>
@@ -49,7 +49,7 @@ public partial class ObservableSelectableListWrapper<TItem, TList>
     private bool _changing = false;
 
     /// <inheritdoc/>
-    public TList BaseList { get; }
+    public TList SourceList { get; }
 
     /// <summary>
     /// 选中的索引
@@ -62,8 +62,8 @@ public partial class ObservableSelectableListWrapper<TItem, TList>
         if (_changing)
             return;
         _changing = true;
-        if (BaseList.IsValidIndex(newValue))
-            SelectedItem = BaseList[newValue];
+        if (SourceList.IsValidIndex(newValue))
+            SelectedItem = SourceList[newValue];
         else
             SelectedItem = default;
         _changing = false;
@@ -80,7 +80,7 @@ public partial class ObservableSelectableListWrapper<TItem, TList>
         if (_changing)
             return;
         _changing = true;
-        SelectedIndex = BaseList.IndexOf(newValue!);
+        SelectedIndex = SourceList.IndexOf(newValue!);
         _changing = false;
     }
 
@@ -88,62 +88,62 @@ public partial class ObservableSelectableListWrapper<TItem, TList>
     /// <inheritdoc/>
     public TItem this[int index]
     {
-        get => ((IList<TItem>)BaseList)[index];
+        get => ((IList<TItem>)SourceList)[index];
         set
         {
-            ((IList<TItem>)BaseList)[index] = value;
+            ((IList<TItem>)SourceList)[index] = value;
             if (index == SelectedIndex)
                 SelectedItem = value;
         }
     }
 
     /// <inheritdoc/>
-    public int Count => ((ICollection<TItem>)BaseList).Count;
+    public int Count => ((ICollection<TItem>)SourceList).Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<TItem>)BaseList).IsReadOnly;
+    public bool IsReadOnly => ((ICollection<TItem>)SourceList).IsReadOnly;
 
     /// <inheritdoc/>
     public void Add(TItem item)
     {
-        ((ICollection<TItem>)BaseList).Add(item);
+        ((ICollection<TItem>)SourceList).Add(item);
     }
 
     /// <inheritdoc/>
     public void Clear()
     {
-        ((ICollection<TItem>)BaseList).Clear();
+        ((ICollection<TItem>)SourceList).Clear();
         SelectedIndex = -1;
     }
 
     /// <inheritdoc/>
     public bool Contains(TItem item)
     {
-        return ((ICollection<TItem>)BaseList).Contains(item);
+        return ((ICollection<TItem>)SourceList).Contains(item);
     }
 
     /// <inheritdoc/>
     public void CopyTo(TItem[] array, int arrayIndex)
     {
-        ((ICollection<TItem>)BaseList).CopyTo(array, arrayIndex);
+        ((ICollection<TItem>)SourceList).CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
     public IEnumerator<TItem> GetEnumerator()
     {
-        return ((IEnumerable<TItem>)BaseList).GetEnumerator();
+        return ((IEnumerable<TItem>)SourceList).GetEnumerator();
     }
 
     /// <inheritdoc/>
     public int IndexOf(TItem item)
     {
-        return ((IList<TItem>)BaseList).IndexOf(item);
+        return ((IList<TItem>)SourceList).IndexOf(item);
     }
 
     /// <inheritdoc/>
     public void Insert(int index, TItem item)
     {
-        ((IList<TItem>)BaseList).Insert(index, item);
+        ((IList<TItem>)SourceList).Insert(index, item);
         if (index <= SelectedIndex)
             SelectedIndex += 1;
     }
@@ -151,7 +151,7 @@ public partial class ObservableSelectableListWrapper<TItem, TList>
     /// <inheritdoc/>
     public bool Remove(TItem item)
     {
-        var result = BaseList.Remove(item, out var index);
+        var result = SourceList.Remove(item, out var index);
         if (SelectedIndex == index)
             SelectedIndex = -1;
         if (SelectedIndex > index)
@@ -163,7 +163,7 @@ public partial class ObservableSelectableListWrapper<TItem, TList>
     /// <inheritdoc/>
     public void RemoveAt(int index)
     {
-        ((IList<TItem>)BaseList).RemoveAt(index);
+        ((IList<TItem>)SourceList).RemoveAt(index);
         if (SelectedIndex == index)
             SelectedIndex = -1;
         if (SelectedIndex > index)
@@ -172,7 +172,7 @@ public partial class ObservableSelectableListWrapper<TItem, TList>
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)BaseList).GetEnumerator();
+        return ((IEnumerable)SourceList).GetEnumerator();
     }
 
     #endregion
@@ -181,50 +181,50 @@ public partial class ObservableSelectableListWrapper<TItem, TList>
 
     object? IList.this[int index]
     {
-        get => BaseList[index];
+        get => SourceList[index];
         set
         {
-            BaseList[index] = (TItem)value!;
+            SourceList[index] = (TItem)value!;
             if (index == SelectedIndex)
                 SelectedItem = (TItem)value!;
         }
     }
-    bool IList.IsFixedSize => ((IList)BaseList).IsFixedSize;
+    bool IList.IsFixedSize => ((IList)SourceList).IsFixedSize;
 
-    bool ICollection.IsSynchronized => ((IList)BaseList).IsSynchronized;
+    bool ICollection.IsSynchronized => ((IList)SourceList).IsSynchronized;
 
-    object ICollection.SyncRoot => ((IList)BaseList).SyncRoot;
+    object ICollection.SyncRoot => ((IList)SourceList).SyncRoot;
 
     int IList.Add(object? value)
     {
-        return ((IList)BaseList).Add(value);
+        return ((IList)SourceList).Add(value);
     }
 
     bool IList.Contains(object? value)
     {
-        return ((IList)BaseList).Contains(value);
+        return ((IList)SourceList).Contains(value);
     }
 
     void ICollection.CopyTo(Array array, int index)
     {
-        ((IList)BaseList).CopyTo(array, index);
+        ((IList)SourceList).CopyTo(array, index);
     }
 
     int IList.IndexOf(object? value)
     {
-        return ((IList)BaseList).IndexOf(value);
+        return ((IList)SourceList).IndexOf(value);
     }
 
     void IList.Insert(int index, object? value)
     {
-        ((IList)BaseList).Insert(index, value);
+        ((IList)SourceList).Insert(index, value);
         if (index <= SelectedIndex)
             SelectedIndex += 1;
     }
 
     void IList.Remove(object? value)
     {
-        BaseList.Remove((TItem)value!, out var index);
+        SourceList.Remove((TItem)value!, out var index);
         if (SelectedIndex == index)
             SelectedIndex = -1;
     }

@@ -28,7 +28,7 @@ public partial class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictio
     /// <param name="dictionary">字典</param>
     public ObservableSelectableDictionaryWrapper(TDictionary dictionary)
     {
-        BaseDictionary = dictionary;
+        SourceDictionary = dictionary;
     }
 
     /// <inheritdoc/>
@@ -37,11 +37,11 @@ public partial class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictio
     public ObservableSelectableDictionaryWrapper(TDictionary dictionary, TKey seletedKey)
         : this(dictionary)
     {
-        SelectedItem = BaseDictionary.GetPair(seletedKey);
+        SelectedItem = SourceDictionary.GetPair(seletedKey);
     }
 
     /// <inheritdoc/>
-    public TDictionary BaseDictionary { get; }
+    public TDictionary SourceDictionary { get; }
 
     /// <summary>
     /// 选中的项目
@@ -53,67 +53,67 @@ public partial class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictio
     /// <inheritdoc/>
     public TValue this[TKey key]
     {
-        get => BaseDictionary[key];
+        get => SourceDictionary[key];
         set
         {
-            BaseDictionary[key] = value;
-            SelectedItem = BaseDictionary.GetPair(key);
+            SourceDictionary[key] = value;
+            SelectedItem = SourceDictionary.GetPair(key);
         }
     }
 
     /// <inheritdoc/>
-    public ICollection<TKey> Keys => BaseDictionary.Keys;
+    public ICollection<TKey> Keys => SourceDictionary.Keys;
 
     /// <inheritdoc/>
-    public ICollection<TValue> Values => BaseDictionary.Values;
+    public ICollection<TValue> Values => SourceDictionary.Values;
 
     /// <inheritdoc/>
-    public int Count => BaseDictionary.Count;
+    public int Count => SourceDictionary.Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => BaseDictionary.IsReadOnly;
+    public bool IsReadOnly => SourceDictionary.IsReadOnly;
 
     /// <inheritdoc/>
     public void Add(TKey key, TValue value)
     {
-        BaseDictionary.Add(key, value);
+        SourceDictionary.Add(key, value);
     }
 
     /// <inheritdoc/>
     public void Add(KeyValuePair<TKey, TValue> item)
     {
-        BaseDictionary.Add(item);
+        SourceDictionary.Add(item);
     }
 
     /// <inheritdoc/>
     public void Clear()
     {
-        BaseDictionary.Clear();
+        SourceDictionary.Clear();
         SelectedItem = default;
     }
 
     /// <inheritdoc/>
     public bool Contains(KeyValuePair<TKey, TValue> item)
     {
-        return BaseDictionary.Contains(item);
+        return SourceDictionary.Contains(item);
     }
 
     /// <inheritdoc/>
     public bool ContainsKey(TKey key)
     {
-        return BaseDictionary.ContainsKey(key);
+        return SourceDictionary.ContainsKey(key);
     }
 
     /// <inheritdoc/>
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
     {
-        BaseDictionary.CopyTo(array, arrayIndex);
+        SourceDictionary.CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
     public bool Remove(TKey key)
     {
-        var r = BaseDictionary.Remove(key);
+        var r = SourceDictionary.Remove(key);
         if (r && key.Equals(SelectedItem.Key))
             SelectedItem = default;
         return r;
@@ -122,7 +122,7 @@ public partial class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictio
     /// <inheritdoc/>
     public bool Remove(KeyValuePair<TKey, TValue> item)
     {
-        var r = BaseDictionary.Remove(item);
+        var r = SourceDictionary.Remove(item);
         if (r && item.Key.Equals(SelectedItem.Key))
             SelectedItem = default;
         return r;
@@ -131,19 +131,19 @@ public partial class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictio
     /// <inheritdoc/>
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
-        return BaseDictionary.TryGetValue(key, out value);
+        return SourceDictionary.TryGetValue(key, out value);
     }
 
     /// <inheritdoc/>
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
-        return BaseDictionary.GetEnumerator();
+        return SourceDictionary.GetEnumerator();
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)BaseDictionary).GetEnumerator();
+        return ((IEnumerable)SourceDictionary).GetEnumerator();
     }
     #endregion
 }
