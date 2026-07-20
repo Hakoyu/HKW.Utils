@@ -8,7 +8,7 @@ namespace HKW.HKWUtils.Extensions;
 /// <summary>
 ///
 /// </summary>
-public static partial class HKWExtensions
+public static partial class SpanExtensions
 {
     /// <typeparam name="T">项类型</typeparam>
     /// <param name="span">内存块</param>
@@ -18,7 +18,7 @@ public static partial class HKWExtensions
         /// 包含索引值
         /// </summary>
         /// <param name="index">索引</param>
-        /// <returns>包含为 <see langword="true"/> 不包含为 <see langword="false"/></returns>
+        /// <returns>是否包含</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsValidIndex(int index)
         {
@@ -44,7 +44,7 @@ public static partial class HKWExtensions
         /// </summary>
         /// <param name="index">索引值</param>
         /// <param name="value">值</param>
-        /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+        /// <returns>是否获取成功</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValue(int index, [MaybeNullWhen(false)] out T value)
         {
@@ -66,7 +66,7 @@ public static partial class HKWExtensions
         /// <param name="index">索引值</param>
         /// <param name="value">值</param>
         /// <param name="defaultValue">默认值</param>
-        /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+        /// <returns>是否获取成功</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValueOrDefault(
             int index,
@@ -168,7 +168,12 @@ public static partial class HKWExtensions
         CultureInfo? cultureInfo = null
     )
     {
-        return ToPascal((ReadOnlySpan<char>)span, separator, sourceToLower, cultureInfo);
+        return ReadOnlySpanExtensions.ToPascal(
+            (ReadOnlySpan<char>)span,
+            separator,
+            sourceToLower,
+            cultureInfo
+        );
     }
 
     /// <summary>
@@ -187,7 +192,12 @@ public static partial class HKWExtensions
         CultureInfo? cultureInfo = null
     )
     {
-        return ToPascal((ReadOnlySpan<char>)span, separators, sourceToLower, cultureInfo);
+        return ReadOnlySpanExtensions.ToPascal(
+            (ReadOnlySpan<char>)span,
+            separators,
+            sourceToLower,
+            cultureInfo
+        );
     }
 
     ///// <summary>

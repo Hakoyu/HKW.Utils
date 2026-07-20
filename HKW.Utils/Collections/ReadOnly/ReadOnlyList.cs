@@ -11,13 +11,13 @@ namespace HKW.HKWUtils.Collections;
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public class ReadOnlyList<T> : IList<T>, IReadOnlyList<T>, IList
 {
     /// <inheritdoc/>
     public ReadOnlyList(IEnumerable<T> collection)
     {
-        if (collection is IList && collection is IList<T> list)
+        if (collection is IList<T> list)
             _list = list;
         _list = collection.ToList();
     }

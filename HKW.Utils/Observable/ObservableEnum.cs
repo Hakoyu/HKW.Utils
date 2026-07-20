@@ -1,4 +1,6 @@
-﻿using HKW.HKWReactiveUI;
+﻿using System.ComponentModel;
+using HKW.HKWReactiveUI;
+using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Extensions;
 using ReactiveUI;
 
@@ -8,7 +10,7 @@ namespace HKW.HKWUtils.Observable;
 /// 可观测枚举
 /// </summary>
 /// <typeparam name="TEnum">枚举类型</typeparam>
-public partial class ObservableEnum<TEnum> : ReactiveObjectX, ICloneable<ObservableEnum<TEnum>>
+public partial class ObservableEnum<TEnum> : ReactiveObjectX
     where TEnum : struct, Enum
 {
     /// <inheritdoc/>
@@ -21,11 +23,10 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX, ICloneable<Observa
         Value = value;
     }
 
-    /// <inheritdoc cref="AddFlagInfo(global::HKW.HKWUtils.IEnumInfo{TEnum})"/>
     /// <inheritdoc/>
     /// <param name="value">枚举值</param>
-    /// <param name="addFlag">添加枚举值 <c>(v, f) => v | f</c></param>
-    /// <param name="removeFlag">删除枚举值 <c>(v, f) => v &amp; ~f</c></param>
+    /// <param name="addFlag">添加枚举值 <c>(value, flag) => value | flag</c></param>
+    /// <param name="removeFlag">删除枚举值 <c>(value, flag) => value &amp; ~flag</c></param>
     public ObservableEnum(TEnum value, AddFlag<TEnum> addFlag, RemoveFlag<TEnum> removeFlag)
         : this(value)
     {
@@ -40,23 +41,14 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX, ICloneable<Observa
     public TEnum Value { get; set; }
 
     /// <summary>
-    /// 是可标记的
-    /// </summary>
-    public bool IsFlagable => EnumInfo<TEnum>.IsFlagable;
-
-    /// <summary>
     /// 添加标志
     /// </summary>
     /// <param name="flag">标志</param>
     [ReactiveCommand]
     public void AddFlag(TEnum flag)
     {
-        if (IsFlagable is false)
-            throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
-        if (AddFlagFunc is null)
-            Value = Value.AddFlag(flag);
-        else
-            Value = AddFlagFunc(Value, flag);
+        InvalidEnumArgumentException.ThrowIfNotFlaggable(EnumInfo<TEnum>.GetInfo());
+        Value = AddFlagFunc(Value, flag);
     }
 
     /// <summary>
@@ -66,12 +58,8 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX, ICloneable<Observa
     [ReactiveCommand]
     public void AddFlagInfo(IEnumInfo<TEnum> flag)
     {
-        if (IsFlagable is false)
-            throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
-        if (AddFlagFunc is null)
-            Value = Value.AddFlag(flag.Value);
-        else
-            Value = AddFlagFunc(Value, flag.Value);
+        InvalidEnumArgumentException.ThrowIfNotFlaggable(EnumInfo<TEnum>.GetInfo());
+        Value = AddFlagFunc(Value, flag.Value);
     }
 
     /// <summary>
@@ -81,12 +69,8 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX, ICloneable<Observa
     [ReactiveCommand]
     public void RemoveFlag(TEnum flag)
     {
-        if (IsFlagable is false)
-            throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
-        if (RemoveFlagFunc is null)
-            Value = Value.RemoveFlag(flag);
-        else
-            Value = RemoveFlagFunc(Value, flag);
+        InvalidEnumArgumentException.ThrowIfNotFlaggable(EnumInfo<TEnum>.GetInfo());
+        Value = RemoveFlagFunc(Value, flag);
     }
 
     /// <summary>
@@ -96,46 +80,52 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX, ICloneable<Observa
     [ReactiveCommand]
     public void RemoveFlagInfo(IEnumInfo<TEnum> flag)
     {
-        if (IsFlagable is false)
-            throw new Exception($"This Enum not use attribute \"{nameof(FlagsAttribute)}\".");
-        if (RemoveFlagFunc is null)
-            Value = Value.RemoveFlag(flag.Value);
-        else
-            Value = RemoveFlagFunc(Value, flag.Value);
+        InvalidEnumArgumentException.ThrowIfNotFlaggable(EnumInfo<TEnum>.GetInfo());
+        Value = RemoveFlagFunc(Value, flag.Value);
     }
 
-    #region ICloneable
-    /// <inheritdoc/>
-    public ObservableEnum<TEnum> Clone()
-    {
-        return new(Value);
-    }
+    private AddFlag<TEnum>? _addFlagFunc;
 
-    object ICloneable.Clone()
-    {
-        return Clone();
-    }
-    #endregion
     /// <summary>
     /// 添加标志方法
     /// </summary>
-    public AddFlag<TEnum> AddFlagFunc { get; set; } = DefaultAddFlagFunc;
+    public AddFlag<TEnum> AddFlagFunc
+    {
+        get => _addFlagFunc ?? DefaultAddFlagFunc;
+        set => _addFlagFunc = value;
+    }
+    private RemoveFlag<TEnum>? _removeFlagFunc;
 
     /// <summary>
     /// 删除标志方法
     /// </summary>
-    public RemoveFlag<TEnum> RemoveFlagFunc { get; set; } = DefaultRemoveFlagFunc;
+    public RemoveFlag<TEnum> RemoveFlagFunc
+    {
+        get => _removeFlagFunc ?? DefaultRemoveFlagFunc;
+        set => _removeFlagFunc = value;
+    }
+
+    private static AddFlag<TEnum>? _defaultAddFlagFunc;
 
     /// <summary>
     /// 默认添加标志方法
     /// </summary>
-    public static AddFlag<TEnum> DefaultAddFlagFunc { get; set; } = GlobalDefaultAddFlagFunc!;
+    public static AddFlag<TEnum> DefaultAddFlagFunc
+    {
+        get => _defaultAddFlagFunc ?? GlobalDefaultAddFlagFunc;
+        set => _defaultAddFlagFunc = value;
+    }
+
+    static RemoveFlag<TEnum>? _defaultRemoveFlagFunc;
 
     /// <summary>
     /// 默认删除标志方法
     /// </summary>
-    public static RemoveFlag<TEnum> DefaultRemoveFlagFunc { get; set; } =
-        GlobalDefaultRemoveFlagFunc!;
+    public static RemoveFlag<TEnum> DefaultRemoveFlagFunc
+    {
+        get => _defaultRemoveFlagFunc ?? GlobalDefaultRemoveFlagFunc;
+        set => _defaultRemoveFlagFunc = value;
+    }
 
     /// <summary>
     /// 全局默认添加标志方法
@@ -165,6 +155,6 @@ public delegate TEnum AddFlag<TEnum>(TEnum value, TEnum flag)
 /// <typeparam name="TEnum">枚举类型</typeparam>
 /// <param name="value">值</param>
 /// <param name="flag">标志</param>
-/// <returns>添加标志的值</returns>
+/// <returns>删除标志的值</returns>
 public delegate TEnum RemoveFlag<TEnum>(TEnum value, TEnum flag)
     where TEnum : struct, Enum;

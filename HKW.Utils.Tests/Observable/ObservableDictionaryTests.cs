@@ -1,4 +1,5 @@
-﻿using HKW.HKWUtils.Extensions;
+﻿using System.Collections.ObjectModel;
+using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
 
 namespace HKW.HKWUtilsTests.Observable;
@@ -6,357 +7,255 @@ namespace HKW.HKWUtilsTests.Observable;
 [TestClass]
 public class ObservableDictionaryTests
 {
-    [TestMethod]
-    public void Test()
-    {
-        Test<int, int>(
-            new ObservableDictionary<int, int>(),
-            Enumerable.Range(1, 10).ToDictionary(i => i, i => i),
-            () =>
-            {
-                var value = Random.Shared.Next(100, 1000);
-                return new(value, value);
-            }
+    static Func<ObservableDictionary<int, string>> _createDictionary = () =>
+        new ObservableDictionary<int, string>(
+            Enumerable.Range(1, 10).ToDictionary(i => i, i => i.ToString())
         );
+
+    static IReadOnlyCollection<KeyValuePair<int, string>> _newItems = new ReadOnlyCollection<
+        KeyValuePair<int, string>
+    >(Enumerable.Range(100, 10).Select(i => KeyValuePair.Create(i, i.ToString())).ToList());
+
+    [TestMethod]
+    public void IDictionaryTest()
+    {
+        IDictionaryTTestUtils.Test(_createDictionary, _newItems);
     }
 
-    public static void Test<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary,
-        Func<KeyValuePair<TKey, TValue>> createNewPair
-    )
-        where TKey : notnull
+    [TestMethod]
+    public void ObservableCollectionTest()
     {
-        ObservableCollectionTests.Test(dictionary, comparisonDictionary, createNewPair);
-        DictionaryChangingOnAdd(dictionary, comparisonDictionary, createNewPair());
-        DictionaryChangingOnAdd(
-            dictionary,
-            comparisonDictionary,
-            createNewPair().Key,
-            createNewPair().Value
-        );
-        DictionaryChangingOnAddFalse(dictionary, comparisonDictionary);
-        DictionaryChangingOnTryAdd(dictionary, comparisonDictionary, createNewPair());
-        DictionaryChangingOnTryAddFalse(dictionary, comparisonDictionary);
-        DictionaryChangingOnRemove(dictionary, comparisonDictionary);
-        DictionaryChangingOnRemoveFalse(dictionary, comparisonDictionary, createNewPair());
-        DictionaryChangingOnClear(dictionary, comparisonDictionary);
-        DictionaryChangingOnReplace(dictionary, comparisonDictionary, createNewPair().Value);
-
-        DictionaryChangedOnAdd(dictionary, comparisonDictionary, createNewPair());
-        DictionaryChangedOnAdd(
-            dictionary,
-            comparisonDictionary,
-            createNewPair().Key,
-            createNewPair().Value
-        );
-        DictionaryChangedOnAddFalse(dictionary, comparisonDictionary);
-        DictionaryChangedOnTryAdd(dictionary, comparisonDictionary, createNewPair());
-        DictionaryChangedOnTryAddFalse(dictionary, comparisonDictionary);
-        DictionaryChangedOnRemove(dictionary, comparisonDictionary);
-        DictionaryChangedOnRemoveFalse(dictionary, comparisonDictionary, createNewPair());
-        DictionaryChangedOnClear(dictionary, comparisonDictionary);
-        DictionaryChangedOnReplace(dictionary, comparisonDictionary, createNewPair().Value);
+        ObservableCollectionUtils.Test(_createDictionary, _newItems);
     }
 
     #region DictionaryChanging
-    public static void DictionaryChangingOnAdd<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary,
-        KeyValuePair<TKey, TValue> newPair
-    )
-        where TKey : notnull
+    [TestMethod]
+    public void ChangingOnAdd()
     {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
+        var dictionary = _createDictionary();
+        var cDictionary = dictionary.ToDictionary();
 
-        var triggered = false;
+        var triggerCount = 0;
+        var newPair = default(KeyValuePair<int, string>);
+
         dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
-        dictionary.Add(newPair.Key, newPair.Value);
-        cDictionary.Add(newPair.Key, newPair.Value);
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
-        Assert.IsTrue(triggered);
+        foreach (var pair in _newItems)
+        {
+            newPair = pair;
+            dictionary.Add(pair.Key, pair.Value);
+            cDictionary.Add(pair.Key, pair.Value);
+            Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
+        }
         dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
-        dictionary.Clear();
+
+        Assert.HasCount(triggerCount, _newItems);
+        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
 
         void Dictionary_DictionaryChanging(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
+            IObservableDictionary<int, string> sender,
+            NotifyDictionaryChangeEventArgs<int, string> e
         )
         {
-            triggered = true;
+            triggerCount++;
             Assert.AreEqual(DictionaryChangeAction.Add, e.Action);
-            Assert.IsTrue(e.NewPair?.ContentEquals(newPair));
+            Assert.AreEqual(newPair, e.NewPair);
             Assert.IsNull(e.OldPair);
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
 
-    public static void DictionaryChangingOnAdd<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary,
-        TKey newKey,
-        TValue newValue
-    )
-        where TKey : notnull
+    [TestMethod]
+    public void ChangingOnAddFail()
     {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
+        var dictionary = _createDictionary();
 
-        var triggered = false;
-        var newPair = KeyValuePair.Create(newKey, newValue);
         dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
-        dictionary[newKey] = newValue;
-        cDictionary[newKey] = newValue;
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
-        Assert.IsTrue(triggered);
+        Assert.Throws<ArgumentException>(() =>
+        {
+            dictionary.Add(dictionary.First().Key, default!);
+        });
         dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
-        dictionary.Clear();
 
         void Dictionary_DictionaryChanging(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
+            IObservableDictionary<int, string> sender,
+            NotifyDictionaryChangeEventArgs<int, string> e
         )
         {
-            triggered = true;
+            Assert.Fail();
+        }
+    }
+
+    [TestMethod]
+    public void ChangingOnTryAdd()
+    {
+        var dictionary = _createDictionary();
+        var cDictionary = dictionary.ToDictionary();
+
+        var triggerCount = 0;
+        var newPair = default(KeyValuePair<int, string>);
+
+        dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
+        foreach (var pair in _newItems)
+        {
+            newPair = pair;
+            Assert.AreEqual(
+                true,
+                [
+                    dictionary.TryAdd(newPair.Key, newPair.Value),
+                    cDictionary.TryAdd(newPair.Key, newPair.Value),
+                ]
+            );
+            Assert.AreEqual(
+                false,
+                [
+                    dictionary.TryAdd(newPair.Key, newPair.Value),
+                    cDictionary.TryAdd(newPair.Key, newPair.Value),
+                ]
+            );
+            Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
+        }
+        dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
+
+        Assert.HasCount(triggerCount, _newItems);
+        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
+
+        void Dictionary_DictionaryChanging(
+            IObservableDictionary<int, string> sender,
+            NotifyDictionaryChangeEventArgs<int, string> e
+        )
+        {
+            triggerCount++;
             Assert.AreEqual(DictionaryChangeAction.Add, e.Action);
-            Assert.IsTrue(e.NewPair?.ContentEquals(newPair));
+            Assert.AreEqual(newPair, e.NewPair);
             Assert.IsNull(e.OldPair);
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
 
-    public static void DictionaryChangingOnAddFalse<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary
-    )
-        where TKey : notnull
+    [TestMethod]
+    public void ChangingOnReplace()
     {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
+        var dictionary = _createDictionary();
+        var cDictionary = dictionary.ToDictionary();
+        var replaceDictionary = dictionary.Reverse().ToDictionary();
 
-        var existPair = cDictionary.Random();
+        var triggerCount = 0;
+        var oldPair = default(KeyValuePair<int, string>);
+        var newPair = default(KeyValuePair<int, string>);
+
         dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
-        try
+        foreach (var pair in dictionary.Keys.Zip(replaceDictionary.Values))
         {
-            dictionary.Add(existPair.Key, existPair.Value);
-            Assert.Fail();
+            oldPair = cDictionary.GetPair(pair.Item1)!;
+            newPair = KeyValuePair.Create(pair);
+            dictionary[newPair.Key] = newPair.Value;
+            cDictionary[newPair.Key] = newPair.Value;
+            Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
-        catch { }
-
-        try
-        {
-            cDictionary.Add(existPair.Key, existPair.Value);
-            Assert.Fail();
-        }
-        catch { }
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
-        dictionary.Clear();
+
+        Assert.HasCount(triggerCount, dictionary);
+        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
 
         void Dictionary_DictionaryChanging(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
+            IObservableDictionary<int, string> sender,
+            NotifyDictionaryChangeEventArgs<int, string> e
         )
         {
-            Assert.Fail();
-        }
-    }
-
-    public static void DictionaryChangingOnTryAdd<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary,
-        KeyValuePair<TKey, TValue> newPair
-    )
-        where TKey : notnull
-    {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
-
-        var triggered = false;
-        dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
-        Assert.IsTrue(dictionary.TryAdd(newPair.Key, newPair.Value));
-        Assert.IsTrue(cDictionary.TryAdd(newPair.Key, newPair.Value));
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
-        Assert.IsTrue(triggered);
-        dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
-        dictionary.Clear();
-
-        void Dictionary_DictionaryChanging(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
-        )
-        {
-            triggered = true;
-            Assert.AreEqual(DictionaryChangeAction.Add, e.Action);
-            Assert.IsTrue(e.NewPair?.ContentEquals(newPair));
-            Assert.IsNull(e.OldPair);
+            triggerCount++;
+            Assert.AreEqual(DictionaryChangeAction.Replace, e.Action);
+            Assert.AreEqual(newPair, e.NewPair);
+            Assert.AreEqual(oldPair, e.OldPair);
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
 
-    public static void DictionaryChangingOnTryAddFalse<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary
-    )
-        where TKey : notnull
+    [TestMethod]
+    public void ChangingOnRemove()
     {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
+        var dictionary = _createDictionary();
+        var cDictionary = dictionary.ToDictionary();
+        var removeDictionary = dictionary.ToDictionary();
 
-        var existPair = cDictionary.Random();
+        var triggerCount = 0;
+        var removePair = default(KeyValuePair<int, string>);
+
         dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
-        Assert.IsTrue(dictionary.TryAdd(existPair.Key, existPair.Value) is false);
-        Assert.IsTrue(cDictionary.TryAdd(existPair.Key, existPair.Value) is false);
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
-        dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
-        dictionary.Clear();
-
-        void Dictionary_DictionaryChanging(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
-        )
+        foreach (var pair in removeDictionary)
         {
-            Assert.Fail();
+            removePair = pair;
+            Assert.AreEqual(
+                true,
+                [dictionary.Remove(removePair.Key), cDictionary.Remove(removePair.Key)]
+            );
+            Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
-    }
-
-    public static void DictionaryChangingOnRemove<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary
-    )
-        where TKey : notnull
-    {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
-
-        var triggered = false;
-        var removePair = cDictionary.Random();
-        dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
-        Assert.IsTrue(dictionary.Remove(removePair.Key));
-        Assert.IsTrue(cDictionary.Remove(removePair.Key));
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
-        Assert.IsTrue(triggered);
         dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
-        dictionary.Clear();
+
+        Assert.HasCount(triggerCount, removeDictionary);
+        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
 
         void Dictionary_DictionaryChanging(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
+            IObservableDictionary<int, string> sender,
+            NotifyDictionaryChangeEventArgs<int, string> e
         )
         {
-            triggered = true;
+            triggerCount++;
             Assert.AreEqual(DictionaryChangeAction.Remove, e.Action);
             Assert.IsNull(e.NewPair);
-            Assert.IsTrue(e.OldPair?.ContentEquals(removePair));
+            Assert.AreEqual(removePair, e.OldPair);
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
 
-    public static void DictionaryChangingOnRemoveFalse<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary,
-        KeyValuePair<TKey, TValue> nonExeistPair
-    )
-        where TKey : notnull
+    [TestMethod]
+    public void ChangingOnRemoveFail()
     {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
+        var dictionary = _createDictionary();
+        var cDictionary = dictionary.ToDictionary();
 
         dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
-        Assert.IsTrue(dictionary.Remove(nonExeistPair.Key) is false);
-        Assert.IsTrue(cDictionary.Remove(nonExeistPair.Key) is false);
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
+        foreach (var pair in _newItems)
+        {
+            Assert.AreEqual(false, [dictionary.Remove(pair.Key), cDictionary.Remove(pair.Key)]);
+            Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
+        }
         dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
-        dictionary.Clear();
 
         void Dictionary_DictionaryChanging(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
+            IObservableDictionary<int, string> sender,
+            NotifyDictionaryChangeEventArgs<int, string> e
         )
         {
             Assert.Fail();
         }
     }
 
-    public static void DictionaryChangingOnClear<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary
-    )
-        where TKey : notnull
+    [TestMethod]
+    public void ChangingOnClear()
     {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
+        var dictionary = _createDictionary();
+        var cDictionary = dictionary.ToDictionary();
 
-        var triggered = false;
+        var triggerCount = 0;
+
         dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
         dictionary.Clear();
         cDictionary.Clear();
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
-        Assert.IsTrue(triggered);
         dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
-        dictionary.Clear();
+
+        Assert.AreEqual(1, triggerCount);
+        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
 
         void Dictionary_DictionaryChanging(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
+            IObservableDictionary<int, string> sender,
+            NotifyDictionaryChangeEventArgs<int, string> e
         )
         {
-            triggered = true;
+            triggerCount++;
             Assert.AreEqual(DictionaryChangeAction.Clear, e.Action);
             Assert.IsNull(e.NewPair);
             Assert.IsNull(e.OldPair);
-            Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
-        }
-    }
-
-    public static void DictionaryChangingOnReplace<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary,
-        TValue newValue
-    )
-        where TKey : notnull
-    {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
-
-        var triggered = false;
-        var oldPair = cDictionary.Random();
-        dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
-        dictionary[oldPair.Key] = newValue;
-        cDictionary[oldPair.Key] = newValue;
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
-        Assert.IsTrue(triggered);
-        dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
-        dictionary.Clear();
-
-        void Dictionary_DictionaryChanging(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
-        )
-        {
-            triggered = true;
-            Assert.AreEqual(DictionaryChangeAction.Replace, e.Action);
-            Assert.IsTrue(e.NewPair?.ContentEquals(oldPair.Key, newValue));
-            Assert.IsTrue(e.OldPair?.ContentEquals(oldPair));
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
@@ -364,265 +263,230 @@ public class ObservableDictionaryTests
     #endregion
 
     #region DictionaryChanged
-    public static void DictionaryChangedOnAdd<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary,
-        KeyValuePair<TKey, TValue> newPair
-    )
-        where TKey : notnull
+    [TestMethod]
+    public void ChangedOnAdd()
     {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
+        var dictionary = _createDictionary();
+        var cDictionary = dictionary.ToDictionary();
 
-        var triggered = false;
+        var triggerCount = 0;
+        var newPair = default(KeyValuePair<int, string>);
+
         dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
-        cDictionary.Add(newPair.Key, newPair.Value);
-        dictionary.Add(newPair.Key, newPair.Value);
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
-        Assert.IsTrue(triggered);
+        foreach (var pair in _newItems)
+        {
+            newPair = pair;
+            cDictionary.Add(pair.Key, pair.Value);
+            dictionary.Add(pair.Key, pair.Value);
+            Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
+        }
         dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
-        dictionary.Clear();
+
+        Assert.HasCount(triggerCount, _newItems);
+        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
 
         void Dictionary_DictionaryChanged(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
+            IObservableDictionary<int, string> sender,
+            NotifyDictionaryChangeEventArgs<int, string> e
         )
         {
-            triggered = true;
+            triggerCount++;
             Assert.AreEqual(DictionaryChangeAction.Add, e.Action);
-            Assert.IsTrue(e.NewPair?.ContentEquals(newPair));
+            Assert.AreEqual(newPair, e.NewPair);
             Assert.IsNull(e.OldPair);
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
 
-    public static void DictionaryChangedOnAdd<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary,
-        TKey newKey,
-        TValue newValue
-    )
-        where TKey : notnull
+    [TestMethod]
+    public void ChangedOnAddFail()
     {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
+        var dictionary = _createDictionary();
 
-        var triggered = false;
-        var newPair = KeyValuePair.Create(newKey, newValue);
         dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
-        cDictionary[newKey] = newValue;
-        dictionary[newKey] = newValue;
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
-        Assert.IsTrue(triggered);
+        Assert.Throws<ArgumentException>(() =>
+        {
+            dictionary.Add(dictionary.First().Key, default!);
+        });
         dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
-        dictionary.Clear();
 
         void Dictionary_DictionaryChanged(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
+            IObservableDictionary<int, string> sender,
+            NotifyDictionaryChangeEventArgs<int, string> e
         )
         {
-            triggered = true;
+            Assert.Fail();
+        }
+    }
+
+    [TestMethod]
+    public void ChangedOnTryAdd()
+    {
+        var dictionary = _createDictionary();
+        var cDictionary = dictionary.ToDictionary();
+
+        var triggerCount = 0;
+        var newPair = default(KeyValuePair<int, string>);
+
+        dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
+        foreach (var pair in _newItems)
+        {
+            newPair = pair;
+            Assert.AreEqual(
+                true,
+                [
+                    cDictionary.TryAdd(newPair.Key, newPair.Value),
+                    dictionary.TryAdd(newPair.Key, newPair.Value),
+                ]
+            );
+            Assert.AreEqual(
+                false,
+                [
+                    cDictionary.TryAdd(newPair.Key, newPair.Value),
+                    dictionary.TryAdd(newPair.Key, newPair.Value),
+                ]
+            );
+            Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
+        }
+        dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
+
+        Assert.HasCount(triggerCount, _newItems);
+        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
+
+        void Dictionary_DictionaryChanged(
+            IObservableDictionary<int, string> sender,
+            NotifyDictionaryChangeEventArgs<int, string> e
+        )
+        {
+            triggerCount++;
             Assert.AreEqual(DictionaryChangeAction.Add, e.Action);
-            Assert.IsTrue(e.NewPair?.ContentEquals(newPair));
+            Assert.AreEqual(newPair, e.NewPair);
             Assert.IsNull(e.OldPair);
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
 
-    public static void DictionaryChangedOnAddFalse<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary
-    )
-        where TKey : notnull
+    [TestMethod]
+    public void ChangedOnReplace()
     {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
+        var dictionary = _createDictionary();
+        var cDictionary = dictionary.ToDictionary();
+        var replaceDictionary = dictionary.Reverse().ToDictionary();
 
-        var existPair = cDictionary.Random();
+        var triggerCount = 0;
+        var oldPair = default(KeyValuePair<int, string>);
+        var newPair = default(KeyValuePair<int, string>);
+
         dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
-        try
+        foreach (var pair in dictionary.Keys.Zip(replaceDictionary.Values))
         {
-            cDictionary.Add(existPair.Key, existPair.Value);
-            Assert.Fail();
+            oldPair = cDictionary.GetPair(pair.Item1)!;
+            newPair = KeyValuePair.Create(pair);
+            cDictionary[newPair.Key] = newPair.Value;
+            dictionary[newPair.Key] = newPair.Value;
+            Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
-        catch { }
-
-        try
-        {
-            dictionary.Add(existPair.Key, existPair.Value);
-            Assert.Fail();
-        }
-        catch { }
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
-        dictionary.Clear();
+
+        Assert.HasCount(triggerCount, dictionary);
+        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
 
         void Dictionary_DictionaryChanged(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
+            IObservableDictionary<int, string> sender,
+            NotifyDictionaryChangeEventArgs<int, string> e
         )
         {
-            Assert.Fail();
-        }
-    }
-
-    public static void DictionaryChangedOnTryAdd<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary,
-        KeyValuePair<TKey, TValue> newPair
-    )
-        where TKey : notnull
-    {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
-
-        var triggered = false;
-        dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
-        Assert.IsTrue(cDictionary.TryAdd(newPair.Key, newPair.Value));
-        Assert.IsTrue(dictionary.TryAdd(newPair.Key, newPair.Value));
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
-        Assert.IsTrue(triggered);
-        dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
-        dictionary.Clear();
-
-        void Dictionary_DictionaryChanged(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
-        )
-        {
-            triggered = true;
-            Assert.AreEqual(DictionaryChangeAction.Add, e.Action);
-            Assert.IsTrue(e.NewPair?.ContentEquals(newPair));
-            Assert.IsNull(e.OldPair);
+            triggerCount++;
+            Assert.AreEqual(DictionaryChangeAction.Replace, e.Action);
+            Assert.AreEqual(newPair, e.NewPair);
+            Assert.AreEqual(oldPair, e.OldPair);
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
 
-    public static void DictionaryChangedOnTryAddFalse<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary
-    )
-        where TKey : notnull
+    [TestMethod]
+    public void ChangedOnRemove()
     {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
+        var dictionary = _createDictionary();
+        var cDictionary = dictionary.ToDictionary();
+        var removeDictionary = dictionary.ToDictionary();
 
-        var existPair = cDictionary.Random();
+        var triggerCount = 0;
+        var removePair = default(KeyValuePair<int, string>);
+
         dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
-        Assert.IsTrue(cDictionary.TryAdd(existPair.Key, existPair.Value) is false);
-        Assert.IsTrue(dictionary.TryAdd(existPair.Key, existPair.Value) is false);
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
-        dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
-        dictionary.Clear();
-
-        void Dictionary_DictionaryChanged(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
-        )
+        foreach (var pair in removeDictionary)
         {
-            Assert.Fail();
+            removePair = pair;
+            Assert.AreEqual(
+                true,
+                [cDictionary.Remove(removePair.Key), dictionary.Remove(removePair.Key)]
+            );
+            Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
-    }
-
-    public static void DictionaryChangedOnRemove<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary
-    )
-        where TKey : notnull
-    {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
-
-        var triggered = false;
-        var removePair = cDictionary.Random();
-        dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
-        Assert.IsTrue(cDictionary.Remove(removePair.Key));
-        Assert.IsTrue(dictionary.Remove(removePair.Key));
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
-        Assert.IsTrue(triggered);
         dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
-        dictionary.Clear();
+
+        Assert.HasCount(triggerCount, removeDictionary);
+        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
 
         void Dictionary_DictionaryChanged(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
+            IObservableDictionary<int, string> sender,
+            NotifyDictionaryChangeEventArgs<int, string> e
         )
         {
-            triggered = true;
+            triggerCount++;
             Assert.AreEqual(DictionaryChangeAction.Remove, e.Action);
             Assert.IsNull(e.NewPair);
-            Assert.IsTrue(e.OldPair?.ContentEquals(removePair));
+            Assert.AreEqual(removePair, e.OldPair);
             Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
         }
     }
 
-    public static void DictionaryChangedOnRemoveFalse<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary,
-        KeyValuePair<TKey, TValue> newPair
-    )
-        where TKey : notnull
+    [TestMethod]
+    public void ChangedOnRemoveFail()
     {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
+        var dictionary = _createDictionary();
+        var cDictionary = dictionary.ToDictionary();
 
         dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
-        Assert.IsTrue(cDictionary.Remove(newPair.Key) is false);
-        Assert.IsTrue(dictionary.Remove(newPair.Key) is false);
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
+        foreach (var pair in _newItems)
+        {
+            Assert.AreEqual(false, [cDictionary.Remove(pair.Key), dictionary.Remove(pair.Key)]);
+            Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
+        }
         dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
-        dictionary.Clear();
 
         void Dictionary_DictionaryChanged(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
+            IObservableDictionary<int, string> sender,
+            NotifyDictionaryChangeEventArgs<int, string> e
         )
         {
             Assert.Fail();
         }
     }
 
-    public static void DictionaryChangedOnClear<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary
-    )
-        where TKey : notnull
+    [TestMethod]
+    public void ChangedOnClear()
     {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
+        var dictionary = _createDictionary();
+        var cDictionary = dictionary.ToDictionary();
 
-        var triggered = false;
+        var triggerCount = 0;
+
         dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
         cDictionary.Clear();
         dictionary.Clear();
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
-        Assert.IsTrue(triggered);
         dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
-        dictionary.Clear();
+
+        Assert.AreEqual(1, triggerCount);
+        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
 
         void Dictionary_DictionaryChanged(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
+            IObservableDictionary<int, string> sender,
+            NotifyDictionaryChangeEventArgs<int, string> e
         )
         {
-            triggered = true;
+            triggerCount++;
             Assert.AreEqual(DictionaryChangeAction.Clear, e.Action);
             Assert.IsNull(e.NewPair);
             Assert.IsNull(e.OldPair);
@@ -630,39 +494,5 @@ public class ObservableDictionaryTests
         }
     }
 
-    public static void DictionaryChangedOnReplace<TKey, TValue>(
-        IObservableDictionary<TKey, TValue> dictionary,
-        IDictionary<TKey, TValue> comparisonDictionary,
-        TValue newValue
-    )
-        where TKey : notnull
-    {
-        dictionary.Clear();
-        var cDictionary = comparisonDictionary.ToDictionary();
-        dictionary.AddRange(cDictionary);
-
-        var triggered = false;
-        var oldPair = cDictionary.Random();
-        dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
-        cDictionary[oldPair.Key] = newValue;
-        dictionary[oldPair.Key] = newValue;
-
-        Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
-        Assert.IsTrue(triggered);
-        dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
-        dictionary.Clear();
-
-        void Dictionary_DictionaryChanged(
-            IObservableDictionary<TKey, TValue> sender,
-            NotifyDictionaryChangeEventArgs<TKey, TValue> e
-        )
-        {
-            triggered = true;
-            Assert.AreEqual(DictionaryChangeAction.Replace, e.Action);
-            Assert.IsTrue(e.NewPair?.ContentEquals(oldPair.Key, newValue));
-            Assert.IsTrue(e.OldPair?.ContentEquals(oldPair));
-            Assert.IsTrue(dictionary.SequenceEqual(cDictionary));
-        }
-    }
     #endregion
 }

@@ -18,8 +18,7 @@ public class ObservableCyclicEnumeratorTests
         var firstProperty = true;
         cyclicEnumerator.PropertyChanged += (s, e) =>
         {
-            if (s is not ObservableCyclicEnumerator<int>)
-                Assert.Fail();
+            Assert.AreEqual(cyclicEnumerator, s);
             if (firstProperty)
             {
                 Assert.AreEqual(nameof(ObservableCyclicEnumerator<int>.Current), e.PropertyName);
@@ -67,13 +66,10 @@ public class ObservableCyclicEnumeratorTests
         }
 
         list.Add(0);
-
-        try
+        Assert.Throws<InvalidOperationException>(() =>
         {
             cyclicEnumerator.MoveNext();
-            Assert.Fail();
-        }
-        catch { }
+        });
     }
 
     [TestMethod]
@@ -84,8 +80,7 @@ public class ObservableCyclicEnumeratorTests
         var firstProperty = true;
         cyclicEnumerator.PropertyChanged += (s, e) =>
         {
-            if (s is not ObservableCyclicEnumerator<int>)
-                Assert.Fail();
+            Assert.AreEqual(cyclicEnumerator, s);
             if (firstProperty)
             {
                 Assert.AreEqual(nameof(ObservableCyclicEnumerator<int>.Current), e.PropertyName);
@@ -103,7 +98,7 @@ public class ObservableCyclicEnumeratorTests
         foreach (var p in dictionary)
         {
             cyclicEnumerator.MoveNext();
-            Assert.IsTrue(p.ContentEquals(cyclicEnumerator.Current));
+            Assert.AreEqual(p, cyclicEnumerator.Current);
         }
         Assert.IsFalse(cyclicEnumerator.MoveNext());
 
@@ -112,7 +107,7 @@ public class ObservableCyclicEnumeratorTests
         foreach (var p in dictionary)
         {
             cyclicEnumerator.MoveNext();
-            Assert.IsTrue(p.ContentEquals(cyclicEnumerator.Current));
+            Assert.AreEqual(p, cyclicEnumerator.Current);
         }
         Assert.IsFalse(cyclicEnumerator.MoveNext());
 
@@ -120,21 +115,19 @@ public class ObservableCyclicEnumeratorTests
         foreach (var p in dictionary)
         {
             cyclicEnumerator.MoveNext();
-            Assert.IsTrue(p.ContentEquals(cyclicEnumerator.Current));
+            Assert.AreEqual(p, cyclicEnumerator.Current);
         }
         foreach (var p in dictionary)
         {
             cyclicEnumerator.MoveNext();
-            Assert.IsTrue(p.ContentEquals(cyclicEnumerator.Current));
+            Assert.AreEqual(p, cyclicEnumerator.Current);
         }
 
         dictionary.Add(0, 0);
-        try
+        Assert.Throws<InvalidOperationException>(() =>
         {
             cyclicEnumerator.MoveNext();
-            Assert.Fail();
-        }
-        catch { }
+        });
     }
 
     [TestMethod]
@@ -145,8 +138,7 @@ public class ObservableCyclicEnumeratorTests
         var firstProperty = true;
         cyclicEnumerator.PropertyChanged += (s, e) =>
         {
-            if (s is not ObservableCyclicEnumerator<KeyValuePair<int, int>>)
-                Assert.Fail();
+            Assert.AreEqual(cyclicEnumerator, s);
             if (firstProperty)
             {
                 Assert.AreEqual(nameof(ObservableCyclicEnumerator<int>.Current), e.PropertyName);
@@ -190,12 +182,10 @@ public class ObservableCyclicEnumeratorTests
         }
 
         set.Add(0);
-        try
+        Assert.Throws<InvalidOperationException>(() =>
         {
             cyclicEnumerator.MoveNext();
-            Assert.Fail();
-        }
-        catch { }
+        });
     }
 }
 #pragma warning restore S108

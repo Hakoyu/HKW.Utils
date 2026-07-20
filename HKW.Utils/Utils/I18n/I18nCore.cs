@@ -183,6 +183,7 @@ public class I18nCore
     {
         foreach (var pair in I18nResources)
             pair.Value.I18nCore = null;
+        I18nResources.Clear();
     }
 
     /// <summary>

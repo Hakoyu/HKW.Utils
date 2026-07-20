@@ -1,232 +1,149 @@
-﻿using System.Collections;
+﻿using System.Collections.Specialized;
 using System.Diagnostics;
 using HKW.HKWReactiveUI;
+using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.DebugViews;
-using HKW.HKWUtils.Extensions;
+using ReactiveUI;
 
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可观测可选中列表包装器
+/// 可观测可选择集合包装器
 /// </summary>
-/// <typeparam name="TItem">项类型</typeparam>
-/// <typeparam name="TList">列表</typeparam>
-[DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
+/// <typeparam name="TItem">项目类型</typeparam>
+/// <typeparam name="TList">集合类型</typeparam>
+[DebuggerDisplay("Count = {SourceList.Count}")]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public partial class ObservableSelectableListWrapper<TItem, TList>
-    : ReactiveObjectX,
-        IList<TItem>,
-        IList,
-        IListWrapper<TItem, TList>
-    where TList : IList<TItem>
+    : ReactiveObject,
+        IListWrapper<TItem, TList>,
+        IDisposable
+    where TList : IList<TItem>, INotifyCollectionChanged
 {
     /// <inheritdoc/>
-    /// <param name="list">列表</param>
+    /// <param name="list">集合</param>
     public ObservableSelectableListWrapper(TList list)
     {
         SourceList = list;
+        list.CollectionChanged += Collection_CollectionChanged;
     }
 
-    /// <inheritdoc/>
-    /// <param name="list">列表</param>
-    /// <param name="seletedIndex">选中项索引</param>
-    public ObservableSelectableListWrapper(TList list, int seletedIndex)
-        : this(list)
+    private void Collection_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        SelectedIndex = seletedIndex;
-    }
+        if (HasSelection is false)
+            return;
 
-    /// <inheritdoc/>
-    /// <param name="list"></param>
-    /// <param name="seletedItem">选中项</param>
-    public ObservableSelectableListWrapper(TList list, TItem seletedItem)
-        : this(list)
-    {
-        SelectedItem = seletedItem;
+        if (e.Action is NotifyCollectionChangedAction.Add)
+        {
+            if (e.NewStartingIndex < SelectedIndex)
+            {
+                SelectedIndex += 1;
+            }
+        }
+        else if (e.Action is NotifyCollectionChangedAction.Replace)
+        {
+            if (
+                e.OldItems?[0] is TItem item
+                && EqualityComparer<TItem>.Default.Equals(SelectedItem, item)
+            )
+            {
+                SelectedItem = (TItem)e.NewItems?[0]!;
+            }
+        }
+        else if (e.Action is NotifyCollectionChangedAction.Remove)
+        {
+            if (e.OldItems?.Contains(SelectedItem) is true)
+            {
+                SelectedItem = default!;
+                SelectedIndex = -1;
+            }
+        }
+        else if (e.Action is NotifyCollectionChangedAction.Reset)
+        {
+            SelectedItem = default!;
+            SelectedIndex = -1;
+        }
     }
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private bool _changing = false;
 
     /// <inheritdoc/>
     public TList SourceList { get; }
 
+    TList ICollectionWrapper<TItem, TList>.SourceCollection => SourceList;
+
+    /// <summary>
+    /// 已选中
+    /// </summary>
+    public bool HasSelection => SelectedIndex >= 0 && SelectedIndex < SourceList.Count;
+
+    private int _selectedIndex = -1;
+
     /// <summary>
     /// 选中的索引
     /// </summary>
-    [ReactiveProperty]
-    public int SelectedIndex { get; set; } = -1;
-
-    partial void OnSelectedIndexChanged(int oldValue, int newValue)
+    public int SelectedIndex
     {
-        if (_changing)
-            return;
-        _changing = true;
-        if (SourceList.IsValidIndex(newValue))
-            SelectedItem = SourceList[newValue];
-        else
-            SelectedItem = default;
-        _changing = false;
+        get => _selectedIndex;
+        set
+        {
+            if (_selectedIndex == value)
+                return;
+            this.RaisePropertyChanging(nameof(SelectedItem));
+            this.RaisePropertyChanging(nameof(SelectedIndex));
+            _selectedIndex = value;
+            _selectedItem = SourceList[value];
+            this.RaisePropertyChanged(nameof(SelectedItem));
+            this.RaisePropertyChanged(nameof(SelectedIndex));
+            this.RaisePropertyChanged(nameof(HasSelection));
+        }
     }
+
+    private TItem _selectedItem = default!;
 
     /// <summary>
     /// 选中的项目
     /// </summary>
-    [ReactiveProperty]
-    public TItem? SelectedItem { get; set; }
-
-    partial void OnSelectedItemChanged(TItem? oldValue, TItem? newValue)
+    public TItem SelectedItem
     {
-        if (_changing)
+        get => _selectedItem;
+        set
+        {
+            if (EqualityComparer<TItem>.Default.Equals(_selectedItem, value))
+                return;
+            this.RaisePropertyChanging(nameof(SelectedItem));
+            this.RaisePropertyChanging(nameof(SelectedIndex));
+            _selectedItem = value;
+            _selectedIndex = SourceList.IndexOf(value);
+            this.RaisePropertyChanged(nameof(SelectedItem));
+            this.RaisePropertyChanged(nameof(SelectedIndex));
+            this.RaisePropertyChanged(nameof(HasSelection));
+        }
+    }
+
+    #region Dispose
+    private bool _disposed;
+
+    /// <inheritdoc/>
+    ~ObservableSelectableListWrapper() => Dispose(false);
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <inheritdoc/>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
             return;
-        _changing = true;
-        SelectedIndex = SourceList.IndexOf(newValue!);
-        _changing = false;
-    }
-
-    #region IListT
-    /// <inheritdoc/>
-    public TItem this[int index]
-    {
-        get => ((IList<TItem>)SourceList)[index];
-        set
+        if (disposing)
         {
-            ((IList<TItem>)SourceList)[index] = value;
-            if (index == SelectedIndex)
-                SelectedItem = value;
+            SelectedIndex = -1;
+            SelectedItem = default!;
+            SourceList.CollectionChanged -= Collection_CollectionChanged;
         }
-    }
-
-    /// <inheritdoc/>
-    public int Count => ((ICollection<TItem>)SourceList).Count;
-
-    /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<TItem>)SourceList).IsReadOnly;
-
-    /// <inheritdoc/>
-    public void Add(TItem item)
-    {
-        ((ICollection<TItem>)SourceList).Add(item);
-    }
-
-    /// <inheritdoc/>
-    public void Clear()
-    {
-        ((ICollection<TItem>)SourceList).Clear();
-        SelectedIndex = -1;
-    }
-
-    /// <inheritdoc/>
-    public bool Contains(TItem item)
-    {
-        return ((ICollection<TItem>)SourceList).Contains(item);
-    }
-
-    /// <inheritdoc/>
-    public void CopyTo(TItem[] array, int arrayIndex)
-    {
-        ((ICollection<TItem>)SourceList).CopyTo(array, arrayIndex);
-    }
-
-    /// <inheritdoc/>
-    public IEnumerator<TItem> GetEnumerator()
-    {
-        return ((IEnumerable<TItem>)SourceList).GetEnumerator();
-    }
-
-    /// <inheritdoc/>
-    public int IndexOf(TItem item)
-    {
-        return ((IList<TItem>)SourceList).IndexOf(item);
-    }
-
-    /// <inheritdoc/>
-    public void Insert(int index, TItem item)
-    {
-        ((IList<TItem>)SourceList).Insert(index, item);
-        if (index <= SelectedIndex)
-            SelectedIndex += 1;
-    }
-
-    /// <inheritdoc/>
-    public bool Remove(TItem item)
-    {
-        var result = SourceList.Remove(item, out var index);
-        if (SelectedIndex == index)
-            SelectedIndex = -1;
-        if (SelectedIndex > index)
-            SelectedIndex -= 1;
-
-        return result;
-    }
-
-    /// <inheritdoc/>
-    public void RemoveAt(int index)
-    {
-        ((IList<TItem>)SourceList).RemoveAt(index);
-        if (SelectedIndex == index)
-            SelectedIndex = -1;
-        if (SelectedIndex > index)
-            SelectedIndex -= 1;
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return ((IEnumerable)SourceList).GetEnumerator();
-    }
-
-    #endregion
-
-    #region IList
-
-    object? IList.this[int index]
-    {
-        get => SourceList[index];
-        set
-        {
-            SourceList[index] = (TItem)value!;
-            if (index == SelectedIndex)
-                SelectedItem = (TItem)value!;
-        }
-    }
-    bool IList.IsFixedSize => ((IList)SourceList).IsFixedSize;
-
-    bool ICollection.IsSynchronized => ((IList)SourceList).IsSynchronized;
-
-    object ICollection.SyncRoot => ((IList)SourceList).SyncRoot;
-
-    int IList.Add(object? value)
-    {
-        return ((IList)SourceList).Add(value);
-    }
-
-    bool IList.Contains(object? value)
-    {
-        return ((IList)SourceList).Contains(value);
-    }
-
-    void ICollection.CopyTo(Array array, int index)
-    {
-        ((IList)SourceList).CopyTo(array, index);
-    }
-
-    int IList.IndexOf(object? value)
-    {
-        return ((IList)SourceList).IndexOf(value);
-    }
-
-    void IList.Insert(int index, object? value)
-    {
-        ((IList)SourceList).Insert(index, value);
-        if (index <= SelectedIndex)
-            SelectedIndex += 1;
-    }
-
-    void IList.Remove(object? value)
-    {
-        SourceList.Remove((TItem)value!, out var index);
-        if (SelectedIndex == index)
-            SelectedIndex = -1;
+        _disposed = true;
     }
     #endregion
 }

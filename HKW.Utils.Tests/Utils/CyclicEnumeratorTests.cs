@@ -49,13 +49,10 @@ public class CyclicEnumeratorTests
         }
 
         list.Add(0);
-
-        try
+        Assert.Throws<InvalidOperationException>(() =>
         {
             cyclicEnumerator.MoveNext();
-            Assert.Fail();
-        }
-        catch { }
+        });
     }
 
     [TestMethod]
@@ -67,7 +64,7 @@ public class CyclicEnumeratorTests
         foreach (var p in dictionary)
         {
             cyclicEnumerator.MoveNext();
-            Assert.IsTrue(p.ContentEquals(cyclicEnumerator.Current));
+            Assert.AreEqual(p, cyclicEnumerator.Current);
         }
         Assert.IsFalse(cyclicEnumerator.MoveNext());
 
@@ -76,7 +73,7 @@ public class CyclicEnumeratorTests
         foreach (var p in dictionary)
         {
             cyclicEnumerator.MoveNext();
-            Assert.IsTrue(p.ContentEquals(cyclicEnumerator.Current));
+            Assert.AreEqual(p, cyclicEnumerator.Current);
         }
         Assert.IsFalse(cyclicEnumerator.MoveNext());
 
@@ -84,21 +81,19 @@ public class CyclicEnumeratorTests
         foreach (var p in dictionary)
         {
             cyclicEnumerator.MoveNext();
-            Assert.IsTrue(p.ContentEquals(cyclicEnumerator.Current));
+            Assert.AreEqual(p, cyclicEnumerator.Current);
         }
         foreach (var p in dictionary)
         {
             cyclicEnumerator.MoveNext();
-            Assert.IsTrue(p.ContentEquals(cyclicEnumerator.Current));
+            Assert.AreEqual(p, cyclicEnumerator.Current);
         }
 
         dictionary.Add(0, 0);
-        try
+        Assert.Throws<InvalidOperationException>(() =>
         {
             cyclicEnumerator.MoveNext();
-            Assert.Fail();
-        }
-        catch { }
+        });
     }
 
     [TestMethod]
@@ -136,12 +131,10 @@ public class CyclicEnumeratorTests
         }
 
         set.Add(0);
-        try
+        Assert.Throws<InvalidOperationException>(() =>
         {
             cyclicEnumerator.MoveNext();
-            Assert.Fail();
-        }
-        catch { }
+        });
     }
 }
 #pragma warning restore S108

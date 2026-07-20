@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Exceptions;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -13,7 +14,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TItem">项类型</typeparam>
 /// <typeparam name="TList">列表类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public class ObservableListWrapper<TItem, TList>
     : IObservableList<TItem>,
         IReadOnlyObservableList<TItem>,
@@ -29,6 +30,7 @@ public class ObservableListWrapper<TItem, TList>
 
     /// <inheritdoc/>
     public TList SourceList { get; }
+    TList ICollectionWrapper<TItem, TList>.SourceCollection => SourceList;
 
     #region IListT
 
@@ -36,7 +38,7 @@ public class ObservableListWrapper<TItem, TList>
     public int Count => SourceList.Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<TItem>)SourceList).IsReadOnly;
+    public bool IsReadOnly => SourceList.IsReadOnly;
 
     #region Change
 
@@ -48,24 +50,6 @@ public class ObservableListWrapper<TItem, TList>
         {
             var oldValue = SourceList[index];
             if (EqualityComparer<TItem>.Default.Equals(oldValue, value) is true)
-                return;
-            OnListReplacing(value, oldValue, index);
-            SourceList[index] = value;
-            OnListReplaced(value, oldValue, index);
-        }
-    }
-
-    /// <inheritdoc/>
-    public TItem this[int index, bool skipCheck]
-    {
-        get => SourceList[index];
-        set
-        {
-            var oldValue = SourceList[index];
-            if (
-                skipCheck is false
-                && EqualityComparer<TItem>.Default.Equals(oldValue, value) is true
-            )
                 return;
             OnListReplacing(value, oldValue, index);
             SourceList[index] = value;
@@ -90,8 +74,7 @@ public class ObservableListWrapper<TItem, TList>
     /// <inheritdoc/>
     public void Insert(int index, TItem item)
     {
-        if (index < 0 || index > SourceList.Count)
-            SourceList.Insert(index, item);
+        ArgumentOutOfRangeException.ThrowIfOutOfRangeMaxExclusive(index, 0, Count);
         OnListAdding(item, index);
         SourceList.Insert(index, item);
         OnListAdded(item, index);
@@ -170,7 +153,7 @@ public class ObservableListWrapper<TItem, TList>
         set
         {
             var oldValue = SourceList[index];
-            if (oldValue?.Equals(value) is true)
+            if (EqualityComparer<TItem>.Default.Equals((TItem)oldValue, (TItem)value!))
                 return;
             OnListReplacing((TItem)value!, oldValue, index);
             SourceList[index] = (TItem)value!;
@@ -255,7 +238,7 @@ public class ObservableListWrapper<TItem, TList>
     /// </summary>
     /// <param name="newItem">新项目</param>
     /// <param name="oldItem">旧项目</param>
-    /// <param name="index"></param>
+    /// <param name="index">索引</param>
     protected virtual void OnListReplacing(TItem newItem, TItem oldItem, int index)
     {
         if (ListChanging is not null)
@@ -266,7 +249,6 @@ public class ObservableListWrapper<TItem, TList>
     /// 列表改变前
     /// </summary>
     /// <param name="args">参数</param>
-    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     protected virtual void OnListChanging(NotifyListChangeEventArgs<TItem> args)
     {
         ListChangeEventArgs = args;
@@ -353,6 +335,7 @@ public class ObservableListWrapper<TItem, TList>
                     index
                 )
             );
+        OnCountChanged();
     }
 
     /// <summary>
@@ -400,10 +383,10 @@ public class ObservableListWrapper<TItem, TList>
     /// <summary>
     /// 属性改变后
     /// </summary>
-    /// <param name="name">参数</param>
-    protected virtual void OnPropertyChanged(string name)
+    /// <param name="propertyName">属性名</param>
+    protected virtual void OnPropertyChanged(string propertyName)
     {
-        PropertyChanged?.Invoke(this, new(name));
+        PropertyChanged?.Invoke(this, new(propertyName));
     }
 
     /// <inheritdoc/>

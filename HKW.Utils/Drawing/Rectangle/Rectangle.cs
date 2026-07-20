@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Numerics;
 using HKW.HKWUtils.Extensions;
 
@@ -7,45 +8,25 @@ namespace HKW.HKWUtils.Drawing;
 /// <summary>
 /// 矩形
 /// </summary>
-/// <typeparam name="T">数据类型</typeparam>
-[DebuggerDisplay("({X}, {Y}, {Width}, {Height})")]
+/// <typeparam name="T">数值类型</typeparam>
 public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
     where T : struct, INumber<T>
 {
     /// <summary>
     /// 空
     /// </summary>
-    public static Rectangle<T> Empty { get; } = new(default, default, default, default);
+    public static readonly Rectangle<T> Empty;
 
     /// <inheritdoc/>
     /// <param name="rectangle">矩形</param>
     public Rectangle(IReadOnlyRectangle<T> rectangle)
-    {
-        Width = rectangle.Width;
-        Height = rectangle.Height;
-        X = rectangle.X;
-        Y = rectangle.Y;
-    }
+        : this(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height) { }
 
     /// <inheritdoc/>
     /// <param name="size">大小</param>
     /// <param name="point">位置</param>
     public Rectangle(IReadOnlyPoint<T> point, IReadOnlySize<T> size)
-    {
-        Width = size.Width;
-        Height = size.Height;
-        X = point.X;
-        Y = point.Y;
-    }
-
-    /// <inheritdoc/>
-    /// <param name="width">宽</param>
-    /// <param name="height">高</param>
-    public Rectangle(T width, T height)
-    {
-        Width = width;
-        Height = height;
-    }
+        : this(point.X, point.Y, size.Width, size.Height) { }
 
     /// <inheritdoc/>
     /// <param name="x">X坐标</param>
@@ -60,98 +41,20 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
         Height = height;
     }
 
-    /// <inheritdoc/>
-    /// <param name="data">数据</param>
-    /// <param name="separator">分割符</param>
-    public Rectangle(string data, char separator = ',')
-    {
-        var span = data.AsSpan();
-        var datas = span.Split(separator);
-        datas.MoveNext();
-        X = T.Parse(span[datas.Current], null);
-        datas.MoveNext();
-        Y = T.Parse(span[datas.Current], null);
-        datas.MoveNext();
-        Width = T.Parse(span[datas.Current], null);
-        datas.MoveNext();
-        Height = T.Parse(span[datas.Current], null);
-    }
-
     #region Size
-
-    #region Width
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private T _width;
+    /// <inheritdoc/>
+    public T Width { readonly get; set; }
 
     /// <inheritdoc/>
-    public T Width
-    {
-        readonly get => _width;
-        set
-        {
-            _width = value;
-            Right = unchecked(X + Width);
-        }
-    }
-    #endregion
-
-    #region Height
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private T _height;
-
-    /// <inheritdoc/>
-    public T Height
-    {
-        readonly get => _height;
-        set
-        {
-            _height = value;
-            Bottom = unchecked(Y + Height);
-        }
-    }
-    #endregion
+    public T Height { readonly get; set; }
     #endregion
 
     #region Location
-
-    #region X
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private T _x;
+    /// <inheritdoc/>
+    public T X { readonly get; set; }
 
     /// <inheritdoc/>
-    public T X
-    {
-        readonly get => _x;
-        set
-        {
-            _x = value;
-            Right = unchecked(X + Width);
-            LeftTop = new(Left, Top);
-            LeftBottom = new(Left, Bottom);
-            RightBottom = new(Right, Bottom);
-        }
-    }
-    #endregion
-
-    #region Y
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private T _y;
-
-    /// <inheritdoc/>
-    public T Y
-    {
-        readonly get => _y;
-        set
-        {
-            _y = value;
-            Bottom = unchecked(Y + Height);
-            LeftTop = new(Left, Top);
-            RightTop = new(Right, Top);
-            RightBottom = new(Right, Bottom);
-        }
-    }
-    #endregion
-
+    public T Y { readonly get; set; }
     #endregion
 
     /// <inheritdoc/>
@@ -161,22 +64,29 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
     public T Top => Y;
 
     /// <inheritdoc/>
-    public T Right { readonly get; private set; }
+    public T Right => unchecked(X + Width);
 
     /// <inheritdoc/>
-    public T Bottom { readonly get; private set; }
+    public T Bottom => unchecked(Y + Height);
 
     /// <inheritdoc/>
-    public Point<T> LeftTop { readonly get; private set; }
+    public Point<T> LeftTop => new(Left, Top);
 
     /// <inheritdoc/>
-    public Point<T> RightTop { readonly get; private set; }
+    public Point<T> RightTop => new(Right, Top);
 
     /// <inheritdoc/>
-    public Point<T> LeftBottom { readonly get; private set; }
+    public Point<T> LeftBottom => new(Left, Bottom);
 
     /// <inheritdoc/>
-    public Point<T> RightBottom { readonly get; private set; }
+    public Point<T> RightBottom => new(Right, Bottom);
+
+    /// <summary>
+    /// 是空的
+    /// </summary>
+    [Browsable(false)]
+    public readonly bool IsEmpty =>
+        X == T.Zero && Y == T.Zero && Width == T.Zero && Height == T.Zero;
 
     #region Equals
 
@@ -200,21 +110,37 @@ public struct Rectangle<T> : IEquatable<IReadOnlyRectangle<T>>, IRectangle<T>
         return X == other.X && Y == other.Y && Width == other.Width && Height == other.Height;
     }
 
-    /// <inheritdoc/>
-    public static bool operator ==(Rectangle<T> a, IReadOnlyRectangle<T> b)
-    {
-        return a.Equals(b);
-    }
-
-    /// <inheritdoc/>
-    public static bool operator !=(Rectangle<T> a, IReadOnlyRectangle<T> b)
-    {
-        return a.Equals(b) is not true;
-    }
     #endregion
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{{X = {X}, Y = {Y}, Width = {Width}, Height = {Height}}}";
+        return $"{{X={X},Y={Y},Width={Width},Height={Height}}}";
+    }
+
+    /// <summary>
+    /// 解析字符串数创建矩形
+    /// </summary>
+    /// <param name="span">数据</param>
+    /// <param name="separator">分割符</param>
+    /// <returns>创建的矩形</returns>
+    /// <remarks><![CDATA[
+    /// Parse("123,456,777,888",',')
+    /// return:
+    /// {X=123,Y=456,Width=777,Height=888}
+    /// ]]></remarks>
+    /// <exception cref="Exception">数据 <paramref name="span"/> 解析错误</exception>
+    public static Rectangle<T> Parse(ReadOnlySpan<char> span, char separator = ',')
+    {
+        var rect = new Rectangle<T>();
+        var datas = span.Split(separator);
+        datas.MoveNext();
+        rect.X = T.Parse(span[datas.Current], null);
+        datas.MoveNext();
+        rect.Y = T.Parse(span[datas.Current], null);
+        datas.MoveNext();
+        rect.Width = T.Parse(span[datas.Current], null);
+        datas.MoveNext();
+        rect.Height = T.Parse(span[datas.Current], null);
+        return rect;
     }
 }

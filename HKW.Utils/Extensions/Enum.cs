@@ -1,14 +1,30 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace HKW.HKWUtils.Extensions;
 
-public static partial class HKWExtensions
+/// <summary>
+///
+/// </summary>
+public static class EnumExtensions
 {
     /// <typeparam name="TEnum">枚举类型</typeparam>
     /// <param name="value">枚举值</param>
     extension<TEnum>(TEnum value)
         where TEnum : struct, Enum
     {
+        /// <inheritdoc/>
+        public static bool operator ==(TEnum a, TEnum b)
+        {
+            return EqualityComparer<TEnum>.Default.Equals(a, b);
+        }
+
+        /// <inheritdoc/>
+        public static bool operator !=(TEnum a, TEnum b)
+        {
+            return !(a == b);
+        }
+
         /// <summary>
         /// 添加标签
         /// </summary>
@@ -21,7 +37,7 @@ public static partial class HKWExtensions
                 NumberUtils.BitwiseOperatorF(
                     value,
                     flag,
-                    EnumInfo<TEnum>.UnderlyingType,
+                    EnumInfo<TEnum>.StaticUnderlyingType,
                     BitwiseOperatorType.Or
                 );
         }
@@ -34,7 +50,7 @@ public static partial class HKWExtensions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TEnum RemoveFlag(TEnum flag)
         {
-            var type = EnumInfo<TEnum>.UnderlyingType;
+            var type = EnumInfo<TEnum>.StaticUnderlyingType;
             return (TEnum)
                 NumberUtils.BitwiseOperatorF(
                     value,
@@ -51,7 +67,7 @@ public static partial class HKWExtensions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EnumInfo<TEnum> GetInfo()
         {
-            return EnumInfo<TEnum>.GetInfo(value);
+            return EnumInfo<TEnum>.Create(value);
         }
 
         /// <summary>

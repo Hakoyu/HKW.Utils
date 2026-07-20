@@ -20,24 +20,24 @@ public class NotifySetChangeEventArgs<T> : EventArgs
     /// <summary>
     /// 新项目
     /// </summary>
-    public IList<T>? NewItems { get; }
+    public ICollection<T>? NewItems { get; }
 
     /// <summary>
     /// 旧项目
     /// </summary>
-    public IList<T>? OldItems { get; }
+    public ICollection<T>? OldItems { get; }
 
     /// <summary>
     /// 集合操作项
     /// <para>
     /// 仅用于:
-    /// <see cref="SetChangeAction.Intersect"/>
-    /// <see cref="SetChangeAction.Except"/>
-    /// <see cref="SetChangeAction.SymmetricExcept"/>
+    /// <see cref="SetChangeAction.Intersect"/>,
+    /// <see cref="SetChangeAction.Except"/>,
+    /// <see cref="SetChangeAction.SymmetricExcept"/>,
     /// <see cref="SetChangeAction.Union"/>
     /// </para>
     /// </summary>
-    public IList<T>? OtherItems { get; }
+    public ICollection<T>? OtherItems { get; }
 
     #region Ctor
     /// <inheritdoc/>
@@ -93,24 +93,9 @@ public class NotifySetChangeEventArgs<T> : EventArgs
             SetChangeAction.Union
         );
         Action = action;
-        if (otherItems.IsReadOnly)
-            OtherItems = otherItems;
-        else
-            OtherItems = new ReadOnlyList<T>(otherItems);
-
-        if (newItems is null)
-            NewItems = null;
-        else if (newItems.IsReadOnly)
-            NewItems = newItems;
-        else
-            NewItems = new ReadOnlyList<T>(newItems);
-
-        if (oldItems is null)
-            OldItems = null;
-        else if (oldItems.IsReadOnly)
-            OldItems = oldItems;
-        else
-            OldItems = new ReadOnlyList<T>(oldItems);
+        OtherItems = otherItems.IsReadOnly ? otherItems : new ReadOnlyList<T>(otherItems);
+        NewItems = newItems?.IsReadOnly is not false ? newItems : new ReadOnlyList<T>(newItems);
+        OldItems = oldItems?.IsReadOnly is not false ? oldItems : new ReadOnlyList<T>(oldItems);
     }
     #endregion
 }

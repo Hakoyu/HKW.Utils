@@ -1,51 +1,101 @@
-﻿using System.Diagnostics;
+﻿using System.Collections;
+using System.Diagnostics;
 using HKW.HKWUtils.DebugViews;
 
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可观测可选中列表
+/// 可观测可选择集合
 /// </summary>
-/// <typeparam name="T">项类型</typeparam>
+/// <typeparam name="T">项目类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
-public partial class ObservableSelectableList<T> : ObservableSelectableListWrapper<T, List<T>>
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
+public partial class ObservableSelectableList<T>
+    : ObservableSelectableListWrapper<T, ObservableList<T>>,
+        IList<T>
 {
     /// <inheritdoc/>
     public ObservableSelectableList()
-        : base([]) { }
+        : base(new()) { }
 
     /// <inheritdoc/>
-    /// <param name="seletedIndex">选中项索引</param>
-    public ObservableSelectableList(int seletedIndex)
-        : base([])
+    public ObservableSelectableList(int capacity)
+        : base(new(capacity)) { }
+
+    /// <inheritdoc/>
+    /// <param name="collection">集合</param>
+    public ObservableSelectableList(IEnumerable<T> collection)
+        : base(new(collection)) { }
+
+    /// <inheritdoc/>
+    public int Count => SourceList.Count;
+
+    /// <inheritdoc/>
+    public bool IsReadOnly => SourceList.IsReadOnly;
+
+    /// <inheritdoc/>
+    public T this[int index]
     {
-        SelectedIndex = seletedIndex;
+        get => SourceList[index];
+        set => SourceList[index] = value;
     }
 
     /// <inheritdoc/>
-    /// <param name="seletedItem">选中项</param>
-    public ObservableSelectableList(T seletedItem)
-        : base([])
+    public int IndexOf(T item)
     {
-        SelectedItem = seletedItem;
+        return SourceList.IndexOf(item);
     }
 
     /// <inheritdoc/>
-    /// <param name="items">项目</param>
-    /// <param name="seletedIndex">选中项索引</param>
-    public ObservableSelectableList(IEnumerable<T> items, int seletedIndex)
-        : base(items.ToList())
+    public void Insert(int index, T item)
     {
-        SelectedIndex = seletedIndex;
+        SourceList.Insert(index, item);
     }
 
     /// <inheritdoc/>
-    /// <param name="items">项目</param>
-    /// <param name="seletedItem">选中项</param>
-    public ObservableSelectableList(IEnumerable<T> items, T seletedItem)
-        : base(items.ToList())
+    public void RemoveAt(int index)
     {
-        SelectedItem = seletedItem;
+        SourceList.RemoveAt(index);
+    }
+
+    /// <inheritdoc/>
+    public void Add(T item)
+    {
+        SourceList.Add(item);
+    }
+
+    /// <inheritdoc/>
+    public void Clear()
+    {
+        SourceList.Clear();
+    }
+
+    /// <inheritdoc/>
+    public bool Contains(T item)
+    {
+        return SourceList.Contains(item);
+    }
+
+    /// <inheritdoc/>
+    public void CopyTo(T[] array, int arrayIndex)
+    {
+        SourceList.CopyTo(array, arrayIndex);
+    }
+
+    /// <inheritdoc/>
+    public bool Remove(T item)
+    {
+        return SourceList.Remove(item);
+    }
+
+    /// <inheritdoc/>
+    public IEnumerator<T> GetEnumerator()
+    {
+        return SourceList.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return ((IEnumerable)SourceList).GetEnumerator();
     }
 }

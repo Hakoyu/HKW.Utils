@@ -9,7 +9,10 @@ using HKW.HKWUtils.Collections;
 
 namespace HKW.HKWUtils.Extensions;
 
-public static partial class HKWExtensions
+/// <summary>
+///
+/// </summary>
+public static partial class MemberInfoExtensions
 {
     /// <param name="memberInfo">成员信息</param>
     extension(MemberInfo memberInfo)
@@ -30,7 +33,7 @@ public static partial class HKWExtensions
         /// </summary>
         /// <typeparam name="T">特性类型</typeparam>
         /// <param name="inherit">包括继承</param>
-        /// <returns>已定义为 <see langword="true"/>, 否则为 <see langword="false"/></returns>
+        /// <returns>是否已定义</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsDefined<T>(bool inherit = false)
         {

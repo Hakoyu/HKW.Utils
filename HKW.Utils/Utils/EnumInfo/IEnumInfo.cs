@@ -17,14 +17,14 @@ public interface IEnumInfo<TEnum> : IEnumInfo, IEquatable<IEnumInfo<TEnum>>, IEq
     /// 拥有标记
     /// </summary>
     /// <param name="flag">标记</param>
-    /// <returns>有标记为 <see langword="true"/> 没有为 <see langword="false"/></returns>
+    /// <returns>是否有标记</returns>
     public bool HasFlag(TEnum flag);
 
     /// <summary>
     /// 拥有标记
     /// </summary>
     /// <param name="flag">标记</param>
-    /// <returns>有标记为 <see langword="true"/> 没有为 <see langword="false"/></returns>
+    /// <returns>是否有标记</returns>
     public bool HasFlag(IEnumInfo<TEnum> flag);
 
     /// <summary>
@@ -51,6 +51,11 @@ public interface IEnumInfo
     /// 枚举值
     /// </summary>
     public Enum Value { get; }
+
+    /// <summary>
+    /// 枚举是否为 0 占位符
+    /// </summary>
+    public bool IsNone { get; }
 
     /// <summary>
     /// 名称
@@ -85,7 +90,7 @@ public interface IEnumInfo
     /// <summary>
     /// 是可标记的
     /// </summary>
-    public bool IsFlagable { get; }
+    public bool IsFlaggable { get; }
 
     /// <summary>
     /// 全部名称
@@ -111,14 +116,14 @@ public interface IEnumInfo
     /// 拥有标记
     /// </summary>
     /// <param name="flag">标记</param>
-    /// <returns>有标记为 <see langword="true"/> 没有为 <see langword="false"/></returns>
+    /// <returns>是否有标记</returns>
     public bool HasFlag(Enum flag);
 
     /// <summary>
     /// 拥有标记
     /// </summary>
     /// <param name="flag">标记</param>
-    /// <returns>有标记为 <see langword="true"/> 没有为 <see langword="false"/></returns>
+    /// <returns>是否有标记</returns>
     public bool HasFlag(IEnumInfo flag);
 
     /// <summary>

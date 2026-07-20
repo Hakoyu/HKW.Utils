@@ -12,13 +12,13 @@ public interface IObservableDictionary<TKey, TValue>
         INotifyDictionaryChanging<TKey, TValue>
     where TKey : notnull
 {
-    /// <summary>
-    /// 从键获取或设置值
-    /// </summary>
-    /// <param name="key">键</param>
-    /// <param name="skipCheck">跳过检查</param>
-    /// <returns>值</returns>
-    public TValue this[TKey key, bool skipCheck] { get; set; }
+    ///// <summary>
+    ///// 从键获取或设置值
+    ///// </summary>
+    ///// <param name="key">键</param>
+    ///// <param name="skipCheck">跳过检查</param>
+    ///// <returns>值</returns>
+    //public TValue this[TKey key, bool skipCheck] { get; set; }
 
     /// <summary>
     /// 可观测的键集合

@@ -1,29 +1,41 @@
 ﻿using System.Collections;
 using System.Runtime.CompilerServices;
+using HKW.HKWUtils.Exceptions;
 
 namespace HKW.HKWUtils.Extensions;
 
-public static partial class HKWExtensions
+/// <summary>
+///
+/// </summary>
+public static partial class EnumerableExtensions
 {
     extension(IEnumerable source)
     {
         /// <summary>
         /// 枚举出带有索引值的枚举值
         /// </summary>
-        /// <returns>带有索引的枚举值(索引, 枚举值)</returns>
+        /// <returns>带有索引的枚举值(枚举值, 索引)</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IEnumerable<(int Index, object Item)> EnumerateIndex()
+        public IEnumerable<(object Item, int Index)> WithIndex()
         {
-            var index = 0;
-            foreach (var item in source)
-                yield return (index++, item);
+            if (source is IList list)
+            {
+                for (var i = 0; i < list.Count; i++)
+                    yield return (list[i]!, i);
+            }
+            else
+            {
+                var index = 0;
+                foreach (var item in source)
+                    yield return (item, index++);
+            }
         }
 
         /// <summary>
         /// 判断两个集合的值是否全部相等 (无视顺序)
         /// </summary>
         /// <param name="target">集合2</param>
-        /// <returns>相等为 <see langword="true"/> 不相等为 <see langword="false"/></returns>
+        /// <returns>是否相等</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool ItemsEqual(IEnumerable target)
         {
@@ -35,9 +47,11 @@ public static partial class HKWExtensions
         /// </summary>
         /// <param name="second">第二个集合</param>
         /// <param name="comparer">比较器</param>
-        /// <returns>相等为 <see langword="true"/> 不相等为 <see langword="false"/></returns>
+        /// <returns>是否相等</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#pragma warning disable S3776
         public bool SequenceEqual(IEnumerable second, Func<object?, object?, bool> comparer)
+#pragma warning restore S3776
         {
             ArgumentNullException.ThrowIfNull(second);
             ArgumentNullException.ThrowIfNull(comparer);
@@ -67,6 +81,31 @@ public static partial class HKWExtensions
                     return false;
             }
             return e2.MoveNext() is false;
+        }
+    }
+
+    extension(Enumerable)
+    {
+        /// <summary>
+        /// 字符串范围
+        /// </summary>
+        /// <param name="start">开始</param>
+        /// <param name="count">数量</param>
+        /// <returns>范围的字符串枚举</returns>
+        /// <remarks><![CDATA[
+        /// Enumerable.StringRange(1,3);
+        /// return:
+        /// ["1", "2", "3"]
+        /// ]]></remarks>
+        public static IEnumerable<string> StringRange(int start, int count)
+        {
+            long max = (long)start + (long)count - 1;
+            ArgumentOutOfRangeException.ThrowIfLessThan(count, 0);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(max, int.MaxValue);
+
+            var end = start + count;
+            for (var i = start; i < end; i++)
+                yield return i.ToString();
         }
     }
 }

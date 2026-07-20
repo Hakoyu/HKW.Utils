@@ -18,4 +18,9 @@ public interface IReadOnlySize<T>
     /// 高
     /// </summary>
     public T Height { get; }
+
+    /// <summary>
+    /// 是空的
+    /// </summary>
+    public bool IsEmpty { get; }
 }

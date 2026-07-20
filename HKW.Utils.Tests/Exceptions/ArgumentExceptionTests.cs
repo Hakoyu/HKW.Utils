@@ -20,12 +20,10 @@ public class ArgumentExceptionTests
             Assert.Fail();
         }
 
-        try
+        Assert.Throws<ArgumentException>(() =>
         {
             ArgumentException.ThrowIfNotEquals(0, 1);
-            Assert.Fail();
-        }
-        catch { }
+        });
     }
 
     [TestMethod]
@@ -40,12 +38,10 @@ public class ArgumentExceptionTests
             Assert.Fail();
         }
 
-        try
+        Assert.Throws<ArgumentException>(() =>
         {
             ArgumentException.ThrowIfAllNotEquals(0, 1, 2);
-            Assert.Fail();
-        }
-        catch { }
+        });
     }
 
     [TestMethod]
@@ -60,12 +56,10 @@ public class ArgumentExceptionTests
             Assert.Fail();
         }
 
-        try
+        Assert.Throws<ArgumentException>(() =>
         {
             ArgumentException.ThrowIfAllNotEquals(0, 1, 2, 3);
-            Assert.Fail();
-        }
-        catch { }
+        });
     }
 
     [TestMethod]
@@ -80,12 +74,10 @@ public class ArgumentExceptionTests
             Assert.Fail();
         }
 
-        try
+        Assert.Throws<ArgumentException>(() =>
         {
             ArgumentException.ThrowIfAllNotEquals(0, 1, 2, 3, 4);
-            Assert.Fail();
-        }
-        catch { }
+        });
     }
 
     [TestMethod]
@@ -100,12 +92,10 @@ public class ArgumentExceptionTests
             Assert.Fail();
         }
 
-        try
+        Assert.Throws<ArgumentException>(() =>
         {
             ArgumentException.ThrowIfAllNotEquals(0, 1, 2, 3, 4, 5);
-            Assert.Fail();
-        }
-        catch { }
+        });
     }
 
     [TestMethod]
@@ -120,11 +110,9 @@ public class ArgumentExceptionTests
             Assert.Fail();
         }
 
-        try
+        Assert.Throws<ArgumentException>(() =>
         {
             ArgumentException.ThrowIfAllNotEquals(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-            Assert.Fail();
-        }
-        catch { }
+        });
     }
 }

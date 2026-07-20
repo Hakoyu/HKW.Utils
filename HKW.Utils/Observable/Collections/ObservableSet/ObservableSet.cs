@@ -8,37 +8,23 @@ namespace HKW.HKWUtils.Observable;
 /// 可观测集合
 /// </summary>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public class ObservableSet<T> : ObservableSetWrapper<T, OrderedSet<T>>
+    where T : notnull
 {
     /// <inheritdoc/>
     public ObservableSet()
-        : base(new(), EqualityComparer<T>.Default) { }
-
-    /// <inheritdoc/>
-    /// <param name="capacity">容量</param>
-    public ObservableSet(int capacity)
-        : base(new(capacity), EqualityComparer<T>.Default) { }
-
-    /// <inheritdoc/>
-    /// <param name="comparer">比较器</param>
-    public ObservableSet(IEqualityComparer<T> comparer)
-        : base(new(comparer), comparer) { }
-
-    /// <inheritdoc/>
-    /// <param name="collection">集合</param>
-    public ObservableSet(IEnumerable<T> collection)
-        : base(new(collection), EqualityComparer<T>.Default) { }
+        : base(new()) { }
 
     /// <inheritdoc/>
     ///  <param name="collection">集合</param>
     /// <param name="comparer">比较器</param>
-    public ObservableSet(IEnumerable<T> collection, IEqualityComparer<T> comparer)
+    public ObservableSet(IEnumerable<T> collection, IEqualityComparer<T>? comparer = null)
         : base(new(collection, comparer), comparer) { }
 
     /// <inheritdoc/>
     /// <param name="capacity">容量</param>
     /// <param name="comparer">比较器</param>
-    public ObservableSet(int capacity, IEqualityComparer<T> comparer)
+    public ObservableSet(int capacity, IEqualityComparer<T>? comparer = null)
         : base(new(capacity, comparer), comparer) { }
 }

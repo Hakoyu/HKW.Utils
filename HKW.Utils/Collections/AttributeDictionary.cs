@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Collections;
 
@@ -11,10 +12,10 @@ namespace HKW.HKWUtils.Collections;
 /// 特性字典
 /// </summary>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public class AttributeDictionary
-    : IDictionary<Type, Attribute>,
-        IReadOnlyDictionary<Type, Attribute>
+    : IDictionary<Type, ImmutableArray<Attribute>>,
+        IReadOnlyDictionary<Type, ImmutableArray<Attribute>>
 {
     #region Ctor
     /// <inheritdoc/>
@@ -22,19 +23,29 @@ public class AttributeDictionary
     /// <param name="inherit">包括继承特性</param>
     public AttributeDictionary(MemberInfo memberInfo, bool inherit)
     {
-        _dictionary = Attribute
-            .GetCustomAttributes(memberInfo, inherit)
-            .ToImmutableDictionary(attr => attr.GetType(), attr => attr);
+        var dic = new Dictionary<Type, List<Attribute>>();
+        foreach (Attribute attribute in memberInfo.GetCustomAttributes(inherit))
+        {
+            var type = attribute.GetType();
+            if (dic.TryGetValue(type, out var list) is false)
+                list = dic[type] = new List<Attribute>();
+            list.Add(attribute);
+        }
+
+        _dictionary = dic.ToImmutableDictionary(
+            key => key.Key,
+            attr => attr.Value.ToImmutableArray()
+        );
     }
     #endregion
-    private readonly ImmutableDictionary<Type, Attribute> _dictionary;
+    private readonly ImmutableDictionary<Type, ImmutableArray<Attribute>> _dictionary;
 
     #region Attribute
     /// <summary>
     /// 包含指定类型的特性
     /// </summary>
     /// <typeparam name="TAttribute">特性类型</typeparam>
-    /// <returns>包含为 <see langword="true"/>, 否则为 <see langword="false"/></returns>
+    /// <returns>是否包含</returns>
     public bool Contains<TAttribute>()
         where TAttribute : Attribute
     {
@@ -45,7 +56,7 @@ public class AttributeDictionary
     /// 包含指定类型的特性
     /// </summary>
     /// <param name="attributeType">特性类型</param>
-    /// <returns>包含为 <see langword="true"/>, 否则为 <see langword="false"/></returns>
+    /// <returns>是否包含</returns>
     public bool Contains(Type attributeType)
     {
         return _dictionary.ContainsKey(attributeType);
@@ -55,7 +66,7 @@ public class AttributeDictionary
     /// 包含指定类型的特性
     /// </summary>
     /// <typeparam name="TAttribute">特性类型</typeparam>
-    /// <returns>包含为 <see langword="true"/>, 否则为 <see langword="false"/></returns>
+    /// <returns>是否包含</returns>
     public bool IsDefined<TAttribute>()
         where TAttribute : Attribute
     {
@@ -66,7 +77,7 @@ public class AttributeDictionary
     /// 包含指定类型的特性
     /// </summary>
     /// <param name="attributeType">特性类型</param>
-    /// <returns>包含为 <see langword="true"/>, 否则为 <see langword="false"/></returns>
+    /// <returns>是否包含</returns>
     public bool IsDefined(Type attributeType)
     {
         return _dictionary.ContainsKey(attributeType);
@@ -80,8 +91,8 @@ public class AttributeDictionary
     public TAttribute? GetAttribute<TAttribute>()
         where TAttribute : Attribute
     {
-        if (_dictionary.TryGetValue(typeof(TAttribute), out var attribute))
-            return (TAttribute)attribute;
+        if (_dictionary.TryGetValue(typeof(TAttribute), out var attributes))
+            return (TAttribute)attributes[0];
         else
             return null;
     }
@@ -93,8 +104,8 @@ public class AttributeDictionary
     /// <returns>指定类型的特性,若存在多个特性则返回第一个找到的特性</returns>
     public Attribute? GetAttribute(Type attributeType)
     {
-        if (_dictionary.TryGetValue(attributeType, out var attribute))
-            return attribute;
+        if (_dictionary.TryGetValue(attributeType, out var attributes))
+            return attributes[0];
         else
             return null;
     }
@@ -104,14 +115,10 @@ public class AttributeDictionary
     /// </summary>
     /// <typeparam name="TAttribute">特性类型</typeparam>
     /// <returns>指定类型的所有特性</returns>
-    public TAttribute[] GetAttributes<TAttribute>()
+    public ImmutableArray<TAttribute> GetAttributes<TAttribute>()
         where TAttribute : Attribute
     {
-        return _dictionary
-            .Where(kv => kv.Key == typeof(TAttribute))
-            .Select(kv => kv.Value)
-            .Cast<TAttribute>()
-            .ToArray();
+        return _dictionary[typeof(TAttribute)].CastArray<TAttribute>();
     }
 
     /// <summary>
@@ -119,23 +126,23 @@ public class AttributeDictionary
     /// </summary>
     /// <param name="attributeType">特性类型</param>
     /// <returns>指定类型的所有特性</returns>
-    public Attribute[] GetAttributes(Type attributeType)
+    public ImmutableArray<Attribute> GetAttributes(Type attributeType)
     {
-        return _dictionary.Where(kv => kv.Key == attributeType).Select(kv => kv.Value).ToArray();
+        return _dictionary[attributeType];
     }
 
     /// <summary>
-    /// 尝试获取指定类型的特性
+    /// 尝试获取指定类型的第一个特性
     /// </summary>
     /// <typeparam name="TAttribute">特性类型</typeparam>
     /// <param name="attribute">指定类型的特性,若存在多个特性则返回第一个找到的特性</param>
-    /// <returns>获取成功为 <see langword="true"/>, 否则为 <see langword="false"/></returns>
+    /// <returns>是否获取成功</returns>
     public bool TryGetAttribute<TAttribute>([MaybeNullWhen(false)] out TAttribute attribute)
         where TAttribute : Attribute
     {
-        if (_dictionary.TryGetValue(typeof(TAttribute), out var attr))
+        if (_dictionary.TryGetValue(typeof(TAttribute), out var attributes))
         {
-            attribute = (TAttribute)attr;
+            attribute = (TAttribute)attributes[0];
             return true;
         }
         else
@@ -146,16 +153,16 @@ public class AttributeDictionary
     }
 
     /// <summary>
-    /// 尝试获取指定类型的特性
+    /// 尝试获取指定类型的第一个特性
     /// </summary>
     /// <param name="attributeType">特性类型</param>
     /// <param name="attribute">指定类型的特性,若存在多个特性则返回第一个找到的特性</param>
-    /// <returns>获取成功为 <see langword="true"/>, 否则为 <see langword="false"/></returns>
+    /// <returns>是否获取成功</returns>
     public bool TryGetAttribute(Type attributeType, [MaybeNullWhen(false)] out Attribute attribute)
     {
-        if (_dictionary.TryGetValue(attributeType, out var attr))
+        if (_dictionary.TryGetValue(attributeType, out var attributes))
         {
-            attribute = attr;
+            attribute = attributes[0];
             return true;
         }
         else
@@ -166,143 +173,146 @@ public class AttributeDictionary
     }
 
     /// <summary>
-    /// 尝试获取指定类型的特性
+    /// 尝试获取指定类型的所有特性
     /// </summary>
     /// <typeparam name="TAttribute">特性类型</typeparam>
     /// <param name="attributes">指定类型的所有特性</param>
-    /// <returns>获取成功为 <see langword="true"/>, 否则为 <see langword="false"/></returns>
-    public bool TryGetAttributes<TAttribute>([MaybeNullWhen(false)] out TAttribute[] attributes)
+    /// <returns>是否获取成功</returns>
+    public bool TryGetAttributes<TAttribute>(
+        [MaybeNullWhen(false)] out ImmutableArray<Attribute> attributes
+    )
         where TAttribute : Attribute
     {
-        if (Contains<TAttribute>())
-        {
-            attributes = GetAttributes<TAttribute>();
+        if (_dictionary.TryGetValue(typeof(TAttribute), out attributes))
             return true;
-        }
         else
-        {
-            attributes = null;
             return false;
-        }
     }
 
     /// <summary>
-    /// 尝试获取指定类型的特性
+    /// 尝试获取指定类型的所有特性
     /// </summary>
     /// <param name="attributeType">特性类型</param>
     /// <param name="attributes">指定类型的所有特性</param>
-    /// <returns>获取成功为 <see langword="true"/>, 否则为 <see langword="false"/></returns>
+    /// <returns>是否获取成功</returns>
     public bool TryGetAttributes(
         Type attributeType,
-        [MaybeNullWhen(false)] out Attribute[] attributes
+        [MaybeNullWhen(false)] out ImmutableArray<Attribute> attributes
     )
     {
-        if (Contains(attributeType))
-        {
-            attributes = GetAttributes(attributeType);
+        if (_dictionary.TryGetValue(attributeType, out attributes))
             return true;
-        }
         else
-        {
-            attributes = null;
             return false;
-        }
     }
     #endregion
 
     #region IDictionary
     /// <inheritdoc/>
-    public Attribute this[Type key]
+    public ImmutableArray<Attribute> this[Type key]
     {
-        get => ((IDictionary<Type, Attribute>)_dictionary)[key];
-        set => throw new NotImplementedException();
+        get => _dictionary[key];
+        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
-    public ICollection<Type> Keys => ((IDictionary<Type, Attribute>)_dictionary).Keys;
+    public ICollection<Type> Keys =>
+        ((IDictionary<Type, ImmutableArray<Attribute>>)_dictionary).Keys;
 
     /// <inheritdoc/>
-    public ICollection<Attribute> Values => ((IDictionary<Type, Attribute>)_dictionary).Values;
+    public ICollection<ImmutableArray<Attribute>> Values =>
+        ((IDictionary<Type, ImmutableArray<Attribute>>)_dictionary).Values;
 
     /// <inheritdoc/>
-    public int Count => ((ICollection<KeyValuePair<Type, Attribute>>)_dictionary).Count;
+    public int Count => _dictionary.Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<KeyValuePair<Type, Attribute>>)_dictionary).IsReadOnly;
+    public bool IsReadOnly => true;
 
-    IEnumerable<Type> IReadOnlyDictionary<Type, Attribute>.Keys =>
-        ((IReadOnlyDictionary<Type, Attribute>)_dictionary).Keys;
+    IEnumerable<Type> IReadOnlyDictionary<Type, ImmutableArray<Attribute>>.Keys => _dictionary.Keys;
 
-    IEnumerable<Attribute> IReadOnlyDictionary<Type, Attribute>.Values =>
-        ((IReadOnlyDictionary<Type, Attribute>)_dictionary).Values;
-
-    /// <inheritdoc/>
-    public bool IsFixedSize => ((IDictionary)_dictionary).IsFixedSize;
+    IEnumerable<ImmutableArray<Attribute>> IReadOnlyDictionary<
+        Type,
+        ImmutableArray<Attribute>
+    >.Values => _dictionary.Values;
 
     /// <inheritdoc/>
-    public bool IsSynchronized => ((ICollection)_dictionary).IsSynchronized;
-
-    /// <inheritdoc/>
-    public object SyncRoot => ((ICollection)_dictionary).SyncRoot;
-
-    /// <inheritdoc/>
-    void IDictionary<Type, Attribute>.Add(Type key, Attribute value)
+    void IDictionary<Type, ImmutableArray<Attribute>>.Add(Type key, ImmutableArray<Attribute> value)
     {
-        throw new NotSupportedException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
-    void ICollection<KeyValuePair<Type, Attribute>>.Add(KeyValuePair<Type, Attribute> item)
+    void ICollection<KeyValuePair<Type, ImmutableArray<Attribute>>>.Add(
+        KeyValuePair<Type, ImmutableArray<Attribute>> item
+    )
     {
-        throw new NotSupportedException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
-    public void Clear()
+    void ICollection<KeyValuePair<Type, ImmutableArray<Attribute>>>.Clear()
     {
-        throw new NotSupportedException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
-    public bool Contains(KeyValuePair<Type, Attribute> item)
+    public bool Contains(KeyValuePair<Type, ImmutableArray<Attribute>> item)
     {
-        return ((ICollection<KeyValuePair<Type, Attribute>>)_dictionary).Contains(item);
+        return _dictionary.Contains(item);
     }
 
     /// <inheritdoc/>
     public bool ContainsKey(Type key)
     {
-        return ((IDictionary<Type, Attribute>)_dictionary).ContainsKey(key);
+        return _dictionary.ContainsKey(key);
     }
 
     /// <inheritdoc/>
-    public void CopyTo(KeyValuePair<Type, Attribute>[] array, int arrayIndex)
+    public void CopyTo(KeyValuePair<Type, ImmutableArray<Attribute>>[] array, int arrayIndex)
     {
-        ((ICollection<KeyValuePair<Type, Attribute>>)_dictionary).CopyTo(array, arrayIndex);
+        ((ICollection<KeyValuePair<Type, ImmutableArray<Attribute>>>)_dictionary).CopyTo(
+            array,
+            arrayIndex
+        );
     }
 
     /// <inheritdoc/>
-    public IEnumerator<KeyValuePair<Type, Attribute>> GetEnumerator()
+    bool IDictionary<Type, ImmutableArray<Attribute>>.Remove(Type key)
     {
-        return ((IEnumerable<KeyValuePair<Type, Attribute>>)_dictionary).GetEnumerator();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
-    public bool Remove(Type key)
+    bool ICollection<KeyValuePair<Type, ImmutableArray<Attribute>>>.Remove(
+        KeyValuePair<Type, ImmutableArray<Attribute>> item
+    )
     {
-        throw new NotSupportedException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
-    public bool Remove(KeyValuePair<Type, Attribute> item)
+    bool IDictionary<Type, ImmutableArray<Attribute>>.TryGetValue(
+        Type key,
+        [MaybeNullWhen(false)] out ImmutableArray<Attribute> value
+    )
     {
-        throw new NotSupportedException();
+        return _dictionary.TryGetValue(key, out value);
     }
 
     /// <inheritdoc/>
-    public bool TryGetValue(Type key, [MaybeNullWhen(false)] out Attribute value)
+    bool IReadOnlyDictionary<Type, ImmutableArray<Attribute>>.TryGetValue(
+        Type key,
+        [MaybeNullWhen(false)] out ImmutableArray<Attribute> value
+    )
     {
-        return ((IDictionary<Type, Attribute>)_dictionary).TryGetValue(key, out value);
+        return _dictionary.TryGetValue(key, out value);
+    }
+
+    /// <inheritdoc/>
+    public IEnumerator<KeyValuePair<Type, ImmutableArray<Attribute>>> GetEnumerator()
+    {
+        return _dictionary.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()

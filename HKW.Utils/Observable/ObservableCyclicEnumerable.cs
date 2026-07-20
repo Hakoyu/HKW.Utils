@@ -37,7 +37,7 @@ public class ObservableCyclicEnumerator<T> : IEnumerator<T>, INotifyPropertyChan
     /// <inheritdoc/>
     /// <param name="enumerable">枚举器</param>
     /// <param name="autoReset">自动重置</param>
-    public ObservableCyclicEnumerator(IEnumerable<T> enumerable, bool autoReset = false)
+    public ObservableCyclicEnumerator(IEnumerable<T> enumerable, bool autoReset)
     {
         _enumerable = enumerable;
         _enumerator = enumerable.GetEnumerator();
@@ -86,16 +86,13 @@ public class ObservableCyclicEnumerator<T> : IEnumerator<T>, INotifyPropertyChan
     /// <inheritdoc/>
     ~ObservableCyclicEnumerator()
     {
-        //必须为false
         Dispose(false);
     }
 
     /// <inheritdoc/>
     public void Dispose()
     {
-        //必须为true
         Dispose(true);
-        //通知垃圾回收器不再调用终结器
         GC.SuppressFinalize(this);
     }
 

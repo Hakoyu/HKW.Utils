@@ -12,39 +12,15 @@ namespace HKW.HKWUtils;
 public static class EnumInfo
 {
     /// <summary>
+    /// 按类型区分的枚举信息字典, 你在操作它之前最好知道自己在做什么
+    /// <para>
     /// (EnumType, (EnumValue, EnumInfo))
+    /// </para>
     /// </summary>
-    internal static ConcurrentDictionary<
+    public static ConcurrentDictionary<
         Type,
         FrozenDictionary<Enum, IEnumInfo>
     > InfosByType { get; } = [];
-
-    /// <summary>
-    /// 清除缓存
-    /// </summary>
-    public static void ClearCache()
-    {
-        InfosByType.Clear();
-    }
-
-    /// <summary>
-    /// 删除指定枚举缓存
-    /// </summary>
-    /// <typeparam name="TEnum">枚举类型</typeparam>
-    public static void RemoveCache<TEnum>()
-        where TEnum : struct, Enum
-    {
-        InfosByType.Remove(typeof(TEnum), out var _);
-    }
-
-    /// <summary>
-    /// 删除指定枚举缓存
-    /// </summary>
-    /// <param name="enumType">枚举类型</param>
-    public static void RemoveCache(Type enumType)
-    {
-        InfosByType.Remove(enumType, out var _);
-    }
 
     #region Default
 
@@ -105,74 +81,59 @@ public static class EnumInfo
 
     #region GlobalDefault
 
-    #region GlobalDefaultToString
-    private static Func<IEnumInfo, string>? _globalDefaultToString;
 
     /// <summary>
     /// 全局默认到字符串方法
     /// </summary>
-    public static Func<IEnumInfo, string> GlobalDefaultToString =>
-        _globalDefaultToString ??= static v => v.Value.ToString();
-    #endregion
-
-    #region GlobalDefaultGetName
-    private static Func<IEnumInfo, string>? _globalDefaultGetDisplayName;
+    public static Func<IEnumInfo, string> GlobalDefaultToString { get; } =
+        static v => v.Value.ToString();
 
     /// <summary>
     /// 全局默认获取名称方法
     /// </summary>
-    public static Func<IEnumInfo, string> GlobalDefaultGetDisplayName =>
-        _globalDefaultGetDisplayName ??= static v =>
+    public static Func<IEnumInfo, string> GlobalDefaultGetDisplayName { get; } =
+        static v =>
         {
-            if (v.IsFlagable is false)
+            if (v.IsFlaggable is false || v.IsNone)
                 return v.Display?.Name ?? v.Value.ToString();
             return string.Join(
                 ", ",
                 v.GetFlagInfos().Select(static i => i.Display?.Name ?? i.Value.ToString())
             );
         };
-    #endregion
-
-    #region GlobalDefaultGetShortName
-    private static Func<IEnumInfo, string>? _globalDefaultGetDisplayShortName;
 
     /// <summary>
     /// 全局默认获取短名称方法
     /// </summary>
-    public static Func<IEnumInfo, string> GlobalDefaultGetDisplayShortName =>
-        _globalDefaultGetDisplayShortName ??= static v =>
+    public static Func<IEnumInfo, string> GlobalDefaultGetDisplayShortName { get; } =
+        static v =>
         {
-            if (v.IsFlagable is false)
+            if (v.IsFlaggable is false || v.IsNone)
                 return v.Display?.ShortName ?? v.Value.ToString();
             return string.Join(
                 ", ",
                 v.GetFlagInfos().Select(static i => i.Display?.ShortName ?? i.Value.ToString())
             );
         };
-    #endregion
-
-    #region GlobalDefaultGetDescription
-    private static Func<IEnumInfo, string>? _globalDefaultGetDisplayDescription;
 
     /// <summary>
     /// 全局默认获取描述方法
     /// </summary>
-    public static Func<IEnumInfo, string> GlobalDefaultGetDisplayDescription =>
-        _globalDefaultGetDisplayDescription ??= static v =>
+    public static Func<IEnumInfo, string> GlobalDefaultGetDisplayDescription { get; } =
+        static v =>
         {
-            if (v.IsFlagable is false)
+            if (v.IsFlaggable is false || v.IsNone)
                 return v.Display?.Description ?? v.Value.ToString();
             return string.Join(
                 ", ",
                 v.GetFlagInfos().Select(static i => i.Display?.Description ?? i.Value.ToString())
             );
         };
-    #endregion
 
     #endregion
 
     /// <summary>
-    /// 创建枚举信息表达式
+    /// 构建Lambda表达式, 在无枚举准确类型的情况下创建枚举信息
     /// </summary>
     /// <param name="enumType">枚举类型</param>
     /// <returns>构造方法</returns>

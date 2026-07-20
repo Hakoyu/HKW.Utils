@@ -5,7 +5,10 @@ using System.Text;
 
 namespace HKW.HKWUtils.Extensions;
 
-public static partial class HKWExtensions
+/// <summary>
+///
+/// </summary>
+public static partial class SpanSplitEnumeratorExtensions
 {
     extension<T>(MemoryExtensions.SpanSplitEnumerator<T> enumerator)
         where T : IEquatable<T>

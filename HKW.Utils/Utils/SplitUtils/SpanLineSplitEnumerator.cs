@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace HKW.HKWUtils;
 
 /// <summary>
-/// 支持枚举由换行符拆分后按 <see cref="StringSplitOptions"/> 分割的 <see cref="ReadOnlySpan{T}"/> 的每个片段。
+/// 支持枚举由换行符拆分后按 <see cref="StringSplitOptions"/> 分割的 <see cref="ReadOnlySpan{T}"/> 的每个片段
 /// </summary>
 /// <remarks>
 /// <![CDATA[
@@ -33,17 +33,17 @@ public ref struct SpanLineSplitEnumerator
     private readonly StringSplitOptions _options;
 
     /// <summary>
-    /// 当前范围在 <see cref="_source"/> 中的起始索引（包含）。
+    /// 当前范围在 <see cref="_source"/> 中的起始索引（包含）
     /// </summary>
     private int _startCurrent = 0;
 
     /// <summary>
-    /// 当前范围在 <see cref="_source"/> 中的结束索引（不包含）。
+    /// 当前范围在 <see cref="_source"/> 中的结束索引（不包含）
     /// </summary>
     private int _endCurrent = 0;
 
     /// <summary>
-    /// 在 <see cref="_source"/> 中下次开始查找分隔符的索引。
+    /// 在 <see cref="_source"/> 中下次开始查找分隔符的索引
     /// </summary>
     private int _startNext = 0;
 
@@ -58,7 +58,7 @@ public ref struct SpanLineSplitEnumerator
     public Range Current => new(_startCurrent, _endCurrent);
 
     /// <summary>
-    /// 获取枚举中的当前拆分的片段。
+    /// 获取枚举中的当前拆分的片段
     /// </summary>
     public ReadOnlySpan<char> CurrentValue { get; private set; }
 
@@ -68,10 +68,10 @@ public ref struct SpanLineSplitEnumerator
     public ReadOnlySpan<char> CurrentLineChars => _source[_endCurrent.._startNext];
 
     /// <summary>
-    /// 获取正在被枚举的源 Span。
+    /// 获取正在被枚举的源 Span
     /// </summary>
     /// <returns>
-    /// 返回创建此枚举器时提供的 <see cref="ReadOnlySpan{T}"/>。
+    /// 返回创建此枚举器时提供的 <see cref="ReadOnlySpan{T}"/>
     /// </returns>
     public readonly ReadOnlySpan<char> Source => _source;
 

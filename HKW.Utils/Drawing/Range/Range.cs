@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Numerics;
 
 namespace HKW.HKWUtils.Drawing;
@@ -6,15 +7,19 @@ namespace HKW.HKWUtils.Drawing;
 /// <summary>
 /// 范围
 /// </summary>
-/// <typeparam name="T">类型</typeparam>
-[DebuggerDisplay("({Min}, {Max})")]
+/// <typeparam name="T">数值类型</typeparam>
 public struct Range<T> : IEquatable<IReadOnlyRange<T>>, IRange<T>
     where T : struct, INumber<T>
 {
     /// <summary>
     /// 空
     /// </summary>
-    public static Range<T> Empty = new(default, default);
+    public static readonly Range<T> Empty;
+
+    /// <inheritdoc/>
+    /// <param name="range">范围</param>
+    public Range(IReadOnlyRange<T> range)
+        : this(range.Min, range.Max) { }
 
     /// <inheritdoc/>
     /// <param name="min">最小值</param>
@@ -30,6 +35,10 @@ public struct Range<T> : IEquatable<IReadOnlyRange<T>>, IRange<T>
 
     /// <inheritdoc/>
     public T Max { readonly get; set; }
+
+    /// <inheritdoc/>
+    [Browsable(false)]
+    public readonly bool IsEmpty => Min == T.Zero && Max == T.Zero;
 
     #region Equals
 
@@ -50,24 +59,35 @@ public struct Range<T> : IEquatable<IReadOnlyRange<T>>, IRange<T>
     {
         if (other is null)
             return false;
-        return Min == other.Min && Max == other.Max;
-    }
-
-    /// <inheritdoc/>
-    public static bool operator ==(Range<T> a, IReadOnlyRange<T> b)
-    {
-        return a.Equals(b);
-    }
-
-    /// <inheritdoc/>
-    public static bool operator !=(Range<T> a, IReadOnlyRange<T> b)
-    {
-        return a.Equals(b) is not true;
+        return this == other;
     }
     #endregion
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{{Min = {Min}, Max = {Max}}}";
+        return $"{{Min={Min},Max={Max}}}";
+    }
+
+    /// <summary>
+    /// 解析字符串数创建范围
+    /// </summary>
+    /// <param name="span">数据</param>
+    /// <param name="separator">分割符</param>
+    /// <returns>创建的范围</returns>
+    /// <remarks><![CDATA[
+    /// Parse("123,456",',')
+    /// return:
+    /// {Min=123,Max=456}
+    /// ]]></remarks>
+    /// <exception cref="Exception">数据 <paramref name="span"/> 解析错误</exception>
+    public static Range<T> Parse(ReadOnlySpan<char> span, char separator = ',')
+    {
+        var range = new Range<T>();
+        var datas = span.Split(separator);
+        datas.MoveNext();
+        range.Min = T.Parse(span[datas.Current], null);
+        datas.MoveNext();
+        range.Max = T.Parse(span[datas.Current], null);
+        return range;
     }
 }

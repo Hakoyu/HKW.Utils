@@ -10,7 +10,7 @@ namespace HKW.HKWUtils.Collections;
 /// 简易的非通用单个项目的只读列表
 /// </summary>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public sealed class SingleItemReadOnlyList<T> : IList<T>, IReadOnlyList<T>, IList
 {
     /// <inheritdoc/>
@@ -24,9 +24,7 @@ public sealed class SingleItemReadOnlyList<T> : IList<T>, IReadOnlyList<T>, ILis
     {
         get
         {
-            if (index != 0)
-                throw new ArgumentOutOfRangeException(nameof(index));
-
+            ArgumentOutOfRangeException.ThrowIfNotEqual(index, 0);
             return _item;
         }
         set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
@@ -122,10 +120,7 @@ public sealed class SingleItemReadOnlyList<T> : IList<T>, IReadOnlyList<T>, ILis
     {
         get
         {
-            if (index != 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
+            ArgumentOutOfRangeException.ThrowIfNotEqual(index, 0);
             return _item;
         }
         set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);

@@ -8,7 +8,7 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="T">项类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public class ObservableList<T> : ObservableListWrapper<T, List<T>>
 {
     /// <inheritdoc/>

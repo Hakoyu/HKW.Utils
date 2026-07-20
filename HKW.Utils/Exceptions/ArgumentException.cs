@@ -4,13 +4,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 using HKW.HKWUtils.Extensions;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Exceptions;
 
 /// <summary>
-/// 异常类
+/// 参数异常
 /// </summary>
-public static partial class HKWExceptions
+public static partial class ArgumentExceptions
 {
     extension(ArgumentException exception)
     {
@@ -19,9 +20,7 @@ public static partial class HKWExceptions
         /// </summary>
         /// <param name="argument">需要校验的参数值。</param>
         /// <param name="expected">期望匹配的目标值。</param>
-        /// <param name="paramName">
-        /// 触发异常时使用的参数名。默认通过 <see cref="System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/> 自动捕获 <paramref name="argument"/> 的表达式文本。
-        /// </param>
+        /// <param name="paramName">参数名</param>
         /// <exception cref="System.ArgumentException">当 <paramref name="argument"/> 与 <paramref name="expected"/> 不相等时抛出。</exception>
         public static void ThrowIfNotEquals<T>(
             T argument,
@@ -44,9 +43,7 @@ public static partial class HKWExceptions
         /// <param name="argument">需要校验的参数值。</param>
         /// <param name="expected1">期望匹配的目标值。</param>
         /// <param name="expected2">期望匹配的目标值。</param>
-        /// <param name="paramName">
-        /// 触发异常时使用的参数名。默认通过 <see cref="System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/> 自动捕获 <paramref name="argument"/> 的表达式文本。
-        /// </param>
+        /// <param name="paramName">参数名</param>
         /// <exception cref="System.ArgumentException">当 <paramref name="argument"/> 与任意 expected 参数不相等时抛出。</exception>
         public static void ThrowIfAllNotEquals<T>(
             T argument,
@@ -73,9 +70,7 @@ public static partial class HKWExceptions
         /// <param name="expected1">期望匹配的目标值。</param>
         /// <param name="expected2">期望匹配的目标值。</param>
         /// <param name="expected3">期望匹配的目标值。</param>
-        /// <param name="paramName">
-        /// 触发异常时使用的参数名。默认通过 <see cref="System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/> 自动捕获 <paramref name="argument"/> 的表达式文本。
-        /// </param>
+        /// <param name="paramName">参数名</param>
         /// <exception cref="System.ArgumentException">当 <paramref name="argument"/> 与全部 expected 参数不相等时抛出。</exception>
         public static void ThrowIfAllNotEquals<T>(
             T argument,
@@ -105,9 +100,7 @@ public static partial class HKWExceptions
         /// <param name="expected2">期望匹配的目标值。</param>
         /// <param name="expected3">期望匹配的目标值。</param>
         /// <param name="expected4">期望匹配的目标值。</param>
-        /// <param name="paramName">
-        /// 触发异常时使用的参数名。默认通过 <see cref="System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/> 自动捕获 <paramref name="argument"/> 的表达式文本。
-        /// </param>
+        /// <param name="paramName">参数名</param>
         /// <exception cref="System.ArgumentException">当 <paramref name="argument"/> 与全部 expected 参数不相等时抛出。</exception>
         public static void ThrowIfAllNotEquals<T>(
             T argument,
@@ -140,9 +133,7 @@ public static partial class HKWExceptions
         /// <param name="expected3">期望匹配的目标值。</param>
         /// <param name="expected4">期望匹配的目标值。</param>
         /// <param name="expected5">期望匹配的目标值。</param>
-        /// <param name="paramName">
-        /// 触发异常时使用的参数名。默认通过 <see cref="System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/> 自动捕获 <paramref name="argument"/> 的表达式文本。
-        /// </param>
+        /// <param name="paramName">参数名</param>
         /// <exception cref="System.ArgumentException">当 <paramref name="argument"/> 与全部 expected 参数不相等时抛出。</exception>
         public static void ThrowIfAllNotEquals<T>(
             T argument,
@@ -173,9 +164,7 @@ public static partial class HKWExceptions
         /// </summary>
         /// <param name="argument">需要校验的参数值。</param>
         /// <param name="expecteds">期望匹配的目标值。</param>
-        /// <param name="paramName">
-        /// 触发异常时使用的参数名。默认通过 <see cref="System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/> 自动捕获 <paramref name="argument"/> 的表达式文本。
-        /// </param>
+        /// <param name="paramName">参数名</param>
         /// <exception cref="System.ArgumentException">当 <paramref name="argument"/> 与 <paramref name="expecteds"/> 不相等时抛出。</exception>
         public static void ThrowIfAllNotEquals<T>(
             T argument,
@@ -213,18 +202,30 @@ public static partial class HKWExceptions
         /// 当 <paramref name="argument"/> 为只读集合时，抛出 <see cref="System.ArgumentException"/>。
         /// </summary>
         /// <param name="argument">需要校验的参数值。</param>
-        /// <param name="paramName">
-        /// 触发异常时使用的参数名。默认通过 <see cref="System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/> 自动捕获 <paramref name="argument"/> 的表达式文本。
-        /// </param>
+        /// <param name="paramName">参数名</param>
         /// <exception cref="System.ArgumentException">当 <paramref name="argument"/> 只读集合时抛出。</exception>
         public static void ThrowIfReadOnlyCollection<T>(
             ICollection<T> argument,
             [CallerArgumentExpression("argument")] string? paramName = null
         )
         {
-            if (argument.IsReadOnly is false)
-                return;
-            throw new ArgumentException($"Collection is read-only.", paramName);
+            if (argument.IsReadOnly)
+                throw new ArgumentException(ExceptionMessage.IsReadOnlyCollection, paramName);
+        }
+
+        /// <summary>
+        /// 当 <paramref name="argument"/> 为空集合时，抛出 <see cref="System.ArgumentException"/>。
+        /// </summary>
+        /// <param name="argument">需要校验的参数值。</param>
+        /// <param name="paramName">参数名</param>
+        /// <exception cref="System.ArgumentException">当 <paramref name="argument"/> 为空集合时抛出。</exception>
+        public static void ThrowIfEmptyCollection<T>(
+            ICollection<T> argument,
+            [CallerArgumentExpression("argument")] string? paramName = null
+        )
+        {
+            if (argument.Count == 0)
+                throw new ArgumentException("Collection is empty.", paramName);
         }
     }
 }

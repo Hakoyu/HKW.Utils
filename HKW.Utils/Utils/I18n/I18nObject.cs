@@ -126,7 +126,7 @@ public sealed class I18nObject<TKey, TValue> : IEquatable<I18nObject<TKey, TValu
                 KeyToTargetNames.TryGetValueOrCreate(
                     newValue,
                     out var newTargetPropertyNamesWithKey,
-                    object.Create(() => targetPropertyNamesWithKeyPropertyName.ToHashSet())
+                    () => targetPropertyNamesWithKeyPropertyName.ToHashSet()
                 )
             )
             {

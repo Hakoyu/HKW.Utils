@@ -14,7 +14,7 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public class ReadOnlyObservableList<T>
     : IObservableList<T>,
         IReadOnlyObservableList<T>,
@@ -72,9 +72,7 @@ public class ReadOnlyObservableList<T>
     /// <inheritdoc/>
     ~ReadOnlyObservableList() => Dispose(false);
 
-    /// <summary>
-    /// 解除对引用列表注册的所有观测事件
-    /// </summary>
+    /// <inheritdoc/>
     public void Dispose()
     {
         Dispose(true);
@@ -140,11 +138,6 @@ public class ReadOnlyObservableList<T>
     #region IObservableListT
 
     T IList<T>.this[int index]
-    {
-        get => ((IReadOnlyList<T>)_list)[index];
-        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
-    }
-    T IObservableList<T>.this[int index, bool skipCheck]
     {
         get => ((IReadOnlyList<T>)_list)[index];
         set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);

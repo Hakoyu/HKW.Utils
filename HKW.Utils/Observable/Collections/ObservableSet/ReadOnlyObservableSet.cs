@@ -12,8 +12,8 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
-public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
+public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>, IDisposable
 {
     private readonly IObservableSet<T> _set;
 
@@ -51,7 +51,7 @@ public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSe
     #endregion
 
     #region Dispose
-    private bool _disposedValue;
+    private bool _disposed;
 
     /// <inheritdoc/>
     ~ReadOnlyObservableSet() => Dispose(false);
@@ -63,26 +63,19 @@ public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSe
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>
-    ///
-    /// </summary>
-    /// <param name="disposing"></param>
+    /// <inheritdoc/>
     protected virtual void Dispose(bool disposing)
     {
-        if (_disposedValue)
+        if (_disposed)
             return;
         if (disposing)
-            Close();
-        _disposedValue = true;
-    }
-
-    /// <inheritdoc/>
-    public void Close()
-    {
-        _set.SetChanging -= Set_SetChanging;
-        _set.SetChanged -= Set_SetChanged;
-        _set.CollectionChanged -= Set_CollectionChanged;
-        _set.PropertyChanged -= Set_PropertyChanged;
+        {
+            _set.SetChanging -= Set_SetChanging;
+            _set.SetChanged -= Set_SetChanged;
+            _set.CollectionChanged -= Set_CollectionChanged;
+            _set.PropertyChanged -= Set_PropertyChanged;
+        }
+        _disposed = true;
     }
     #endregion
 

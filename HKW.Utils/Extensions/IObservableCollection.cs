@@ -3,20 +3,20 @@ using HKW.HKWUtils.Observable;
 
 namespace HKW.HKWUtils.Extensions;
 
+/// <summary>
+///
+/// </summary>
 #pragma warning disable S3776
-public static partial class HKWExtensions
+public static partial class ObservableCollectionExtensions
 {
     #region BindingList
     /// <summary>
-    /// (INotifyListChanged, IList)
+    /// (INotifyListChanged, ILists)
     /// </summary>
-    private static Dictionary<object, HashSet<object>> _bindingLists = [];
+    private static Dictionary<object, HashSet<object>> _bindingListXs = [];
 
     /// <summary>
-    /// 绑定列表
-    /// <para>
-    /// 将源列表的修改同步至目标列表
-    /// </para>
+    /// 绑定列表, 将源列表的修改同步至目标列表
     /// </summary>
     /// <typeparam name="T">项类型</typeparam>
     /// <param name="sourceList">源列表</param>
@@ -28,16 +28,23 @@ public static partial class HKWExtensions
         bool unBinding = false
     )
     {
+        if (_bindingListXs.TryGetValue(sourceList, out var set) is false)
+        {
+            set = _bindingListXs[sourceList] = new();
+            sourceList.ListChanged += SourceList_ListChanged;
+        }
         if (unBinding)
         {
-            sourceList.ListChanged -= SourceList_ListChanged;
-            if (_bindingLists.TryGetValue(sourceList, out var tlists))
-                tlists.Remove(targetList);
+            set.Remove(targetList);
+            if (set.Count == 0)
+            {
+                _bindingListXs.Remove(sourceList);
+                sourceList.ListChanged -= SourceList_ListChanged;
+            }
             return;
         }
-        sourceList.ListChanged -= SourceList_ListChanged;
-        sourceList.ListChanged += SourceList_ListChanged;
-        _bindingLists.GetValueOrCreate(sourceList).Add(targetList);
+
+        set.Add(targetList);
 
         static void SourceList_ListChanged(
             INotifyListChanged<T> sender,
@@ -46,41 +53,34 @@ public static partial class HKWExtensions
         {
             if (e.Action is ListChangeAction.Add)
             {
-                if (e.NewItem is not null)
-                {
-                    foreach (var list in _bindingLists[sender].Cast<IList<T>>())
-                        list.Insert(e.Index, e.NewItem);
-                }
+                foreach (var list in _bindingListXs[sender].Cast<IList<T>>())
+                    list.Insert(e.Index, e.NewItem!);
             }
             else if (e.Action is ListChangeAction.Remove)
             {
-                if (e.OldItem is not null)
-                {
-                    foreach (var list in _bindingLists[sender].Cast<IList<T>>())
-                        list.Remove(e.OldItem);
-                }
+                foreach (var list in _bindingListXs[sender].Cast<IList<T>>())
+                    list.Remove(e.OldItem!);
             }
             else if (e.Action is ListChangeAction.Replace)
             {
-                if (e.NewItem is not null)
-                {
-                    foreach (var list in _bindingLists[sender].Cast<IList<T>>())
-                        list[e.Index] = e.NewItem;
-                }
+                foreach (var list in _bindingListXs[sender].Cast<IList<T>>())
+                    list[e.Index] = e.NewItem!;
             }
             else if (e.Action is ListChangeAction.Clear)
             {
-                foreach (var list in _bindingLists[sender].Cast<IList<T>>())
+                foreach (var list in _bindingListXs[sender].Cast<IList<T>>())
                     list.Clear();
             }
         }
     }
 
     /// <summary>
-    /// 绑定列表
-    /// <para>
-    /// 将源列表的修改同步至目标列表
-    /// </para>
+    /// (INotifyCollectionChanged, ILists)
+    /// </summary>
+    private static Dictionary<object, HashSet<object>> _bindingLists = [];
+
+    /// <summary>
+    /// 绑定列表, 将源列表的修改同步至目标列表
     /// </summary>
     /// <typeparam name="T">项类型</typeparam>
     /// <param name="sourceCollection">源列表</param>
@@ -92,28 +92,34 @@ public static partial class HKWExtensions
         bool unBinding = false
     )
     {
+        if (_bindingLists.TryGetValue(sourceCollection, out var set) is false)
+        {
+            set = _bindingLists[sourceCollection] = new();
+            sourceCollection.CollectionChanged += SourceList_CollectionChanged;
+        }
         if (unBinding)
         {
-            sourceCollection.CollectionChanged -= SourceList_CollectionChanged;
-            if (_bindingLists.TryGetValue(sourceCollection, out var tlists))
-                tlists.Remove(targetList);
+            set.Remove(targetList);
+            if (set.Count == 0)
+            {
+                _bindingLists.Remove(sourceCollection);
+                sourceCollection.CollectionChanged -= SourceList_CollectionChanged;
+            }
             return;
         }
-        sourceCollection.CollectionChanged -= SourceList_CollectionChanged;
-        sourceCollection.CollectionChanged += SourceList_CollectionChanged;
-        _bindingLists.GetValueOrCreate(sourceCollection).Add(targetList);
+
+        set.Add(targetList);
 
         static void SourceList_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            if (sender is not INotifyCollectionChanged senderCollection)
-                return;
+            ArgumentNullException.ThrowIfNull(sender);
             if (e.Action is NotifyCollectionChangedAction.Add)
             {
                 if (e.NewItems is not null)
                 {
                     foreach (var item in e.NewItems.Cast<T>())
                     {
-                        foreach (var list in _bindingLists[senderCollection].Cast<IList<T>>())
+                        foreach (var list in _bindingLists[sender].Cast<IList<T>>())
                             list.Insert(e.NewStartingIndex, item);
                     }
                 }
@@ -124,7 +130,7 @@ public static partial class HKWExtensions
                 {
                     for (var i = e.OldStartingIndex; i > e.OldStartingIndex - e.OldItems.Count; i--)
                     {
-                        foreach (var list in _bindingLists[senderCollection].Cast<IList<T>>())
+                        foreach (var list in _bindingLists[sender].Cast<IList<T>>())
                             list.RemoveAt(i);
                     }
                 }
@@ -136,7 +142,7 @@ public static partial class HKWExtensions
                     var index = e.NewStartingIndex;
                     foreach (var item in e.NewItems.Cast<T>())
                     {
-                        foreach (var list in _bindingLists[senderCollection].Cast<IList<T>>())
+                        foreach (var list in _bindingLists[sender].Cast<IList<T>>())
                             list[index] = item;
                         index++;
                     }
@@ -144,7 +150,7 @@ public static partial class HKWExtensions
             }
             else if (e.Action is NotifyCollectionChangedAction.Reset)
             {
-                foreach (var list in _bindingLists[senderCollection].Cast<IList<T>>())
+                foreach (var list in _bindingLists[sender].Cast<IList<T>>())
                     list.Clear();
             }
         }
@@ -153,15 +159,12 @@ public static partial class HKWExtensions
 
     #region BindingDictionary
     /// <summary>
-    /// (IObservableDictionary, IDictionary)
+    /// (INotifyDictionaryChanged, IDictionarys)
     /// </summary>
-    private static Dictionary<object, HashSet<object>> _bindingDictionarys = [];
+    private static Dictionary<object, HashSet<object>> _bindingDictionaryXs = [];
 
     /// <summary>
-    /// 绑定字典
-    /// <para>
-    /// 将源字典的修改同步至目标字典
-    /// </para>
+    /// 绑定字典, 将源字典的修改同步至目标字典
     /// </summary>
     /// <typeparam name="TKey">键类型</typeparam>
     /// <typeparam name="TValue">值类型</typeparam>
@@ -175,16 +178,23 @@ public static partial class HKWExtensions
     )
         where TKey : notnull
     {
+        if (_bindingDictionaryXs.TryGetValue(sourceDictionary, out var set) is false)
+        {
+            set = _bindingDictionaryXs[sourceDictionary] = new();
+            sourceDictionary.DictionaryChanged += SourceDictionary_DictionaryChanged;
+        }
         if (unBinding)
         {
-            sourceDictionary.DictionaryChanged -= SourceDictionary_DictionaryChanged;
-            if (_bindingDictionarys.TryGetValue(sourceDictionary, out var tlists))
-                tlists.Remove(targetDictionary);
+            set.Remove(targetDictionary);
+            if (set.Count == 0)
+            {
+                _bindingDictionaryXs.Remove(sourceDictionary);
+                sourceDictionary.DictionaryChanged -= SourceDictionary_DictionaryChanged;
+            }
             return;
         }
-        sourceDictionary.DictionaryChanged -= SourceDictionary_DictionaryChanged;
-        sourceDictionary.DictionaryChanged += SourceDictionary_DictionaryChanged;
-        _bindingDictionarys.GetValueOrCreate(sourceDictionary).Add(targetDictionary);
+
+        set.Add(targetDictionary);
 
         static void SourceDictionary_DictionaryChanged(
             INotifyDictionaryChanged<TKey, TValue> sender,
@@ -196,7 +206,7 @@ public static partial class HKWExtensions
                 if (e.TryGetNewPair(out var newPair))
                 {
                     foreach (
-                        var dictionary in _bindingDictionarys[sender]
+                        var dictionary in _bindingDictionaryXs[sender]
                             .Cast<IDictionary<TKey, TValue>>()
                     )
                         dictionary.Add(newPair);
@@ -207,7 +217,7 @@ public static partial class HKWExtensions
                 if (e.TryGetOldPair(out var oldPair))
                 {
                     foreach (
-                        var dictionary in _bindingDictionarys[sender]
+                        var dictionary in _bindingDictionaryXs[sender]
                             .Cast<IDictionary<TKey, TValue>>()
                     )
                         dictionary.Remove(oldPair);
@@ -218,7 +228,7 @@ public static partial class HKWExtensions
                 if (e.TryGetNewPair(out var newPair))
                 {
                     foreach (
-                        var dictionary in _bindingDictionarys[sender]
+                        var dictionary in _bindingDictionaryXs[sender]
                             .Cast<IDictionary<TKey, TValue>>()
                     )
                         dictionary[newPair.Key] = newPair.Value;
@@ -227,7 +237,7 @@ public static partial class HKWExtensions
             else if (e.Action is DictionaryChangeAction.Clear)
             {
                 foreach (
-                    var dictionary in _bindingDictionarys[sender].Cast<IDictionary<TKey, TValue>>()
+                    var dictionary in _bindingDictionaryXs[sender].Cast<IDictionary<TKey, TValue>>()
                 )
                     dictionary.Clear();
             }
@@ -235,10 +245,12 @@ public static partial class HKWExtensions
     }
 
     /// <summary>
-    /// 绑定字典
-    /// <para>
-    /// 将源字典的修改同步至目标字典
-    /// </para>
+    /// (INotifyCollectionChanged, IDictionarys)
+    /// </summary>
+    private static Dictionary<object, HashSet<object>> _bindingDictionarys = [];
+
+    /// <summary>
+    /// 绑定字典, 将源字典的修改同步至目标字典
     /// </summary>
     /// <typeparam name="TKey">键类型</typeparam>
     /// <typeparam name="TValue">值类型</typeparam>
@@ -252,16 +264,23 @@ public static partial class HKWExtensions
     )
         where TKey : notnull
     {
+        if (_bindingDictionarys.TryGetValue(sourceDictionary, out var set) is false)
+        {
+            set = _bindingDictionarys[sourceDictionary] = new();
+            sourceDictionary.CollectionChanged += SourceDictionary_CollectionChanged;
+        }
         if (unBinding)
         {
-            sourceDictionary.CollectionChanged -= SourceDictionary_CollectionChanged;
-            if (_bindingDictionarys.TryGetValue(sourceDictionary, out var tlists))
-                tlists.Remove(targetDictionary);
+            set.Remove(targetDictionary);
+            if (set.Count == 0)
+            {
+                _bindingDictionarys.Remove(sourceDictionary);
+                sourceDictionary.CollectionChanged -= SourceDictionary_CollectionChanged;
+            }
             return;
         }
-        sourceDictionary.CollectionChanged -= SourceDictionary_CollectionChanged;
-        sourceDictionary.CollectionChanged += SourceDictionary_CollectionChanged;
-        _bindingDictionarys.GetValueOrCreate(sourceDictionary).Add(targetDictionary);
+
+        set.Add(targetDictionary);
 
         static void SourceDictionary_CollectionChanged(
             object? sender,
@@ -313,18 +332,14 @@ public static partial class HKWExtensions
     }
     #endregion
 
-
     #region BindingSet
     /// <summary>
-    /// (IObservableSet, ISet)
+    /// (INotifySetChanged, ISets)
     /// </summary>
-    private static Dictionary<object, HashSet<object>> _bindingSets = [];
+    private static Dictionary<object, HashSet<object>> _bindingSetXs = [];
 
     /// <summary>
-    /// 绑定集合
-    /// <para>
-    /// 将源集合的修改同步至目标集合
-    /// </para>
+    /// 绑定集合, 将源集合的修改同步至目标集合
     /// </summary>
     /// <typeparam name="T">项类型</typeparam>
     /// <param name="sourceSet">源集合</param>
@@ -336,46 +351,53 @@ public static partial class HKWExtensions
         bool unBinding = false
     )
     {
+        if (_bindingSetXs.TryGetValue(sourceSet, out var set) is false)
+        {
+            set = _bindingSetXs[sourceSet] = new();
+            sourceSet.SetChanged += SourceSet_SetChanged;
+        }
         if (unBinding)
         {
-            sourceSet.SetChanged -= SourceSet_SetChanged;
-            if (_bindingSets.TryGetValue(sourceSet, out var tsets))
-                tsets.Remove(targetSet);
+            set.Remove(targetSet);
+            if (set.Count == 0)
+            {
+                _bindingSetXs.Remove(sourceSet);
+                sourceSet.SetChanged -= SourceSet_SetChanged;
+            }
             return;
         }
-        sourceSet.SetChanged -= SourceSet_SetChanged;
-        sourceSet.SetChanged += SourceSet_SetChanged;
-        _bindingSets.GetValueOrCreate(sourceSet).Add(targetSet);
+
+        set.Add(targetSet);
 
         static void SourceSet_SetChanged(INotifySetChanged<T> sender, NotifySetChangeEventArgs<T> e)
         {
             if (e.Action is SetChangeAction.Add)
             {
                 ArgumentNullException.ThrowIfNull(e.NewItems);
-                foreach (var item in e.NewItems)
+                foreach (var set in _bindingSetXs[sender].Cast<ISet<T>>())
                 {
-                    foreach (var set in _bindingSets[sender].Cast<ISet<T>>())
-                        set.AddRange(e.NewItems);
+                    foreach (var item in e.NewItems)
+                        set.Add(item);
                 }
             }
             else if (e.Action is SetChangeAction.Remove)
             {
                 ArgumentNullException.ThrowIfNull(e.OldItems);
-                foreach (var item in e.OldItems)
+                foreach (var set in _bindingSetXs[sender].Cast<ISet<T>>())
                 {
-                    foreach (var set in _bindingSets[sender].Cast<ISet<T>>())
+                    foreach (var item in e.OldItems)
                         set.Remove(item);
                 }
             }
             else if (e.Action is SetChangeAction.Clear)
             {
-                foreach (var set in _bindingSets[sender].Cast<ISet<T>>())
+                foreach (var set in _bindingSetXs[sender].Cast<ISet<T>>())
                     set.Clear();
             }
             else if (e.Action is SetChangeAction.Union)
             {
                 ArgumentNullException.ThrowIfNull(e.OtherItems);
-                foreach (var set in _bindingSets[sender].Cast<ISet<T>>())
+                foreach (var set in _bindingSetXs[sender].Cast<ISet<T>>())
                 {
                     if (set is HashSet<T> hashSet)
                         hashSet.TrimExcess();
@@ -385,29 +407,31 @@ public static partial class HKWExtensions
             else if (e.Action is SetChangeAction.Except)
             {
                 ArgumentNullException.ThrowIfNull(e.OtherItems);
-                foreach (var set in _bindingSets[sender].Cast<ISet<T>>())
+                foreach (var set in _bindingSetXs[sender].Cast<ISet<T>>())
                     set.ExceptWith(e.OtherItems);
             }
             else if (e.Action is SetChangeAction.Intersect)
             {
                 ArgumentNullException.ThrowIfNull(e.OtherItems);
-                foreach (var set in _bindingSets[sender].Cast<ISet<T>>())
+                foreach (var set in _bindingSetXs[sender].Cast<ISet<T>>())
                     set.IntersectWith(e.OtherItems);
             }
             else if (e.Action is SetChangeAction.SymmetricExcept)
             {
                 ArgumentNullException.ThrowIfNull(e.OtherItems);
-                foreach (var set in _bindingSets[sender].Cast<ISet<T>>())
+                foreach (var set in _bindingSetXs[sender].Cast<ISet<T>>())
                     set.SymmetricExceptWith(e.OtherItems);
             }
         }
     }
 
     /// <summary>
-    /// 绑定集合
-    /// <para>
-    /// 将源集合的修改同步至目标集合
-    /// </para>
+    /// (INotifyCollectionChanged, ISets)
+    /// </summary>
+    private static Dictionary<object, HashSet<object>> _bindingSets = [];
+
+    /// <summary>
+    /// 绑定集合, 将源集合的修改同步至目标集合
     /// </summary>
     /// <typeparam name="T">项类型</typeparam>
     /// <param name="sourceSet">源集合</param>
@@ -419,16 +443,23 @@ public static partial class HKWExtensions
         bool unBinding = false
     )
     {
+        if (_bindingSets.TryGetValue(sourceSet, out var set) is false)
+        {
+            set = _bindingSets[sourceSet] = new();
+            sourceSet.CollectionChanged += SourceSet_CollectionChanged;
+        }
         if (unBinding)
         {
-            sourceSet.CollectionChanged -= SourceSet_CollectionChanged;
-            if (_bindingSets.TryGetValue(sourceSet, out var tsets))
-                tsets.Remove(targetSet);
+            set.Remove(targetSet);
+            if (set.Count == 0)
+            {
+                _bindingSets.Remove(sourceSet);
+                sourceSet.CollectionChanged -= SourceSet_CollectionChanged;
+            }
             return;
         }
-        sourceSet.CollectionChanged -= SourceSet_CollectionChanged;
-        sourceSet.CollectionChanged += SourceSet_CollectionChanged;
-        _bindingSets.GetValueOrCreate(sourceSet).Add(targetSet);
+
+        set.Add(targetSet);
 
         static void SourceSet_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
@@ -455,10 +486,6 @@ public static partial class HKWExtensions
             {
                 foreach (var set in _bindingSets[sender].Cast<ISet<T>>())
                     set.Clear();
-            }
-            else
-            {
-                throw new NotImplementedException();
             }
         }
     }

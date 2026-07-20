@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using HKW.HKWReactiveUI;
 using HKW.HKWUtils;
@@ -30,9 +31,10 @@ internal class Program
         DefaultValue = string.Empty,
         FillDefaultValueToData = true,
     };
-    public IntegratedReadOnlyList<int, List<int>, ReadOnlyCollection<int>> List { get; } =
-        new(new(), l => new(l));
-    public ReadOnlyCollection<int> ReadOnlyList => List.ReadOnlyList;
+
+    //public IntegratedReadOnlyList<int, List<int>, ReadOnlyCollection<int>> List { get; } =
+    //    new(new(), l => new(l));
+    //public ReadOnlyCollection<int> ReadOnlyList => List.ReadOnlyList;
     public static Point<int> point { get; set; } = new(1, 2);
     public static Point point1 { get; set; } = new(1, 2);
 
@@ -41,13 +43,13 @@ internal class Program
 #if !Release
         try
         {
-            var e = StringSplitOptions.RemoveEmptyEntries;
-            ArgumentException.ThrowIfAllNotEquals(
-                e,
-                StringSplitOptions.None,
-                StringSplitOptions.TrimEntries
-            );
-            //c.Add('c');
+            //var aTimer = new System.Timers.Timer(1000);
+            //aTimer.Elapsed += ATimer_Elapsed;
+            //aTimer.AutoReset = true;
+            //aTimer.Enabled = true;
+            //stopWatch.Start();
+            //aTimer.Start();
+            //Thread.Sleep(10000);
         }
         catch (Exception ex)
         {
@@ -56,10 +58,14 @@ internal class Program
 #endif
     }
 
-    private static void T_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private static void ATimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
     {
-        Console.WriteLine($"PropertyName: {e.PropertyName}");
-        return;
+        Console.WriteLine(stopWatch.ElapsedMilliseconds.ToString());
+    }
+
+    private static void Timer_TimedTrigger(object? sender, EventArgs e)
+    {
+        Console.WriteLine(stopWatch.ElapsedMilliseconds.ToString());
     }
 
     //var s = list.First()
@@ -149,7 +155,7 @@ internal partial class TestModel : ReactiveObjectX, IEnableLogger<TestModel>
 }
 
 [Flags]
-internal enum TestEnum1 : Int64
+internal enum TestEnum1
 {
     [Display(Name = "None_Name", ShortName = "None_ShortName", Description = "None_Description")]
     None,

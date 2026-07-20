@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Numerics;
 using HKW.HKWUtils.Extensions;
 
@@ -7,15 +8,14 @@ namespace HKW.HKWUtils.Drawing;
 /// <summary>
 /// 大小
 /// </summary>
-/// <typeparam name="T">类型</typeparam>
-[DebuggerDisplay("({Width}, {Height})")]
+/// <typeparam name="T">数值类型</typeparam>
 public struct Size<T> : IEquatable<IReadOnlySize<T>>, ISize<T>
     where T : struct, INumber<T>
 {
     /// <summary>
     /// 空
     /// </summary>
-    public static Size<T> Empty = new(default(T), default(T));
+    public static readonly Size<T> Empty = new(default(T), default(T));
 
     #region ctor
     /// <inheritdoc/>
@@ -31,19 +31,6 @@ public struct Size<T> : IEquatable<IReadOnlySize<T>>, ISize<T>
     /// <param name="size">大小</param>
     public Size(IReadOnlySize<T> size)
         : this(size.Width, size.Height) { }
-
-    /// <inheritdoc/>
-    /// <param name="data">数据</param>
-    /// <param name="separator">分割符</param>
-    public Size(string data, char separator = ',')
-    {
-        var span = data.AsSpan();
-        var datas = span.Split(separator);
-        datas.MoveNext();
-        Width = T.Parse(span[datas.Current], null);
-        datas.MoveNext();
-        Height = T.Parse(span[datas.Current], null);
-    }
     #endregion
 
     /// <inheritdoc/>
@@ -51,6 +38,12 @@ public struct Size<T> : IEquatable<IReadOnlySize<T>>, ISize<T>
 
     /// <inheritdoc/>
     public T Height { readonly get; set; }
+
+    /// <summary>
+    /// 是空的
+    /// </summary>
+    [Browsable(false)]
+    public readonly bool IsEmpty => Width == T.Zero && Height == T.Zero;
 
     #region Equals
 
@@ -63,9 +56,7 @@ public struct Size<T> : IEquatable<IReadOnlySize<T>>, ISize<T>
     /// <inheritdoc/>
     public override bool Equals(object? obj)
     {
-        if (obj is null)
-            return false;
-        return Equals((IReadOnlySize<T>)obj);
+        return Equals(obj as IReadOnlySize<T>);
     }
 
     /// <inheritdoc/>
@@ -73,24 +64,36 @@ public struct Size<T> : IEquatable<IReadOnlySize<T>>, ISize<T>
     {
         if (other is null)
             return false;
-        return Width == other.Width && Height == other.Height;
+        return this == other;
     }
 
-    /// <inheritdoc/>
-    public static bool operator ==(Size<T> a, IReadOnlySize<T> b)
-    {
-        return a.Equals(b);
-    }
-
-    /// <inheritdoc/>
-    public static bool operator !=(Size<T> a, IReadOnlySize<T> b)
-    {
-        return a.Equals(b) is not true;
-    }
     #endregion
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{{Width = {Width}, Height = {Height}}}";
+        return $"{{Width={Width},Height={Height}}}";
+    }
+
+    /// <summary>
+    /// 解析字符串数创建大小
+    /// </summary>
+    /// <param name="span">数据</param>
+    /// <param name="separator">分割符</param>
+    /// <returns>创建的大小</returns>
+    /// <remarks><![CDATA[
+    /// Parse("123,456",',')
+    /// return:
+    /// {Width=123,Height=456}
+    /// ]]></remarks>
+    /// <exception cref="Exception">数据 <paramref name="span"/> 解析错误</exception>
+    public static Size<T> Parse(ReadOnlySpan<char> span, char separator = ',')
+    {
+        var size = new Size<T>();
+        var datas = span.Split(separator);
+        datas.MoveNext();
+        size.Width = T.Parse(span[datas.Current], null);
+        datas.MoveNext();
+        size.Height = T.Parse(span[datas.Current], null);
+        return size;
     }
 }

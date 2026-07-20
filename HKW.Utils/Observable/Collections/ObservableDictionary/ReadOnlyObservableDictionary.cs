@@ -6,6 +6,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -15,7 +16,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public class ReadOnlyObservableDictionary<TKey, TValue>
     : IObservableDictionary<TKey, TValue>,
         IReadOnlyObservableDictionary<TKey, TValue>,
@@ -29,7 +30,7 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
 
     #region Ctor
     /// <inheritdoc/>
-    /// <param name="dictionary"></param>
+    /// <param name="dictionary">可观测字典</param>
     public ReadOnlyObservableDictionary(IObservableDictionary<TKey, TValue> dictionary)
     {
         _dictionary = dictionary;
@@ -77,23 +78,16 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     #region IDisposable
     private bool _disposed;
 
-    /// <summary>
-    /// 为了防止忘记显式的调用Dispose方法
-    /// </summary>
+    /// <inheritdoc/>
     ~ReadOnlyObservableDictionary()
     {
-        //必须为false
         Dispose(false);
     }
 
-    /// <summary>
-    /// 解除对引用列表注册的所有观测事件
-    /// </summary>
+    /// <inheritdoc/>
     public void Dispose()
     {
-        //必须为true
         Dispose(true);
-        //通知垃圾回收器不再调用终结器
         GC.SuppressFinalize(this);
     }
 
@@ -142,14 +136,7 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     TValue IDictionary<TKey, TValue>.this[TKey key]
     {
         get => _dictionary[key];
-        set => throw new ReadOnlyException();
-    }
-
-    /// <inheritdoc/>
-    TValue IObservableDictionary<TKey, TValue>.this[TKey key, bool skipCheck]
-    {
-        get => _dictionary[key];
-        set => throw new ReadOnlyException();
+        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -178,22 +165,22 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
 
     void IDictionary<TKey, TValue>.Add(TKey key, TValue value)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     bool IDictionary<TKey, TValue>.Remove(TKey key)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ICollection<KeyValuePair<TKey, TValue>>.Clear()
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
@@ -211,7 +198,7 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
 
     bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     #region Event

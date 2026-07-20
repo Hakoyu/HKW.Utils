@@ -2,7 +2,10 @@
 
 namespace HKW.HKWUtils.Extensions;
 
-public static partial class HKWExtensions
+/// <summary>
+///
+/// </summary>
+public static partial class TypeExtensions
 {
     extension(Type type)
     {

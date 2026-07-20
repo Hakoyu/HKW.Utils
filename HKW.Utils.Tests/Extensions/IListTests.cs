@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,77 +11,201 @@ namespace HKW.HKWUtilsTests.Extensions;
 [TestClass]
 public class IListTests
 {
+    private static Func<IList<string>> _createList =>
+        () => new ObservableCollection<string>(Enumerable.Range(0, 10).Select(i => i.ToString()));
+
     [TestMethod]
-    public void Random()
+    public void RandomItem()
     {
-        IList<int> set = Enumerable.Range(1, 10).ToList();
-        var randomItem = set.Random();
-        Assert.Contains(randomItem, set);
+        var list = _createList();
+
+        while (list.Count > 0)
+        {
+            var randomItem = list.RandomItem();
+            Assert.Contains(randomItem, list);
+            list.Remove(randomItem);
+            Assert.DoesNotContain(randomItem, list);
+        }
+    }
+
+    [TestMethod]
+    public void RandomIndex()
+    {
+        var list = _createList();
+
+        while (list.Count > 0)
+        {
+            var randomIndex = list.RandomIndex();
+            var randomItem = list[randomIndex];
+            Assert.Contains(randomItem, list);
+            list.RemoveAt(randomIndex);
+            Assert.DoesNotContain(randomItem, list);
+        }
     }
 
     #region IListFind
+
     [TestMethod]
     public void Find()
     {
-        IList<int> list = Enumerable.Range(1, 10).ToList();
+        var list = _createList();
+        var cList = list.ToList();
 
-        Assert.AreEqual(1, list.Find(x => x == 1));
-        Assert.AreEqual((3, 4), list.FindPair(2, x => x == 4));
-        Assert.AreEqual((7, 8), list.FindPair(4, 4, x => x == 8));
+        for (var i = 0; i < list.Count; i++)
+        {
+            var item = list[i];
+            Assert.AreEqual(item, [list.Find(x => x == item), cList.Find(x => x == item)]);
+        }
 
-        Assert.AreEqual(default, list.Find(x => x == -1));
-        Assert.AreEqual((-1, default), list.FindPair(2, x => x == -1));
-        Assert.AreEqual((-1, default), list.FindPair(4, 4, x => x == -1));
+        Assert.AreEqual(default, [list.Find(x => x == null), cList.Find(x => x == null)]);
     }
 
     [TestMethod]
-    public void TryFind()
+    public void FindIndex()
     {
-        IList<int> list = Enumerable.Range(1, 10).ToList();
+        var list = _createList();
+        var cList = list.ToList();
+        var count = list.Count;
 
-        Assert.IsTrue(list.TryFind(x => x == 1, out var i1) && i1 == 1);
-        Assert.IsTrue(list.TryFindPair(1, x => x == 2, out var i2) && i2 == (1, 2));
-        Assert.IsTrue(list.TryFindPair(1, 3, x => x == 3, out var i3) && i3 == (2, 3));
+        for (var i = 0; i < count; i++)
+        {
+            var item = list[i];
+            Assert.AreEqual(i, [cList.FindIndex(x => x == item), cList.FindIndex(x => x == item)]);
+            Assert.AreEqual(
+                i,
+                [cList.FindIndex(i, x => x == item), cList.FindIndex(i, x => x == item)]
+            );
+            Assert.AreEqual(
+                i,
+                [cList.FindIndex(i, 1, x => x == item), cList.FindIndex(i, 1, x => x == item)]
+            );
+            Assert.AreEqual(
+                i,
+                [
+                    cList.FindIndex(i, count - i, x => x == item),
+                    cList.FindIndex(i, count - i, x => x == item),
+                ]
+            );
+        }
 
-        Assert.IsTrue(list.TryFind(x => x == -1, out var i4) is false && i4 == default);
-        Assert.IsTrue(
-            list.TryFindPair(1, x => x == -1, out var i5) is false && i5 == (-1, default)
+        Assert.AreEqual(-1, [cList.FindIndex(x => x == null), cList.FindIndex(x => x == null)]);
+        Assert.AreEqual(
+            -1,
+            [cList.FindIndex(1, x => x == null), cList.FindIndex(1, x => x == null)]
         );
-        Assert.IsTrue(
-            list.TryFindPair(1, 3, x => x == -1, out var i6) is false && i6 == (-1, default)
+        Assert.AreEqual(
+            -1,
+            [cList.FindIndex(1, 1, x => x == null), cList.FindIndex(1, 1, x => x == null)]
         );
+    }
+
+    [TestMethod]
+    public void FindPair()
+    {
+        var list = _createList();
+        var cList = list.ToList();
+        var count = list.Count;
+
+        for (var i = 0; i < count; i++)
+        {
+            var item = list[i];
+            var findResult = cList.Find(x => x == item);
+            Assert.AreEqual(item, findResult);
+            Assert.AreEqual((i, item), list.FindPair(x => x == item));
+            Assert.AreEqual((i, item), list.FindPair(i, x => x == item));
+            Assert.AreEqual((i, item), list.FindPair(i, 1, x => x == item));
+            Assert.AreEqual((i, item), list.FindPair(i, count - i, x => x == item));
+        }
+
+        Assert.AreEqual((-1, default), list.FindPair(x => x == null));
+        Assert.AreEqual((-1, default), list.FindPair(1, x => x == null));
+        Assert.AreEqual((-1, default), list.FindPair(1, 1, x => x == null));
     }
 
     [TestMethod]
     public void FindLast()
     {
-        IList<int> list = Enumerable.Range(1, 10).ToList();
+        var list = _createList();
+        var cList = list.ToList();
 
-        Assert.AreEqual(1, list.FindLast(x => x == 1));
-        Assert.AreEqual((1, 2), list.FindLastPair(1, x => x == 2));
-        Assert.AreEqual((2, 3), list.FindLastPair(4, 3, x => x == 3));
+        for (var i = 0; i < list.Count; i++)
+        {
+            var item = list[i];
+            Assert.AreEqual(item, [list.FindLast(x => x == item), cList.FindLast(x => x == item)]);
+        }
 
-        Assert.AreEqual(default, list.FindLast(x => x == -1));
-        Assert.AreEqual((-1, default), list.FindLastPair(1, x => x == -1));
-        Assert.AreEqual((-1, default), list.FindLastPair(4, 3, x => x == -1));
+        Assert.AreEqual(default, [list.FindLast(x => x == null), cList.FindLast(x => x == null)]);
     }
 
     [TestMethod]
-    public void TryFindLast()
+    public void FindLastIndex()
     {
-        IList<int> list = Enumerable.Range(1, 10).ToList();
+        var list = _createList();
+        var cList = list.ToList();
+        var count = list.Count;
 
-        Assert.IsTrue(list.TryFindLast(x => x == 1, out var i1) && i1 == 1);
-        Assert.IsTrue(list.TryFindLast(1, x => x == 2, out var i2) && i2 == (1, 2));
-        Assert.IsTrue(list.TryFindLast(4, 3, x => x == 3, out var i3) && i3 == (2, 3));
+        for (var i = 0; i < count; i++)
+        {
+            var item = list[i];
+            Assert.AreEqual(
+                i,
+                [list.FindLastIndex(x => x == item), cList.FindLastIndex(x => x == item)]
+            );
+            Assert.AreEqual(
+                i,
+                [list.FindLastIndex(i, x => x == item), cList.FindLastIndex(i, x => x == item)]
+            );
+            Assert.AreEqual(
+                i,
+                [
+                    list.FindLastIndex(i, 1, x => x == item),
+                    cList.FindLastIndex(i, 1, x => x == item),
+                ]
+            );
+            Assert.AreEqual(
+                i,
+                [
+                    list.FindLastIndex(i, i + 1, x => x == item),
+                    cList.FindLastIndex(i, i + 1, x => x == item),
+                ]
+            );
+        }
 
-        Assert.IsTrue(list.TryFindLast(x => x == -1, out var i4) is false && i4 == default);
-        Assert.IsTrue(
-            list.TryFindLast(1, x => x == -1, out var i5) is false && i5 == (-1, default)
+        Assert.AreEqual(
+            -1,
+            [list.FindLastIndex(x => x == null), cList.FindLastIndex(x => x == null)]
         );
-        Assert.IsTrue(
-            list.TryFindLast(4, 3, x => x == -1, out var i6) is false && i6 == (-1, default)
+        Assert.AreEqual(
+            -1,
+            [list.FindLastIndex(1, x => x == null), cList.FindLastIndex(1, x => x == null)]
         );
+        Assert.AreEqual(
+            -1,
+            [list.FindLastIndex(1, 0, x => x == null), cList.FindLastIndex(1, 0, x => x == null)]
+        );
+    }
+
+    [TestMethod]
+    public void FindLastPair()
+    {
+        var list = _createList();
+        var cList = list.ToList();
+        var count = list.Count;
+
+        for (var i = 0; i < count; i++)
+        {
+            var item = list[i];
+            var findResult = cList.Find(x => x == item);
+            Assert.AreEqual(item, findResult);
+            Assert.AreEqual((i, item), list.FindLastPair(x => x == item));
+            Assert.AreEqual((i, item), list.FindLastPair(i, x => x == item));
+            Assert.AreEqual((i, item), list.FindLastPair(i, 1, x => x == item));
+            Assert.AreEqual((i, item), list.FindLastPair(i, i + 1, x => x == item));
+        }
+
+        Assert.AreEqual((-1, default), list.FindLastPair(x => x == null));
+        Assert.AreEqual((-1, default), list.FindLastPair(1, x => x == null));
+        Assert.AreEqual((-1, default), list.FindLastPair(1, 1, x => x == null));
     }
     #endregion
 }

@@ -87,7 +87,7 @@ public class NotifyDictionaryChangeEventArgs<TKey, TValue> : EventArgs
     /// 尝试获取新键值对
     /// </summary>
     /// <param name="newPair">键值对</param>
-    /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否获取成功</returns>
     public bool TryGetNewPair([MaybeNullWhen(false)] out KeyValuePair<TKey, TValue> newPair)
     {
         if (NewPair.HasValue)
@@ -103,7 +103,7 @@ public class NotifyDictionaryChangeEventArgs<TKey, TValue> : EventArgs
     /// 尝试获取旧键值对
     /// </summary>
     /// <param name="oldPair">键值对</param>
-    /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否获取成功</returns>
     public bool TryGetOldPair([MaybeNullWhen(false)] out KeyValuePair<TKey, TValue> oldPair)
     {
         if (OldPair.HasValue)

@@ -3,17 +3,20 @@ using System.Runtime.CompilerServices;
 
 namespace HKW.HKWUtils.Extensions;
 
-public static partial class HKWExtensions
+/// <summary>
+///
+/// </summary>
+public static class CollectionExtensions
 {
     /// <typeparam name="T">项类型</typeparam>
     /// <param name="collection">集合</param>
     extension<T>(ICollection<T> collection)
     {
         /// <summary>
-        /// 包含索引值
+        /// 有效的索引值
         /// </summary>
         /// <param name="index">索引</param>
-        /// <returns>包含为 <see langword="true"/> 不包含为 <see langword="false"/></returns>
+        /// <returns>是否有效</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsValidIndex(int index)
         {
@@ -21,10 +24,10 @@ public static partial class HKWExtensions
         }
 
         /// <summary>
-        /// 含有值
+        /// 有值
         /// <para>等价于 <c>Count > 0</c></para>
         /// </summary>
-        /// <returns>含有值为 <see langword="true"/> 否则为 <see langword="false"/></returns>
+        /// <returns>是否有值</returns>
         public bool HasValue
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -56,45 +59,65 @@ public static partial class HKWExtensions
         /// <summary>
         /// 倒序枚举出带有索引值的枚举值
         /// </summary>
-        /// <returns>带有索引的枚举值(索引, 枚举值)</returns>
-        public IEnumerable<(int Index, T Item)> ReverseEnumerateIndex()
+        /// <returns>带有索引的枚举值(枚举值, 索引)</returns>
+        public IEnumerable<(T Item, int Index)> ReverseWithIndex()
         {
-            var index = collection.Count - 1;
-            foreach (var item in collection.Reverse())
-                yield return (index--, item);
+            if (collection is List<T> list)
+            {
+                for (var i = list.Count - 1; i >= 0; i--)
+                    yield return (list[i], i);
+            }
+            else
+            {
+                var index = collection.Count - 1;
+                foreach (var item in collection.Reverse())
+                    yield return (item, index--);
+            }
         }
-    }
 
-    /// <param name="collection">集合</param>
-    extension(ICollection collection)
-    {
         /// <summary>
-        /// 倒序枚举出带有索引值的枚举值
+        /// 从后往前获取项目的索引
         /// </summary>
-        /// <returns>带有索引的枚举值(索引, 枚举值)</returns>
-        public IEnumerable<(int Index, object Item)> ReverseEnumerateIndex()
+        /// <param name="item">项目</param>
+        /// <returns>第一个找到的项目</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int LastIndexOf(T item)
         {
-            var index = collection.Count - 1;
-            foreach (var item in collection.Cast<object>().Reverse())
-                yield return (index--, item);
+            if (collection is IList<T> list)
+            {
+                for (int i = list.Count - 1; i >= 0; i--)
+                {
+                    if (EqualityComparer<T>.Default.Equals(item, list[i]))
+                        return i;
+                }
+            }
+            else
+            {
+                var i = collection.Count;
+                foreach (var e in collection.Reverse())
+                {
+                    i--;
+                    if (EqualityComparer<T>.Default.Equals(item, e))
+                        return i;
+                }
+            }
+            collection.ReverseWithIndex();
+            return -1;
         }
     }
 
-    ///// <summary>
-    ///// 删除全部符合条件的项目
-    ///// </summary>
-    ///// <typeparam name="T">项类型</typeparam>
     ///// <param name="collection">集合</param>
-    ///// <param name="match">条件</param>
-    //public static void RemoveAll<T>(this ICollection<T> collection, Predicate<T> match)
+    //extension(ICollection collection)
     //{
-    //    if (collection is IList<T> list)
+    //    /// <summary>
+    //    /// 倒序枚举出带有索引值的枚举值
+    //    /// </summary>
+    //    /// <returns>带有索引的枚举值(枚举值, 索引)</returns>
+    //    public IEnumerable<(object Item, int Index)> ReverseWithIndex()
     //    {
-    //        list.RemoveAll(match);
-    //    }
-    //    else
-    //    {
-    //        new HashSet<int>().RemoveWhere();
+    //        var index = collection.Count - 1;
+    //        foreach (var item in collection.Cast<object>().Reverse())
+    //            yield return (item, index--);
     //    }
     //}
 }

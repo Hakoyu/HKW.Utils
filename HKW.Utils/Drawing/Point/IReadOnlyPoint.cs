@@ -18,4 +18,9 @@ public interface IReadOnlyPoint<T>
     /// 坐标Y
     /// </summary>
     public T Y { get; }
+
+    /// <summary>
+    /// 是空的
+    /// </summary>
+    public bool IsEmpty { get; }
 }

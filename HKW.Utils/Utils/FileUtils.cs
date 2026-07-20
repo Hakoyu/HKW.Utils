@@ -17,7 +17,7 @@ public static class FileUtils
     /// <param name="file1">文件1</param>
     /// <param name="file2">文件2</param>
     /// <param name="chunkSize">缓冲区大小</param>
-    /// <returns>相同为 <see langword="true"/>, 不相同为 <see langword="false"/></returns>
+    /// <returns>是否相同</returns>
     public static bool Compare(string file1, string file2, int chunkSize = 4096)
     {
         var fileInfo1 = new FileInfo(file1);
@@ -31,7 +31,7 @@ public static class FileUtils
     /// <param name="fileInfo1">文件1</param>
     /// <param name="fileInfo2">文件2</param>
     /// <param name="chunkSize">byte缓冲区大小, 大于 4096 时将使用内存池</param>
-    /// <returns>相同为 <see langword="true"/>, 不相同为 <see langword="false"/></returns>
+    /// <returns>是否相同</returns>
     public static bool Compare(FileInfo fileInfo1, FileInfo fileInfo2, int chunkSize = 4096)
     {
         if (fileInfo1.Exists is false || fileInfo2.Exists is false)

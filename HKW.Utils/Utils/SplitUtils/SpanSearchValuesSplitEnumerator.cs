@@ -7,34 +7,34 @@ using System.Runtime.CompilerServices;
 namespace HKW.HKWUtils;
 
 /// <summary>
-/// 支持枚举由一个或多个分隔符拆分后的 <see cref="ReadOnlySpan{T}"/> 的每个片段。
+/// 支持枚举由一个或多个分隔符拆分后的 <see cref="ReadOnlySpan{T}"/> 的每个片段
 /// </summary>
-/// <typeparam name="T"><see cref="SpanSearchValuesSplitEnumerator{T}"/> 中元素的类型。</typeparam>
+/// <typeparam name="T"><see cref="SpanSearchValuesSplitEnumerator{T}"/> 中元素的类型</typeparam>
 public ref struct SpanSearchValuesSplitEnumerator<T>
     where T : IEquatable<T>
 {
     /// <summary>
-    /// 正在被拆分的输入 Span。
+    /// 正在被拆分的输入 Span
     /// </summary>
     private readonly ReadOnlySpan<T> _source;
 
     /// <summary>
-    /// 分隔符。
+    /// 分隔符
     /// </summary>
     private readonly SearchValues<T> _searchValues = default!;
 
     /// <summary>
-    /// 当前范围在 <see cref="_source"/> 中的起始索引（包含）。
+    /// 当前范围在 <see cref="_source"/> 中的起始索引（包含）
     /// </summary>
     private int _startCurrent = 0;
 
     /// <summary>
-    /// 当前范围在 <see cref="_source"/> 中的结束索引（不包含）。
+    /// 当前范围在 <see cref="_source"/> 中的结束索引（不包含）
     /// </summary>
     private int _endCurrent = 0;
 
     /// <summary>
-    /// 在 <see cref="_source"/> 中下一次开始搜索分隔符的索引。
+    /// 在 <see cref="_source"/> 中下一次开始搜索分隔符的索引
     /// </summary>
     private int _startNext = 0;
 
@@ -44,32 +44,32 @@ public ref struct SpanSearchValuesSplitEnumerator<T>
     private bool _isEnd = false;
 
     /// <summary>
-    /// 获取一个可用于遍历拆分后 Span 的枚举器。
+    /// 获取一个可用于遍历拆分后 Span 的枚举器
     /// </summary>
     public SpanSearchValuesSplitEnumerator<T> GetEnumerator() => this;
 
     /// <summary>
-    /// 获取正在被枚举的源 Span。
+    /// 获取正在被枚举的源 Span
     /// </summary>
     public readonly ReadOnlySpan<T> Source => _source;
 
     /// <summary>
-    /// 获取枚举中的当前分割的元素范围。
+    /// 获取枚举中的当前分割的元素范围
     /// </summary>
     public Range Current => new Range(_startCurrent, _endCurrent);
 
     /// <summary>
-    /// 获取枚举中的当前元素。
+    /// 获取枚举中的当前元素
     /// </summary>
     public ReadOnlySpan<T> CurrentValue => _source[_startCurrent.._endCurrent];
 
     /// <summary>
-    /// 获取枚举中的当前分隔符。当枚举到最后一个元素时, 分隔符为 <see langword="default"/>(T)。
+    /// 获取枚举中的当前分隔符当枚举到最后一个元素时, 分隔符为 <see langword="default"/>(T)
     /// </summary>
     public T CurrentSeparator => _endCurrent < _source.Length ? _source[_endCurrent] : default!;
 
     /// <summary>
-    /// 初始化枚举器。
+    /// 初始化枚举器
     /// </summary>
     internal SpanSearchValuesSplitEnumerator(ReadOnlySpan<T> source, SearchValues<T> searchValues)
     {
@@ -78,16 +78,16 @@ public ref struct SpanSearchValuesSplitEnumerator<T>
     }
 
     /// <summary>
-    /// 将枚举器推进到下一个元素。
+    /// 将枚举器推进到下一个元素
     /// </summary>
     /// <returns>
-    /// 如果成功推进到下一个元素则为 <see langword="true"/>；如果已越过枚举末尾则为 <see langword="false"/>。
+    /// 是否成功
     /// </returns>
     public bool MoveNext()
     {
         if (_isEnd)
             return false;
-        // 查找下一个分隔符索引。
+        // 查找下一个分隔符索引
         int separatorIndex,
             separatorLength = 1;
 

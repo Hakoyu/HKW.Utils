@@ -545,7 +545,7 @@ public class I18nResource<TKey, TValue>
     /// </summary>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool AddCurrentCultureData(TKey key, TValue value)
     {
         if (CultureDatas.TryGetValue(key, out var datas) is false)
@@ -558,7 +558,7 @@ public class I18nResource<TKey, TValue>
     /// </summary>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public void SetCurrentCultureData(TKey key, TValue value)
     {
         if (AddCurrentCultureData(key, value) is false)
@@ -569,7 +569,7 @@ public class I18nResource<TKey, TValue>
     /// 删除文化数据
     /// </summary>
     /// <param name="key">键</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool RemoveCurrentCultureData(TKey key)
     {
         return CultureDatas[key].Remove(CurrentCulture);
@@ -622,7 +622,7 @@ public class I18nResource<TKey, TValue>
     /// </summary>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool TryGetCurrentCultureData(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
         if (CultureDatas.TryGetValue(key, out var datas))
@@ -637,7 +637,7 @@ public class I18nResource<TKey, TValue>
     /// 添加文化数据
     /// </summary>
     /// <param name="key">键</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool AddCultureData(TKey key)
     {
         return CultureDatas.TryAdd(key, new() { Key = key });
@@ -649,7 +649,7 @@ public class I18nResource<TKey, TValue>
     /// <param name="culture">文化</param>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool AddCultureData(CultureInfo culture, TKey key, TValue value)
     {
         if (CultureDatas.TryGetValue(key, out var datas))
@@ -669,7 +669,7 @@ public class I18nResource<TKey, TValue>
     /// <param name="cultureName">文化名称</param>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool AddCultureData(string cultureName, TKey key, TValue value) =>
         AddCultureData(CultureInfo.GetCultureInfo(cultureName), key, value);
 
@@ -718,7 +718,7 @@ public class I18nResource<TKey, TValue>
     /// <param name="cultureName">文化名称</param>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public void SetCultureData(string cultureName, TKey key, TValue value) =>
         SetCultureData(CultureInfo.GetCultureInfo(cultureName), key, value);
 
@@ -738,7 +738,7 @@ public class I18nResource<TKey, TValue>
     /// </summary>
     /// <param name="cultureName">文化名称</param>
     /// <param name="datas">文化数据</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public void SetCultureDatas(
         string cultureName,
         IEnumerable<KeyValuePair<TKey, TValue>> datas
@@ -748,7 +748,7 @@ public class I18nResource<TKey, TValue>
     /// 删除文化数据
     /// </summary>
     /// <param name="key">键</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool RemoveCultureData(TKey key)
     {
         return CultureDatas.Remove(key);
@@ -759,7 +759,7 @@ public class I18nResource<TKey, TValue>
     /// </summary>
     /// <param name="culture">文化</param>
     /// <param name="key">键</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool RemoveCultureData(CultureInfo culture, TKey key)
     {
         if (CultureDatas.TryGetValue(key, out var data))
@@ -772,7 +772,7 @@ public class I18nResource<TKey, TValue>
     /// </summary>
     /// <param name="cultureName">文化名称</param>
     /// <param name="key">键</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool RemoveCultureData(string cultureName, TKey key) =>
         RemoveCultureData(CultureInfo.GetCultureInfo(cultureName), key);
 
@@ -782,7 +782,7 @@ public class I18nResource<TKey, TValue>
     /// <param name="oldKey">旧键</param>
     /// <param name="newKey">新键</param>
     /// <param name="override">如果已经存在新键,则强制覆盖</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool ReplaceCultureDataKey(TKey oldKey, TKey newKey, bool @override = false)
     {
         if (CultureDatas.TryGetValue(oldKey, out var data) is false)
@@ -937,7 +937,7 @@ public class I18nResource<TKey, TValue>
     /// <param name="culture">文化</param>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool TryGetCultureData(
         CultureInfo culture,
         TKey key,
@@ -953,7 +953,7 @@ public class I18nResource<TKey, TValue>
     /// <param name="cultureName">文化名称</param>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool TryGetCultureData(
         string cultureName,
         TKey key,
@@ -967,7 +967,7 @@ public class I18nResource<TKey, TValue>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
     /// <param name="defaultValue">默认值</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool TryGetCultureData(
         CultureInfo culture,
         TKey key,
@@ -991,7 +991,7 @@ public class I18nResource<TKey, TValue>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
     /// <param name="defaultValue">默认值</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool TryGetCultureData(
         string cultureName,
         TKey key,
@@ -1005,7 +1005,7 @@ public class I18nResource<TKey, TValue>
     /// 设置当前文化
     /// </summary>
     /// <param name="culture">文化</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool SetCurrentCulture(CultureInfo culture)
     {
         if (Cultures.Contains(culture) is false)
@@ -1020,7 +1020,7 @@ public class I18nResource<TKey, TValue>
     /// 设置当前文化
     /// </summary>
     /// <param name="cultureName">文化名称</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool SetCurrentCulture(string cultureName) =>
         SetCurrentCulture(CultureInfo.GetCultureInfo(cultureName));
 
@@ -1028,7 +1028,7 @@ public class I18nResource<TKey, TValue>
     /// 添加文化
     /// </summary>
     /// <param name="culture">文化</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool AddCulture(CultureInfo culture)
     {
         return Cultures.Add(culture);
@@ -1038,7 +1038,7 @@ public class I18nResource<TKey, TValue>
     /// 添加文化
     /// </summary>
     /// <param name="cultureName">文化名称</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool AddCulture(string cultureName) =>
         AddCulture(CultureInfo.GetCultureInfo(cultureName));
 
@@ -1046,7 +1046,7 @@ public class I18nResource<TKey, TValue>
     /// 删除文化
     /// </summary>
     /// <param name="culture">文化</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool RemoveCulture(CultureInfo culture)
     {
         return Cultures.Remove(culture);
@@ -1056,7 +1056,7 @@ public class I18nResource<TKey, TValue>
     /// 删除文化
     /// </summary>
     /// <param name="cultureName">文化名称</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool RemoveCulture(string cultureName) =>
         RemoveCulture(CultureInfo.GetCultureInfo(cultureName));
 
@@ -1076,7 +1076,7 @@ public class I18nResource<TKey, TValue>
     /// </summary>
     /// <param name="oldCulture">旧文化</param>
     /// <param name="newCulture">新文化</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool ReplaceCulture(CultureInfo oldCulture, CultureInfo newCulture)
     {
         if (Cultures.Contains(oldCulture) is false || Cultures.Contains(newCulture))
@@ -1098,7 +1098,7 @@ public class I18nResource<TKey, TValue>
     /// </summary>
     /// <param name="oldCultureName">旧文化名称</param>
     /// <param name="newCultureName">新文化名称</param>
-    /// <returns>成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否成功</returns>
     public bool ReplaceCulture(string oldCultureName, string newCultureName) =>
         ReplaceCulture(
             CultureInfo.GetCultureInfo(oldCultureName),

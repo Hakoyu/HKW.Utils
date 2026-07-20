@@ -2,7 +2,10 @@
 
 namespace HKW.HKWUtils.Extensions;
 
-public static partial class HKWExtensions
+/// <summary>
+///
+/// </summary>
+public static class BoolExtensions
 {
     extension(bool value)
     {
@@ -12,9 +15,12 @@ public static partial class HKWExtensions
         /// <param name="trueAction">为真时行动</param>
         /// <param name="falseAction">为假时行动</param>
         /// <returns>值</returns>
+        /// <exception cref="ArgumentNullException">参数 <paramref name="trueAction"/> 或 <paramref name="falseAction"/> 为 <see langword="null"/></exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Action(Action trueAction, Action falseAction)
         {
+            ArgumentNullException.ThrowIfNull(trueAction);
+            ArgumentNullException.ThrowIfNull(falseAction);
             if (value is true)
                 trueAction();
             else
@@ -27,9 +33,11 @@ public static partial class HKWExtensions
         /// </summary>
         /// <param name="action">行动</param>
         /// <returns>值</returns>
+        /// <exception cref="ArgumentNullException">参数 <paramref name="action"/> 为 <see langword="null"/></exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool ActionWhenTrue(Action action)
         {
+            ArgumentNullException.ThrowIfNull(action);
             if (value is true)
                 action();
             return value;
@@ -40,8 +48,10 @@ public static partial class HKWExtensions
         /// </summary>
         /// <param name="action">行动</param>
         /// <returns>值</returns>
+        /// <exception cref="ArgumentNullException">参数 <paramref name="action"/> 为 <see langword="null"/></exception>
         public bool ActionWhenFalse(Action action)
         {
+            ArgumentNullException.ThrowIfNull(action);
             if (value is not true)
                 action();
             return value;
@@ -75,7 +85,7 @@ public static partial class HKWExtensions
         /// </summary>
         /// <param name="c">参数</param>
         /// <param name="result">结果</param>
-        /// <returns>解析成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+        /// <returns>解析是否成功</returns>
         public static bool TryParse(char c, out bool result)
         {
             result = false;

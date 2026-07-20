@@ -4,7 +4,10 @@ using System.Runtime.CompilerServices;
 
 namespace HKW.HKWUtils.Extensions;
 
-public static partial class HKWExtensions
+/// <summary>
+///
+/// </summary>
+public static class CultureInfoExtensions
 {
     extension(CultureInfo cultureInfo)
     {
@@ -29,7 +32,7 @@ public static partial class HKWExtensions
         /// 检测文化是否存在
         /// </summary>
         /// <param name="name">文化名称</param>
-        /// <returns>存在为 <see langword="true"/> 不存在为 <see langword="false"/></returns>
+        /// <returns>是否存在</returns>
         public static bool Exists(string name)
         {
             return TryGetCultureInfo(name, out _);
@@ -40,7 +43,7 @@ public static partial class HKWExtensions
         /// </summary>
         /// <param name="name">文化名称</param>
         /// <param name="cultureInfo">文化信息</param>
-        /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+        /// <returns>是否获取成功</returns>
         public static bool TryGetCultureInfo(
             string name,
             [MaybeNullWhen(false)] out CultureInfo cultureInfo
