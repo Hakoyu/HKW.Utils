@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -13,7 +14,10 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
-public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>, IDisposable
+public sealed class ReadOnlyObservableSet<T>
+    : IObservableSet<T>,
+        IReadOnlyObservableSet<T>,
+        IDisposable
 {
     private readonly IObservableSet<T> _set;
 
@@ -64,7 +68,7 @@ public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSe
     }
 
     /// <inheritdoc/>
-    protected virtual void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (_disposed)
             return;
@@ -81,7 +85,7 @@ public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSe
 
     #region IReadOnlyObservableSet
     /// <inheritdoc/>
-    public int Count => ((IReadOnlyCollection<T>)_set).Count;
+    public int Count => _set.Count;
 
     /// <inheritdoc/>
     public bool IsReadOnly => true;
@@ -89,7 +93,7 @@ public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSe
     /// <inheritdoc/>
     public bool Contains(T item)
     {
-        return ((IReadOnlySet<T>)_set).Contains(item);
+        return _set.Contains(item);
     }
 
     /// <inheritdoc/>
@@ -101,37 +105,37 @@ public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSe
     /// <inheritdoc/>
     public bool IsProperSubsetOf(IEnumerable<T> other)
     {
-        return ((IReadOnlySet<T>)_set).IsProperSubsetOf(other);
+        return _set.IsProperSubsetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsProperSupersetOf(IEnumerable<T> other)
     {
-        return ((IReadOnlySet<T>)_set).IsProperSupersetOf(other);
+        return _set.IsProperSupersetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsSubsetOf(IEnumerable<T> other)
     {
-        return ((IReadOnlySet<T>)_set).IsSubsetOf(other);
+        return _set.IsSubsetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsSupersetOf(IEnumerable<T> other)
     {
-        return ((IReadOnlySet<T>)_set).IsSupersetOf(other);
+        return _set.IsSupersetOf(other);
     }
 
     /// <inheritdoc/>
     public bool Overlaps(IEnumerable<T> other)
     {
-        return ((IReadOnlySet<T>)_set).Overlaps(other);
+        return _set.Overlaps(other);
     }
 
     /// <inheritdoc/>
     public bool SetEquals(IEnumerable<T> other)
     {
-        return ((IReadOnlySet<T>)_set).SetEquals(other);
+        return _set.SetEquals(other);
     }
 
     /// <inheritdoc/>
@@ -145,42 +149,42 @@ public class ReadOnlyObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSe
 
     bool ISet<T>.Add(T item)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ICollection<T>.Add(T item)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ICollection<T>.Clear()
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ISet<T>.ExceptWith(IEnumerable<T> other)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ISet<T>.IntersectWith(IEnumerable<T> other)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     bool ICollection<T>.Remove(T item)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ISet<T>.SymmetricExceptWith(IEnumerable<T> other)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ISet<T>.UnionWith(IEnumerable<T> other)
     {
-        throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     void ICollection<T>.CopyTo(T[] array, int arrayIndex)

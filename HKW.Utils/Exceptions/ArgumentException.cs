@@ -13,8 +13,29 @@ namespace HKW.HKWUtils.Exceptions;
 /// </summary>
 public static partial class ArgumentExceptions
 {
-    extension(ArgumentException exception)
+    extension(ArgumentException)
     {
+        /// <summary>
+        /// 当 <paramref name="argument"/> 与 <paramref name="expected"/> 相等时，抛出 <see cref="System.ArgumentException"/>。
+        /// </summary>
+        /// <param name="argument">需要校验的参数值。</param>
+        /// <param name="expected">期望匹配的目标值。</param>
+        /// <param name="paramName">参数名</param>
+        /// <exception cref="System.ArgumentException">当 <paramref name="argument"/> 与 <paramref name="expected"/> 不相等时抛出。</exception>
+        public static void ThrowIfEquals<T>(
+            T argument,
+            T expected,
+            [CallerArgumentExpression("argument")] string? paramName = null
+        )
+        {
+            if (EqualityComparer<T>.Default.Equals(argument, expected) is false)
+                return;
+            throw new ArgumentException(
+                $"Argument value does match the expected value. Actual: [{argument?.ToString() ?? "null"}], Expected: [{expected?.ToString() ?? "null"}], ArgumentType: [{argument?.GetType().ToString() ?? "null"}].",
+                paramName
+            );
+        }
+
         /// <summary>
         /// 当 <paramref name="argument"/> 与 <paramref name="expected"/> 不相等时，抛出 <see cref="System.ArgumentException"/>。
         /// </summary>
@@ -226,6 +247,24 @@ public static partial class ArgumentExceptions
         {
             if (argument.Count == 0)
                 throw new ArgumentException("Collection is empty.", paramName);
+        }
+
+        /// <summary>
+        /// 当 <paramref name="collection"/> 集合不包含 <paramref name="argument"/>时，抛出 <see cref="System.ArgumentException"/>。
+        /// </summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="collection">集合</param>
+        /// <param name="argument">项</param>
+        /// <param name="paramName">参数名</param>
+        /// <exception cref="ArgumentException">当 <paramref name="collection"/> 集合不包含 <paramref name="argument"/>时抛出。</exception>
+        public static void ThrowIfNotContains<T>(
+            ICollection<T> collection,
+            T argument,
+            [CallerArgumentExpression("argument")] string? paramName = null
+        )
+        {
+            if (collection.Contains(argument) is false)
+                throw new ArgumentException($"Item not contains, Item: [{argument}].", paramName);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
-public class ReadOnlyObservableList<T>
+public sealed class ReadOnlyObservableList<T>
     : IObservableList<T>,
         IReadOnlyObservableList<T>,
         IList,
@@ -24,7 +24,7 @@ public class ReadOnlyObservableList<T>
     /// <summary>
     /// 原始可观测列表
     /// </summary>
-    protected IObservableList<T> _list;
+    private readonly IObservableList<T> _list;
 
     #region Ctor
 
@@ -80,7 +80,7 @@ public class ReadOnlyObservableList<T>
     }
 
     /// <inheritdoc/>
-    protected virtual void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (_disposed)
             return;

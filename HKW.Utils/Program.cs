@@ -5,8 +5,11 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Globalization;
+using System.Linq.Expressions;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using HKW.HKWReactiveUI;
@@ -17,6 +20,7 @@ using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
 using ReactiveUI;
+using ReactiveUI.Builder;
 
 namespace HKW;
 
@@ -25,12 +29,11 @@ internal class Program
 {
     private static System.Diagnostics.Stopwatch stopWatch = new();
 
-    public static I18nCore I18nCore = new();
-    public static I18nResource<string, string> I18nResource = new("", I18nCore.Default)
-    {
-        DefaultValue = string.Empty,
-        FillDefaultValueToData = true,
-    };
+    //public static I18nCore I18nCore = new();
+    public static ObservableI18nResource<string, string> I18nResource { get; } =
+        new("Main", (k, c) => k, CultureInfo.CurrentCulture);
+    public static CultureInfo CultureEN => field ??= CultureInfo.GetCultureInfo("en-us");
+    public static CultureInfo CultureCN => field ??= CultureInfo.CurrentCulture;
 
     //public IntegratedReadOnlyList<int, List<int>, ReadOnlyCollection<int>> List { get; } =
     //    new(new(), l => new(l));
@@ -41,21 +44,44 @@ internal class Program
     private static void Main(string[] args)
     {
 #if !Release
+        RxAppBuilder.CreateReactiveUIBuilder().WithCoreServices().BuildApp();
         try
         {
-            //var aTimer = new System.Timers.Timer(1000);
-            //aTimer.Elapsed += ATimer_Elapsed;
-            //aTimer.AutoReset = true;
-            //aTimer.Enabled = true;
-            //stopWatch.Start();
-            //aTimer.Start();
-            //Thread.Sleep(10000);
+            var p = new ObservableRange<int>(1, 2);
+            I18nResource.AddCulture(CultureEN);
+            I18nResource.SetData("1", "1_CN", Program.CultureCN);
+            I18nResource.SetData("1", "1_EN", Program.CultureEN);
+            I18nResource.SetData("2", "2_CN", Program.CultureCN);
+            I18nResource.SetData("2", "2_EN", Program.CultureEN);
+            //Console.WriteLine(I18nResource.GetData("1"));
+            //Console.WriteLine(I18nResource.GetData("1"));
+
+            var model = new TestModel();
+            model.ID = "1";
+            //model.ID = "2";
+            I18nResource.CurrentCulture = CultureEN;
+            I18nResource.CurrentCulture = CultureCN;
+            //model.ID = "1";
+            //I18nResource.SetData("1", "1_EEENNNN", Program.CultureEN);
+            //Console.Write(model.ID);
+            //I18nResource.SetData(model.ID, "1_CCCNNN", Program.CultureCN);
+            //I18nResource.CurrentCulture = CultureEN;
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.ToString());
         }
 #endif
+    }
+
+    private static void Model_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (sender is not TestModel model)
+            return;
+        if (e.PropertyName == "Name")
+        {
+            Console.WriteLine(model.Name);
+        }
     }
 
     private static void ATimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
@@ -107,15 +133,23 @@ internal partial class TestModel : ReactiveObjectX, IEnableLogger<TestModel>
 {
     public TestModel()
     {
-        //this.WhenAnyValue(x => x.CanExecute)
-        //    .Buffer(2, 1)
-        //    .Select(b => (Previous: b[0], Current: b[1]))
-        //    .Subscribe(pair =>
-        //    {
-        //        var oldValue = pair.Previous;
-        //        var newValue = pair.Current;
-        //        Console.WriteLine($"ExampleProperty 的值已经改变，旧的值是：{oldValue}，新的值是：{newValue}");
-        //    });
+        Program.I18nResource.Observable.Action(
+            this,
+            x => ((TestModel)x).ID,
+            (x, _) =>
+            {
+                x.As<TestModel>().RaisePropertyChanged(nameof(Name));
+            }
+        );
+        this.WhenAnyValue(x => x.Name)
+            .Buffer(2, 1)
+            .Select(b => (Previous: b[0], Current: b[1]))
+            .Subscribe(pair =>
+            {
+                var oldValue = pair.Previous;
+                var newValue = pair.Current;
+                Console.WriteLine($"Name 的值已经改变，旧的值是：{oldValue}，新的值是：{newValue}");
+            });
         //CanExecute = true;
         //Program.I18nResource.I18nObjects.Add(new(this));
         //var i18nObject = Program.I18nResource.I18nObjects.Last();
@@ -127,15 +161,19 @@ internal partial class TestModel : ReactiveObjectX, IEnableLogger<TestModel>
     [ReactiveProperty]
     public string ID { get; set; } = string.Empty;
 
-    [ReactiveI18nProperty("Program.I18nResource", "I18nObject", nameof(ID), true)]
-    public string Name
+    partial void OnIDChanged(string oldValue, string newValue)
     {
-        get => Program.I18nResource.GetCurrentCultureDataOrDefault(ID);
-        set => Program.I18nResource.SetCurrentCultureData(ID, value);
+        this.RaisePropertyChanged(nameof(Name));
     }
 
-    [NotifyPropertyChangeFrom("")]
-    public I18nObject<string, string> I18nObject => new(this);
+    public string Name
+    {
+        get => Program.I18nResource.GetDataOrDefault(ID);
+        set => Program.I18nResource.SetData(ID, value);
+    }
+
+    //[NotifyPropertyChangeFrom("")]
+    //public I18nObject<string, string> I18nObject => new(this);
 
     [ReactiveProperty]
     public bool CanExecute { get; set; }

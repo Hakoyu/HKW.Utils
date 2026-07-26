@@ -335,7 +335,8 @@ public class ObservableListWrapper<TItem, TList>
                     index
                 )
             );
-        OnCountChanged();
+        // 在WPF等环境中, 发送空值可通知更新 this[]
+        OnPropertyChanged("");
     }
 
     /// <summary>

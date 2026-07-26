@@ -36,10 +36,10 @@ public class ObservableSetWrapper<TItem, TSet>
     #region ISet
 
     /// <inheritdoc/>
-    public int Count => ((ICollection<TItem>)SourceSet).Count;
+    public int Count => SourceSet.Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<TItem>)SourceSet).IsReadOnly;
+    public bool IsReadOnly => false;
 
     /// <inheritdoc cref="HashSet{T}.Comparer"/>
     public IEqualityComparer<TItem> Comparer { get; }
@@ -150,55 +150,55 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public bool Contains(TItem item)
     {
-        return ((ICollection<TItem>)SourceSet).Contains(item);
+        return SourceSet.Contains(item);
     }
 
     /// <inheritdoc/>
     public void CopyTo(TItem[] array, int arrayIndex)
     {
-        ((ICollection<TItem>)SourceSet).CopyTo(array, arrayIndex);
+        SourceSet.CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
     public IEnumerator<TItem> GetEnumerator()
     {
-        return ((IEnumerable<TItem>)SourceSet).GetEnumerator();
+        return SourceSet.GetEnumerator();
     }
 
     /// <inheritdoc/>
     public bool IsProperSubsetOf(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)SourceSet).IsProperSubsetOf(other);
+        return SourceSet.IsProperSubsetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsProperSupersetOf(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)SourceSet).IsProperSupersetOf(other);
+        return SourceSet.IsProperSupersetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsSubsetOf(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)SourceSet).IsSubsetOf(other);
+        return SourceSet.IsSubsetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsSupersetOf(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)SourceSet).IsSupersetOf(other);
+        return SourceSet.IsSupersetOf(other);
     }
 
     /// <inheritdoc/>
     public bool Overlaps(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)SourceSet).Overlaps(other);
+        return SourceSet.Overlaps(other);
     }
 
     /// <inheritdoc/>
     public bool SetEquals(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)SourceSet).SetEquals(other);
+        return SourceSet.SetEquals(other);
     }
 
     /// <inheritdoc/>

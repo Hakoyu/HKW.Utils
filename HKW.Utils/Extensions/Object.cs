@@ -11,17 +11,16 @@ public static partial class ObjectExtensions
     /// <param name="obj">对象</param>
     extension(object obj)
     {
-
-        ///// <summary>
-        ///// 创建对象
-        ///// </summary>
-        ///// <param name="func">方法</param>
-        ///// <returns>对象</returns>
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        //public static T Create<T>(Func<T> func)
-        //{
-        //    return func();
-        //}
+        /// <summary>
+        /// 强制转换
+        /// </summary>
+        /// <typeparam name="T">转换类型</typeparam>
+        /// <returns>强制转换类型的对象</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T As<T>()
+        {
+            return (T)obj;
+        }
     }
 
     /// <summary>

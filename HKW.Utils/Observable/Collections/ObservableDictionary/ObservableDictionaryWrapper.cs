@@ -130,6 +130,19 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     }
 
     /// <inheritdoc/>
+    public bool TryAdd(TKey key, TValue value)
+    {
+        if (SourceDictionary.ContainsKey(key))
+            return false;
+
+        var pair = KeyValuePair.Create(key, value);
+        OnDictionaryAdding(pair);
+        SourceDictionary.Add(key, value);
+        OnDictionaryAdded(pair);
+        return true;
+    }
+
+    /// <inheritdoc/>
     public bool Remove(TKey key)
     {
         if (SourceDictionary.TryGetPair(key, out var pair) is false)
@@ -322,7 +335,8 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
             );
         }
         _observableValues[_observableKeys.IndexOf(oldPair.Key)] = newPair.Value;
-        OnCountChanged();
+        // 在WPF等环境中, 发送空值可通知更新 this[]
+        OnPropertyChanged("");
     }
 
     /// <summary>

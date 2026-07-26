@@ -17,7 +17,7 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TValue">值类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
-public class ReadOnlyObservableDictionary<TKey, TValue>
+public sealed class ReadOnlyObservableDictionary<TKey, TValue>
     : IObservableDictionary<TKey, TValue>,
         IReadOnlyObservableDictionary<TKey, TValue>,
         IDisposable
@@ -26,7 +26,7 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     /// <summary>
     /// 原始字典
     /// </summary>
-    protected readonly IObservableDictionary<TKey, TValue> _dictionary;
+    private readonly IObservableDictionary<TKey, TValue> _dictionary;
 
     #region Ctor
     /// <inheritdoc/>
@@ -92,7 +92,7 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     }
 
     /// <inheritdoc/>
-    protected virtual void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (_disposed)
             return;
@@ -109,16 +109,16 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     #endregion
 
     /// <inheritdoc/>
-    public TValue this[TKey key] => ((IReadOnlyDictionary<TKey, TValue>)_dictionary)[key];
+    public TValue this[TKey key] => _dictionary[key];
 
     /// <inheritdoc/>
-    public IEnumerable<TKey> Keys => ((IReadOnlyDictionary<TKey, TValue>)_dictionary).Keys;
+    public IEnumerable<TKey> Keys => _dictionary.Keys;
 
     /// <inheritdoc/>
-    public IEnumerable<TValue> Values => ((IReadOnlyDictionary<TKey, TValue>)_dictionary).Values;
+    public IEnumerable<TValue> Values => _dictionary.Values;
 
     /// <inheritdoc/>
-    public int Count => ((IReadOnlyDictionary<TKey, TValue>)_dictionary).Count;
+    public int Count => _dictionary.Count;
 
     /// <inheritdoc/>
     public bool IsReadOnly => true;
@@ -142,19 +142,19 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     /// <inheritdoc/>
     public bool ContainsKey(TKey key)
     {
-        return ((IReadOnlyDictionary<TKey, TValue>)_dictionary).ContainsKey(key);
+        return _dictionary.ContainsKey(key);
     }
 
     /// <inheritdoc/>
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
-        return ((IReadOnlyDictionary<TKey, TValue>)_dictionary).TryGetValue(key, out value);
+        return _dictionary.TryGetValue(key, out value);
     }
 
     /// <inheritdoc/>
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
-        return ((IReadOnlyDictionary<TKey, TValue>)_dictionary).GetEnumerator();
+        return _dictionary.GetEnumerator();
     }
 
     /// <inheritdoc/>
