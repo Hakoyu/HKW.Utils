@@ -9,10 +9,22 @@ namespace HKW.HKWUtilsTests.Collections;
 
 #pragma warning disable S1199
 [TestClass]
-public class BidirectionalDictionaryTests
+public class BidirectionalDictionaryWrapperTests
 {
-    readonly Func<BidirectionalDictionary<int, string>> _createDictionary = () =>
-        new(Enumerable.Range(1, 10).Select(i => KeyValuePair.Create(i, i.ToString())));
+    readonly Func<
+        BidirectionalDictionaryWrapper<
+            int,
+            string,
+            Dictionary<int, string>,
+            Dictionary<string, int>
+        >
+    > _createDictionary = () =>
+        new(
+            Enumerable.Range(1, 10).ToDictionary(x => x, x => x.ToString()),
+            Enumerable.Range(1, 10).ToDictionary(x => x.ToString(), x => x),
+            null,
+            null
+        );
 
     readonly IReadOnlyCollection<KeyValuePair<int, string>> _newItems = Enumerable
         .Range(100, 10)

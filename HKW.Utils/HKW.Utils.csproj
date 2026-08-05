@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Version>1.3.16</Version>
@@ -17,8 +16,14 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <RootNamespace>HKW.HKWUtils</RootNamespace>
     <PackageOutputPath>$(OutputPath)</PackageOutputPath>
-    <PathMap>$(SolutionDir)=$(MSBuildProjectName.Replace(" ", "_"))/</PathMap>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+    <PathMap Condition="'$(SolutionDir)' != ''">$(SolutionDir)=/_/</PathMap>
+    <PathMap Condition="'$(SolutionDir)' == ''">$(MSBuildProjectDirectory)=/_/HKW.Utils/</PathMap>
   </PropertyGroup>
 
   <ItemGroup>
@@ -46,5 +51,4 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
 </Project>

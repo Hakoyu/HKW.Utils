@@ -40,6 +40,7 @@ public static class CollectionExtensions
         /// <param name="items">项目</param>
         public void AddRange(IEnumerable<T> items)
         {
+            ArgumentNullException.ThrowIfNull(items);
             if (collection is List<T> list)
             {
                 list.AddRange(items);
@@ -103,6 +104,25 @@ public static class CollectionExtensions
             }
             collection.ReverseWithIndex();
             return -1;
+        }
+
+        /// <summary>
+        /// 删除所有对象
+        /// </summary>
+        /// <param name="items">对象</param>
+        public void RemoveAll(IEnumerable<T> items)
+        {
+            ArgumentNullException.ThrowIfNull(items);
+            if (items is IList<T> list)
+            {
+                for (int i = list.Count - 1; i >= 0; i--)
+                    collection.Remove(list[i]);
+            }
+            else
+            {
+                foreach (var item in collection.Reverse())
+                    collection.Remove(item);
+            }
         }
     }
 

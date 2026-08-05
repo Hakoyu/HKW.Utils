@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reactive.Disposables;
 using DynamicData.Binding;
+using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Drawing;
 using HKW.HKWUtils.Exceptions;
+using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
 using ReactiveUI;
 
@@ -18,22 +23,19 @@ namespace HKW.HKWUtils;
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
+[DebuggerDisplay(
+    "Name = {ResourceName}, KeyCount = {DatasByKey.Count}, CultureCount = {Cultures.Count}"
+)]
 public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     where TKey : notnull
 {
-    public ObservableI18nResource(
-        string resourceName,
-        GetDefaultCultureDataHander<TKey, TValue> getDefault,
-        CultureInfo? cultureInfo
-    )
+    public ObservableI18nResource(string resourceName, CultureInfo? currentCulture)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(resourceName);
-        ArgumentNullException.ThrowIfNull(getDefault);
         ResourceName = resourceName;
-        GetDefault = getDefault;
-        cultureInfo ??= CultureInfo.CurrentCulture;
-        _cultures.Add(cultureInfo);
-        CurrentCulture = cultureInfo;
+        currentCulture ??= CultureInfo.CurrentCulture;
+        _indexByCulture.Add(currentCulture, 0);
+        CurrentCulture = currentCulture;
         GetCurrentCultureData = new(this);
         GetCurrentCultureDataOrDefault = new(this);
         Observable = new();
@@ -41,90 +43,92 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         DatasByKey.DictionaryChanged += DatasByKey_DictionaryChanged;
     }
 
+    public ObservableI18nResource(
+        string resourceName,
+        IEnumerable<CultureInfo> cultures,
+        CultureInfo currentCulture
+    )
+        : this(resourceName, currentCulture)
+    {
+        foreach (var culture in cultures)
+            _indexByCulture.TryAdd(culture, _indexByCulture.Count);
+    }
+
     private void DatasByKey_DictionaryChanging(
-        IObservableDictionary<TKey, ObservableCultureDataDictionary<TKey, TValue>> sender,
-        NotifyDictionaryChangeEventArgs<TKey, ObservableCultureDataDictionary<TKey, TValue>> e
+        IObservableDictionary<TKey, ObservableCultureDataList<TKey, TValue>> sender,
+        NotifyDictionaryChangeEventArgs<TKey, ObservableCultureDataList<TKey, TValue>> e
     )
     {
         if (e.Action is DictionaryChangeAction.Clear)
         {
             foreach (var value in sender.Values)
             {
-                value.DictionaryChanged -= Datas_DictionaryChanged;
+                value.ListChanged -= Datas_ListChanged;
                 value.Clear();
             }
         }
     }
 
     private void DatasByKey_DictionaryChanged(
-        IObservableDictionary<TKey, ObservableCultureDataDictionary<TKey, TValue>> sender,
-        NotifyDictionaryChangeEventArgs<TKey, ObservableCultureDataDictionary<TKey, TValue>> e
+        IObservableDictionary<TKey, ObservableCultureDataList<TKey, TValue>> sender,
+        NotifyDictionaryChangeEventArgs<TKey, ObservableCultureDataList<TKey, TValue>> e
     )
     {
         if (e.Action is DictionaryChangeAction.Add)
         {
             if (e.TryGetNewPair(out var newPair))
             {
-                foreach (var culture in _cultures)
-                    newPair.Value.TryAdd(culture, DefaultValue);
-                newPair.Value.DictionaryChanged += Datas_DictionaryChanged;
+                foreach (var culture in _indexByCulture)
+                    newPair.Value.Add(DefaultValue);
+                newPair.Value.ListChanged += Datas_ListChanged;
             }
         }
         else if (e.Action is DictionaryChangeAction.Remove)
         {
             if (e.TryGetOldPair(out var oldPair))
             {
-                oldPair.Value.DictionaryChanged -= Datas_DictionaryChanged;
+                oldPair.Value.ListChanged -= Datas_ListChanged;
             }
         }
         else if (e.Action is DictionaryChangeAction.Replace)
         {
             if (e.TryGetOldPair(out var oldPair))
             {
-                oldPair.Value.DictionaryChanged -= Datas_DictionaryChanged;
+                oldPair.Value.ListChanged -= Datas_ListChanged;
             }
             if (e.TryGetNewPair(out var newPair))
             {
-                foreach (var culture in _cultures)
-                    newPair.Value.TryAdd(culture, DefaultValue);
-                newPair.Value.DictionaryChanged += Datas_DictionaryChanged;
+                foreach (var culture in _indexByCulture)
+                    newPair.Value.Add(DefaultValue);
+                newPair.Value.ListChanged += Datas_ListChanged;
             }
         }
     }
 
-    private void Datas_DictionaryChanged(
-        IObservableDictionary<CultureInfo, TValue> sender,
-        NotifyDictionaryChangeEventArgs<CultureInfo, TValue> e
+    private void Datas_ListChanged(
+        IObservableList<TValue> sender,
+        NotifyListChangeEventArgs<TValue> e
     )
     {
-        if (sender is not ObservableCultureDataDictionary<TKey, TValue> dic)
+        if (sender is not ObservableCultureDataList<TKey, TValue> dic)
             return;
-        CultureInfo? culture = null;
-        TValue? oldValue = default!;
-        if (e.TryGetOldPair(out var oldPair))
-        {
-            oldValue = oldPair.Value!;
-            culture = oldPair.Key;
-        }
-        TValue? newValue = default!;
-        if (e.TryGetNewPair(out var newPair))
-        {
-            newValue = newPair.Value!;
-            culture = newPair.Key;
-        }
-        CultureDataChanged?.Invoke(this, new(dic.Key, oldValue, newValue, culture));
+        CultureDataChanged?.Invoke(
+            this,
+            new(dic.Key, e.OldItem, e.NewItem, _indexByCulture.GetAt(e.Index).Key)
+        );
 
         Observable.DoActionsBy(dic.Key);
     }
 
-    public ObservableDictionary<
-        TKey,
-        ObservableCultureDataDictionary<TKey, TValue>
-    > DatasByKey { get; } = new();
+    public ObservableDictionary<TKey, ObservableCultureDataList<TKey, TValue>> DatasByKey { get; } =
+        new();
 
-    private readonly ObservableSet<CultureInfo> _cultures = new();
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private readonly OrderedDictionary<CultureInfo, int> _indexByCulture = new();
 
-    public ReadOnlyObservableSet<CultureInfo> Cultures => field ??= new(_cultures);
+    public ReadOnlyDictionary<CultureInfo, int> IndexByCulture => field ??= new(_indexByCulture);
+
+    public ICollection<CultureInfo> Cultures => _indexByCulture.Keys;
 
     /// <inheritdoc/>
     public string ResourceName { get; }
@@ -137,7 +141,7 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         {
             if (field == value)
                 return;
-            ArgumentException.ThrowIfNotContains(_cultures, value);
+            ArgumentException.ThrowIfNotContains(_indexByCulture.Keys, value);
             field = value;
             CurrentCultureChanged?.Invoke(this, value);
             PropertyChanged?.Invoke(this, new(nameof(CurrentCulture)));
@@ -151,7 +155,8 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
 
     public TValue DefaultValue { get; set; } = default!;
 
-    public GetDefaultCultureDataHander<TKey, TValue> GetDefault { get; set; }
+    public GetDefaultCultureDataHandler<TKey, TValue> GetDefaultValue { get; set; } =
+        (_, _) => default!;
 
     public GetDataCore GetCurrentCultureData { get; }
     public GetDataOrDefaultCore GetCurrentCultureDataOrDefault { get; }
@@ -161,50 +166,85 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     public TValue GetData(TKey key, CultureInfo? cultureInfo = null)
     {
         cultureInfo ??= CurrentCulture;
-        return DatasByKey[key][cultureInfo];
+        return DatasByKey[key][_indexByCulture[cultureInfo]];
     }
 
     public TValue GetDataOrDefault(
         TKey key,
         CultureInfo? cultureInfo = null,
-        GetDefaultCultureDataHander<TKey, TValue>? getDefault = null
+        GetDefaultCultureDataHandler<TKey, TValue>? getDefaultValue = null
     )
     {
         cultureInfo ??= CurrentCulture;
-        getDefault ??= GetDefault;
-        if (DatasByKey.TryGetValue(key, out var dic) is false)
-            return getDefault(key, cultureInfo);
-        if (dic.TryGetValue(cultureInfo, out var value) is false)
-            return getDefault(key, cultureInfo);
-        return value;
+        getDefaultValue ??= GetDefaultValue;
+        if (DatasByKey.TryGetValue(key, out var datas) is false)
+            return getDefaultValue(key, cultureInfo);
+        if (_indexByCulture.TryGetValue(cultureInfo, out var index) is false)
+            return getDefaultValue(key, cultureInfo);
+        return datas[index];
     }
 
     public bool SetData(TKey key, TValue value, CultureInfo? cultureInfo = null)
     {
         ArgumentNullException.ThrowIfNull(key);
         cultureInfo ??= CurrentCulture;
-        if (_cultures.Contains(cultureInfo) is false)
+        if (_indexByCulture.TryGetValue(cultureInfo, out var index) is false)
             return false;
-        if (DatasByKey.TryGetValue(key, out var dic) is false)
-            dic = DatasByKey[key] = new(key);
-        dic[cultureInfo] = value;
+        if (DatasByKey.TryGetValue(key, out var list) is false)
+            list = DatasByKey[key] = new(key);
+        list[index] = value;
         return true;
+    }
+
+    public void SetDatas(
+        IEnumerable<KeyValuePair<TKey, TValue>> pairs,
+        CultureInfo? cultureInfo = null
+    )
+    {
+        ArgumentNullException.ThrowIfNull(pairs);
+        cultureInfo ??= CurrentCulture;
+        if (_indexByCulture.TryGetValue(cultureInfo, out var index) is false)
+            return;
+        foreach (var pair in pairs)
+        {
+            if (DatasByKey.TryGetValue(pair.Key, out var dic) is false)
+                dic = DatasByKey[pair.Key] = new(pair.Key);
+            dic[index] = pair.Value;
+        }
     }
 
     public bool SetDataWhenDefault(TKey key, TValue value, CultureInfo? cultureInfo = null)
     {
         ArgumentNullException.ThrowIfNull(key);
         cultureInfo ??= CurrentCulture;
-        if (_cultures.Contains(cultureInfo) is false)
+        if (_indexByCulture.TryGetValue(cultureInfo, out var index) is false)
             return false;
         if (DatasByKey.TryGetValue(key, out var dic) is false)
             dic = DatasByKey[key] = new(key);
-        if (EqualityComparer<TValue>.Default.Equals(dic[cultureInfo], DefaultValue))
+        if (EqualityComparer<TValue>.Default.Equals(dic[index], DefaultValue))
         {
-            dic[cultureInfo] = value;
+            dic[index] = value;
             return true;
         }
         return false;
+    }
+
+    public void SetDatasWhenDefault(
+        IEnumerable<KeyValuePair<TKey, TValue>> pairs,
+        CultureInfo? cultureInfo = null
+    )
+    {
+        ArgumentNullException.ThrowIfNull(pairs);
+        cultureInfo ??= CurrentCulture;
+        if (_indexByCulture.TryGetValue(cultureInfo, out var index) is false)
+            return;
+        foreach (var pair in pairs)
+        {
+            if (DatasByKey.TryGetValue(pair.Key, out var dic) is false)
+                dic = DatasByKey[pair.Key] = new(pair.Key);
+            if (EqualityComparer<TValue>.Default.Equals(dic[index], DefaultValue))
+                dic[index] = pair.Value;
+        }
     }
 
     public bool RemoveData(TKey key)
@@ -227,11 +267,11 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     public bool AddCulture(CultureInfo cultureInfo)
     {
         ArgumentNullException.ThrowIfNull(cultureInfo);
-        var result = _cultures.Add(cultureInfo);
+        var result = _indexByCulture.TryAdd(cultureInfo, _indexByCulture.Count);
         if (result)
         {
             foreach (var pair in DatasByKey)
-                pair.Value.Add(cultureInfo, DefaultValue);
+                pair.Value.Add(DefaultValue);
         }
         return result;
     }
@@ -244,25 +284,30 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
                 "The deleted cultureInfo cannot be the same as CurrentCulture",
                 nameof(cultureInfo)
             );
-        var result = _cultures.Remove(cultureInfo);
+        var result = _indexByCulture.Remove(cultureInfo, out var index);
         if (result)
         {
             foreach (var pair in DatasByKey)
-                pair.Value.Remove(cultureInfo);
+                pair.Value.RemoveAt(index);
+            foreach (var (e, i) in _indexByCulture.WithIndex())
+                _indexByCulture[e.Key] = i;
         }
         return result;
     }
 
     public void ClearOtherCulture()
     {
-        var array = _cultures.Where(x => x != CurrentCulture).ToArray();
-        for (var i = 0; i < array.Length; i++)
-            _cultures.Remove(array[i]);
+        if (_indexByCulture.Count == 1)
+            return;
+        var list = _indexByCulture.Where(x => x.Key != CurrentCulture).ToArray();
+        for (var i = list.Length - 1; i >= 0; i--)
+            _indexByCulture.Remove(list[i].Key);
         foreach (var pair in DatasByKey)
         {
-            for (var i = 0; i < array.Length; i++)
-                pair.Value.Remove(array[i]);
+            for (var i = list.Length - 1; i >= 0; i--)
+                pair.Value.RemoveAt(list[i].Value);
         }
+        _indexByCulture[CurrentCulture] = 0;
     }
 
     public bool RenameKey(TKey oldKey, TKey newKey)
@@ -310,6 +355,8 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             Observable.WeakActionsByKey.Clear();
             ClearData();
             ClearOtherCulture();
+            GetCurrentCultureData.Dispose();
+            GetCurrentCultureDataOrDefault.Dispose();
         }
         _disposed = true;
     }
@@ -325,11 +372,21 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     /// </summary>
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public event CultureDataChangedEventHander<TKey, TValue>? CultureDataChanged;
+    public event CultureDataChangedEventHandler<TKey, TValue>? CultureDataChanged;
 
-    public class GetDataCore(ObservableI18nResource<TKey, TValue> source) : INotifyPropertyChanged
+    public class GetDataCore(ObservableI18nResource<TKey, TValue> source)
+        : INotifyPropertyChanged,
+            IDisposable
     {
-        public TValue this[TKey key] => source.GetData(key);
+        private ObservableI18nResource<TKey, TValue> _source = source;
+
+        /// <summary>
+        /// 使用 this[] 获取数据
+        /// </summary>
+        /// <param name="key">键</param>
+        /// <returns>值</returns>
+        /// <exception cref="KeyNotFoundException">未找到键</exception>
+        public TValue this[TKey key] => _source.GetData(key);
 
         public void Refresh()
         {
@@ -339,17 +396,46 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
 
         /// <inheritdoc/>
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        #region Dispose
+        private bool _disposed;
+
+        /// <inheritdoc/>
+        ~GetDataCore() => Dispose(false);
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <inheritdoc/>
+        private void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+            if (disposing)
+            {
+                _source = null!;
+            }
+            _disposed = true;
+        }
+        #endregion
     }
 
     public class GetDataOrDefaultCore(ObservableI18nResource<TKey, TValue> source)
-        : INotifyPropertyChanged
+        : INotifyPropertyChanged,
+            IDisposable
     {
+        private ObservableI18nResource<TKey, TValue> _source = source;
+
         /// <summary>
         /// 使用 this[] 获取数据或默认
         /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public TValue this[TKey key] => source.GetDataOrDefault(key);
+        /// <param name="key">键</param>
+        /// <returns>值</returns>
+        public TValue this[TKey key] => _source.GetDataOrDefault(key);
 
         /// <summary>
         /// 刷新 this
@@ -362,6 +448,32 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
 
         /// <inheritdoc/>
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        #region Dispose
+        private bool _disposed;
+
+        /// <inheritdoc/>
+        ~GetDataOrDefaultCore() => Dispose(false);
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <inheritdoc/>
+        private void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+            if (disposing)
+            {
+                _source = null!;
+            }
+            _disposed = true;
+        }
+        #endregion
     }
 
     public class ObservableCore()
@@ -374,13 +486,13 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         public IDisposable Action(
             INotifyPropertyChanged source,
             Expression<Func<INotifyPropertyChanged, TKey>> getKeyExpression,
-            ValueChangedActionHander<TKey> hander
+            ValueChangedActionHandler<TKey> Handler
         )
         {
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(getKeyExpression);
-            ArgumentNullException.ThrowIfNull(hander);
-            var action = new ValueChangedAction<TKey>(source, getKeyExpression, hander);
+            ArgumentNullException.ThrowIfNull(Handler);
+            var action = new ValueChangedAction<TKey>(source, getKeyExpression, Handler);
             var disposable = source
                 .WhenValueChanged(getKeyExpression)
                 .Subscribe(newKey =>
@@ -414,17 +526,32 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             );
         }
 
+        public void ClearActionsBy(INotifyPropertyChanged source)
+        {
+            var list = new List<TKey>(ActionsByKey.Count);
+            foreach (var pair in ActionsByKey)
+            {
+                pair.Value.RemoveWhere(action =>
+                    source.Equals(action.Source).Action(action, a => a.Disposable.Dispose(), null)
+                );
+                if (pair.Value.Count == 0)
+                    list.Add(pair.Key);
+            }
+            for (var i = 0; i < list.Count; i++)
+                ActionsByKey.Remove(list[i]);
+        }
+
         public IDisposable WeakAction(
             INotifyPropertyChanged source,
             Expression<Func<INotifyPropertyChanged, TKey>> getKeyExpression,
-            ValueChangedActionHander<TKey> hander
+            ValueChangedActionHandler<TKey> Handler
         )
         {
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(getKeyExpression);
-            ArgumentNullException.ThrowIfNull(hander);
+            ArgumentNullException.ThrowIfNull(Handler);
 
-            var action = new WeakValueChangedAction<TKey>(source, getKeyExpression, hander);
+            var action = new WeakValueChangedAction<TKey>(source, getKeyExpression, Handler);
             var disposable = source
                 .WhenValueChanged(getKeyExpression)
                 .Subscribe(newKey =>
@@ -458,24 +585,32 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             );
         }
 
-        public void ClearInvalidWeakAction()
+        public void ClearWeakActionsBy(INotifyPropertyChanged source)
         {
             var keys = new List<TKey>(WeakActionsByKey.Count);
-            var actions = new List<WeakValueChangedAction<TKey>>();
             foreach (var pair in WeakActionsByKey)
             {
-                foreach (var action in pair.Value)
-                {
-                    if (action.Source.TryGetTarget(out _) is false)
-                        actions.Add(action);
-                }
-                pair.Value.ExceptWith(actions);
-                actions.Clear();
+                pair.Value.RemoveWhere(action =>
+                    action.Source.TryGetTarget(out var s)
+                        ? source.Equals(s).Action(action, a => a.Disposable.Dispose(), null)
+                        : true.Action(action, a => a.Disposable.Dispose(), null)
+                );
                 if (pair.Value.Count == 0)
                     keys.Add(pair.Key);
             }
-            for (var i = 0; i < keys.Count; i++)
-                WeakActionsByKey.Remove(keys[i]);
+            WeakActionsByKey.RemoveAll(keys);
+        }
+
+        public void ClearInvalidWeakAction()
+        {
+            var keys = new List<TKey>(WeakActionsByKey.Count);
+            foreach (var pair in WeakActionsByKey)
+            {
+                pair.Value.RemoveWhere(action => action.Source.TryGetTarget(out _) is false);
+                if (pair.Value.Count == 0)
+                    keys.Add(pair.Key);
+            }
+            WeakActionsByKey.RemoveAll(keys);
         }
 
         public void DoActionsBy(TKey key)
@@ -509,8 +644,7 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
-public class ObservableCultureDataDictionary<TKey, TValue>
-    : ObservableDictionary<CultureInfo, TValue>
+public class ObservableCultureDataList<TKey, TValue> : ObservableList<TValue>
     where TKey : notnull
 {
     /// <summary>
@@ -519,7 +653,7 @@ public class ObservableCultureDataDictionary<TKey, TValue>
     public TKey Key { get; internal set; }
 
     /// <inheritdoc/>
-    public ObservableCultureDataDictionary(TKey key)
+    public ObservableCultureDataList(TKey key)
     {
         Key = key;
     }
@@ -531,7 +665,7 @@ public sealed class ValueChangedAction<TKey> : IDisposable
     public ValueChangedAction(
         INotifyPropertyChanged source,
         Expression<Func<INotifyPropertyChanged, TKey>> getKeyExpression,
-        ValueChangedActionHander<TKey> action
+        ValueChangedActionHandler<TKey> action
     )
     {
         PropertyName = getKeyExpression.GetPropertyName();
@@ -545,7 +679,7 @@ public sealed class ValueChangedAction<TKey> : IDisposable
     public TKey Key { get; internal set; }
     public Func<INotifyPropertyChanged, TKey> GetKey { get; }
     public INotifyPropertyChanged Source { get; }
-    public ValueChangedActionHander<TKey> Action { get; }
+    public ValueChangedActionHandler<TKey> Action { get; }
     public IDisposable Disposable { get; internal set; }
 
     #region IDisposable
@@ -573,7 +707,7 @@ public sealed class ValueChangedAction<TKey> : IDisposable
     #endregion
 }
 
-public delegate void ValueChangedActionHander<in TKey>(INotifyPropertyChanged source, TKey key)
+public delegate void ValueChangedActionHandler<in TKey>(INotifyPropertyChanged source, TKey key)
     where TKey : notnull;
 
 /// <summary>
@@ -584,7 +718,7 @@ public delegate void ValueChangedActionHander<in TKey>(INotifyPropertyChanged so
 /// <param name="key">键</param>
 /// <param name="cultureInfo">文化信息</param>
 /// <returns>值</returns>
-public delegate TValue GetDefaultCultureDataHander<in TKey, out TValue>(
+public delegate TValue GetDefaultCultureDataHandler<in TKey, out TValue>(
     TKey key,
     CultureInfo cultureInfo
 )
@@ -595,7 +729,7 @@ public delegate TValue GetDefaultCultureDataHander<in TKey, out TValue>(
 /// </summary>
 /// <param name="sender">发送者</param>
 /// <param name="e">参数</param>
-public delegate void CultureDataChangedEventHander<TKey, TValue>(
+public delegate void CultureDataChangedEventHandler<TKey, TValue>(
     II18nResource sender,
     CultureDataChangedEventArgs<TKey, TValue> e
 )
@@ -654,7 +788,7 @@ public sealed class WeakValueChangedAction<TKey> : IDisposable
     public WeakValueChangedAction(
         INotifyPropertyChanged source,
         Expression<Func<INotifyPropertyChanged, TKey>> getKeyExpression,
-        ValueChangedActionHander<TKey> action
+        ValueChangedActionHandler<TKey> action
     )
     {
         PropertyName = getKeyExpression.GetPropertyName();
@@ -668,7 +802,7 @@ public sealed class WeakValueChangedAction<TKey> : IDisposable
     public TKey Key { get; internal set; }
     public Func<INotifyPropertyChanged, TKey> GetKey { get; }
     public WeakReference<INotifyPropertyChanged> Source { get; }
-    public ValueChangedActionHander<TKey> Action { get; }
+    public ValueChangedActionHandler<TKey> Action { get; }
     public IDisposable Disposable { get; internal set; }
     #region IDisposable
     private bool _disposed;

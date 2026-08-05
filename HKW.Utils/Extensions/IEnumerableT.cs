@@ -65,6 +65,38 @@ public static partial class EnumerableExtensions
         }
 
         /// <summary>
+        /// 包含
+        /// </summary>
+        /// <typeparam name="TArg">参数类型</typeparam>
+        /// <param name="arg">参数</param>
+        /// <param name="match">匹配</param>
+        /// <returns>是否包含</returns>
+        public bool Contains<TArg>(TArg arg, Func<T, TArg, bool> match)
+        {
+            ArgumentNullException.ThrowIfNull(match);
+
+            if (source is IList<T> list)
+            {
+                for (int i = 0; i < list.Count; i++)
+                {
+                    if (match(list[i], arg))
+                        return true;
+                }
+            }
+            else
+            {
+#pragma warning disable S3267
+                foreach (var item in source)
+                {
+                    if (match(item, arg))
+                        return true;
+                }
+#pragma warning restore S3267
+            }
+            return false;
+        }
+
+        /// <summary>
         /// 获取索引
         /// </summary>
         /// <param name="item">项目</param>

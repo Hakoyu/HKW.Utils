@@ -18,15 +18,16 @@ public static partial class ListExtensions
         /// <summary>
         /// 按条件寻找项目
         /// </summary>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <returns>第一个找到的项目</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T? Find(Predicate<T> match)
+        public T? Find<TArg>(TArg arg, Func<T, TArg, bool> match)
         {
             ArgumentNullException.ThrowIfNull(match);
             for (int i = 0; i < list.Count; i++)
             {
-                if (match(list[i]))
+                if (match(list[i], arg))
                     return list[i];
             }
             return default;
@@ -36,24 +37,26 @@ public static partial class ListExtensions
         /// <summary>
         /// 按条件寻找索引
         /// </summary>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <returns>第一个找到的索引</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int FindIndex(Predicate<T> match)
+        public int FindIndex<TArg>(TArg arg, Func<T, TArg, bool> match)
         {
-            return FindIndex(list, 0, list.Count, match);
+            return list.FindIndex(0, list.Count, arg, match);
         }
 
         /// <summary>
         /// 按条件寻找索引
         /// </summary>
         /// <param name="startIndex">起始索引</param>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <returns>第一个找到的索引</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int FindIndex(int startIndex, Predicate<T> match)
+        public int FindIndex<TArg>(int startIndex, TArg arg, Func<T, TArg, bool> match)
         {
-            return FindIndex(list, startIndex, list.Count - startIndex, match);
+            return list.FindIndex(startIndex, list.Count - startIndex, arg, match);
         }
 
         /// <summary>
@@ -61,10 +64,11 @@ public static partial class ListExtensions
         /// </summary>
         /// <param name="startIndex">起始索引</param>
         /// <param name="count">数量</param>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <returns>第一个找到的索引</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int FindIndex(int startIndex, int count, Predicate<T> match)
+        public int FindIndex<TArg>(int startIndex, int count, TArg arg, Func<T, TArg, bool> match)
         {
             ArgumentNullException.ThrowIfNull(match);
             var endIndex = ListFindIndexCheck(startIndex, count, list.Count);
@@ -73,7 +77,7 @@ public static partial class ListExtensions
 
             for (int i = startIndex; i < endIndex; i++)
             {
-                if (match(list[i]))
+                if (match(list[i], arg))
                     return i;
             }
             return -1;
@@ -83,24 +87,30 @@ public static partial class ListExtensions
         /// <summary>
         /// 按条件寻找索引项目对
         /// </summary>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <returns>第一个找到的索引项目对</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public (int Index, T? Value) FindPair(Predicate<T> match)
+        public (int Index, T? Value) FindPair<TArg>(TArg arg, Func<T, TArg, bool> match)
         {
-            return FindPair(list, 0, list.Count, match);
+            return list.FindPair(0, list.Count, arg, match);
         }
 
         /// <summary>
         /// 按条件寻找索引项目对
         /// </summary>
         /// <param name="startIndex">起始索引</param>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <returns>第一个找到的索引项目对</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public (int Index, T? Value) FindPair(int startIndex, Predicate<T> match)
+        public (int Index, T? Value) FindPair<TArg>(
+            int startIndex,
+            TArg arg,
+            Func<T, TArg, bool> match
+        )
         {
-            return FindPair(list, startIndex, list.Count - startIndex, match);
+            return list.FindPair(startIndex, list.Count - startIndex, arg, match);
         }
 
         /// <summary>
@@ -108,10 +118,16 @@ public static partial class ListExtensions
         /// </summary>
         /// <param name="startIndex">起始索引</param>
         /// <param name="count">数量</param>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <returns>第一个找到的索引项目对</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public (int index, T? value) FindPair(int startIndex, int count, Predicate<T> match)
+        public (int index, T? value) FindPair<TArg>(
+            int startIndex,
+            int count,
+            TArg arg,
+            Func<T, TArg, bool> match
+        )
         {
             ArgumentNullException.ThrowIfNull(match);
             var endIndex = ListFindIndexCheck(startIndex, count, list.Count);
@@ -120,7 +136,7 @@ public static partial class ListExtensions
 
             for (int i = startIndex; i < endIndex; i++)
             {
-                if (match(list[i]))
+                if (match(list[i], arg))
                     return (i, list[i]);
             }
             return (-1, default);
@@ -130,15 +146,16 @@ public static partial class ListExtensions
         /// <summary>
         /// 从后往前按条件寻找项目
         /// </summary>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <returns>第一个找到的项目</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T? FindLast(Predicate<T> match)
+        public T? FindLast<TArg>(TArg arg, Func<T, TArg, bool> match)
         {
             ArgumentNullException.ThrowIfNull(match);
             for (int i = list.Count - 1; i >= 0; i--)
             {
-                if (match(list[i]))
+                if (match(list[i], arg))
                     return list[i];
             }
             return default;
@@ -148,24 +165,26 @@ public static partial class ListExtensions
         /// <summary>
         /// 按条件从后往前寻找项目的索引
         /// </summary>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <returns>第一个找到的项目的索引</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int FindLastIndex(Predicate<T> match)
+        public int FindLastIndex<TArg>(TArg arg, Func<T, TArg, bool> match)
         {
-            return FindLastIndex(list, list.Count - 1, list.Count, match);
+            return list.FindLastIndex(list.Count - 1, list.Count, arg, match);
         }
 
         /// <summary>
         /// 按条件从后往前寻找项目的索引
         /// </summary>
         /// <param name="startIndex">起始索引</param>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <returns>第一个找到的项目的索引</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int FindLastIndex(int startIndex, Predicate<T> match)
+        public int FindLastIndex<TArg>(int startIndex, TArg arg, Func<T, TArg, bool> match)
         {
-            return FindLastIndex(list, startIndex, startIndex + 1, match);
+            return list.FindLastIndex(startIndex, startIndex + 1, arg, match);
         }
 
         /// <summary>
@@ -173,16 +192,22 @@ public static partial class ListExtensions
         /// </summary>
         /// <param name="startIndex">起始索引</param>
         /// <param name="count">数量</param>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <returns>第一个找到的项目的索引</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int FindLastIndex(int startIndex, int count, Predicate<T> match)
+        public int FindLastIndex<TArg>(
+            int startIndex,
+            int count,
+            TArg arg,
+            Func<T, TArg, bool> match
+        )
         {
             ArgumentNullException.ThrowIfNull(match);
             var endIndex = ListFindLastIndexCheck(startIndex, count, list.Count);
             for (int i = startIndex; i > endIndex; i--)
             {
-                if (match(list[i]))
+                if (match(list[i], arg))
                     return i;
             }
             return -1;
@@ -193,24 +218,30 @@ public static partial class ListExtensions
         /// <summary>
         /// 按条件从后往前寻找索引项目对
         /// </summary>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <returns>第一个找到的索引项目对</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public (int index, T? value) FindLastPair(Predicate<T> match)
+        public (int index, T? value) FindLastPair<TArg>(TArg arg, Func<T, TArg, bool> match)
         {
-            return FindLastPair(list, list.Count - 1, list.Count, match);
+            return list.FindLastPair(list.Count - 1, list.Count, arg, match);
         }
 
         /// <summary>
         /// 按条件从后往前寻找索引项目对
         /// </summary>
         /// <param name="startIndex">起始索引</param>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <returns>第一个找到的索引项目对</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public (int index, T? value) FindLastPair(int startIndex, Predicate<T> match)
+        public (int index, T? value) FindLastPair<TArg>(
+            int startIndex,
+            TArg arg,
+            Func<T, TArg, bool> match
+        )
         {
-            return FindLastPair(list, startIndex, startIndex + 1, match);
+            return list.FindLastPair(startIndex, startIndex + 1, arg, match);
         }
 
         /// <summary>
@@ -218,17 +249,23 @@ public static partial class ListExtensions
         /// </summary>
         /// <param name="startIndex">起始索引</param>
         /// <param name="count">数量</param>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <returns>第一个找到的索引项目对</returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="startIndex"/> 或 <paramref name="count"/> 错误</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public (int index, T? value) FindLastPair(int startIndex, int count, Predicate<T> match)
+        public (int index, T? value) FindLastPair<TArg>(
+            int startIndex,
+            int count,
+            TArg arg,
+            Func<T, TArg, bool> match
+        )
         {
             ArgumentNullException.ThrowIfNull(match);
             var endIndex = ListFindLastIndexCheck(startIndex, count, list.Count);
             for (int i = startIndex; i > endIndex; i--)
             {
-                if (match(list[i]))
+                if (match(list[i], arg))
                     return (i, list[i]);
             }
             return (-1, default);
@@ -239,14 +276,19 @@ public static partial class ListExtensions
         /// <summary>
         /// 尝试按条件寻找项目的索引
         /// </summary>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <param name="item">项目</param>
         /// <returns>是否找到项目</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryFind(Predicate<T> match, [MaybeNullWhen(false)] out T item)
+        public bool TryFind<TArg>(
+            TArg arg,
+            Func<T, TArg, bool> match,
+            [MaybeNullWhen(false)] out T item
+        )
         {
             ArgumentNullException.ThrowIfNull(match);
-            var index = list.FindIndex(match);
+            var index = list.FindIndex(arg, match);
             item = list.GetValueOrDefault(index);
             return index != -1;
         }
@@ -254,30 +296,43 @@ public static partial class ListExtensions
         /// <summary>
         /// 尝试按条件寻找索引项目对
         /// </summary>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <param name="indexItemPair">索引项目对</param>
         /// <returns>是否找到项目</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryFindPair(Predicate<T> match, out (int Index, T Value) indexItemPair)
+        public bool TryFindPair<TArg>(
+            TArg arg,
+            Func<T, TArg, bool> match,
+            out (int Index, T Value) indexItemPair
+        )
         {
-            return TryFindPair(list, 0, list.Count, match, out indexItemPair);
+            return list.TryFindPair(0, list.Count, arg, match, out indexItemPair);
         }
 
         /// <summary>
         /// 尝试按条件寻找索引项目对
         /// </summary>
         /// <param name="startIndex">起始索引</param>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <param name="indexItemPair">索引项目对</param>
         /// <returns>是否找到项目</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryFindPair(
+        public bool TryFindPair<TArg>(
             int startIndex,
-            Predicate<T> match,
+            TArg arg,
+            Func<T, TArg, bool> match,
             out (int Index, T Value) indexItemPair
         )
         {
-            return TryFindPair(list, startIndex, list.Count - startIndex, match, out indexItemPair);
+            return list.TryFindPair(
+                startIndex,
+                list.Count - startIndex,
+                arg,
+                match,
+                out indexItemPair
+            );
         }
 
         /// <summary>
@@ -285,19 +340,21 @@ public static partial class ListExtensions
         /// </summary>
         /// <param name="startIndex">起始索引</param>
         /// <param name="count">索引</param>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <param name="indexItemPair">索引项目对</param>
         /// <returns>是否找到项目</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryFindPair(
+        public bool TryFindPair<TArg>(
             int startIndex,
             int count,
-            Predicate<T> match,
+            TArg arg,
+            Func<T, TArg, bool> match,
             out (int Index, T Value) indexItemPair
         )
         {
             ArgumentNullException.ThrowIfNull(match);
-            var index = list.FindIndex(startIndex, count, match);
+            var index = list.FindIndex(startIndex, count, arg, match);
             indexItemPair = (index, list.GetValueOrDefault(index)!);
             return index != -1;
         }
@@ -305,45 +362,57 @@ public static partial class ListExtensions
         /// <summary>
         /// 尝试按条件从后往前寻找索引项目对
         /// </summary>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <param name="indexItemPair">索引项目对</param>
         /// <returns>是否找到项目</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryFindLast(Predicate<T> match, [MaybeNullWhen(false)] out T indexItemPair)
+        public bool TryFindLast<TArg>(
+            TArg arg,
+            Func<T, TArg, bool> match,
+            [MaybeNullWhen(false)] out T indexItemPair
+        )
         {
             ArgumentNullException.ThrowIfNull(match);
-            var index = list.FindLastIndex(match);
+            var index = list.FindLastIndex(arg, match);
             indexItemPair = list.GetValueOrDefault(index);
-            return index == -1 ? false : true;
+            return index != -1;
         }
 
         /// <summary>
         /// 尝试按条件从后往前寻找索引项目对
         /// </summary>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <param name="indexItemPair">索引项目对</param>
         /// <returns>是否找到项目</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryFindLastPair(Predicate<T> match, out (int Index, T Value) indexItemPair)
+        public bool TryFindLastPair<TArg>(
+            TArg arg,
+            Func<T, TArg, bool> match,
+            out (int Index, T Value) indexItemPair
+        )
         {
-            return TryFindLastPair(list, list.Count - 1, list.Count, match, out indexItemPair);
+            return list.TryFindLastPair(list.Count - 1, list.Count, arg, match, out indexItemPair);
         }
 
         /// <summary>
         /// 尝试按条件从后往前寻找索引项目对
         /// </summary>
         /// <param name="startIndex">起始索引</param>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <param name="indexItemPair">索引项目对</param>
         /// <returns>是否找到项目</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryFindLastPair(
+        public bool TryFindLastPair<TArg>(
             int startIndex,
-            Predicate<T> match,
+            TArg arg,
+            Func<T, TArg, bool> match,
             out (int Index, T Value) indexItemPair
         )
         {
-            return TryFindLastPair(list, startIndex, startIndex + 1, match, out indexItemPair);
+            return list.TryFindLastPair(startIndex, startIndex + 1, arg, match, out indexItemPair);
         }
 
         /// <summary>
@@ -351,19 +420,21 @@ public static partial class ListExtensions
         /// </summary>
         /// <param name="startIndex">起始索引</param>
         /// <param name="count">数量</param>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         /// <param name="indexItemPair">索引项目对</param>
         /// <returns>是否找到项目</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryFindLastPair(
+        public bool TryFindLastPair<TArg>(
             int startIndex,
             int count,
-            Predicate<T> match,
+            TArg arg,
+            Func<T, TArg, bool> match,
             out (int Index, T Value) indexItemPair
         )
         {
             ArgumentNullException.ThrowIfNull(match);
-            var index = list.FindLastIndex(startIndex, count, match);
+            var index = list.FindLastIndex(startIndex, count, arg, match);
             indexItemPair = (index, list.GetValueOrDefault(index)!);
             return index != -1;
         }
@@ -499,20 +570,21 @@ public static partial class ListExtensions
         /// <summary>
         /// 删除全部符合条件的项目
         /// </summary>
+        /// <param name="arg">参数</param>
         /// <param name="match">条件</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RemoveAll(Predicate<T> match)
+        public void RemoveAll<TArg>(TArg arg, Func<T, TArg, bool> match)
         {
             ArgumentNullException.ThrowIfNull(match);
             if (list is List<T> baseList)
             {
-                baseList.RemoveAll(match);
+                baseList.RemoveAll(x => match(x, arg));
             }
             else
             {
                 for (var i = list.Count - 1; i >= 0; i--)
                 {
-                    if (match(list[i]))
+                    if (match(list[i], arg))
                         list.RemoveAt(i);
                 }
             }
@@ -593,16 +665,9 @@ public static partial class ListExtensions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void ListIndexCheck(int index, int listCount)
-    {
-        ArgumentOutOfRangeException.ThrowIfLessThan(index, 0);
-        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, listCount);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static int ListFindIndexCheck(int startIndex, int count, int listCount)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(startIndex, 0);
+        ArgumentOutOfRangeException.ThrowIfNegative(startIndex);
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(startIndex, listCount);
         int endIndex = startIndex + count;
         ArgumentOutOfRangeException.ThrowIfGreaterThan(endIndex, listCount);
@@ -612,10 +677,56 @@ public static partial class ListExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static int ListFindLastIndexCheck(int startIndex, int count, int listCount)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(startIndex, 0);
+        ArgumentOutOfRangeException.ThrowIfNegative(startIndex);
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(startIndex, listCount);
         int endIndex = startIndex - count;
         ArgumentOutOfRangeException.ThrowIfGreaterThan(endIndex, listCount);
         return endIndex;
     }
 }
+//public List<string> Strs { get; set; } =
+//    Enumerable.Range(0, 1_000_000).Select(x => x.ToString()).ToList();
+
+//public string data1 = "999999";
+//public string data2 = "888888";
+//public string data3 = "777777";
+
+//[Benchmark]
+//public object? Test1()
+//{
+//    return ListExtensions.FindIndex(
+//        Strs,
+//        0,
+//        Strs.Count,
+//        x => x == data1 || x == data2 || x == data3
+//    );
+//}
+
+//[Benchmark]
+//public object? Test2()
+//{
+//    return ListExtensions.FindIndex(
+//        Strs,
+//        0,
+//        Strs.Count,
+//        (data1, data2, data3),
+//        static (x, d) => x == d.data1 || x == d.data2 || x == d.data3
+//    );
+//}
+
+//[Benchmark]
+//public object? Test3()
+//{
+//    for (int i = 0; i < Strs.Count; i++)
+//    {
+//        var str = Strs[i];
+//        if (str == data1 || str == data2 || str == data3)
+//            return i;
+//    }
+//    return -1;
+//}
+//| Method | Mean     | Error     | StdDev    | Allocated |
+//|------- |---------:|----------:|----------:|----------:|
+//| Test1  | 5.023 ms | 0.0998 ms | 0.1694 ms |      24 B |
+//| Test2  | 4.319 ms | 0.0863 ms | 0.1152 ms |      24 B |
+//| Test3  | 4.428 ms | 0.0876 ms | 0.1729 ms |      24 B |

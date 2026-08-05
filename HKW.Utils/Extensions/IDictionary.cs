@@ -54,6 +54,17 @@ public static class DictionaryExtensions
                 pair = default;
             return result;
         }
+
+        /// <summary>
+        /// 按键删除全部对象
+        /// </summary>
+        /// <param name="keys">键</param>
+        public void RemoveAll(IEnumerable<TKey> keys)
+        {
+            ArgumentNullException.ThrowIfNull(keys);
+            foreach (var key in keys)
+                dictionary.Remove(key);
+        }
     }
 
     /// <summary>

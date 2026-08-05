@@ -28,10 +28,12 @@ namespace HKW;
 internal class Program
 {
     private static System.Diagnostics.Stopwatch stopWatch = new();
+    public static CultureInfo[] Cultures { get; } =
+        CultureInfo.GetCultures(CultureTypes.NeutralCultures);
 
     //public static I18nCore I18nCore = new();
     public static ObservableI18nResource<string, string> I18nResource { get; } =
-        new("Main", (k, c) => k, CultureInfo.CurrentCulture);
+        new("Main", Cultures, Cultures.First());
     public static CultureInfo CultureEN => field ??= CultureInfo.GetCultureInfo("en-us");
     public static CultureInfo CultureCN => field ??= CultureInfo.CurrentCulture;
 
@@ -47,25 +49,14 @@ internal class Program
         RxAppBuilder.CreateReactiveUIBuilder().WithCoreServices().BuildApp();
         try
         {
-            var p = new ObservableRange<int>(1, 2);
-            I18nResource.AddCulture(CultureEN);
-            I18nResource.SetData("1", "1_CN", Program.CultureCN);
-            I18nResource.SetData("1", "1_EN", Program.CultureEN);
-            I18nResource.SetData("2", "2_CN", Program.CultureCN);
-            I18nResource.SetData("2", "2_EN", Program.CultureEN);
-            //Console.WriteLine(I18nResource.GetData("1"));
-            //Console.WriteLine(I18nResource.GetData("1"));
-
-            var model = new TestModel();
-            model.ID = "1";
-            //model.ID = "2";
-            I18nResource.CurrentCulture = CultureEN;
-            I18nResource.CurrentCulture = CultureCN;
-            //model.ID = "1";
-            //I18nResource.SetData("1", "1_EEENNNN", Program.CultureEN);
-            //Console.Write(model.ID);
-            //I18nResource.SetData(model.ID, "1_CCCNNN", Program.CultureCN);
-            //I18nResource.CurrentCulture = CultureEN;
+            var resource = I18nResource;
+            foreach (var c in resource.Cultures)
+                resource.SetDatas(
+                    Enumerable
+                        .Range(0, 10)
+                        .Select(x => KeyValuePair.Create(x.ToString(), $"{x}_{c.Name}")),
+                    c
+                );
         }
         catch (Exception ex)
         {

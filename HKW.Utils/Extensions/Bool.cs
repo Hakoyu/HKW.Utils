@@ -17,43 +17,30 @@ public static class BoolExtensions
         /// <returns>值</returns>
         /// <exception cref="ArgumentNullException">参数 <paramref name="trueAction"/> 或 <paramref name="falseAction"/> 为 <see langword="null"/></exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Action(Action trueAction, Action falseAction)
+        public bool Action(Action? trueAction, Action? falseAction)
         {
-            ArgumentNullException.ThrowIfNull(trueAction);
-            ArgumentNullException.ThrowIfNull(falseAction);
             if (value is true)
-                trueAction();
+                trueAction?.Invoke();
             else
-                falseAction();
+                falseAction?.Invoke();
             return value;
         }
 
         /// <summary>
-        /// 为真时行动
+        /// 行动
         /// </summary>
-        /// <param name="action">行动</param>
+        /// <param name="obj">参数1</param>
+        /// <param name="trueAction">为真时行动</param>
+        /// <param name="falseAction">为假时行动</param>
         /// <returns>值</returns>
-        /// <exception cref="ArgumentNullException">参数 <paramref name="action"/> 为 <see langword="null"/></exception>
+        /// <exception cref="ArgumentNullException">参数 <paramref name="trueAction"/> 或 <paramref name="falseAction"/> 为 <see langword="null"/></exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ActionWhenTrue(Action action)
+        public bool Action<T>(T obj, Action<T>? trueAction, Action<T>? falseAction)
         {
-            ArgumentNullException.ThrowIfNull(action);
             if (value is true)
-                action();
-            return value;
-        }
-
-        /// <summary>
-        /// 为假时行动
-        /// </summary>
-        /// <param name="action">行动</param>
-        /// <returns>值</returns>
-        /// <exception cref="ArgumentNullException">参数 <paramref name="action"/> 为 <see langword="null"/></exception>
-        public bool ActionWhenFalse(Action action)
-        {
-            ArgumentNullException.ThrowIfNull(action);
-            if (value is not true)
-                action();
+                trueAction?.Invoke(obj);
+            else
+                falseAction?.Invoke(obj);
             return value;
         }
 

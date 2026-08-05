@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
@@ -11,6 +12,7 @@ namespace HKW.HKWUtils;
 /// </summary>
 public sealed class I18nCore : INotifyPropertyChanged
 {
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private static readonly Lazy<I18nCore> _lazy = new(() =>
         new I18nCore(CultureInfo.CurrentCulture)
     );
@@ -25,7 +27,6 @@ public sealed class I18nCore : INotifyPropertyChanged
     public I18nCore(CultureInfo? cultureInfo = null)
     {
         CurrentCulture = cultureInfo ?? CultureInfo.CurrentCulture;
-        I18nResources = new(_i18nResources);
     }
 
     /// <summary>
@@ -38,13 +39,14 @@ public sealed class I18nCore : INotifyPropertyChanged
     /// 本地化资源字典
     /// <para>(ResourceName, I18nResourceInfo)</para>
     /// </summary>
-    private readonly Dictionary<string, II18nResource> _i18nResources = [];
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private readonly Dictionary<string, II18nResource> _resources = [];
 
     /// <summary>
     /// 本地化资源字典
     /// <para>(ResourceName, I18nResourceInfo)</para>
     /// </summary>
-    public ReadOnlyDictionary<string, II18nResource> I18nResources { get; }
+    public ReadOnlyDictionary<string, II18nResource> Resources => field ??= new(_resources);
 
     /// <summary>
     /// 当前文化, 切换文化会同步改变所有I18n资源的文化
@@ -58,15 +60,11 @@ public sealed class I18nCore : INotifyPropertyChanged
                 return;
             field = value;
 
-            if (CultureChangeTypes.HasFlag(CultureChangeTypes.ThreadCurrentCulture))
-                Thread.CurrentThread.CurrentCulture = value;
-            if (CultureChangeTypes.HasFlag(CultureChangeTypes.ThreadCurrentUICulture))
-                Thread.CurrentThread.CurrentUICulture = value;
             if (CultureChangeTypes.HasFlag(CultureChangeTypes.CultureInfoCurrentCulture))
                 CultureInfo.CurrentCulture = value;
             if (CultureChangeTypes.HasFlag(CultureChangeTypes.CultureInfoCurrentUICulture))
                 CultureInfo.CurrentUICulture = value;
-            foreach (var pair in _i18nResources)
+            foreach (var pair in _resources)
                 pair.Value.CurrentCulture = CurrentCulture;
 
             CurrentCultureChanged?.Invoke(this, value);
@@ -93,7 +91,7 @@ public sealed class I18nCore : INotifyPropertyChanged
     public bool AddResource(II18nResource resource)
     {
         ArgumentNullException.ThrowIfNull(resource);
-        var result = _i18nResources.TryAdd(resource.ResourceName, resource);
+        var result = _resources.TryAdd(resource.ResourceName, resource);
         if (result)
             resource.CurrentCulture = CurrentCulture;
         return result;
@@ -108,7 +106,7 @@ public sealed class I18nCore : INotifyPropertyChanged
     public bool RemoveResource(II18nResource resource)
     {
         ArgumentNullException.ThrowIfNull(resource);
-        return _i18nResources.Remove(resource.ResourceName);
+        return _resources.Remove(resource.ResourceName);
     }
 
     /// <summary>
@@ -118,7 +116,7 @@ public sealed class I18nCore : INotifyPropertyChanged
     /// <returns>是否成功删除</returns>
     public bool RemoveResource(string resourceName)
     {
-        return _i18nResources.Remove(resourceName);
+        return _resources.Remove(resourceName);
     }
 
     /// <summary>
@@ -126,38 +124,6 @@ public sealed class I18nCore : INotifyPropertyChanged
     /// </summary>
     public void ClearResource()
     {
-        _i18nResources.Clear();
+        _resources.Clear();
     }
-}
-
-/// <summary>
-/// 文化改变类型
-/// </summary>
-[Flags]
-public enum CultureChangeTypes
-{
-    /// <summary>
-    /// 不改变
-    /// </summary>
-    None = 0,
-
-    /// <summary>
-    /// <see cref="Thread.CurrentCulture"/>
-    /// </summary>
-    ThreadCurrentCulture = 1 << 0,
-
-    /// <summary>
-    /// <see cref="Thread.CurrentUICulture"/>
-    /// </summary>
-    ThreadCurrentUICulture = 1 << 1,
-
-    /// <summary>
-    /// <see cref="CultureInfo.CurrentCulture"/>
-    /// </summary>
-    CultureInfoCurrentCulture = 1 << 2,
-
-    /// <summary>
-    /// <see cref="CultureInfo.CurrentUICulture"/>
-    /// </summary>
-    CultureInfoCurrentUICulture = 1 << 3,
 }

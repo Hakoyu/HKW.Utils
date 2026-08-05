@@ -1,38 +1,134 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿//using System;
+//using System.Collections.Generic;
+//using System.ComponentModel;
+//using System.Drawing;
+//using System.Globalization;
+//using System.Linq;
+//using System.Linq.Expressions;
+//using System.Reactive.Disposables;
+//using DynamicData.Binding;
+//using HKW.HKWUtils.Drawing;
+//using HKW.HKWUtils.Exceptions;
+//using HKW.HKWUtils.Extensions;
+//using HKW.HKWUtils.Observable;
+//using ReactiveUI;
 
-namespace HKW.HKWUtils;
+//namespace HKW.HKWUtils;
 
-//public class I18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
+///// <summary>
+///// 可观测的I18n资源
+///// </summary>
+///// <typeparam name="TKey">键类型</typeparam>
+///// <typeparam name="TValue">值类型</typeparam>
+//public sealed class ObservableFrozenI18nResource<TKey, TValue>
+//    : II18nResource,
+//        INotifyPropertyChanged
 //    where TKey : notnull
 //{
-//    private readonly ObservableDictionary<TKey, ObservableDictionary<CultureInfo, TValue>> _dictionary =
-//        new();
-
-//    private readonly ObservableSet<CultureInfo> _cultures = new();
-
-//    public I18nResource(
+//    public ObservableFrozenI18nResource(
 //        string resourceName,
-//        GetDefaultCultureData<TKey, TValue> getDefault,
+//        GetDefaultCultureDataHander<TKey, TValue> getDefault,
 //        CultureInfo? cultureInfo
 //    )
 //    {
 //        ArgumentException.ThrowIfNullOrWhiteSpace(resourceName);
+//        ArgumentNullException.ThrowIfNull(getDefault);
 //        ResourceName = resourceName;
 //        GetDefault = getDefault;
-//        CurrentCulture = cultureInfo ?? CultureInfo.CurrentCulture;
-//        _cultures.Add(CurrentCulture);
-//        Cultures = new(_cultures);
+//        cultureInfo ??= CultureInfo.CurrentCulture;
+//        _cultures.Add(cultureInfo);
+//        CurrentCulture = cultureInfo;
 //        GetCurrentCultureData = new(this);
 //        GetCurrentCultureDataOrDefault = new(this);
+//        Observable = new();
+//        DatasByKey.DictionaryChanging += DatasByKey_DictionaryChanging;
+//        DatasByKey.DictionaryChanged += DatasByKey_DictionaryChanged;
 //    }
 
-//    private void DictionaryChanged(
+//    private void DatasByKey_DictionaryChanging(
+//        IObservableDictionary<TKey, ObservableCultureDataDictionary<TKey, TValue>> sender,
+//        NotifyDictionaryChangeEventArgs<TKey, ObservableCultureDataDictionary<TKey, TValue>> e
+//    )
+//    {
+//        if (e.Action is DictionaryChangeAction.Clear)
+//        {
+//            foreach (var value in sender.Values)
+//            {
+//                value.DictionaryChanged -= Datas_DictionaryChanged;
+//                value.Clear();
+//            }
+//        }
+//    }
+
+//    private void DatasByKey_DictionaryChanged(
+//        IObservableDictionary<TKey, ObservableCultureDataDictionary<TKey, TValue>> sender,
+//        NotifyDictionaryChangeEventArgs<TKey, ObservableCultureDataDictionary<TKey, TValue>> e
+//    )
+//    {
+//        if (e.Action is DictionaryChangeAction.Add)
+//        {
+//            if (e.TryGetNewPair(out var newPair))
+//            {
+//                foreach (var culture in _cultures)
+//                    newPair.Value.TryAdd(culture, DefaultValue);
+//                newPair.Value.DictionaryChanged += Datas_DictionaryChanged;
+//            }
+//        }
+//        else if (e.Action is DictionaryChangeAction.Remove)
+//        {
+//            if (e.TryGetOldPair(out var oldPair))
+//            {
+//                oldPair.Value.DictionaryChanged -= Datas_DictionaryChanged;
+//            }
+//        }
+//        else if (e.Action is DictionaryChangeAction.Replace)
+//        {
+//            if (e.TryGetOldPair(out var oldPair))
+//            {
+//                oldPair.Value.DictionaryChanged -= Datas_DictionaryChanged;
+//            }
+//            if (e.TryGetNewPair(out var newPair))
+//            {
+//                foreach (var culture in _cultures)
+//                    newPair.Value.TryAdd(culture, DefaultValue);
+//                newPair.Value.DictionaryChanged += Datas_DictionaryChanged;
+//            }
+//        }
+//    }
+
+//    private void Datas_DictionaryChanged(
 //        IObservableDictionary<CultureInfo, TValue> sender,
 //        NotifyDictionaryChangeEventArgs<CultureInfo, TValue> e
 //    )
-//    { }
+//    {
+//        if (sender is not ObservableCultureDataDictionary<TKey, TValue> dic)
+//            return;
+//        CultureInfo? culture = null;
+//        TValue? oldValue = default!;
+//        if (e.TryGetOldPair(out var oldPair))
+//        {
+//            oldValue = oldPair.Value!;
+//            culture = oldPair.Key;
+//        }
+//        TValue? newValue = default!;
+//        if (e.TryGetNewPair(out var newPair))
+//        {
+//            newValue = newPair.Value!;
+//            culture = newPair.Key;
+//        }
+//        CultureDataChanged?.Invoke(this, new(dic.Key, oldValue, newValue, culture));
+
+//        Observable.DoActionsBy(dic.Key);
+//    }
+
+//    public ObservableDictionary<
+//        TKey,
+//        ObservableCultureDataDictionary<TKey, TValue>
+//    > DatasByKey { get; } = new();
+
+//    private readonly ObservableSet<CultureInfo> _cultures = new();
+
+//    public ReadOnlyObservableSet<CultureInfo> Cultures => field ??= new(_cultures);
 
 //    /// <inheritdoc/>
 //    public string ResourceName { get; }
@@ -45,39 +141,42 @@ namespace HKW.HKWUtils;
 //        {
 //            if (field == value)
 //                return;
+//            ArgumentException.ThrowIfNotContains(_cultures, value);
 //            field = value;
 //            CurrentCultureChanged?.Invoke(this, value);
 //            PropertyChanged?.Invoke(this, new(nameof(CurrentCulture)));
+//            GetCurrentCultureData?.Refresh();
+//            GetCurrentCultureDataOrDefault?.Refresh();
+
+//            foreach (var key in DatasByKey.Keys)
+//                Observable.DoActionsBy(key);
 //        }
 //    }
 
-//    public ReadOnlyObservableSet<CultureInfo> Cultures { get; }
+//    public TValue DefaultValue { get; set; } = default!;
 
-//    ///// <summary>
-//    ///// 当添加新键或新文化时自动为
-//    ///// </summary>
-//    //public bool CreateDefaultValue { get; set; }
-
-//    public GetDefaultCultureData<TKey, TValue> GetDefault { get; set; }
+//    public GetDefaultCultureDataHander<TKey, TValue> GetDefault { get; set; }
 
 //    public GetDataCore GetCurrentCultureData { get; }
 //    public GetDataOrDefaultCore GetCurrentCultureDataOrDefault { get; }
 
+//    public ObservableCore Observable { get; }
+
 //    public TValue GetData(TKey key, CultureInfo? cultureInfo = null)
 //    {
 //        cultureInfo ??= CurrentCulture;
-//        return _dictionary[key][cultureInfo];
+//        return DatasByKey[key][cultureInfo];
 //    }
 
 //    public TValue GetDataOrDefault(
 //        TKey key,
 //        CultureInfo? cultureInfo = null,
-//        GetDefaultCultureData<TKey, TValue>? getDefault = null
+//        GetDefaultCultureDataHander<TKey, TValue>? getDefault = null
 //    )
 //    {
 //        cultureInfo ??= CurrentCulture;
 //        getDefault ??= GetDefault;
-//        if (_dictionary.TryGetValue(key, out var dic) is false)
+//        if (DatasByKey.TryGetValue(key, out var dic) is false)
 //            return getDefault(key, cultureInfo);
 //        if (dic.TryGetValue(cultureInfo, out var value) is false)
 //            return getDefault(key, cultureInfo);
@@ -90,40 +189,60 @@ namespace HKW.HKWUtils;
 //        cultureInfo ??= CurrentCulture;
 //        if (_cultures.Contains(cultureInfo) is false)
 //            return false;
-//        if (_dictionary.TryGetValue(key, out var dic) is false)
-//        {
-//            dic = _dictionary[key] = new();
-//            foreach (var culture in _cultures)
-//                dic.Add(culture, default!);
-//            dic.DictionaryChanged += DictionaryChanged;
-//        }
-//        var oldValue = dic.GetValueOrDefault(cultureInfo);
+//        if (DatasByKey.TryGetValue(key, out var dic) is false)
+//            dic = DatasByKey[key] = new(key);
 //        dic[cultureInfo] = value;
-//        CultureDataChanged?.Invoke(this, new(key, oldValue, value, cultureInfo));
 //        return true;
+//    }
+
+//    public void SetDatas(
+//        IEnumerable<KeyValuePair<TKey, TValue>> pairs,
+//        CultureInfo? cultureInfo = null
+//    )
+//    {
+//        ArgumentNullException.ThrowIfNull(pairs);
+//        cultureInfo ??= CurrentCulture;
+//        if (_cultures.Contains(cultureInfo) is false)
+//            return;
+//        foreach (var pair in pairs)
+//        {
+//            if (DatasByKey.TryGetValue(pair.Key, out var dic) is false)
+//                dic = DatasByKey[pair.Key] = new(pair.Key);
+//            dic[cultureInfo] = pair.Value;
+//        }
+//    }
+
+//    public bool SetDataWhenDefault(TKey key, TValue value, CultureInfo? cultureInfo = null)
+//    {
+//        ArgumentNullException.ThrowIfNull(key);
+//        cultureInfo ??= CurrentCulture;
+//        if (_cultures.Contains(cultureInfo) is false)
+//            return false;
+//        if (DatasByKey.TryGetValue(key, out var dic) is false)
+//            dic = DatasByKey[key] = new(key);
+//        if (EqualityComparer<TValue>.Default.Equals(dic[cultureInfo], DefaultValue))
+//        {
+//            dic[cultureInfo] = value;
+//            return true;
+//        }
+//        return false;
 //    }
 
 //    public bool RemoveData(TKey key)
 //    {
 //        ArgumentNullException.ThrowIfNull(key);
-//        var result = _dictionary.Remove(key, out var dic);
+//        var result = DatasByKey.TryGetValue(key, out var datas);
 //        if (result)
 //        {
-//            dic!.DictionaryChanged -= DictionaryChanged;
-//            CultureDataChanged?.Invoke(this, new(key, default, default, null));
+//            DatasByKey.Remove(key);
+//            datas!.Clear();
 //        }
 //        return result;
 //    }
 
 //    public void ClearData()
 //    {
-//        foreach (var pair in _dictionary)
-//        {
-//            pair.Value.DictionaryChanged -= DictionaryChanged;
-//            CultureDataChanged?.Invoke(this, new(pair.Key, default, default, null));
-//        }
-//        _dictionary.Clear();
-//        _cultures.Clear();
+//        DatasByKey.Clear();
 //    }
 
 //    public bool AddCulture(CultureInfo cultureInfo)
@@ -132,8 +251,8 @@ namespace HKW.HKWUtils;
 //        var result = _cultures.Add(cultureInfo);
 //        if (result)
 //        {
-//            foreach (var pair in _dictionary)
-//                pair.Value.Add(cultureInfo, default!);
+//            foreach (var pair in DatasByKey)
+//                pair.Value.Add(cultureInfo, DefaultValue);
 //        }
 //        return result;
 //    }
@@ -149,27 +268,73 @@ namespace HKW.HKWUtils;
 //        var result = _cultures.Remove(cultureInfo);
 //        if (result)
 //        {
-//            foreach (var pair in _dictionary)
+//            foreach (var pair in DatasByKey)
 //                pair.Value.Remove(cultureInfo);
 //        }
 //        return result;
 //    }
 
-//    public void ClearCulture()
+//    public void ClearOtherCulture()
 //    {
-//        foreach (var pair in _dictionary)
-//            _dictionary.Clear();
-//        _cultures.Clear();
+//        var array = _cultures.Where(x => x != CurrentCulture).ToArray();
+//        for (var i = 0; i < array.Length; i++)
+//            _cultures.Remove(array[i]);
+//        foreach (var pair in DatasByKey)
+//        {
+//            for (var i = 0; i < array.Length; i++)
+//                pair.Value.Remove(array[i]);
+//        }
 //    }
 
 //    public bool RenameKey(TKey oldKey, TKey newKey)
 //    {
 //        ArgumentNullException.ThrowIfNull(oldKey);
 //        ArgumentNullException.ThrowIfNull(newKey);
-//        if (_dictionary.TryGetValue(oldKey, out var dic) is false)
+//        if (DatasByKey.TryGetValue(oldKey, out var dic) is false)
 //            return false;
-//        return _dictionary.TryAdd(newKey, dic);
+//        var result = DatasByKey.TryAdd(newKey, dic);
+//        if (result)
+//        {
+//            dic.Key = newKey;
+//            DatasByKey.Remove(oldKey);
+//            if (Observable.ActionsByKey.Remove(oldKey, out var actions))
+//                Observable.ActionsByKey.Add(newKey, actions);
+//            if (Observable.WeakActionsByKey.Remove(oldKey, out var weakActions))
+//                Observable.WeakActionsByKey.Add(newKey, weakActions);
+//        }
+//        return result;
 //    }
+
+//    #region Dispose
+//    private bool _disposed;
+
+//    /// <inheritdoc/>
+//    ~ObservableFrozenI18nResource() => Dispose(false);
+
+//    /// <inheritdoc/>
+//    public void Dispose()
+//    {
+//        Dispose(true);
+//        GC.SuppressFinalize(this);
+//    }
+
+//    /// <inheritdoc/>
+//    private void Dispose(bool disposing)
+//    {
+//        if (_disposed)
+//            return;
+//        if (disposing)
+//        {
+//            DatasByKey.DictionaryChanging -= DatasByKey_DictionaryChanging;
+//            DatasByKey.DictionaryChanged -= DatasByKey_DictionaryChanged;
+//            Observable.ActionsByKey.Clear();
+//            Observable.WeakActionsByKey.Clear();
+//            ClearData();
+//            ClearOtherCulture();
+//        }
+//        _disposed = true;
+//    }
+//    #endregion
 
 //    /// <summary>
 //    /// 文化改变后事件
@@ -183,12 +348,14 @@ namespace HKW.HKWUtils;
 
 //    public event CultureDataChangedEventHander<TKey, TValue>? CultureDataChanged;
 
-//    public class GetDataCore(I18nResource<TKey, TValue> source) : INotifyPropertyChanged
+//    public class GetDataCore(ObservableFrozenI18nResource<TKey, TValue> source)
+//        : INotifyPropertyChanged
 //    {
 //        public TValue this[TKey key] => source.GetData(key);
 
 //        public void Refresh()
 //        {
+//            // 刷新 this[]
 //            PropertyChanged?.Invoke(this, new(""));
 //        }
 
@@ -196,7 +363,8 @@ namespace HKW.HKWUtils;
 //        public event PropertyChangedEventHandler? PropertyChanged;
 //    }
 
-//    public class GetDataOrDefaultCore(I18nResource<TKey, TValue> source) : INotifyPropertyChanged
+//    public class GetDataOrDefaultCore(ObservableFrozenI18nResource<TKey, TValue> source)
+//        : INotifyPropertyChanged
 //    {
 //        /// <summary>
 //        /// 使用 this[] 获取数据或默认
@@ -210,6 +378,7 @@ namespace HKW.HKWUtils;
 //        /// </summary>
 //        public void Refresh()
 //        {
+//            // 刷新 this[]
 //            PropertyChanged?.Invoke(this, new(""));
 //        }
 

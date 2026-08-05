@@ -6,76 +6,68 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Exceptions;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Collections;
 
 /// <summary>
-/// 双向字典
+/// 双向字典包装器
 /// </summary>
 /// <typeparam name="T1">项目类型1</typeparam>
 /// <typeparam name="T2">项目类型2</typeparam>
+/// <typeparam name="TDictionary1">字典1</typeparam>
+/// <typeparam name="TDictionary2">字典2</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
-public sealed class BidirectionalDictionary<T1, T2>
+#pragma warning disable S2436
+public class BidirectionalDictionaryWrapper<T1, T2, TDictionary1, TDictionary2>
+#pragma warning restore S2436
     : IDictionary<T1, T2>,
         IReadOnlyDictionary<T1, T2>
     where T1 : notnull
     where T2 : notnull
+    where TDictionary1 : IDictionary<T1, T2>
+    where TDictionary2 : IDictionary<T2, T1>
 {
-    /// <inheritdoc/>
-    /// <param name="comparer1">比较器1</param>
-    /// <param name="comparer2">比较器2</param>
-    public BidirectionalDictionary(
-        IEqualityComparer<T1>? comparer1 = null,
-        IEqualityComparer<T2>? comparer2 = null
-    )
-    {
-        _dictionary1 = new(comparer1);
-        _dictionary2 = new(comparer2);
-        _comparer1 = _dictionary1.Comparer;
-        _comparer2 = _dictionary2.Comparer;
-    }
+    /// <summary>
+    /// 字典1
+    /// </summary>
+    protected readonly TDictionary1 _dictionary1;
+
+    /// <summary>
+    /// 字典2
+    /// </summary>
+    protected readonly TDictionary2 _dictionary2;
+
+    /// <summary>
+    /// 比较器1
+    /// </summary>
+    protected readonly IEqualityComparer<T1> _comparer1;
+
+    /// <summary>
+    /// 比较器2
+    /// </summary>
+    protected readonly IEqualityComparer<T2> _comparer2;
 
     /// <inheritdoc/>
-    /// <param name="capacity">初始容量</param>
-    /// <param name="comparer1">比较器1</param>
-    /// <param name="comparer2">比较器2</param>
-    public BidirectionalDictionary(
-        int capacity,
-        IEqualityComparer<T1>? comparer1 = null,
-        IEqualityComparer<T2>? comparer2 = null
+    /// <param name="dictionary1">字典1</param>
+    /// <param name="dictionary2">字典2</param>
+    /// <param name="dictionary1Comparer">字典1比较器</param>
+    /// <param name="dictionary2Comparer">字典2比较器</param>
+    public BidirectionalDictionaryWrapper(
+        TDictionary1 dictionary1,
+        TDictionary2 dictionary2,
+        IEqualityComparer<T1>? dictionary1Comparer,
+        IEqualityComparer<T2>? dictionary2Comparer
     )
     {
-        _dictionary1 = new(capacity, comparer1);
-        _dictionary2 = new(capacity, comparer2);
-        _comparer1 = _dictionary1.Comparer;
-        _comparer2 = _dictionary2.Comparer;
+        ArgumentNullException.ThrowIfNull(dictionary1);
+        ArgumentNullException.ThrowIfNull(dictionary2);
+        _dictionary1 = dictionary1;
+        _dictionary2 = dictionary2;
+        _comparer1 = dictionary1Comparer ?? EqualityComparer<T1>.Default;
+        _comparer2 = dictionary2Comparer ?? EqualityComparer<T2>.Default;
     }
-
-    /// <inheritdoc/>
-    /// <param name="pairs">键值对集合</param>
-    /// <param name="comparer1">比较器1</param>
-    /// <param name="comparer2">比较器2</param>
-    public BidirectionalDictionary(
-        IEnumerable<KeyValuePair<T1, T2>> pairs,
-        IEqualityComparer<T1>? comparer1 = null,
-        IEqualityComparer<T2>? comparer2 = null
-    )
-    {
-        ArgumentNullException.ThrowIfNull(pairs);
-        _dictionary1 = new(pairs, comparer1);
-        _dictionary2 = new(pairs.Select(p => new KeyValuePair<T2, T1>(p.Value, p.Key)), comparer2);
-        _comparer1 = _dictionary1.Comparer;
-        _comparer2 = _dictionary2.Comparer;
-    }
-
-    private readonly Dictionary<T1, T2> _dictionary1;
-
-    private readonly Dictionary<T2, T1> _dictionary2;
-
-    private readonly IEqualityComparer<T1> _comparer1;
-
-    private readonly IEqualityComparer<T2> _comparer2;
 
     /// <inheritdoc/>
     public ICollection<T1> Keys => _dictionary1.Keys;
@@ -87,7 +79,7 @@ public sealed class BidirectionalDictionary<T1, T2>
     public int Count => _dictionary1.Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => false;
+    public bool IsReadOnly => _dictionary1.IsReadOnly;
 
     /// <summary>
     /// 字典1
@@ -136,56 +128,6 @@ public sealed class BidirectionalDictionary<T1, T2>
     /// 当 key 和 value 都不存在时, 添加新值, 返回 true.
     /// </para>
     /// <para>
-    /// 当 key 存在 value 不存在时, 替换 dic1 的 value, 删除 dic2 的 value 再添加新的 (value, key), 返回 true.
-    /// </para>
-    /// <para>
-    /// 当 key 不存在 value 存在时, 返回 false. 基于仅依据 key 替换 value 的原则不予替换, 可以使用 TrySetValue(T2,T1)
-    /// </para>
-    /// <para>
-    /// 当 key 和 value 都存在时, 返回 true.
-    /// </para>
-    /// </remarks>
-    public bool TrySetValue(T1 key, T2 value)
-    {
-        ref var d1ValueRef = ref CollectionsMarshal.GetValueRefOrNullRef(_dictionary1, key);
-        if (Unsafe.IsNullRef(ref d1ValueRef))
-        {
-            // 3
-            if (_dictionary2.ContainsKey(value))
-                return false;
-            // 1
-            _dictionary1.Add(key, value);
-            _dictionary2.Add(value, key);
-            return true;
-        }
-        else
-        {
-            var d1Value = d1ValueRef;
-            // 4, 如果 d1Value 和 value 相等, 证明 dic2 存在 (value, key)
-            if (_comparer2.Equals(d1Value, value))
-                return true;
-            // 3
-            if (_dictionary2.ContainsKey(value))
-                return false;
-            // 2
-            d1ValueRef = value;
-            _dictionary2.Remove(d1Value);
-            _dictionary2.Add(value, key);
-            return true;
-        }
-    }
-
-    /// <summary>
-    /// 尝试设置值
-    /// </summary>
-    /// <param name="key">键</param>
-    /// <param name="value">值</param>
-    /// <returns>是否设置成功</returns>
-    /// <remarks>
-    /// <para>
-    /// 当 key 和 value 都不存在时, 添加新值, 返回 true.
-    /// </para>
-    /// <para>
     /// 当 key 存在 value 不存在时, 替换 dic2 的 value, 删除 dic1 的 value 再添加新的 (value, key), 返回 true.
     /// </para>
     /// <para>
@@ -195,7 +137,7 @@ public sealed class BidirectionalDictionary<T1, T2>
     /// 当 key 和 value 都存在时, 返回 true.
     /// </para>
     /// </remarks>
-    public bool TrySetValue1(T1 key, T2 value)
+    public bool TrySetValue(T1 key, T2 value)
     {
         if (_dictionary1.TryGetValue(key, out var d1Value))
         {
@@ -356,20 +298,8 @@ public sealed class BidirectionalDictionary<T1, T2>
     /// </remarks>
     public bool TrySetValue(T2 key, T1 value)
     {
-        ref var d2ValueRef = ref CollectionsMarshal.GetValueRefOrNullRef(_dictionary2, key);
-        if (Unsafe.IsNullRef(ref d2ValueRef))
+        if (_dictionary2.TryGetValue(key, out var d2Value))
         {
-            // 3
-            if (_dictionary1.ContainsKey(value))
-                return false;
-            // 1
-            _dictionary2.Add(key, value);
-            _dictionary1.Add(value, key);
-            return true;
-        }
-        else
-        {
-            var d2Value = d2ValueRef;
             // 4, 如果 d2Value 和 value 相等, 证明 dic1 存在 (value, key)
             if (_comparer1.Equals(d2Value, value))
                 return true;
@@ -377,8 +307,18 @@ public sealed class BidirectionalDictionary<T1, T2>
             if (_dictionary1.ContainsKey(value))
                 return false;
             // 2
-            d2ValueRef = value;
+            _dictionary2[key] = value;
             _dictionary1.Remove(d2Value);
+            _dictionary1.Add(value, key);
+            return true;
+        }
+        else
+        {
+            // 3
+            if (_dictionary1.ContainsKey(value))
+                return false;
+            // 1
+            _dictionary2.Add(key, value);
             _dictionary1.Add(value, key);
             return true;
         }
