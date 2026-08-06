@@ -274,14 +274,33 @@ public static partial class EnumerableExtensions
         }
 
         /// <summary>
-        /// 转换为字符串
+        /// 基于依据筛选项目
         /// </summary>
-        /// <param name="separator">分隔符</param>
-        /// <returns>字符串</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public string ToStringX(string separator = ", ")
+        /// <typeparam name="TArg">参数类型</typeparam>
+        /// <param name="arg">参数</param>
+        /// <param name="predicate">依据</param>
+        /// <returns>项目枚举</returns>
+        public IEnumerable<T> Where<TArg>(TArg arg, Func<T, TArg, bool> predicate)
         {
-            return string.Join(separator, source);
+            if (source is IList<T> list)
+            {
+                for (var i = 0; i < list.Count; i++)
+                {
+                    var item = list[i];
+                    if (predicate(item, arg))
+                        yield return item;
+                }
+            }
+            else
+            {
+#pragma warning disable S3267
+                foreach (var item in source)
+                {
+                    if (predicate(item, arg))
+                        yield return item;
+                }
+#pragma warning restore S3267
+            }
         }
     }
 

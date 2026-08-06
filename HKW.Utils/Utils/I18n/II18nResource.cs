@@ -18,7 +18,7 @@ public interface II18nResource : IDisposable
     public CultureInfo CurrentCulture { get; set; }
 
     /// <summary>
-    /// 资源包含的文化
+    /// 所有文化
     /// </summary>
     public ICollection<CultureInfo> Cultures { get; }
 }

@@ -29,26 +29,46 @@ namespace HKW.HKWUtils;
 public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotifyPropertyChanged
     where TKey : notnull
 {
-    public ObservableI18nResource(string resourceName, CultureInfo? currentCulture)
+    /// <inheritdoc/>
+    /// <param name="resourceName">资源名称</param>
+    /// <param name="currentCulture">当前文化</param>
+    /// <param name="keyComparer">键比较器</param>
+    /// <param name="valueComparer">值比较器</param>
+    public ObservableI18nResource(
+        string resourceName,
+        CultureInfo? currentCulture,
+        EqualityComparer<TKey>? keyComparer = null,
+        EqualityComparer<TValue>? valueComparer = null
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(resourceName);
         ResourceName = resourceName;
+
+        KeyComparer = keyComparer ?? EqualityComparer<TKey>.Default;
+        ValueComparer = valueComparer ?? EqualityComparer<TValue>.Default;
+        DatasByKey = new(KeyComparer);
+        DatasByKey.DictionaryChanging += DatasByKey_DictionaryChanging;
+        DatasByKey.DictionaryChanged += DatasByKey_DictionaryChanged;
+
         currentCulture ??= CultureInfo.CurrentCulture;
         _indexByCulture.Add(currentCulture, 0);
         CurrentCulture = currentCulture;
-        GetCurrentCultureData = new(this);
-        GetCurrentCultureDataOrDefault = new(this);
-        Observable = new();
-        DatasByKey.DictionaryChanging += DatasByKey_DictionaryChanging;
-        DatasByKey.DictionaryChanged += DatasByKey_DictionaryChanged;
     }
 
+    /// <inheritdoc/>
+    /// <param name="resourceName">资源名称</param>
+    /// <param name="cultures">文化</param>
+    /// <param name="currentCulture">当前文化</param>
+    /// <param name="keyComparer">键比较器</param>
+    /// <param name="valueComparer">值比较器</param>
     public ObservableI18nResource(
         string resourceName,
         IEnumerable<CultureInfo> cultures,
-        CultureInfo currentCulture
+        CultureInfo currentCulture,
+        EqualityComparer<TKey>? keyComparer = null,
+        EqualityComparer<TValue>? valueComparer = null
     )
-        : this(resourceName, currentCulture)
+        : this(resourceName, currentCulture, keyComparer, valueComparer)
     {
         foreach (var culture in cultures)
             _indexByCulture.TryAdd(culture, _indexByCulture.Count);
@@ -69,7 +89,9 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         }
     }
 
+#pragma warning disable S3776
     private void DatasByKey_DictionaryChanged(
+#pragma warning restore S3776
         IObservableDictionary<TKey, ObservableCultureDataList<TKey, TValue>> sender,
         NotifyDictionaryChangeEventArgs<TKey, ObservableCultureDataList<TKey, TValue>> e
     )
@@ -120,14 +142,30 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         Observable.DoActionsBy(dic.Key);
     }
 
-    public ObservableDictionary<TKey, ObservableCultureDataList<TKey, TValue>> DatasByKey { get; } =
-        new();
+    /// <summary>
+    /// 键比较器
+    /// </summary>
+    public EqualityComparer<TKey> KeyComparer { get; }
+
+    /// <summary>
+    /// 值比较器
+    /// </summary>
+    public EqualityComparer<TValue> ValueComparer { get; }
+
+    /// <summary>
+    /// 按键分类的数据, (key, List(cultureIndex, value))
+    /// </summary>
+    public ObservableDictionary<TKey, ObservableCultureDataList<TKey, TValue>> DatasByKey { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly OrderedDictionary<CultureInfo, int> _indexByCulture = new();
 
+    /// <summary>
+    /// 文化和文化索引, (culture, cultureIndex)
+    /// </summary>
     public ReadOnlyDictionary<CultureInfo, int> IndexByCulture => field ??= new(_indexByCulture);
 
+    /// <inheritdoc/>
     public ICollection<CultureInfo> Cultures => _indexByCulture.Keys;
 
     /// <inheritdoc/>
@@ -153,22 +191,52 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         }
     }
 
+    /// <summary>
+    /// 默认值, 指添加键时为各文化的值填充的占位符
+    /// </summary>
     public TValue DefaultValue { get; set; } = default!;
 
+    /// <summary>
+    /// 获取默认值, 用于 <see cref="GetDataOrDefault"/> 等参数有 <see cref="GetDefaultCultureDataHandler{TKey, TValue}"/> 的相关操作
+    /// </summary>
     public GetDefaultCultureDataHandler<TKey, TValue> GetDefaultValue { get; set; } =
         (_, _) => default!;
 
-    public GetDataCore GetCurrentCultureData { get; }
-    public GetDataOrDefaultCore GetCurrentCultureDataOrDefault { get; }
+    /// <summary>
+    /// 获取当前文化数据, 提供 this[]
+    /// </summary>
+    public GetDataCore GetCurrentCultureData => field ??= new(this);
 
-    public ObservableCore Observable { get; }
+    /// <summary>
+    /// 获取当前文化数据或默认, 提供 this[]
+    /// </summary>
+    public GetDataOrDefaultCore GetCurrentCultureDataOrDefault => field ??= new(this);
 
+    /// <summary>
+    /// 可观察的, 提供与 <see cref="INotifyPropertyChanged"/> 的联动接口
+    /// </summary>
+    public ObservableCore Observable => field ??= new();
+
+    /// <summary>
+    /// 获取数据
+    /// </summary>
+    /// <param name="key">键</param>
+    /// <param name="cultureInfo">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
+    /// <returns>值</returns>
+    /// <exception cref="KeyNotFoundException">当键不存在时</exception>
     public TValue GetData(TKey key, CultureInfo? cultureInfo = null)
     {
         cultureInfo ??= CurrentCulture;
         return DatasByKey[key][_indexByCulture[cultureInfo]];
     }
 
+    /// <summary>
+    /// 获取数据或默认
+    /// </summary>
+    /// <param name="key">键</param>
+    /// <param name="cultureInfo">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
+    /// <param name="getDefaultValue">获取默认值</param>
+    /// <returns>值</returns>
     public TValue GetDataOrDefault(
         TKey key,
         CultureInfo? cultureInfo = null,
@@ -184,6 +252,14 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         return datas[index];
     }
 
+    /// <summary>
+    /// 设置数据
+    /// </summary>
+    /// <param name="key">键</param>
+    /// <param name="value">值</param>
+    /// <param name="cultureInfo">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
+    /// <returns>是否设置成功</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="key"/> 为 <see langword="null"/></exception>
     public bool SetData(TKey key, TValue value, CultureInfo? cultureInfo = null)
     {
         ArgumentNullException.ThrowIfNull(key);
@@ -196,6 +272,12 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         return true;
     }
 
+    /// <summary>
+    /// 设置数据
+    /// </summary>
+    /// <param name="pairs">数据对</param>
+    /// <param name="cultureInfo">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
+    /// <exception cref="ArgumentNullException"><paramref name="pairs"/> 为 <see langword="null"/></exception>
     public void SetDatas(
         IEnumerable<KeyValuePair<TKey, TValue>> pairs,
         CultureInfo? cultureInfo = null
@@ -213,6 +295,14 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         }
     }
 
+    /// <summary>
+    /// 为为 <see cref="DefaultValue"/> 的值设置数据
+    /// </summary>
+    /// <param name="key">键</param>
+    /// <param name="value">值</param>
+    /// <param name="cultureInfo">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
+    /// <returns>是否设置成功</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="key"/> 为 <see langword="null"/></exception>
     public bool SetDataWhenDefault(TKey key, TValue value, CultureInfo? cultureInfo = null)
     {
         ArgumentNullException.ThrowIfNull(key);
@@ -221,7 +311,7 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             return false;
         if (DatasByKey.TryGetValue(key, out var dic) is false)
             dic = DatasByKey[key] = new(key);
-        if (EqualityComparer<TValue>.Default.Equals(dic[index], DefaultValue))
+        if (ValueComparer.Equals(dic[index], DefaultValue))
         {
             dic[index] = value;
             return true;
@@ -229,6 +319,12 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         return false;
     }
 
+    /// <summary>
+    /// 为为 <see cref="DefaultValue"/> 的值设置数据
+    /// </summary>
+    /// <param name="pairs">键值对</param>
+    /// <param name="cultureInfo">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
+    /// <exception cref="ArgumentNullException"><paramref name="pairs"/> 为 <see langword="null"/></exception>
     public void SetDatasWhenDefault(
         IEnumerable<KeyValuePair<TKey, TValue>> pairs,
         CultureInfo? cultureInfo = null
@@ -242,11 +338,17 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         {
             if (DatasByKey.TryGetValue(pair.Key, out var dic) is false)
                 dic = DatasByKey[pair.Key] = new(pair.Key);
-            if (EqualityComparer<TValue>.Default.Equals(dic[index], DefaultValue))
+            if (ValueComparer.Equals(dic[index], DefaultValue))
                 dic[index] = pair.Value;
         }
     }
 
+    /// <summary>
+    /// 删除数据
+    /// </summary>
+    /// <param name="key">键</param>
+    /// <returns>是否删除成功</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="key"/> 为 <see langword="null"/></exception>
     public bool RemoveData(TKey key)
     {
         ArgumentNullException.ThrowIfNull(key);
@@ -259,11 +361,20 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         return result;
     }
 
+    /// <summary>
+    /// 清除数据
+    /// </summary>
     public void ClearData()
     {
         DatasByKey.Clear();
     }
 
+    /// <summary>
+    /// 添加文化, 会自动为所有键的新文化添加 <see cref="DefaultValue"/>
+    /// </summary>
+    /// <param name="cultureInfo">文化</param>
+    /// <returns>是否添加成功</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="cultureInfo"/> 为 <see langword="null"/></exception>
     public bool AddCulture(CultureInfo cultureInfo)
     {
         ArgumentNullException.ThrowIfNull(cultureInfo);
@@ -276,6 +387,13 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         return result;
     }
 
+    /// <summary>
+    /// 删除文化, 禁止删除 <see cref="CurrentCulture"/>
+    /// </summary>
+    /// <param name="cultureInfo">文化</param>
+    /// <returns>是否删除成功</returns>
+    /// <exception cref="ArgumentException"><paramref name="cultureInfo"/> == <see cref="CurrentCulture"/></exception>
+    /// <exception cref="ArgumentNullException"><paramref name="cultureInfo"/> 为 <see langword="null"/></exception>
     public bool RemoveCulture(CultureInfo cultureInfo)
     {
         ArgumentNullException.ThrowIfNull(cultureInfo);
@@ -295,6 +413,9 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         return result;
     }
 
+    /// <summary>
+    /// 清除除了 <see cref="CurrentCulture"/> 外的其他文化
+    /// </summary>
     public void ClearOtherCulture()
     {
         if (_indexByCulture.Count == 1)
@@ -310,6 +431,12 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         _indexByCulture[CurrentCulture] = 0;
     }
 
+    /// <summary>
+    /// 重命名键
+    /// </summary>
+    /// <param name="oldKey">旧键</param>
+    /// <param name="newKey">新键</param>
+    /// <returns>是否重命名成功</returns>
     public bool RenameKey(TKey oldKey, TKey newKey)
     {
         ArgumentNullException.ThrowIfNull(oldKey);
@@ -372,9 +499,16 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     /// </summary>
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    /// <summary>
+    /// 文化数据改变
+    /// </summary>
     public event CultureDataChangedEventHandler<TKey, TValue>? CultureDataChanged;
 
-    public class GetDataCore(ObservableI18nResource<TKey, TValue> source)
+    /// <summary>
+    /// 获取数据核心
+    /// </summary>
+    /// <param name="source">源</param>
+    public sealed class GetDataCore(ObservableI18nResource<TKey, TValue> source)
         : INotifyPropertyChanged,
             IDisposable
     {
@@ -388,9 +522,11 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         /// <exception cref="KeyNotFoundException">未找到键</exception>
         public TValue this[TKey key] => _source.GetData(key);
 
+        /// <summary>
+        /// 刷新 this[]
+        /// </summary>
         public void Refresh()
         {
-            // 刷新 this[]
             PropertyChanged?.Invoke(this, new(""));
         }
 
@@ -424,7 +560,11 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         #endregion
     }
 
-    public class GetDataOrDefaultCore(ObservableI18nResource<TKey, TValue> source)
+    /// <summary>
+    /// 获取数据或默认核心
+    /// </summary>
+    /// <param name="source"></param>
+    public sealed class GetDataOrDefaultCore(ObservableI18nResource<TKey, TValue> source)
         : INotifyPropertyChanged,
             IDisposable
     {
@@ -438,11 +578,10 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         public TValue this[TKey key] => _source.GetDataOrDefault(key);
 
         /// <summary>
-        /// 刷新 this
+        /// 刷新 this[]
         /// </summary>
         public void Refresh()
         {
-            // 刷新 this[]
             PropertyChanged?.Invoke(this, new(""));
         }
 
@@ -476,23 +615,34 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         #endregion
     }
 
-    public class ObservableCore()
+    /// <summary>
+    /// 可观察核心
+    /// </summary>
+    public sealed class ObservableCore()
     {
-        internal Dictionary<TKey, HashSet<ValueChangedAction<TKey>>> ActionsByKey { get; } = new();
+        internal Dictionary<TKey, List<ValueChangedAction<TKey>>> ActionsByKey { get; } = new();
 
-        internal Dictionary<TKey, HashSet<WeakValueChangedAction<TKey>>> WeakActionsByKey { get; } =
+        internal Dictionary<TKey, List<WeakValueChangedAction<TKey>>> WeakActionsByKey { get; } =
             new();
 
+        /// <summary>
+        /// 注册行动
+        /// </summary>
+        /// <param name="source">源</param>
+        /// <param name="getKeyExpression">获取键表达式</param>
+        /// <param name="handler">值改变行动</param>
+        /// <returns>释放注册的行动</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="source"/> 或 <paramref name="getKeyExpression"/> 或 <paramref name="handler"/> 为 <see langword="null"/></exception>
         public IDisposable Action(
             INotifyPropertyChanged source,
             Expression<Func<INotifyPropertyChanged, TKey>> getKeyExpression,
-            ValueChangedActionHandler<TKey> Handler
+            ValueChangedActionHandler<TKey> handler
         )
         {
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(getKeyExpression);
-            ArgumentNullException.ThrowIfNull(Handler);
-            var action = new ValueChangedAction<TKey>(source, getKeyExpression, Handler);
+            ArgumentNullException.ThrowIfNull(handler);
+            var action = new ValueChangedAction<TKey>(source, getKeyExpression, handler);
             var disposable = source
                 .WhenValueChanged(getKeyExpression)
                 .Subscribe(newKey =>
@@ -526,13 +676,19 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             );
         }
 
+        /// <summary>
+        /// 清除源注册的所有行动
+        /// </summary>
+        /// <param name="source">源</param>
+        /// <exception cref="ArgumentNullException"> <paramref name="source"/> 为 <see langword="null"/></exception>
         public void ClearActionsBy(INotifyPropertyChanged source)
         {
-            var list = new List<TKey>(ActionsByKey.Count);
+            ArgumentNullException.ThrowIfNull(source);
+            var list = new List<TKey>();
             foreach (var pair in ActionsByKey)
             {
-                pair.Value.RemoveWhere(action =>
-                    source.Equals(action.Source).Action(action, a => a.Disposable.Dispose(), null)
+                pair.Value.RemoveAll(action =>
+                    source.Equals(action.Source).Action(action, a => a.Dispose(), null)
                 );
                 if (pair.Value.Count == 0)
                     list.Add(pair.Key);
@@ -541,17 +697,25 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
                 ActionsByKey.Remove(list[i]);
         }
 
+        /// <summary>
+        /// 注册弱引用行动
+        /// </summary>
+        /// <param name="source">源</param>
+        /// <param name="getKeyExpression">获取键表达式</param>
+        /// <param name="handler">值改变行动</param>
+        /// <returns>释放注册的行动</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="source"/> 或 <paramref name="getKeyExpression"/> 或 <paramref name="handler"/> 为 <see langword="null"/></exception>
         public IDisposable WeakAction(
             INotifyPropertyChanged source,
             Expression<Func<INotifyPropertyChanged, TKey>> getKeyExpression,
-            ValueChangedActionHandler<TKey> Handler
+            ValueChangedActionHandler<TKey> handler
         )
         {
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(getKeyExpression);
-            ArgumentNullException.ThrowIfNull(Handler);
+            ArgumentNullException.ThrowIfNull(handler);
 
-            var action = new WeakValueChangedAction<TKey>(source, getKeyExpression, Handler);
+            var action = new WeakValueChangedAction<TKey>(source, getKeyExpression, handler);
             var disposable = source
                 .WhenValueChanged(getKeyExpression)
                 .Subscribe(newKey =>
@@ -585,36 +749,53 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             );
         }
 
+        /// <summary>
+        /// 清除源注册的所有弱引用行动
+        /// </summary>
+        /// <param name="source">源</param>
+        /// <exception cref="ArgumentNullException"> <paramref name="source"/> 为 <see langword="null"/></exception>
         public void ClearWeakActionsBy(INotifyPropertyChanged source)
         {
+            ArgumentNullException.ThrowIfNull(source);
             var keys = new List<TKey>(WeakActionsByKey.Count);
             foreach (var pair in WeakActionsByKey)
             {
-                pair.Value.RemoveWhere(action =>
+                pair.Value.RemoveAll(action =>
                     action.Source.TryGetTarget(out var s)
-                        ? source.Equals(s).Action(action, a => a.Disposable.Dispose(), null)
-                        : true.Action(action, a => a.Disposable.Dispose(), null)
+                        ? source.Equals(s).Action(action, a => a.Dispose(), null)
+                        : true.Action(action, a => a.Dispose(), null)
                 );
                 if (pair.Value.Count == 0)
                     keys.Add(pair.Key);
             }
-            WeakActionsByKey.RemoveAll(keys);
+            foreach (var key in keys)
+                WeakActionsByKey.Remove(key);
         }
 
+        /// <summary>
+        /// 清除失效的弱引用行动
+        /// </summary>
         public void ClearInvalidWeakAction()
         {
             var keys = new List<TKey>(WeakActionsByKey.Count);
             foreach (var pair in WeakActionsByKey)
             {
-                pair.Value.RemoveWhere(action => action.Source.TryGetTarget(out _) is false);
+                pair.Value.RemoveAll(action => action.Source.TryGetTarget(out _) is false);
                 if (pair.Value.Count == 0)
                     keys.Add(pair.Key);
             }
-            WeakActionsByKey.RemoveAll(keys);
+            foreach (var key in keys)
+                WeakActionsByKey.Remove(key);
         }
 
+        /// <summary>
+        /// 执行键相关的所有行动
+        /// </summary>
+        /// <param name="key">键</param>
+        /// <exception cref="ArgumentNullException"><paramref name="key"/> 为 <see langword="null"/></exception>
         public void DoActionsBy(TKey key)
         {
+            ArgumentNullException.ThrowIfNull(key);
             if (ActionsByKey.TryGetValue(key, out var actions))
             {
                 foreach (var action in actions)
@@ -622,91 +803,47 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             }
             if (WeakActionsByKey.TryGetValue(key, out var weakActions))
             {
-                var list = new List<WeakValueChangedAction<TKey>>(weakActions.Count);
                 foreach (var action in weakActions)
                 {
                     if (action.Source.TryGetTarget(out var source))
                         action.Action(source, key);
-                    else
-                        list.Add(action);
                 }
-                weakActions.ExceptWith(list);
+            }
+        }
 
-                if (weakActions.Count == 0)
-                    WeakActionsByKey.Remove(key);
+        /// <summary>
+        /// 执行源相关的所有行动
+        /// </summary>
+        /// <param name="source">源</param>
+        /// <exception cref="ArgumentNullException"><paramref name="source"/> 为 <see langword="null"/></exception>
+        public void DoActionsBy(INotifyPropertyChanged source)
+        {
+            ArgumentNullException.ThrowIfNull(source);
+            foreach (var pair in ActionsByKey)
+            {
+                foreach (
+                    var action in pair.Value.Where(source, static (x, s) => x.Source.Equals(s))
+                )
+                    action.Action(action.Source, pair.Key);
+            }
+            foreach (var pair in WeakActionsByKey)
+            {
+                foreach (var action in pair.Value)
+                {
+                    if (action.Source.TryGetTarget(out var s) && source.Equals(s))
+                        action.Action(source, pair.Key);
+                }
             }
         }
     }
 }
 
 /// <summary>
-/// 文化数据
+/// 值改变行动处理器
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
-/// <typeparam name="TValue">值类型</typeparam>
-public class ObservableCultureDataList<TKey, TValue> : ObservableList<TValue>
-    where TKey : notnull
-{
-    /// <summary>
-    /// 键
-    /// </summary>
-    public TKey Key { get; internal set; }
-
-    /// <inheritdoc/>
-    public ObservableCultureDataList(TKey key)
-    {
-        Key = key;
-    }
-}
-
-public sealed class ValueChangedAction<TKey> : IDisposable
-    where TKey : notnull
-{
-    public ValueChangedAction(
-        INotifyPropertyChanged source,
-        Expression<Func<INotifyPropertyChanged, TKey>> getKeyExpression,
-        ValueChangedActionHandler<TKey> action
-    )
-    {
-        PropertyName = getKeyExpression.GetPropertyName();
-        GetKey = getKeyExpression.Compile();
-        Source = source;
-        Action = action;
-        Key = GetKey(source);
-    }
-
-    public string PropertyName { get; }
-    public TKey Key { get; internal set; }
-    public Func<INotifyPropertyChanged, TKey> GetKey { get; }
-    public INotifyPropertyChanged Source { get; }
-    public ValueChangedActionHandler<TKey> Action { get; }
-    public IDisposable Disposable { get; internal set; }
-
-    #region IDisposable
-    private bool _disposed;
-
-    /// <inheritdoc/>
-    ~ValueChangedAction() => Dispose(false);
-
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    /// <inheritdoc cref="Dispose()"/>
-    private void Dispose(bool disposing)
-    {
-        if (_disposed)
-            return;
-        if (disposing)
-            Disposable.Dispose();
-        _disposed = true;
-    }
-    #endregion
-}
-
+/// <param name="source">源</param>
+/// <param name="key">键</param>
 public delegate void ValueChangedActionHandler<in TKey>(INotifyPropertyChanged source, TKey key)
     where TKey : notnull;
 
@@ -734,97 +871,3 @@ public delegate void CultureDataChangedEventHandler<TKey, TValue>(
     CultureDataChangedEventArgs<TKey, TValue> e
 )
     where TKey : notnull;
-
-/// <summary>
-/// 通知文化数据改变后事件
-/// </summary>
-/// <typeparam name="TKey">键类型</typeparam>
-/// <typeparam name="TValue">值类型</typeparam>
-public class CultureDataChangedEventArgs<TKey, TValue>
-    where TKey : notnull
-{
-    /// <inheritdoc/>
-    /// <param name="cultureInfo">文化信息</param>
-    /// <param name="key">键</param>
-    /// <param name="oldValue">旧值</param>
-    /// <param name="newValue">新值</param>
-    public CultureDataChangedEventArgs(
-        TKey key,
-        TValue? oldValue,
-        TValue? newValue,
-        CultureInfo? cultureInfo
-    )
-    {
-        CultureInfo = cultureInfo;
-        Key = key;
-        OldValue = oldValue;
-        NewValue = newValue;
-    }
-
-    /// <summary>
-    /// 文化信息
-    /// </summary>
-    public CultureInfo? CultureInfo { get; }
-
-    /// <summary>
-    /// 键
-    /// </summary>
-    public TKey Key { get; }
-
-    /// <summary>
-    /// 旧值
-    /// </summary>
-    public TValue? OldValue { get; }
-
-    /// <summary>
-    /// 新值
-    /// </summary>
-    public TValue? NewValue { get; }
-}
-
-public sealed class WeakValueChangedAction<TKey> : IDisposable
-    where TKey : notnull
-{
-    public WeakValueChangedAction(
-        INotifyPropertyChanged source,
-        Expression<Func<INotifyPropertyChanged, TKey>> getKeyExpression,
-        ValueChangedActionHandler<TKey> action
-    )
-    {
-        PropertyName = getKeyExpression.GetPropertyName();
-        GetKey = getKeyExpression.Compile();
-        Source = new(source);
-        Action = action;
-        Key = GetKey(source);
-    }
-
-    public string PropertyName { get; }
-    public TKey Key { get; internal set; }
-    public Func<INotifyPropertyChanged, TKey> GetKey { get; }
-    public WeakReference<INotifyPropertyChanged> Source { get; }
-    public ValueChangedActionHandler<TKey> Action { get; }
-    public IDisposable Disposable { get; internal set; }
-    #region IDisposable
-    private bool _disposed;
-
-    /// <inheritdoc/>
-    ~WeakValueChangedAction() => Dispose(false);
-
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    /// <inheritdoc cref="Dispose()"/>
-    private void Dispose(bool disposing)
-    {
-        if (_disposed)
-            return;
-        if (disposing)
-            Disposable.Dispose();
-        _disposed = true;
-    }
-    #endregion
-}
