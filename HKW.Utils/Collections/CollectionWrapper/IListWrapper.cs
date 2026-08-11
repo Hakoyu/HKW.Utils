@@ -11,5 +11,5 @@ public interface IListWrapper<TItem, TList> : ICollectionWrapper<TItem, TList>
     /// <summary>
     /// 原始列表
     /// </summary>
-    public TList SourceList { get; }
+    protected TList SourceList { get; }
 }

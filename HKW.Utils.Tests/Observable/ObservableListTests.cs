@@ -7,10 +7,22 @@ using HKW.HKWUtilsTests.Collections;
 namespace HKW.HKWUtilsTests.Observable;
 
 [TestClass]
-public class ObservableListTests
+public sealed class ObservableListTests : ObservableListTestsBase
 {
-    static Func<ObservableList<string>> _createList = () =>
-        new ObservableList<string>(Enumerable.Range(0, 10).Select(i => i.ToString()));
+    protected override IObservableList<string> CreateList() =>
+        new ObservableList<string>(Enumerable.StringRange(1, 10));
+}
+
+[TestClass]
+public sealed class ObservableListWrapperTests : ObservableListTestsBase
+{
+    protected override IObservableList<string> CreateList() =>
+        new ObservableListWrapper<string, List<string>>(Enumerable.StringRange(1, 10).ToList());
+}
+
+public abstract class ObservableListTestsBase
+{
+    protected abstract IObservableList<string> CreateList();
 
     static IReadOnlyCollection<string> _newItems = new ReadOnlyCollection<string>(
         Enumerable.Range(100, 10).Select(i => i.ToString()).ToList()
@@ -19,20 +31,20 @@ public class ObservableListTests
     [TestMethod]
     public void IListTTest()
     {
-        IListTTestUtils.Test(_createList, _newItems);
+        IListTTestUtils.Test(CreateList, _newItems);
     }
 
     [TestMethod]
     public void ObservableCollectionTest()
     {
-        ObservableCollectionUtils.Test(_createList, _newItems);
+        ObservableCollectionUtils.Test(CreateList, _newItems);
     }
 
     #region ListChanging
     [TestMethod]
     public void ChangingOnAdd()
     {
-        var list = _createList();
+        var list = CreateList();
         var cList = list.ToList();
 
         var triggerCount = 0;
@@ -66,7 +78,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangingOnInsert()
     {
-        var list = _createList();
+        var list = CreateList();
         var cList = list.ToList();
 
         var triggerCount = 0;
@@ -101,7 +113,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangingOnInsertFail()
     {
-        var list = _createList();
+        var list = CreateList();
 
         list.ListChanging += List_ListChanging;
         Assert.Throws<ArgumentOutOfRangeException>(() =>
@@ -119,7 +131,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangingOnReplace()
     {
-        var list = _createList();
+        var list = CreateList();
         var cList = list.ToList();
         var replaceList = list.Reverse().ToList();
 
@@ -157,7 +169,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangingOnReplaceFail()
     {
-        var list = _createList();
+        var list = CreateList();
 
         list.ListChanging += List_ListChanging;
         Assert.Throws<ArgumentOutOfRangeException>(() =>
@@ -175,7 +187,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangingOnRemove()
     {
-        var list = _createList();
+        var list = CreateList();
         var cList = list.ToList();
         var removeList = list.ToList();
 
@@ -194,7 +206,7 @@ public class ObservableListTests
         Assert.HasCount(triggerCount, removeList);
         Assert.IsTrue(list.SequenceEqual(cList));
 
-        list = _createList();
+        list = CreateList();
         cList = list.ToList();
         triggerCount = 0;
         list.ListChanging += List_ListChanging;
@@ -224,7 +236,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangingOnRemoveFail()
     {
-        var list = _createList();
+        var list = CreateList();
         var cList = list.ToList();
 
         var removeItem = default(string);
@@ -249,7 +261,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangingOnRemoveAt()
     {
-        var list = _createList();
+        var list = CreateList();
         var cList = list.ToList();
         var removeList = list.ToList();
 
@@ -270,7 +282,7 @@ public class ObservableListTests
         Assert.HasCount(triggerCount, removeList);
         Assert.IsTrue(list.SequenceEqual(cList));
 
-        list = _createList();
+        list = CreateList();
         cList = list.ToList();
         triggerCount = 0;
         list.ListChanging += List_ListChanging;
@@ -301,7 +313,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangingOnRemoveAtFail()
     {
-        var list = _createList();
+        var list = CreateList();
 
         list.ListChanging += List_ListChanging;
         Assert.Throws<ArgumentOutOfRangeException>(() =>
@@ -319,7 +331,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangingOnClear()
     {
-        var list = _createList();
+        var list = CreateList();
         var cList = list.ToList();
 
         var triggerCount = 0;
@@ -350,7 +362,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangedOnAdd()
     {
-        var list = _createList();
+        var list = CreateList();
         var cList = list.ToList();
 
         var triggerCount = 0;
@@ -384,7 +396,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangedOnInsert()
     {
-        var list = _createList();
+        var list = CreateList();
         var cList = list.ToList();
 
         var triggerCount = 0;
@@ -419,7 +431,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangedOnInsertFail()
     {
-        var list = _createList();
+        var list = CreateList();
 
         list.ListChanged += List_ListChanged;
         Assert.Throws<ArgumentOutOfRangeException>(() =>
@@ -437,7 +449,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangedOnReplace()
     {
-        var list = _createList();
+        var list = CreateList();
         var cList = list.ToList();
         var replaceList = list.Reverse().ToList();
 
@@ -475,7 +487,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangedOnReplaceFail()
     {
-        var list = _createList();
+        var list = CreateList();
 
         list.ListChanged += List_ListChanged;
         Assert.Throws<ArgumentOutOfRangeException>(() =>
@@ -493,7 +505,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangedOnRemove()
     {
-        var list = _createList();
+        var list = CreateList();
         var cList = list.ToList();
         var removeList = list.ToList();
 
@@ -512,7 +524,7 @@ public class ObservableListTests
         Assert.HasCount(triggerCount, removeList);
         Assert.IsTrue(list.SequenceEqual(cList));
 
-        list = _createList();
+        list = CreateList();
         cList = list.ToList();
         triggerCount = 0;
         list.ListChanged += List_ListChanged;
@@ -542,7 +554,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangedOnRemoveFail()
     {
-        var list = _createList();
+        var list = CreateList();
         var cList = list.ToList();
 
         var removeItem = default(string);
@@ -566,7 +578,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangedOnRemoveAt()
     {
-        var list = _createList();
+        var list = CreateList();
         var cList = list.ToList();
         var removeList = list.ToList();
 
@@ -587,7 +599,7 @@ public class ObservableListTests
         Assert.HasCount(triggerCount, removeList);
         Assert.IsTrue(list.SequenceEqual(cList));
 
-        list = _createList();
+        list = CreateList();
         cList = list.ToList();
         triggerCount = 0;
         list.ListChanged += List_ListChanged;
@@ -618,7 +630,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangedOnRemoveAtFail()
     {
-        var list = _createList();
+        var list = CreateList();
 
         list.ListChanged += List_ListChanged;
         Assert.Throws<ArgumentOutOfRangeException>(() =>
@@ -636,7 +648,7 @@ public class ObservableListTests
     [TestMethod]
     public void ChangedOnClear()
     {
-        var list = _createList();
+        var list = CreateList();
         var cList = list.ToList();
 
         var triggerCount = 0;

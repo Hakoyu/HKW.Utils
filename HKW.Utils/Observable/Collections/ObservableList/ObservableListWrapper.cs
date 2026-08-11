@@ -5,6 +5,7 @@ using System.Diagnostics;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Exceptions;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -18,8 +19,7 @@ namespace HKW.HKWUtils.Observable;
 public class ObservableListWrapper<TItem, TList>
     : IObservableList<TItem>,
         IReadOnlyObservableList<TItem>,
-        IList,
-        IListWrapper<TItem, TList>
+        IList
     where TList : IList<TItem>
 {
     /// <inheritdoc/>
@@ -29,8 +29,7 @@ public class ObservableListWrapper<TItem, TList>
     }
 
     /// <inheritdoc/>
-    public TList SourceList { get; }
-    TList ICollectionWrapper<TItem, TList>.SourceCollection => SourceList;
+    protected TList SourceList { get; }
 
     #region IListT
 
@@ -38,7 +37,7 @@ public class ObservableListWrapper<TItem, TList>
     public int Count => SourceList.Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => SourceList.IsReadOnly;
+    public bool IsReadOnly => false;
 
     #region Change
 
@@ -272,13 +271,7 @@ public class ObservableListWrapper<TItem, TList>
         if (ListChanged is not null)
             OnListChanged(ListChangeEventArgs ?? new(ListChangeAction.Add, item, index));
         if (CollectionChanged is not null)
-            OnCollectionChanged(
-                new(
-                    NotifyCollectionChangedAction.Add,
-                    new SingleItemReadOnlyList<TItem>(item),
-                    index
-                )
-            );
+            OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item, index));
         OnCountChanged();
     }
 
@@ -292,13 +285,7 @@ public class ObservableListWrapper<TItem, TList>
         if (ListChanged is not null)
             OnListChanged(ListChangeEventArgs ?? new(ListChangeAction.Remove, item, index));
         if (CollectionChanged is not null)
-            OnCollectionChanged(
-                new(
-                    NotifyCollectionChangedAction.Remove,
-                    new SingleItemReadOnlyList<TItem>(item),
-                    index
-                )
-            );
+            OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, item, index));
         OnCountChanged();
     }
 
@@ -310,7 +297,7 @@ public class ObservableListWrapper<TItem, TList>
         if (ListChanged is not null)
             OnListChanged(ListChangeEventArgs ?? new(ListChangeAction.Clear));
         if (CollectionChanged is not null)
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Reset));
+            OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
         OnCountChanged();
     }
 
@@ -328,15 +315,9 @@ public class ObservableListWrapper<TItem, TList>
             );
         if (CollectionChanged is not null)
             OnCollectionChanged(
-                new(
-                    NotifyCollectionChangedAction.Replace,
-                    new SingleItemReadOnlyList<TItem>(newItem),
-                    new SingleItemReadOnlyList<TItem>(oldItem),
-                    index
-                )
+                new(NotifyCollectionChangedAction.Replace, newItem, oldItem, index)
             );
-        // 在WPF等环境中, 发送空值可通知更新 this[]
-        OnPropertyChanged("");
+        PropertyChanged?.InvokeIndexer(this);
     }
 
     /// <summary>
@@ -371,13 +352,12 @@ public class ObservableListWrapper<TItem, TList>
 
     #region PropertyChanged
 
-
     /// <summary>
     /// 数量改变后
     /// </summary>
     private void OnCountChanged()
     {
-        OnPropertyChanged(nameof(Count));
+        PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Count);
         ListChangeEventArgs = null;
     }
 

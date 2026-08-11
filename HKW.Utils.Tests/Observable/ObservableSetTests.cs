@@ -7,10 +7,25 @@ using HKW.HKWUtils.Observable;
 namespace HKW.HKWUtilsTests.Observable;
 
 [TestClass]
-public class ObservableSetTests
+public sealed class ObservableSetTests : ObservableSetTestsBase
 {
-    static Func<ObservableSet<string>> _createSet = () =>
-        new ObservableSet<string>(Enumerable.Range(1, 10).Select(i => i.ToString()));
+    protected override IObservableSet<string> CreateSet() =>
+        new ObservableSet<string>(Enumerable.StringRange(1, 10));
+}
+
+[TestClass]
+public sealed class ObservableSetWrapperTests : ObservableSetTestsBase
+{
+    protected override IObservableSet<string> CreateSet() =>
+        new ObservableSetWrapper<string, OrderedSet<string>>(
+            new OrderedSet<string>(Enumerable.StringRange(1, 10)),
+            null
+        );
+}
+
+public abstract class ObservableSetTestsBase
+{
+    protected abstract IObservableSet<string> CreateSet();
 
     static IReadOnlyCollection<string> _newItems = new ReadOnlyCollection<string>(
         Enumerable.Range(100, 10).Select(i => i.ToString()).ToList()
@@ -19,20 +34,20 @@ public class ObservableSetTests
     [TestMethod]
     public void ISetTest()
     {
-        ISetTTestUtils.Test(_createSet, _newItems);
+        ISetTTestUtils.Test(CreateSet, _newItems);
     }
 
     [TestMethod]
     public void ObservableCollectionTest()
     {
-        ObservableCollectionUtils.Test(_createSet, _newItems);
+        ObservableCollectionUtils.Test(CreateSet, _newItems);
     }
 
     #region Changing
     [TestMethod]
     public void ChangingOnAdd()
     {
-        var set = _createSet();
+        var set = CreateSet();
         var oldCount = set.Count;
 
         var triggerCount = 0;
@@ -67,7 +82,7 @@ public class ObservableSetTests
     [TestMethod]
     public void ChangingOnRemove()
     {
-        var set = _createSet();
+        var set = CreateSet();
         var oldCount = set.Count;
 
         var triggerCount = 0;
@@ -102,7 +117,7 @@ public class ObservableSetTests
     [TestMethod]
     public void ChangingOnClear()
     {
-        var set = _createSet();
+        var set = CreateSet();
 
         var triggerCount = 0;
 
@@ -125,7 +140,7 @@ public class ObservableSetTests
     [TestMethod]
     public void ChangingOnIntersectWith()
     {
-        var set = _createSet();
+        var set = CreateSet();
         var copySet = set.ToHashSet();
         var concatSet = set.Concat(_newItems).ToHashSet();
         var currentOtherSet = default(IReadOnlyCollection<string>);
@@ -138,7 +153,7 @@ public class ObservableSetTests
         set.SetChanging -= Set_SetChanging;
         Assert.AreEqual(1, triggerCount);
 
-        set = _createSet();
+        set = CreateSet();
         triggerCount = 0;
         currentOtherSet = _newItems;
         set.SetChanging += Set_SetChanging;
@@ -146,7 +161,7 @@ public class ObservableSetTests
         set.SetChanging -= Set_SetChanging;
         Assert.AreEqual(1, triggerCount);
 
-        set = _createSet();
+        set = CreateSet();
         triggerCount = 0;
         currentOtherSet = concatSet;
         set.SetChanging += Set_SetChanging;
@@ -167,7 +182,7 @@ public class ObservableSetTests
     [TestMethod]
     public void ChangingOnExceptWith()
     {
-        var set = _createSet();
+        var set = CreateSet();
         var copySet = set.ToHashSet();
         var concatSet = set.Concat(_newItems).ToHashSet();
         var currentOtherSet = default(IReadOnlyCollection<string>);
@@ -180,7 +195,7 @@ public class ObservableSetTests
         set.SetChanging -= Set_SetChanging;
         Assert.AreEqual(1, triggerCount);
 
-        set = _createSet();
+        set = CreateSet();
         triggerCount = 0;
         currentOtherSet = _newItems;
         set.SetChanging += Set_SetChanging;
@@ -188,7 +203,7 @@ public class ObservableSetTests
         set.SetChanging -= Set_SetChanging;
         Assert.AreEqual(1, triggerCount);
 
-        set = _createSet();
+        set = CreateSet();
         triggerCount = 0;
         currentOtherSet = concatSet;
         set.SetChanging += Set_SetChanging;
@@ -209,7 +224,7 @@ public class ObservableSetTests
     [TestMethod]
     public void ChangingOnSymmetricExceptWith()
     {
-        var set = _createSet();
+        var set = CreateSet();
         var copySet = set.ToHashSet();
         var concatSet = set.Concat(_newItems).ToHashSet();
         var currentOtherSet = default(IReadOnlyCollection<string>);
@@ -222,7 +237,7 @@ public class ObservableSetTests
         set.SetChanging -= Set_SetChanging;
         Assert.AreEqual(1, triggerCount);
 
-        set = _createSet();
+        set = CreateSet();
         triggerCount = 0;
         currentOtherSet = _newItems;
         set.SetChanging += Set_SetChanging;
@@ -230,7 +245,7 @@ public class ObservableSetTests
         set.SetChanging -= Set_SetChanging;
         Assert.AreEqual(1, triggerCount);
 
-        set = _createSet();
+        set = CreateSet();
         triggerCount = 0;
         currentOtherSet = concatSet;
         set.SetChanging += Set_SetChanging;
@@ -255,7 +270,7 @@ public class ObservableSetTests
     [TestMethod]
     public void ChangingOnUnionWith()
     {
-        var set = _createSet();
+        var set = CreateSet();
         var copySet = set.ToHashSet();
         var concatSet = set.Concat(_newItems).ToHashSet();
         var currentOtherSet = default(IReadOnlyCollection<string>);
@@ -268,7 +283,7 @@ public class ObservableSetTests
         set.SetChanging -= Set_SetChanging;
         Assert.AreEqual(1, triggerCount);
 
-        set = _createSet();
+        set = CreateSet();
         triggerCount = 0;
         currentOtherSet = _newItems;
         set.SetChanging += Set_SetChanging;
@@ -276,7 +291,7 @@ public class ObservableSetTests
         set.SetChanging -= Set_SetChanging;
         Assert.AreEqual(1, triggerCount);
 
-        set = _createSet();
+        set = CreateSet();
         triggerCount = 0;
         currentOtherSet = concatSet;
         set.SetChanging += Set_SetChanging;
@@ -301,7 +316,7 @@ public class ObservableSetTests
     [TestMethod]
     public void ChangedOnAdd()
     {
-        var set = _createSet();
+        var set = CreateSet();
         var oldCount = set.Count;
 
         var triggerCount = 0;
@@ -336,7 +351,7 @@ public class ObservableSetTests
     [TestMethod]
     public void ChangedOnRemove()
     {
-        var set = _createSet();
+        var set = CreateSet();
         var oldCount = set.Count;
 
         var triggerCount = 0;
@@ -371,7 +386,7 @@ public class ObservableSetTests
     [TestMethod]
     public void ChangedOnClear()
     {
-        var set = _createSet();
+        var set = CreateSet();
         var triggerCount = 0;
 
         set.SetChanged += Set_SetChanged;
@@ -393,7 +408,7 @@ public class ObservableSetTests
     [TestMethod]
     public void ChangedOnIntersectWith()
     {
-        var set = _createSet();
+        var set = CreateSet();
         var copySet = set.ToHashSet();
         var concatSet = set.Concat(_newItems).ToHashSet();
         var currentOtherSet = default(IReadOnlyCollection<string>);
@@ -406,7 +421,7 @@ public class ObservableSetTests
         set.SetChanged -= Set_SetChanged;
         Assert.AreEqual(1, triggerCount);
 
-        set = _createSet();
+        set = CreateSet();
         triggerCount = 0;
         currentOtherSet = _newItems;
         set.SetChanged += Set_SetChanged;
@@ -414,7 +429,7 @@ public class ObservableSetTests
         set.SetChanged -= Set_SetChanged;
         Assert.AreEqual(1, triggerCount);
 
-        set = _createSet();
+        set = CreateSet();
         triggerCount = 0;
         currentOtherSet = concatSet;
         set.SetChanged += Set_SetChanged;
@@ -435,7 +450,7 @@ public class ObservableSetTests
     [TestMethod]
     public void ChangedOnExceptWith()
     {
-        var set = _createSet();
+        var set = CreateSet();
         var copySet = set.ToHashSet();
         var concatSet = set.Concat(_newItems).ToHashSet();
         var currentOtherSet = default(IReadOnlyCollection<string>);
@@ -448,7 +463,7 @@ public class ObservableSetTests
         set.SetChanged -= Set_SetChanged;
         Assert.AreEqual(1, triggerCount);
 
-        set = _createSet();
+        set = CreateSet();
         triggerCount = 0;
         currentOtherSet = _newItems;
         set.SetChanged += Set_SetChanged;
@@ -456,7 +471,7 @@ public class ObservableSetTests
         set.SetChanged -= Set_SetChanged;
         Assert.AreEqual(1, triggerCount);
 
-        set = _createSet();
+        set = CreateSet();
         triggerCount = 0;
         currentOtherSet = concatSet;
         set.SetChanged += Set_SetChanged;
@@ -477,7 +492,7 @@ public class ObservableSetTests
     [TestMethod]
     public void ChangedOnSymmetricExceptWith()
     {
-        var set = _createSet();
+        var set = CreateSet();
         var copySet = set.ToHashSet();
         var concatSet = set.Concat(_newItems).ToHashSet();
         var currentOtherSet = default(IReadOnlyCollection<string>);
@@ -490,7 +505,7 @@ public class ObservableSetTests
         set.SetChanged -= Set_SetChanged;
         Assert.AreEqual(1, triggerCount);
 
-        set = _createSet();
+        set = CreateSet();
         triggerCount = 0;
         currentOtherSet = _newItems;
         set.SetChanged += Set_SetChanged;
@@ -498,7 +513,7 @@ public class ObservableSetTests
         set.SetChanged -= Set_SetChanged;
         Assert.AreEqual(1, triggerCount);
 
-        set = _createSet();
+        set = CreateSet();
         triggerCount = 0;
         currentOtherSet = concatSet;
         set.SetChanged += Set_SetChanged;
@@ -523,7 +538,7 @@ public class ObservableSetTests
     [TestMethod]
     public void ChangedOnUnionWith()
     {
-        var set = _createSet();
+        var set = CreateSet();
         var copySet = set.ToHashSet();
         var concatSet = set.Concat(_newItems).ToHashSet();
         var currentOtherSet = default(IReadOnlyCollection<string>);
@@ -536,7 +551,7 @@ public class ObservableSetTests
         set.SetChanged -= Set_SetChanged;
         Assert.AreEqual(1, triggerCount);
 
-        set = _createSet();
+        set = CreateSet();
         triggerCount = 0;
         currentOtherSet = _newItems;
         set.SetChanged += Set_SetChanged;
@@ -544,7 +559,7 @@ public class ObservableSetTests
         set.SetChanged -= Set_SetChanged;
         Assert.AreEqual(1, triggerCount);
 
-        set = _createSet();
+        set = CreateSet();
         triggerCount = 0;
         currentOtherSet = concatSet;
         set.SetChanged += Set_SetChanged;

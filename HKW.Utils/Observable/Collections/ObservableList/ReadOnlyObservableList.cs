@@ -34,11 +34,6 @@ public sealed class ReadOnlyObservableList<T>
     {
         _list = list;
 
-        _list.ListChanging -= List_ListChanging;
-        _list.ListChanged -= List_ListChanged;
-        _list.CollectionChanged -= List_CollectionChanged;
-        _list.PropertyChanged -= List_PropertyChanged;
-
         _list.ListChanging += List_ListChanging;
         _list.ListChanged += List_ListChanged;
         _list.CollectionChanged += List_CollectionChanged;
@@ -95,53 +90,20 @@ public sealed class ReadOnlyObservableList<T>
     }
     #endregion
 
-    #region IReadOnlyObservableList
+    #region IListT
 
     /// <inheritdoc/>
-    public int Count => ((IReadOnlyCollection<T>)_list).Count;
+    public int Count => _list.Count;
 
     /// <inheritdoc/>
-    public T this[int index] => ((IReadOnlyList<T>)_list)[index];
+    public T this[int index]
+    {
+        get => _list[index];
+        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+    }
 
     /// <inheritdoc/>
     public bool IsReadOnly => true;
-
-    /// <inheritdoc/>
-    bool IList.IsFixedSize => ((IList)_list).IsFixedSize;
-
-    /// <inheritdoc/>
-    bool ICollection.IsSynchronized => ((IList)_list).IsSynchronized;
-
-    /// <inheritdoc/>
-    object ICollection.SyncRoot => ((IList)_list).SyncRoot;
-
-    object? IList.this[int index]
-    {
-        get => ((IList)_list)[index];
-        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
-    }
-
-    /// <inheritdoc/>
-    public IEnumerator<T> GetEnumerator()
-    {
-        return _list.GetEnumerator();
-    }
-
-    /// <inheritdoc/>
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return ((IEnumerable)_list).GetEnumerator();
-    }
-
-    #endregion IReadOnlyObservableList
-
-    #region IObservableListT
-
-    T IList<T>.this[int index]
-    {
-        get => ((IReadOnlyList<T>)_list)[index];
-        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
-    }
 
     void IList<T>.Insert(int index, T item)
     {
@@ -168,19 +130,52 @@ public sealed class ReadOnlyObservableList<T>
         throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
-    int IList<T>.IndexOf(T item)
+    /// <inheritdoc/>
+    public int IndexOf(T item)
     {
         return _list.IndexOf(item);
     }
 
-    bool ICollection<T>.Contains(T item)
+    /// <inheritdoc/>
+    public bool Contains(T item)
     {
         return _list.Contains(item);
     }
 
-    void ICollection<T>.CopyTo(T[] array, int arrayIndex)
+    /// <inheritdoc/>
+    public void CopyTo(T[] array, int arrayIndex)
     {
         _list.CopyTo(array, arrayIndex);
+    }
+
+    /// <inheritdoc/>
+    public IEnumerator<T> GetEnumerator()
+    {
+        return _list.GetEnumerator();
+    }
+
+    /// <inheritdoc/>
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return ((IEnumerable)_list).GetEnumerator();
+    }
+
+    #endregion
+    #region IList
+
+    /// <inheritdoc/>
+    bool IList.IsFixedSize => ((IList)_list).IsFixedSize;
+
+    /// <inheritdoc/>
+    bool ICollection.IsSynchronized => ((IList)_list).IsSynchronized;
+
+    /// <inheritdoc/>
+    object ICollection.SyncRoot => ((IList)_list).SyncRoot;
+
+    object? IList.this[int index]
+    {
+        get => _list[index];
+        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     int IList.Add(object? value)
@@ -237,5 +232,5 @@ public sealed class ReadOnlyObservableList<T>
 
     /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged;
-    #endregion Event
+    #endregion
 }

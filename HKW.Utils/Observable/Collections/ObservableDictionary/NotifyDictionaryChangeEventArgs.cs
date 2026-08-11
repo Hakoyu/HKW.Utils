@@ -15,6 +15,12 @@ public class NotifyDictionaryChangeEventArgs<TKey, TValue> : EventArgs
     where TKey : notnull
 {
     /// <summary>
+    /// 清理
+    /// </summary>
+    public static NotifyDictionaryChangeEventArgs<TKey, TValue> Cache_Clear { get; } =
+        new(DictionaryChangeAction.Clear);
+
+    /// <summary>
     /// 改变行动
     /// </summary>
     public DictionaryChangeAction Action { get; }

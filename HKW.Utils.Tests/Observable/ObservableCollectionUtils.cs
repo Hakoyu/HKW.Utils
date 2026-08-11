@@ -65,7 +65,9 @@ public static class ObservableCollectionUtils
             Assert.AreEqual(NotifyCollectionChangedAction.Add, e.Action);
             Assert.IsNull(e.OldItems);
             Assert.AreEqual(addItem, [e.NewItems?[0], collection.Last(), cCollection[^1]]);
-            Assert.AreEqual(addIndex, e.NewStartingIndex);
+            // 如果添加至末尾, NewStartingIndex可为 Count - 1 或 -1
+            if ((e.NewStartingIndex == addIndex || e.NewStartingIndex == -1) is false)
+                Assert.Fail();
             Assert.AreEqual(-1, e.OldStartingIndex);
             Assert.IsTrue(collection.SequenceEqual(cCollection));
         }

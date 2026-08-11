@@ -11,5 +11,5 @@ public interface ICollectionWrapper<TItem, TCollection>
     /// <summary>
     /// 原始集合
     /// </summary>
-    public TCollection SourceCollection { get; }
+    protected TCollection SourceCollection { get; }
 }

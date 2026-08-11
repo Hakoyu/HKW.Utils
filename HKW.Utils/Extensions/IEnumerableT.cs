@@ -327,8 +327,6 @@ public static partial class EnumerableExtensions
     public static bool TryGetSpan<T>(this IEnumerable<T> source, out ReadOnlySpan<T> span)
     {
         bool result = true;
-        if (source is IListWrapper<T, List<T>> list)
-            source = list.SourceList;
 
         if (source is T[])
         {

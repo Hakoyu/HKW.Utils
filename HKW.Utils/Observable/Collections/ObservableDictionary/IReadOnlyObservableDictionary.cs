@@ -17,10 +17,10 @@ public interface IReadOnlyObservableDictionary<TKey, TValue>
     /// <summary>
     /// 可观测的键集合
     /// </summary>
-    public IReadOnlyObservableCollection<TKey> ObservableKeys { get; }
+    public IObservableCollection<TKey> ObservableKeys { get; }
 
     /// <summary>
     /// 可观测的值集合
     /// </summary>
-    public IReadOnlyObservableCollection<TValue> ObservableValues { get; }
+    public IObservableCollection<TValue> ObservableValues { get; }
 }

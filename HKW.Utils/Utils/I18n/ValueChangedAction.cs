@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Linq.Expressions;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils;
 
@@ -14,10 +15,12 @@ public sealed class ValueChangedAction<TKey> : IDisposable
     /// <param name="source">源</param>
     /// <param name="getKeyExpression">获取键表达式</param>
     /// <param name="action">行动</param>
+    /// <param name="actionsByKey">行动字典</param>
     public ValueChangedAction(
         INotifyPropertyChanged source,
         Expression<Func<INotifyPropertyChanged, TKey>> getKeyExpression,
-        ValueChangedActionHandler<TKey> action
+        ValueChangedActionHandler<TKey> action,
+        Dictionary<TKey, List<ValueChangedAction<TKey>>> actionsByKey
     )
     {
         PropertyName = getKeyExpression.GetPropertyName();
@@ -25,6 +28,31 @@ public sealed class ValueChangedAction<TKey> : IDisposable
         Source = source;
         Action = action;
         Key = GetKey(source);
+        _actionsByKey = actionsByKey;
+        if (_actionsByKey.TryGetValue(Key, out var actions) is false)
+            actions = _actionsByKey[Key] = new();
+        actions.Add(this);
+
+        Source.PropertyChanged += Source_PropertyChanged;
+    }
+
+    private void Source_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != PropertyName)
+            return;
+        var newKey = GetKey(Source);
+        ArgumentNullException.ThrowIfNull(newKey);
+        if (_actionsByKey.TryGetValue(Key, out var oldActions))
+        {
+            oldActions.Remove(this);
+            if (oldActions.Count == 0)
+                _actionsByKey.Remove(Key);
+        }
+
+        Key = newKey!;
+        if (_actionsByKey.TryGetValue(newKey!, out var newActions) is false)
+            newActions = _actionsByKey[newKey!] = new();
+        newActions.Add(this);
     }
 
     /// <summary>
@@ -35,27 +63,24 @@ public sealed class ValueChangedAction<TKey> : IDisposable
     /// <summary>
     /// 键
     /// </summary>
-    public TKey Key { get; internal set; }
+    public TKey Key { get; private set; }
 
     /// <summary>
     /// 获取键
     /// </summary>
-    public Func<INotifyPropertyChanged, TKey> GetKey { get; }
+    public Func<INotifyPropertyChanged, TKey> GetKey { get; private set; }
 
     /// <summary>
     /// 源
     /// </summary>
-    public INotifyPropertyChanged Source { get; }
+    public INotifyPropertyChanged Source { get; private set; }
 
     /// <summary>
     /// 值改变行动
     /// </summary>
-    public ValueChangedActionHandler<TKey> Action { get; }
+    public ValueChangedActionHandler<TKey> Action { get; private set; }
 
-    /// <summary>
-    /// 释放器
-    /// </summary>
-    public IDisposable? Disposable { get; internal set; }
+    private Dictionary<TKey, List<ValueChangedAction<TKey>>> _actionsByKey;
 
     #region IDisposable
     private bool _disposed;
@@ -70,13 +95,24 @@ public sealed class ValueChangedAction<TKey> : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    /// <inheritdoc cref="Dispose()"/>
     private void Dispose(bool disposing)
     {
         if (_disposed)
             return;
         if (disposing)
-            Disposable?.Dispose();
+        {
+            Source.PropertyChanged -= Source_PropertyChanged;
+            if (_actionsByKey.TryGetValue(Key, out var actions))
+            {
+                actions.Remove(this);
+                if (actions.Count == 0)
+                    _actionsByKey.Remove(Key);
+            }
+            _actionsByKey = null!;
+            Source = null!;
+            GetKey = null!;
+            Action = null!;
+        }
         _disposed = true;
     }
     #endregion

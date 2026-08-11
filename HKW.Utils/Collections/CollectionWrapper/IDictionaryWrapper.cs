@@ -16,5 +16,5 @@ public interface IDictionaryWrapper<TKey, TValue, TDictionary>
     /// <summary>
     /// 原始字典
     /// </summary>
-    public TDictionary SourceDictionary { get; }
+    protected TDictionary SourceDictionary { get; }
 }

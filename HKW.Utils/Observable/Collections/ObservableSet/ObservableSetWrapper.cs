@@ -16,22 +16,20 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TSet">集合类型</typeparam>
 public class ObservableSetWrapper<TItem, TSet>
     : IObservableSet<TItem>,
-        IReadOnlyObservableSet<TItem>,
-        ISetWrapper<TItem, TSet>
+        IReadOnlyObservableSet<TItem>
     where TSet : ISet<TItem>
 {
     /// <inheritdoc/>
     /// <param name="set">集合</param>
     /// <param name="comparer">比较器, 必须与 <see langword="set"/> 的比较器相同</param>
-    public ObservableSetWrapper(TSet set, IEqualityComparer<TItem>? comparer = null)
+    public ObservableSetWrapper(TSet set, IEqualityComparer<TItem>? comparer)
     {
         SourceSet = set;
         Comparer = comparer ?? EqualityComparer<TItem>.Default;
     }
 
     /// <inheritdoc/>
-    public TSet SourceSet { get; }
-    TSet ICollectionWrapper<TItem, TSet>.SourceCollection => SourceSet;
+    protected TSet SourceSet { get; }
 
     #region ISet
 
@@ -96,7 +94,7 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public void ExceptWith(IEnumerable<TItem> other)
     {
-        var oldItems = new ReadOnlyList<TItem>(SourceSet.Intersect(other));
+        var oldItems = new ReadOnlyList<TItem>(SourceSet.Intersect(other, Comparer));
         var otherItems = new ReadOnlyList<TItem>(other);
         OnSetOperating(SetChangeAction.Except, otherItems, null, oldItems, out var removeIndexs);
         SourceSet.ExceptWith(otherItems);
@@ -107,7 +105,7 @@ public class ObservableSetWrapper<TItem, TSet>
     public void SymmetricExceptWith(IEnumerable<TItem> other)
     {
         var otherItems = new ReadOnlyList<TItem>(other);
-        var oldItems = new ReadOnlyList<TItem>(otherItems.Intersect(SourceSet, Comparer));
+        var oldItems = new ReadOnlyList<TItem>(SourceSet.Intersect(otherItems, Comparer));
         var newItems = new ReadOnlyList<TItem>(otherItems.Except(oldItems, Comparer));
         OnSetOperating(
             SetChangeAction.SymmetricExcept,
@@ -256,7 +254,7 @@ public class ObservableSetWrapper<TItem, TSet>
     protected virtual void OnSetClearing()
     {
         if (SetChanging is not null)
-            OnSetChanging(new(SetChangeAction.Clear));
+            OnSetChanging(NotifySetChangeEventArgs<TItem>.Cache_Clear);
     }
 
     /// <summary>
@@ -280,14 +278,13 @@ public class ObservableSetWrapper<TItem, TSet>
         if (CollectionChanged is not null && oldItems is not null)
         {
             removeIndexs = new List<int>();
-            var removeItems = oldItems.ToHashSet();
+            var removeItems = oldItems.ToHashSet(Comparer);
             foreach (var (e, i) in SourceSet.ReverseWithIndex())
             {
-                if (removeItems.Contains(e))
+                if (removeItems.Remove(e))
                 {
                     removeIndexs.Add(i);
-                    removeItems.Remove(e);
-                    if (removeItems.HasValue is false)
+                    if (removeItems.Count == 0)
                         break;
                 }
             }
@@ -322,7 +319,7 @@ public class ObservableSetWrapper<TItem, TSet>
         if (SetChanged is not null)
             OnSetChanged(SetChangeEventArgs ?? new(SetChangeAction.Add, items));
         if (CollectionChanged is not null)
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Add, (IList)items, Count - 1));
+            OnCollectionChanged(new(NotifyCollectionChangedAction.Add, (IList)items));
         OnCountChanged();
     }
 
@@ -346,9 +343,9 @@ public class ObservableSetWrapper<TItem, TSet>
     protected virtual void OnSetCleared()
     {
         if (SetChanged is not null)
-            OnSetChanged(SetChangeEventArgs ?? new(SetChangeAction.Clear));
+            OnSetChanged(NotifySetChangeEventArgs<TItem>.Cache_Clear);
         if (CollectionChanged is not null)
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Reset));
+            OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
         OnCountChanged();
     }
 
@@ -428,7 +425,7 @@ public class ObservableSetWrapper<TItem, TSet>
     /// </summary>
     private void OnCountChanged()
     {
-        OnPropertyChanged(nameof(Count));
+        PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Count);
         SetChangeEventArgs = null;
     }
 

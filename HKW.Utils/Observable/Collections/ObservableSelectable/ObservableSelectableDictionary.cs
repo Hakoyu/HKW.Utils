@@ -86,7 +86,7 @@ public partial class ObservableSelectableDictionary<TKey, TValue>
     /// <inheritdoc/>
     public void Add(KeyValuePair<TKey, TValue> item)
     {
-        SourceDictionary.Add(item);
+        ((ICollection<KeyValuePair<TKey, TValue>>)SourceDictionary).Add(item);
     }
 
     /// <inheritdoc/>
@@ -98,7 +98,7 @@ public partial class ObservableSelectableDictionary<TKey, TValue>
     /// <inheritdoc/>
     public bool Contains(KeyValuePair<TKey, TValue> item)
     {
-        return SourceDictionary.Contains(item);
+        return ((ICollection<KeyValuePair<TKey, TValue>>)SourceDictionary).Contains(item);
     }
 
     /// <inheritdoc/>
@@ -110,7 +110,7 @@ public partial class ObservableSelectableDictionary<TKey, TValue>
     /// <inheritdoc/>
     public bool Remove(KeyValuePair<TKey, TValue> item)
     {
-        return SourceDictionary.Remove(item);
+        return ((ICollection<KeyValuePair<TKey, TValue>>)SourceDictionary).Remove(item);
     }
 
     /// <inheritdoc/>

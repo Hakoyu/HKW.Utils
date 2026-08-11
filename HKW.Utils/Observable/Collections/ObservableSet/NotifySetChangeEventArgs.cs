@@ -13,6 +13,11 @@ namespace HKW.HKWUtils.Observable;
 public class NotifySetChangeEventArgs<T> : EventArgs
 {
     /// <summary>
+    /// 清空事件
+    /// </summary>
+    public static NotifySetChangeEventArgs<T> Cache_Clear { get; } = new(SetChangeAction.Clear);
+
+    /// <summary>
     /// 改变行动
     /// </summary>
     public SetChangeAction Action { get; }

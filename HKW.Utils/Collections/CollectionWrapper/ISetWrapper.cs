@@ -11,5 +11,5 @@ public interface ISetWrapper<TItem, TSet> : ICollectionWrapper<TItem, TSet>
     /// <summary>
     /// 原始集合
     /// </summary>
-    public TSet SourceSet { get; }
+    protected TSet SourceSet { get; }
 }

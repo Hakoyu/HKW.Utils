@@ -24,6 +24,7 @@ using ReactiveUI.Builder;
 
 namespace HKW;
 
+#if !Release
 #pragma warning disable S1144,S2223,S1643,S3626,S2342,S1481
 internal class Program
 {
@@ -34,35 +35,64 @@ internal class Program
     //public static I18nCore I18nCore = new();
     public static ObservableI18nResource<string, string> I18nResource { get; } =
         new("Main", Cultures, Cultures.First());
-    public static CultureInfo CultureEN => field ??= CultureInfo.GetCultureInfo("en-us");
-    public static CultureInfo CultureCN => field ??= CultureInfo.CurrentCulture;
 
-    //public IntegratedReadOnlyList<int, List<int>, ReadOnlyCollection<int>> List { get; } =
-    //    new(new(), l => new(l));
-    //public ReadOnlyCollection<int> ReadOnlyList => List.ReadOnlyList;
+    public static Func<ObservableI18nResource<string, string>> GetI18nResource =>
+        () =>
+        {
+            var i18nResource = new ObservableI18nResource<string, string>(
+                "Main",
+                Cultures,
+                Cultures.First()
+            );
+            foreach (var c in i18nResource.Cultures)
+                i18nResource.SetDatas(
+                    Enumerable
+                        .Range(0, 10)
+                        .Select(x => KeyValuePair.Create(x.ToString(), GetValue(x.ToString(), c))),
+                    c
+                );
+
+            return i18nResource;
+        };
+
+    public static string GetValue(string key, CultureInfo culture) => $"{key}_{culture.Name}";
+
+    public static CultureInfo CultureEN => field ??= CultureInfo.GetCultureInfo("en-us");
+    public static CultureInfo CultureCN => field ??= CultureInfo.GetCultureInfo("zh-cn");
+
     public static Point<int> point { get; set; } = new(1, 2);
     public static Point point1 { get; set; } = new(1, 2);
 
     private static void Main(string[] args)
     {
-#if !Release
-        RxAppBuilder.CreateReactiveUIBuilder().WithCoreServices().BuildApp();
-        try
+        var model = new TestModel();
+        //RxAppBuilder.CreateReactiveUIBuilder().WithCoreServices().BuildApp();
+        //try
+        //{
+        //    while (true)
+        //    {
+        //        Thread.Sleep(1000);
+        //        Console.ReadLine();
+        //    }
+        //}
+        //catch (Exception ex)
+        //{
+        //    Console.WriteLine(ex.ToString());
+        //}
+
+        while (true)
         {
-            var resource = I18nResource;
-            foreach (var c in resource.Cultures)
-                resource.SetDatas(
-                    Enumerable
-                        .Range(0, 10)
-                        .Select(x => KeyValuePair.Create(x.ToString(), $"{x}_{c.Name}")),
-                    c
-                );
+            string? input = Console.ReadLine();
+
+            if (string.Equals(input, "exit", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("程序已结束。");
+                break; // 跳出循环，结束 Main
+            }
+
+            // 这里可以处理其他命令
+            Console.WriteLine($"你输入了: {input}");
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.ToString());
-        }
-#endif
     }
 
     private static void Model_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -100,12 +130,7 @@ internal class Program
     //timer.Stop();
     //timer.Continue();
     //Task.Delay(1000).Wait();
-#if !Release
-
-#endif
 }
-
-#if !Release
 
 internal static class TestExtensions
 {
@@ -126,21 +151,21 @@ internal partial class TestModel : ReactiveObjectX, IEnableLogger<TestModel>
     {
         Program.I18nResource.Observable.Action(
             this,
-            x => ((TestModel)x).ID,
+            x => x.As<TestModel>().ID,
             (x, _) =>
             {
                 x.As<TestModel>().RaisePropertyChanged(nameof(Name));
             }
         );
-        this.WhenAnyValue(x => x.Name)
-            .Buffer(2, 1)
-            .Select(b => (Previous: b[0], Current: b[1]))
-            .Subscribe(pair =>
-            {
-                var oldValue = pair.Previous;
-                var newValue = pair.Current;
-                Console.WriteLine($"Name 的值已经改变，旧的值是：{oldValue}，新的值是：{newValue}");
-            });
+        //this.WhenAnyValue(x => x.Name)
+        //    .Buffer(2, 1)
+        //    .Select(b => (Previous: b[0], Current: b[1]))
+        //    .Subscribe(pair =>
+        //    {
+        //        var oldValue = pair.Previous;
+        //        var newValue = pair.Current;
+        //        Console.WriteLine($"Name 的值已经改变，旧的值是：{oldValue}，新的值是：{newValue}");
+        //    });
         //CanExecute = true;
         //Program.I18nResource.I18nObjects.Add(new(this));
         //var i18nObject = Program.I18nResource.I18nObjects.Last();
@@ -205,6 +230,5 @@ internal enum TestEnum2
     B,
     C,
 }
-
 
 #endif

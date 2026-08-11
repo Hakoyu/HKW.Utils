@@ -5,12 +5,27 @@ using HKW.HKWUtils.Observable;
 namespace HKW.HKWUtilsTests.Observable;
 
 [TestClass]
-public class ObservableDictionaryTests
+public sealed class ObservableDictionaryTests : ObservableDictionaryTestsBase
 {
-    static Func<ObservableDictionary<int, string>> _createDictionary = () =>
+    protected override IObservableDictionary<int, string> CreateDictionary() =>
         new ObservableDictionary<int, string>(
             Enumerable.Range(1, 10).ToDictionary(i => i, i => i.ToString())
         );
+}
+
+[TestClass]
+public sealed class ObservableDictionaryWrapperTests : ObservableDictionaryTestsBase
+{
+    protected override IObservableDictionary<int, string> CreateDictionary() =>
+        new ObservableDictionaryWrapper<int, string, Dictionary<int, string>>(
+            Enumerable.Range(1, 10).ToDictionary(i => i, i => i.ToString()),
+            null
+        );
+}
+
+public abstract class ObservableDictionaryTestsBase
+{
+    protected abstract IObservableDictionary<int, string> CreateDictionary();
 
     static IReadOnlyCollection<KeyValuePair<int, string>> _newItems = new ReadOnlyCollection<
         KeyValuePair<int, string>
@@ -19,20 +34,22 @@ public class ObservableDictionaryTests
     [TestMethod]
     public void IDictionaryTest()
     {
-        IDictionaryTTestUtils.Test(_createDictionary, _newItems);
+        IDictionaryTTestUtils.Test(() => (IDictionary<int, string>)CreateDictionary(), _newItems);
     }
 
     [TestMethod]
     public void ObservableCollectionTest()
     {
-        ObservableCollectionUtils.Test(_createDictionary, _newItems);
+        ObservableCollectionUtils.Test(
+            () => (IObservableCollection<KeyValuePair<int, string>>)CreateDictionary(),
+            _newItems
+        );
     }
 
-    #region DictionaryChanging
     [TestMethod]
     public void ChangingOnAdd()
     {
-        var dictionary = _createDictionary();
+        var dictionary = CreateDictionary();
         var cDictionary = dictionary.ToDictionary();
 
         var triggerCount = 0;
@@ -67,7 +84,7 @@ public class ObservableDictionaryTests
     [TestMethod]
     public void ChangingOnAddFail()
     {
-        var dictionary = _createDictionary();
+        var dictionary = CreateDictionary();
 
         dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
         Assert.Throws<ArgumentException>(() =>
@@ -88,7 +105,7 @@ public class ObservableDictionaryTests
     [TestMethod]
     public void ChangingOnTryAdd()
     {
-        var dictionary = _createDictionary();
+        var dictionary = CreateDictionary();
         var cDictionary = dictionary.ToDictionary();
 
         var triggerCount = 0;
@@ -135,7 +152,7 @@ public class ObservableDictionaryTests
     [TestMethod]
     public void ChangingOnReplace()
     {
-        var dictionary = _createDictionary();
+        var dictionary = CreateDictionary();
         var cDictionary = dictionary.ToDictionary();
         var replaceDictionary = dictionary.Reverse().ToDictionary();
 
@@ -173,7 +190,7 @@ public class ObservableDictionaryTests
     [TestMethod]
     public void ChangingOnRemove()
     {
-        var dictionary = _createDictionary();
+        var dictionary = CreateDictionary();
         var cDictionary = dictionary.ToDictionary();
         var removeDictionary = dictionary.ToDictionary();
 
@@ -211,7 +228,7 @@ public class ObservableDictionaryTests
     [TestMethod]
     public void ChangingOnRemoveFail()
     {
-        var dictionary = _createDictionary();
+        var dictionary = CreateDictionary();
         var cDictionary = dictionary.ToDictionary();
 
         dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
@@ -234,7 +251,7 @@ public class ObservableDictionaryTests
     [TestMethod]
     public void ChangingOnClear()
     {
-        var dictionary = _createDictionary();
+        var dictionary = CreateDictionary();
         var cDictionary = dictionary.ToDictionary();
 
         var triggerCount = 0;
@@ -260,13 +277,11 @@ public class ObservableDictionaryTests
         }
     }
 
-    #endregion
-
     #region DictionaryChanged
     [TestMethod]
     public void ChangedOnAdd()
     {
-        var dictionary = _createDictionary();
+        var dictionary = CreateDictionary();
         var cDictionary = dictionary.ToDictionary();
 
         var triggerCount = 0;
@@ -301,7 +316,7 @@ public class ObservableDictionaryTests
     [TestMethod]
     public void ChangedOnAddFail()
     {
-        var dictionary = _createDictionary();
+        var dictionary = CreateDictionary();
 
         dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
         Assert.Throws<ArgumentException>(() =>
@@ -322,7 +337,7 @@ public class ObservableDictionaryTests
     [TestMethod]
     public void ChangedOnTryAdd()
     {
-        var dictionary = _createDictionary();
+        var dictionary = CreateDictionary();
         var cDictionary = dictionary.ToDictionary();
 
         var triggerCount = 0;
@@ -369,7 +384,7 @@ public class ObservableDictionaryTests
     [TestMethod]
     public void ChangedOnReplace()
     {
-        var dictionary = _createDictionary();
+        var dictionary = CreateDictionary();
         var cDictionary = dictionary.ToDictionary();
         var replaceDictionary = dictionary.Reverse().ToDictionary();
 
@@ -407,7 +422,7 @@ public class ObservableDictionaryTests
     [TestMethod]
     public void ChangedOnRemove()
     {
-        var dictionary = _createDictionary();
+        var dictionary = CreateDictionary();
         var cDictionary = dictionary.ToDictionary();
         var removeDictionary = dictionary.ToDictionary();
 
@@ -445,7 +460,7 @@ public class ObservableDictionaryTests
     [TestMethod]
     public void ChangedOnRemoveFail()
     {
-        var dictionary = _createDictionary();
+        var dictionary = CreateDictionary();
         var cDictionary = dictionary.ToDictionary();
 
         dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
@@ -468,7 +483,7 @@ public class ObservableDictionaryTests
     [TestMethod]
     public void ChangedOnClear()
     {
-        var dictionary = _createDictionary();
+        var dictionary = CreateDictionary();
         var cDictionary = dictionary.ToDictionary();
 
         var triggerCount = 0;

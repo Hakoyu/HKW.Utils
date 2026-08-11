@@ -240,7 +240,7 @@ public class ObservableI18nResourceTests
         Assert.IsTrue(resource.RemoveCulture(c2));
         Assert.AreEqual("v1", resource.GetData("k1", c1));
         Assert.AreEqual("v3", resource.GetData("k1", c3));
-        Assert.Contains(c2, resource.Cultures);
+        Assert.DoesNotContain(c2, resource.Cultures);
     }
 
     [TestMethod]

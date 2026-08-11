@@ -450,8 +450,6 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             DatasByKey.Remove(oldKey);
             if (Observable.ActionsByKey.Remove(oldKey, out var actions))
                 Observable.ActionsByKey.Add(newKey, actions);
-            if (Observable.WeakActionsByKey.Remove(oldKey, out var weakActions))
-                Observable.WeakActionsByKey.Add(newKey, weakActions);
         }
         return result;
     }
@@ -479,11 +477,8 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             DatasByKey.DictionaryChanging -= DatasByKey_DictionaryChanging;
             DatasByKey.DictionaryChanged -= DatasByKey_DictionaryChanged;
             Observable.ActionsByKey.Clear();
-            Observable.WeakActionsByKey.Clear();
             ClearData();
             ClearOtherCulture();
-            GetCurrentCultureData.Dispose();
-            GetCurrentCultureDataOrDefault.Dispose();
         }
         _disposed = true;
     }
@@ -509,10 +504,9 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     /// </summary>
     /// <param name="source">源</param>
     public sealed class GetDataCore(ObservableI18nResource<TKey, TValue> source)
-        : INotifyPropertyChanged,
-            IDisposable
+        : INotifyPropertyChanged
     {
-        private ObservableI18nResource<TKey, TValue> _source = source;
+        private readonly ObservableI18nResource<TKey, TValue> _source = source;
 
         /// <summary>
         /// 使用 this[] 获取数据
@@ -532,32 +526,6 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
 
         /// <inheritdoc/>
         public event PropertyChangedEventHandler? PropertyChanged;
-
-        #region Dispose
-        private bool _disposed;
-
-        /// <inheritdoc/>
-        ~GetDataCore() => Dispose(false);
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <inheritdoc/>
-        private void Dispose(bool disposing)
-        {
-            if (_disposed)
-                return;
-            if (disposing)
-            {
-                _source = null!;
-            }
-            _disposed = true;
-        }
-        #endregion
     }
 
     /// <summary>
@@ -565,10 +533,9 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     /// </summary>
     /// <param name="source"></param>
     public sealed class GetDataOrDefaultCore(ObservableI18nResource<TKey, TValue> source)
-        : INotifyPropertyChanged,
-            IDisposable
+        : INotifyPropertyChanged
     {
-        private ObservableI18nResource<TKey, TValue> _source = source;
+        private readonly ObservableI18nResource<TKey, TValue> _source = source;
 
         /// <summary>
         /// 使用 this[] 获取数据或默认
@@ -587,32 +554,6 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
 
         /// <inheritdoc/>
         public event PropertyChangedEventHandler? PropertyChanged;
-
-        #region Dispose
-        private bool _disposed;
-
-        /// <inheritdoc/>
-        ~GetDataOrDefaultCore() => Dispose(false);
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <inheritdoc/>
-        private void Dispose(bool disposing)
-        {
-            if (_disposed)
-                return;
-            if (disposing)
-            {
-                _source = null!;
-            }
-            _disposed = true;
-        }
-        #endregion
     }
 
     /// <summary>
@@ -621,9 +562,6 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     public sealed class ObservableCore()
     {
         internal Dictionary<TKey, List<ValueChangedAction<TKey>>> ActionsByKey { get; } = new();
-
-        internal Dictionary<TKey, List<WeakValueChangedAction<TKey>>> WeakActionsByKey { get; } =
-            new();
 
         /// <summary>
         /// 注册行动
@@ -642,38 +580,7 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(getKeyExpression);
             ArgumentNullException.ThrowIfNull(handler);
-            var action = new ValueChangedAction<TKey>(source, getKeyExpression, handler);
-            var disposable = source
-                .WhenValueChanged(getKeyExpression)
-                .Subscribe(newKey =>
-                {
-                    if (ActionsByKey.TryGetValue(action.Key, out var oldActions))
-                    {
-                        oldActions.Remove(action);
-                        if (oldActions.Count == 0)
-                            ActionsByKey.Remove(action.Key);
-                    }
-
-                    action.Key = newKey!;
-                    if (ActionsByKey.TryGetValue(newKey!, out var newActions) is false)
-                        newActions = ActionsByKey[newKey!] = new();
-                    newActions.Add(action);
-                });
-            action.Disposable = disposable;
-
-            return Disposable.Create(
-                (disposable, ActionsByKey, action),
-                static x =>
-                {
-                    if (x.ActionsByKey.TryGetValue(x.action.Key, out var actions))
-                    {
-                        actions.Remove(x.action);
-                        if (actions.Count == 0)
-                            x.ActionsByKey.Remove(x.action.Key);
-                    }
-                    x.disposable.Dispose();
-                }
-            );
+            return new ValueChangedAction<TKey>(source, getKeyExpression, handler, ActionsByKey);
         }
 
         /// <summary>
@@ -698,97 +605,6 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         }
 
         /// <summary>
-        /// 注册弱引用行动
-        /// </summary>
-        /// <param name="source">源</param>
-        /// <param name="getKeyExpression">获取键表达式</param>
-        /// <param name="handler">值改变行动</param>
-        /// <returns>释放注册的行动</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="source"/> 或 <paramref name="getKeyExpression"/> 或 <paramref name="handler"/> 为 <see langword="null"/></exception>
-        public IDisposable WeakAction(
-            INotifyPropertyChanged source,
-            Expression<Func<INotifyPropertyChanged, TKey>> getKeyExpression,
-            ValueChangedActionHandler<TKey> handler
-        )
-        {
-            ArgumentNullException.ThrowIfNull(source);
-            ArgumentNullException.ThrowIfNull(getKeyExpression);
-            ArgumentNullException.ThrowIfNull(handler);
-
-            var action = new WeakValueChangedAction<TKey>(source, getKeyExpression, handler);
-            var disposable = source
-                .WhenValueChanged(getKeyExpression)
-                .Subscribe(newKey =>
-                {
-                    if (WeakActionsByKey.TryGetValue(action.Key, out var oldActions))
-                    {
-                        oldActions.Remove(action);
-                        if (oldActions.Count == 0)
-                            WeakActionsByKey.Remove(action.Key);
-                    }
-
-                    action.Key = newKey!;
-                    if (WeakActionsByKey.TryGetValue(newKey!, out var newActions) is false)
-                        newActions = WeakActionsByKey[newKey!] = new();
-                    newActions.Add(action);
-                });
-            action.Disposable = disposable;
-
-            return Disposable.Create(
-                (disposable, WeakActionsByKey, action),
-                static x =>
-                {
-                    if (x.WeakActionsByKey.TryGetValue(x.action.Key, out var actions))
-                    {
-                        actions.Remove(x.action);
-                        if (actions.Count == 0)
-                            x.WeakActionsByKey.Remove(x.action.Key);
-                    }
-                    x.disposable.Dispose();
-                }
-            );
-        }
-
-        /// <summary>
-        /// 清除源注册的所有弱引用行动
-        /// </summary>
-        /// <param name="source">源</param>
-        /// <exception cref="ArgumentNullException"> <paramref name="source"/> 为 <see langword="null"/></exception>
-        public void ClearWeakActionsBy(INotifyPropertyChanged source)
-        {
-            ArgumentNullException.ThrowIfNull(source);
-            var keys = new List<TKey>(WeakActionsByKey.Count);
-            foreach (var pair in WeakActionsByKey)
-            {
-                pair.Value.RemoveAll(action =>
-                    action.Source.TryGetTarget(out var s)
-                        ? source.Equals(s).Action(action, a => a.Dispose(), null)
-                        : true.Action(action, a => a.Dispose(), null)
-                );
-                if (pair.Value.Count == 0)
-                    keys.Add(pair.Key);
-            }
-            foreach (var key in keys)
-                WeakActionsByKey.Remove(key);
-        }
-
-        /// <summary>
-        /// 清除失效的弱引用行动
-        /// </summary>
-        public void ClearInvalidWeakAction()
-        {
-            var keys = new List<TKey>(WeakActionsByKey.Count);
-            foreach (var pair in WeakActionsByKey)
-            {
-                pair.Value.RemoveAll(action => action.Source.TryGetTarget(out _) is false);
-                if (pair.Value.Count == 0)
-                    keys.Add(pair.Key);
-            }
-            foreach (var key in keys)
-                WeakActionsByKey.Remove(key);
-        }
-
-        /// <summary>
         /// 执行键相关的所有行动
         /// </summary>
         /// <param name="key">键</param>
@@ -800,14 +616,6 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             {
                 foreach (var action in actions)
                     action.Action(action.Source, key);
-            }
-            if (WeakActionsByKey.TryGetValue(key, out var weakActions))
-            {
-                foreach (var action in weakActions)
-                {
-                    if (action.Source.TryGetTarget(out var source))
-                        action.Action(source, key);
-                }
             }
         }
 
@@ -825,14 +633,6 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
                     var action in pair.Value.Where(source, static (x, s) => x.Source.Equals(s))
                 )
                     action.Action(action.Source, pair.Key);
-            }
-            foreach (var pair in WeakActionsByKey)
-            {
-                foreach (var action in pair.Value)
-                {
-                    if (action.Source.TryGetTarget(out var s) && source.Equals(s))
-                        action.Action(source, pair.Key);
-                }
             }
         }
     }
