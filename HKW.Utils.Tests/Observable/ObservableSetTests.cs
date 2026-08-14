@@ -151,7 +151,7 @@ public abstract class ObservableSetTestsBase
         set.SetChanging += Set_SetChanging;
         set.IntersectWith(currentOtherSet);
         set.SetChanging -= Set_SetChanging;
-        Assert.AreEqual(1, triggerCount);
+        Assert.AreEqual(0, triggerCount);
 
         set = CreateSet();
         triggerCount = 0;
@@ -167,7 +167,7 @@ public abstract class ObservableSetTestsBase
         set.SetChanging += Set_SetChanging;
         set.IntersectWith(currentOtherSet);
         set.SetChanging -= Set_SetChanging;
-        Assert.AreEqual(1, triggerCount);
+        Assert.AreEqual(0, triggerCount);
 
         void Set_SetChanging(IObservableSet<string> sender, NotifySetChangeEventArgs<string> e)
         {
@@ -201,7 +201,7 @@ public abstract class ObservableSetTestsBase
         set.SetChanging += Set_SetChanging;
         set.ExceptWith(currentOtherSet);
         set.SetChanging -= Set_SetChanging;
-        Assert.AreEqual(1, triggerCount);
+        Assert.AreEqual(0, triggerCount);
 
         set = CreateSet();
         triggerCount = 0;
@@ -281,7 +281,7 @@ public abstract class ObservableSetTestsBase
         set.SetChanging += Set_SetChanging;
         set.UnionWith(currentOtherSet);
         set.SetChanging -= Set_SetChanging;
-        Assert.AreEqual(1, triggerCount);
+        Assert.AreEqual(0, triggerCount);
 
         set = CreateSet();
         triggerCount = 0;
@@ -419,7 +419,7 @@ public abstract class ObservableSetTestsBase
         set.SetChanged += Set_SetChanged;
         set.IntersectWith(currentOtherSet);
         set.SetChanged -= Set_SetChanged;
-        Assert.AreEqual(1, triggerCount);
+        Assert.AreEqual(0, triggerCount);
 
         set = CreateSet();
         triggerCount = 0;
@@ -435,7 +435,7 @@ public abstract class ObservableSetTestsBase
         set.SetChanged += Set_SetChanged;
         set.IntersectWith(currentOtherSet);
         set.SetChanged -= Set_SetChanged;
-        Assert.AreEqual(1, triggerCount);
+        Assert.AreEqual(0, triggerCount);
 
         void Set_SetChanged(IObservableSet<string> sender, NotifySetChangeEventArgs<string> e)
         {
@@ -461,7 +461,7 @@ public abstract class ObservableSetTestsBase
         set.SetChanged += Set_SetChanged;
         set.IntersectWith(currentOtherSet);
         set.SetChanged -= Set_SetChanged;
-        Assert.AreEqual(1, triggerCount);
+        Assert.AreEqual(0, triggerCount);
 
         set = CreateSet();
         triggerCount = 0;
@@ -477,7 +477,7 @@ public abstract class ObservableSetTestsBase
         set.SetChanged += Set_SetChanged;
         set.IntersectWith(currentOtherSet);
         set.SetChanged -= Set_SetChanged;
-        Assert.AreEqual(1, triggerCount);
+        Assert.AreEqual(0, triggerCount);
 
         void Set_SetChanged(IObservableSet<string> sender, NotifySetChangeEventArgs<string> e)
         {
@@ -549,7 +549,7 @@ public abstract class ObservableSetTestsBase
         set.SetChanged += Set_SetChanged;
         set.UnionWith(currentOtherSet);
         set.SetChanged -= Set_SetChanged;
-        Assert.AreEqual(1, triggerCount);
+        Assert.AreEqual(0, triggerCount);
 
         set = CreateSet();
         triggerCount = 0;

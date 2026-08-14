@@ -19,7 +19,8 @@ public class ReadOnlyList<T> : IList<T>, IReadOnlyList<T>, IList
     {
         if (collection is IList<T> list)
             _list = list;
-        _list = collection.ToList();
+        else
+            _list = collection.ToList();
     }
 
     private readonly IList<T> _list;

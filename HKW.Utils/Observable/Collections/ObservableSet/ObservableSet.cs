@@ -57,38 +57,38 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
 
     #region Change
 
-    /// <summary>
-    /// 集合改变参数
-    /// </summary>
-    protected NotifySetChangeEventArgs<T>? SetChangeEventArgs { get; set; }
-
     /// <inheritdoc/>
     public bool Add(T item)
     {
         if (_set.Contains(item))
             return false;
-        var list = new SingleItemReadOnlyList<T>(item);
-        OnSetAdding(list);
+        var items = new SingleItemReadOnlyList<T>(item);
+        var args = OnSetAdding(items);
         _set.Add(item);
-        OnSetAdded(list);
+        OnSetAdded(items, args);
         return true;
     }
 
     /// <inheritdoc/>
     public bool Remove(T item)
     {
+        if (_set.Count == 0)
+            return false;
         if (_set.Contains(item) is false)
             return false;
-        var list = new SingleItemReadOnlyList<T>(item);
-        OnSetRemoving(list, out var removeIndex);
+        var items = new SingleItemReadOnlyList<T>(item);
+        var args = OnSetRemoving(items, out var removeIndex);
         _set.Remove(item);
-        OnSetRemoved(list, removeIndex);
+        OnSetRemoved(items, removeIndex, args);
         return true;
     }
 
     /// <inheritdoc/>
     public void Clear()
     {
+        if (_set.Count == 0)
+            return;
+
         OnSetClearing();
         _set.Clear();
         OnSetCleared();
@@ -97,30 +97,72 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <inheritdoc/>
     public void IntersectWith(IEnumerable<T> other)
     {
-        var oldItems = new ReadOnlyList<T>(_set.Except(other, Comparer));
+        ArgumentNullException.ThrowIfNull(other);
+
+        if (_set.Count == 0)
+            return;
+        if (other is ICollection<T> { Count: 0 })
+            return;
+
         var otherItems = new ReadOnlyList<T>(other);
-        OnSetOperating(SetChangeAction.Intersect, otherItems, null, oldItems, out var removeIndexs);
+        var oldItems = new ReadOnlyList<T>(_set.Except(otherItems, Comparer));
+        if (oldItems.Count == 0)
+            return;
+
+        var args = OnSetOperating(
+            SetChangeAction.Intersect,
+            otherItems,
+            null,
+            oldItems,
+            out var removeIndexs
+        );
         _set.IntersectWith(otherItems);
-        OnSetOperated(SetChangeAction.Intersect, otherItems, null, oldItems, removeIndexs);
+        OnSetOperated(SetChangeAction.Intersect, otherItems, null, oldItems, removeIndexs, args);
     }
 
     /// <inheritdoc/>
     public void ExceptWith(IEnumerable<T> other)
     {
-        var oldItems = new ReadOnlyList<T>(_set.Intersect(other, Comparer));
+        ArgumentNullException.ThrowIfNull(other);
+
+        if (_set.Count == 0)
+            return;
+        if (other is ICollection<T> { Count: 0 })
+            return;
+
         var otherItems = new ReadOnlyList<T>(other);
-        OnSetOperating(SetChangeAction.Except, otherItems, null, oldItems, out var removeIndexs);
+        var oldItems = new ReadOnlyList<T>(_set.Intersect(otherItems, Comparer));
+        if (oldItems.Count == 0)
+            return;
+
+        var args = OnSetOperating(
+            SetChangeAction.Except,
+            otherItems,
+            null,
+            oldItems,
+            out var removeIndexs
+        );
         _set.ExceptWith(otherItems);
-        OnSetOperated(SetChangeAction.Except, otherItems, null, oldItems, removeIndexs);
+        OnSetOperated(SetChangeAction.Except, otherItems, null, oldItems, removeIndexs, args);
     }
 
     /// <inheritdoc/>
     public void SymmetricExceptWith(IEnumerable<T> other)
     {
+        ArgumentNullException.ThrowIfNull(other);
+
+        if (_set.Count == 0)
+            return;
+        if (other is ICollection<T> { Count: 0 })
+            return;
+
         var otherItems = new ReadOnlyList<T>(other);
         var oldItems = new ReadOnlyList<T>(_set.Intersect(otherItems, Comparer));
         var newItems = new ReadOnlyList<T>(otherItems.Except(oldItems, Comparer));
-        OnSetOperating(
+        if (oldItems.Count == 0 && newItems.Count == 0)
+            return;
+
+        var args = OnSetOperating(
             SetChangeAction.SymmetricExcept,
             otherItems,
             newItems,
@@ -136,18 +178,35 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
             otherItems,
             newItems,
             oldItems,
-            removeIndexs
+            removeIndexs,
+            args
         );
     }
 
     /// <inheritdoc/>
     public void UnionWith(IEnumerable<T> other)
     {
+        ArgumentNullException.ThrowIfNull(other);
+
+        if (_set.Count == 0)
+            return;
+        if (other is ICollection<T> { Count: 0 })
+            return;
+
         var otherItems = new ReadOnlyList<T>(other);
-        var newItems = new ReadOnlyList<T>(other.Except(_set, Comparer));
-        OnSetOperating(SetChangeAction.Union, otherItems, newItems, null, out var removeIndexs);
+        var newItems = new ReadOnlyList<T>(otherItems.Except(_set, Comparer));
+        if (newItems.Count == 0)
+            return;
+
+        var args = OnSetOperating(
+            SetChangeAction.Union,
+            otherItems,
+            newItems,
+            null,
+            out var removeIndexs
+        );
         _set.UnionWith(otherItems);
-        OnSetOperated(SetChangeAction.Union, otherItems, newItems, null, removeIndexs);
+        OnSetOperated(SetChangeAction.Union, otherItems, newItems, null, removeIndexs, args);
     }
 
     /// <inheritdoc/>
@@ -218,20 +277,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         return ((IEnumerable)_set).GetEnumerator();
     }
 
-    /// <inheritdoc cref="HashSet{T}.TrimExcess()"/>
-    public void TrimExcess()
-    {
-        if (_set is HashSet<T> set)
-            set.TrimExcess();
-    }
-
-    /// <inheritdoc cref="HashSet{T}.TrimExcess(int)"/>
-    public void TrimExcess(int capacity)
-    {
-        if (_set is HashSet<T> set)
-            set.TrimExcess(capacity);
-    }
-
     #endregion ISet
 
     #region SetChanging
@@ -240,10 +285,11 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// 集合添加项目前
     /// </summary>
     /// <param name="items">键值对</param>
-    protected virtual void OnSetAdding(IList<T> items)
+    private NotifySetChangeEventArgs<T>? OnSetAdding(IList<T> items)
     {
         if (SetChanging is not null)
-            OnSetChanging(new(SetChangeAction.Add, items));
+            return OnSetChanging(new(SetChangeAction.Add, items));
+        return null;
     }
 
     /// <summary>
@@ -251,20 +297,22 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// </summary>
     /// <param name="items">键值对</param>
     /// <param name="removeIndex">项目索引</param>
-    protected virtual void OnSetRemoving(IList<T> items, out int removeIndex)
+    private NotifySetChangeEventArgs<T>? OnSetRemoving(IList<T> items, out int removeIndex)
     {
+        removeIndex = -1;
+        NotifySetChangeEventArgs<T>? args = null;
         if (SetChanging is not null)
-            OnSetChanging(new(SetChangeAction.Remove, items));
+            args = OnSetChanging(new(SetChangeAction.Remove, items));
+
         if (CollectionChanged is not null)
             removeIndex = _set.IndexOf(items[0]);
-        else
-            removeIndex = -1;
+        return args;
     }
 
     /// <summary>
     /// 集合清理前
     /// </summary>
-    protected virtual void OnSetClearing()
+    private void OnSetClearing()
     {
         if (SetChanging is not null)
             OnSetChanging(NotifySetChangeEventArgs<T>.Cache_Clear);
@@ -278,7 +326,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <param name="newItems">新项目</param>
     /// <param name="oldItems">旧项目</param>
     /// <param name="removeIndexs">删除项目索引集合</param>
-    protected virtual void OnSetOperating(
+    private NotifySetChangeEventArgs<T>? OnSetOperating(
         SetChangeAction action,
         IList<T> otherItems,
         IList<T>? newItems,
@@ -286,8 +334,10 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         out IList<int> removeIndexs
     )
     {
+        removeIndexs = null!;
+        NotifySetChangeEventArgs<T>? args = null;
         if (SetChanging is not null)
-            OnSetChanging(new(action, otherItems, newItems, oldItems));
+            args = OnSetChanging(new(action, otherItems, newItems, oldItems));
         if (CollectionChanged is not null && oldItems is not null)
         {
             removeIndexs = new List<int>();
@@ -302,18 +352,17 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
                 }
             }
         }
-        else
-            removeIndexs = null!;
+        return args;
     }
 
     /// <summary>
     /// 集合改变前
     /// </summary>
     /// <param name="args">参数</param>
-    protected virtual void OnSetChanging(NotifySetChangeEventArgs<T> args)
+    private NotifySetChangeEventArgs<T> OnSetChanging(NotifySetChangeEventArgs<T> args)
     {
-        SetChangeEventArgs = args;
         SetChanging?.Invoke(this, args);
+        return args;
     }
 
     /// <inheritdoc/>
@@ -327,10 +376,11 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// 集合添加键值对后
     /// </summary>
     /// <param name="items">键值对</param>
-    protected virtual void OnSetAdded(IList<T> items)
+    /// <param name="args">参数</param>
+    private void OnSetAdded(IList<T> items, NotifySetChangeEventArgs<T>? args)
     {
         if (SetChanged is not null)
-            OnSetChanged(SetChangeEventArgs ?? new(SetChangeAction.Add, items));
+            OnSetChanged(args ?? new(SetChangeAction.Add, items));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, (IList)items));
         OnCountChanged();
@@ -341,10 +391,11 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// </summary>
     /// <param name="items">键值对</param>
     /// <param name="removeIndex">删除项目的索引</param>
-    protected virtual void OnSetRemoved(IList<T> items, int removeIndex)
+    /// <param name="args">参数</param>
+    private void OnSetRemoved(IList<T> items, int removeIndex, NotifySetChangeEventArgs<T>? args)
     {
         if (SetChanged is not null)
-            OnSetChanged(SetChangeEventArgs ?? new(SetChangeAction.Remove, items));
+            OnSetChanged(args ?? new(SetChangeAction.Remove, items));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, items[0], removeIndex));
         OnCountChanged();
@@ -353,7 +404,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <summary>
     /// 集合清理后
     /// </summary>
-    protected virtual void OnSetCleared()
+    private void OnSetCleared()
     {
         if (SetChanged is not null)
             OnSetChanged(NotifySetChangeEventArgs<T>.Cache_Clear);
@@ -370,32 +421,30 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <param name="newItems">新项目</param>
     /// <param name="oldItems">旧项目</param>
     /// <param name="removeIndexs">删除项目集合</param>
-    protected virtual void OnSetOperated(
+    /// <param name="args">参数</param>
+    private void OnSetOperated(
         SetChangeAction action,
         IList<T> otherItems,
         IList<T>? newItems,
         IList<T>? oldItems,
-        IList<int> removeIndexs
+        IList<int> removeIndexs,
+        NotifySetChangeEventArgs<T>? args
     )
     {
         if (SetChanged is not null)
-            OnSetChanged(SetChangeEventArgs ?? new(action, otherItems, newItems, oldItems));
+            OnSetChanged(args ?? new(action, otherItems, newItems, oldItems));
         if (CollectionChanged is not null)
         {
             if (oldItems is not null)
             {
-                foreach (var (e, i) in ((IEnumerable<T>)oldItems).Reverse().Zip(removeIndexs))
-                {
+                foreach (var (e, i) in oldItems.Reverse().Zip(removeIndexs))
                     OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, e, index: i));
-                }
             }
             if (newItems is not null)
             {
                 var index = _set.Count - newItems.Count;
                 foreach (var item in newItems)
-                {
                     OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item, index++));
-                }
             }
         }
         OnCountChanged();
@@ -405,7 +454,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// 集合改变后
     /// </summary>
     /// <param name="args">参数</param>
-    protected virtual void OnSetChanged(NotifySetChangeEventArgs<T> args)
+    private void OnSetChanged(NotifySetChangeEventArgs<T> args)
     {
         SetChanged?.Invoke(this, args);
     }
@@ -421,7 +470,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// 集合已改变前
     /// </summary>
     /// <param name="args">参数</param>
-    protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
+    private void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
     {
         CollectionChanged?.Invoke(this, args);
     }
@@ -439,16 +488,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     private void OnCountChanged()
     {
         PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Count);
-        SetChangeEventArgs = null;
-    }
-
-    /// <summary>
-    /// 属性已改变前
-    /// </summary>
-    /// <param name="name">参数</param>
-    protected virtual void OnPropertyChanged(string name)
-    {
-        PropertyChanged?.Invoke(this, new(name));
     }
 
     /// <inheritdoc/>
