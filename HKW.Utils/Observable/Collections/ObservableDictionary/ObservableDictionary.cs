@@ -231,11 +231,9 @@ public class ObservableDictionary<TKey, TValue>
         out int removeIndex
     )
     {
-        removeIndex = -1;
+        removeIndex = _dictionary.IndexOf(pair.Key);
         if (DictionaryChanging is not null)
             return OnDictionaryChanging(new(DictionaryChangeAction.Remove, pair));
-        if (CollectionChanged is not null)
-            removeIndex = _dictionary.IndexOf(pair.Key);
         return null;
     }
 
@@ -278,12 +276,10 @@ public class ObservableDictionary<TKey, TValue>
         if (DictionaryChanged is not null)
             OnDictionaryChanged(args ?? new(DictionaryChangeAction.Add, pair));
         if (CollectionChanged is not null)
-        {
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, pair));
-            _observableKeys?.InvokeEvent(new(NotifyCollectionChangedAction.Add, pair.Key));
-            _observableValues?.InvokeEvent(new(NotifyCollectionChangedAction.Add, pair.Value));
-        }
         OnCountChanged();
+        _observableKeys?.InvokeEvent(new(NotifyCollectionChangedAction.Add, pair.Key));
+        _observableValues?.InvokeEvent(new(NotifyCollectionChangedAction.Add, pair.Value));
     }
 
     private void OnDictionaryRemoved(
@@ -295,16 +291,14 @@ public class ObservableDictionary<TKey, TValue>
         if (DictionaryChanged is not null)
             OnDictionaryChanged(args ?? new(DictionaryChangeAction.Remove, pair));
         if (CollectionChanged is not null)
-        {
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, pair, removeIndex));
-            _observableKeys?.InvokeEvent(
-                new(NotifyCollectionChangedAction.Remove, pair.Key, removeIndex)
-            );
-            _observableValues?.InvokeEvent(
-                new(NotifyCollectionChangedAction.Remove, pair.Value, removeIndex)
-            );
-        }
         OnCountChanged();
+        _observableKeys?.InvokeEvent(
+            new(NotifyCollectionChangedAction.Remove, pair.Key, removeIndex)
+        );
+        _observableValues?.InvokeEvent(
+            new(NotifyCollectionChangedAction.Remove, pair.Value, removeIndex)
+        );
     }
 
     private void OnDictionaryReplaced(
@@ -315,19 +309,17 @@ public class ObservableDictionary<TKey, TValue>
     {
         if (DictionaryChanged is not null)
             OnDictionaryChanged(args ?? new(DictionaryChangeAction.Replace, newPair, oldPair));
+        var index = _dictionary.IndexOf(oldPair.Key);
         if (CollectionChanged is not null)
-        {
-            var index = _dictionary.IndexOf(oldPair.Key);
             OnCollectionChanged(
                 new(NotifyCollectionChangedAction.Replace, newPair, oldPair, index)
             );
-            // Replaced 不会改变 Key
-            //_observableKeys?.InvokeEvent(new(NotifyCollectionChangedAction.Replace, newPair, oldPair, index));
-            _observableValues?.InvokeEvent(
-                new(NotifyCollectionChangedAction.Replace, newPair.Value, oldPair.Value, index)
-            );
-        }
         PropertyChanged?.InvokeIndexer(this);
+        // Replaced 不会改变 Key
+        //_observableKeys?.InvokeEvent(new(NotifyCollectionChangedAction.Replace, newPair, oldPair, index));
+        _observableValues?.InvokeEvent(
+            new(NotifyCollectionChangedAction.Replace, newPair.Value, oldPair.Value, index)
+        );
     }
 
     private void OnDictionaryCleared()
@@ -335,13 +327,10 @@ public class ObservableDictionary<TKey, TValue>
         if (DictionaryChanged is not null)
             OnDictionaryChanged(NotifyDictionaryChangeEventArgs<TKey, TValue>.Cache_Clear);
         if (CollectionChanged is not null)
-        {
             OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
-            _observableKeys?.InvokeEvent(NotifyCollectionChangedEventArgs.Cache_Reset);
-            _observableValues?.InvokeEvent(NotifyCollectionChangedEventArgs.Cache_Reset);
-        }
-
         OnCountChanged();
+        _observableKeys?.InvokeEvent(NotifyCollectionChangedEventArgs.Cache_Reset);
+        _observableValues?.InvokeEvent(NotifyCollectionChangedEventArgs.Cache_Reset);
     }
 
     private void OnDictionaryChanged(NotifyDictionaryChangeEventArgs<TKey, TValue> args)

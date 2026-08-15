@@ -124,6 +124,6 @@ public class NotifyDictionaryChangeEventArgs<TKey, TValue> : EventArgs
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"DictionaryChanged, Action = {Action}, NewPair = {NewPair}, OldPair = {NewPair}";
+        return $"DictionaryChange, Action = {Action}, NewPair = {NewPair}, OldPair = {OldPair}";
     }
 }

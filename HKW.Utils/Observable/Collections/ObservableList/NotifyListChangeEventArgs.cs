@@ -90,4 +90,10 @@ public class NotifyListChangeEventArgs<T> : EventArgs
         OldItem = oldItem;
     }
     #endregion
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return $"ListChange, Action = {Action}, NewItem = {NewItem}, OldItem = {OldItem}";
+    }
 }

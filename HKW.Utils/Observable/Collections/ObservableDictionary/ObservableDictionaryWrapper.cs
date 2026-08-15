@@ -235,11 +235,9 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
         out int removeIndex
     )
     {
-        removeIndex = -1;
+        removeIndex = SourceDictionary.Keys.IndexOf(pair.Key);
         if (DictionaryChanging is not null)
             return OnDictionaryChanging(new(DictionaryChangeAction.Remove, pair));
-        if (CollectionChanged is not null)
-            removeIndex = SourceDictionary.Keys.IndexOf(pair.Key);
         return null;
     }
 
@@ -301,12 +299,10 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
         if (DictionaryChanged is not null)
             OnDictionaryChanged(args ?? new(DictionaryChangeAction.Add, pair));
         if (CollectionChanged is not null)
-        {
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, pair));
-            _observableKeys?.InvokeEvent(new(NotifyCollectionChangedAction.Add, pair.Key));
-            _observableValues?.InvokeEvent(new(NotifyCollectionChangedAction.Add, pair.Value));
-        }
         OnCountChanged();
+        _observableKeys?.InvokeEvent(new(NotifyCollectionChangedAction.Add, pair.Key));
+        _observableValues?.InvokeEvent(new(NotifyCollectionChangedAction.Add, pair.Value));
     }
 
     /// <summary>
@@ -324,16 +320,14 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
         if (DictionaryChanged is not null)
             OnDictionaryChanged(args ?? new(DictionaryChangeAction.Remove, pair));
         if (CollectionChanged is not null)
-        {
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, pair, removeIndex));
-            _observableKeys?.InvokeEvent(
-                new(NotifyCollectionChangedAction.Remove, pair.Key, removeIndex)
-            );
-            _observableValues?.InvokeEvent(
-                new(NotifyCollectionChangedAction.Remove, pair.Value, removeIndex)
-            );
-        }
         OnCountChanged();
+        _observableKeys?.InvokeEvent(
+            new(NotifyCollectionChangedAction.Remove, pair.Key, removeIndex)
+        );
+        _observableValues?.InvokeEvent(
+            new(NotifyCollectionChangedAction.Remove, pair.Value, removeIndex)
+        );
     }
 
     /// <summary>
@@ -350,22 +344,20 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     {
         if (DictionaryChanged is not null)
             OnDictionaryChanged(args ?? new(DictionaryChangeAction.Replace, newPair, oldPair));
+        var index = SourceDictionary.Keys.IndexOf(
+            (Comparer, oldPair),
+            static (k, a) => a.Comparer.Equals(k, a.oldPair.Key)
+        );
         if (CollectionChanged is not null)
-        {
-            var index = SourceDictionary.IndexOf(
-                (Comparer, oldPair),
-                static (p, a) => a.Comparer.Equals(p.Key, a.oldPair.Key)
-            );
             OnCollectionChanged(
                 new(NotifyCollectionChangedAction.Replace, newPair, oldPair, index)
             );
-            // Replaced 不会改变 Key
-            //_observableKeys?.InvokeEvent(new(NotifyCollectionChangedAction.Replace, newPair, oldPair, index));
-            _observableValues?.InvokeEvent(
-                new(NotifyCollectionChangedAction.Replace, newPair.Value, oldPair.Value, index)
-            );
-        }
         PropertyChanged?.InvokeIndexer(this);
+        // Replaced 不会改变 Key
+        //_observableKeys?.InvokeEvent(new(NotifyCollectionChangedAction.Replace, newPair, oldPair, index));
+        _observableValues?.InvokeEvent(
+            new(NotifyCollectionChangedAction.Replace, newPair.Value, oldPair.Value, index)
+        );
     }
 
     /// <summary>
@@ -376,13 +368,10 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
         if (DictionaryChanged is not null)
             OnDictionaryChanged(NotifyDictionaryChangeEventArgs<TKey, TValue>.Cache_Clear);
         if (CollectionChanged is not null)
-        {
             OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
-            _observableKeys?.InvokeEvent(NotifyCollectionChangedEventArgs.Cache_Reset);
-            _observableValues?.InvokeEvent(NotifyCollectionChangedEventArgs.Cache_Reset);
-        }
-
         OnCountChanged();
+        _observableKeys?.InvokeEvent(NotifyCollectionChangedEventArgs.Cache_Reset);
+        _observableValues?.InvokeEvent(NotifyCollectionChangedEventArgs.Cache_Reset);
     }
 
     /// <summary>
