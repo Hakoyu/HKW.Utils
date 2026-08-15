@@ -52,7 +52,7 @@ public class ObservableSetWrapper<TItem, TSet>
         var list = new SingleItemReadOnlyList<TItem>(item);
         var args = OnSetAdding(list);
         SourceSet.Add(item);
-        OnSetAdded(list, args);
+        OnSetAdded(args, list);
         return true;
     }
 
@@ -66,7 +66,7 @@ public class ObservableSetWrapper<TItem, TSet>
         var list = new SingleItemReadOnlyList<TItem>(item);
         var args = OnSetRemoving(list, out var removeIndex);
         SourceSet.Remove(item);
-        OnSetRemoved(list, args, removeIndex);
+        OnSetRemoved(args, list, removeIndex);
         return true;
     }
 
@@ -98,7 +98,7 @@ public class ObservableSetWrapper<TItem, TSet>
             out var removeIndexs
         );
         SourceSet.IntersectWith(otherItems);
-        OnSetOperated(SetChangeAction.Intersect, args, otherItems, null, oldItems, removeIndexs);
+        OnSetOperated(args, SetChangeAction.Intersect, otherItems, null, oldItems, removeIndexs);
     }
 
     /// <inheritdoc/>
@@ -119,7 +119,7 @@ public class ObservableSetWrapper<TItem, TSet>
             out var removeIndexs
         );
         SourceSet.ExceptWith(otherItems);
-        OnSetOperated(SetChangeAction.Except, args, otherItems, null, oldItems, removeIndexs);
+        OnSetOperated(args, SetChangeAction.Except, otherItems, null, oldItems, removeIndexs);
     }
 
     /// <inheritdoc/>
@@ -145,8 +145,8 @@ public class ObservableSetWrapper<TItem, TSet>
         else
             SourceSet.SymmetricExceptWith(otherItems);
         OnSetOperated(
-            SetChangeAction.SymmetricExcept,
             args,
+            SetChangeAction.SymmetricExcept,
             otherItems,
             newItems,
             oldItems,
@@ -169,7 +169,7 @@ public class ObservableSetWrapper<TItem, TSet>
             out var removeIndexs
         );
         SourceSet.UnionWith(otherItems);
-        OnSetOperated(SetChangeAction.Union, args, otherItems, newItems, null, removeIndexs);
+        OnSetOperated(args, SetChangeAction.Union, otherItems, newItems, null, removeIndexs);
     }
 
     /// <inheritdoc/>
@@ -248,6 +248,7 @@ public class ObservableSetWrapper<TItem, TSet>
     /// 集合添加项目前
     /// </summary>
     /// <param name="items">键值对</param>
+    /// <returns>事件参数</returns>
     protected virtual NotifySetChangeEventArgs<TItem>? OnSetAdding(IList<TItem> items)
     {
         if (SetChanging is not null)
@@ -260,6 +261,7 @@ public class ObservableSetWrapper<TItem, TSet>
     /// </summary>
     /// <param name="items">键值对</param>
     /// <param name="removeIndex">项目索引</param>
+    /// <returns>事件参数</returns>
     protected virtual NotifySetChangeEventArgs<TItem>? OnSetRemoving(
         IList<TItem> items,
         out int removeIndex
@@ -291,6 +293,7 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <param name="newItems">新项目</param>
     /// <param name="oldItems">旧项目</param>
     /// <param name="removeIndexs">删除项目索引集合</param>
+    /// <returns>事件参数</returns>
     protected virtual NotifySetChangeEventArgs<TItem>? OnSetOperating(
         SetChangeAction action,
         IList<TItem> otherItems,
@@ -342,9 +345,9 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <summary>
     /// 集合添加键值对后
     /// </summary>
-    /// <param name="items">键值对</param>
     /// <param name="args">事件参数</param>
-    protected virtual void OnSetAdded(IList<TItem> items, NotifySetChangeEventArgs<TItem>? args)
+    /// <param name="items">键值对</param>
+    protected virtual void OnSetAdded(NotifySetChangeEventArgs<TItem>? args, IList<TItem> items)
     {
         if (SetChanged is not null)
             OnSetChanged(args ?? new(SetChangeAction.Add, items));
@@ -356,12 +359,12 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <summary>
     /// 集合删除项目后
     /// </summary>
-    /// <param name="items">键值对</param>
     /// <param name="args">事件参数</param>
+    /// <param name="items">键值对</param>
     /// <param name="removeIndex">删除项目的索引</param>
     protected virtual void OnSetRemoved(
-        IList<TItem> items,
         NotifySetChangeEventArgs<TItem>? args,
+        IList<TItem> items,
         int removeIndex
     )
     {
@@ -387,15 +390,15 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <summary>
     /// 集合运算前
     /// </summary>
-    /// <param name="action">行动</param>
     /// <param name="args">事件参数</param>
+    /// <param name="action">行动</param>
     /// <param name="otherItems">其它集合</param>
     /// <param name="newItems">新项目</param>
     /// <param name="oldItems">旧项目</param>
     /// <param name="removeIndexs">删除项目集合</param>
     protected virtual void OnSetOperated(
-        SetChangeAction action,
         NotifySetChangeEventArgs<TItem>? args,
+        SetChangeAction action,
         IList<TItem> otherItems,
         IList<TItem>? newItems,
         IList<TItem>? oldItems,
@@ -435,8 +438,6 @@ public class ObservableSetWrapper<TItem, TSet>
 
     #endregion SetChanged
 
-    #region CollectionChanged
-
     /// <summary>
     /// 集合已改变前
     /// </summary>
@@ -449,14 +450,10 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
-    #endregion CollectionChanged
-
-    #region PropertyChanged
-
     /// <summary>
     /// 数量改变后
     /// </summary>
-    private void OnCountChanged()
+    protected virtual void OnCountChanged()
     {
         PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Count);
     }
@@ -472,6 +469,4 @@ public class ObservableSetWrapper<TItem, TSet>
 
     /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    #endregion PropertyChanged
 }

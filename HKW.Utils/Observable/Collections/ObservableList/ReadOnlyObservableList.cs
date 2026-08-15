@@ -21,9 +21,6 @@ public sealed class ReadOnlyObservableList<T>
         IList,
         IDisposable
 {
-    /// <summary>
-    /// 原始可观测列表
-    /// </summary>
     private readonly IObservableList<T> _list;
 
     #region Ctor
@@ -163,13 +160,10 @@ public sealed class ReadOnlyObservableList<T>
     #endregion
     #region IList
 
-    /// <inheritdoc/>
     bool IList.IsFixedSize => ((IList)_list).IsFixedSize;
 
-    /// <inheritdoc/>
     bool ICollection.IsSynchronized => ((IList)_list).IsSynchronized;
 
-    /// <inheritdoc/>
     object ICollection.SyncRoot => ((IList)_list).SyncRoot;
 
     object? IList.this[int index]

@@ -75,9 +75,6 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
 
     IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => SourceDictionary.Values;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private int _removeIndex = -1;
-
     #region Change
 
     /// <inheritdoc/>
@@ -88,29 +85,24 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
         {
             if (SourceDictionary.TryGetValue(key, out var oldValue) is false)
             {
-                var pair = KeyValuePair.Create(key, value);
+                var pair = new KeyValuePair<TKey, TValue>(key, value);
                 // 字典允许不存在的 key 作为键,会创建新的键值对
-                OnDictionaryAdding(pair);
-                SourceDictionary[key] = value;
-                OnDictionaryAdded(pair);
+                var args = OnDictionaryAdding(pair);
+                SourceDictionary.Add(key, value);
+                OnDictionaryAdded(args, pair);
             }
             else
             {
                 if (EqualityComparer<TValue>.Default.Equals(oldValue, value))
                     return;
-                var newPair = KeyValuePair.Create(key, value);
-                var oldPair = KeyValuePair.Create(key, oldValue);
-                OnDictionaryReplacing(newPair, oldPair);
+                var newPair = new KeyValuePair<TKey, TValue>(key, value);
+                var oldPair = new KeyValuePair<TKey, TValue>(key, oldValue);
+                var args = OnDictionaryReplacing(newPair, oldPair);
                 SourceDictionary[key] = value;
-                OnDictionaryReplaced(newPair, oldPair);
+                OnDictionaryReplaced(args, newPair, oldPair);
             }
         }
     }
-
-    /// <summary>
-    /// 字典改变事件参数
-    /// </summary>
-    protected NotifyDictionaryChangeEventArgs<TKey, TValue>? DictionaryChangeEventArgs { get; set; }
 
     /// <inheritdoc/>
     public void Add(TKey key, TValue value)
@@ -120,14 +112,14 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
                 "An element with the same key already exists in the Dictionary."
             );
 
-        var pair = KeyValuePair.Create(key, value);
-        OnDictionaryAdding(pair);
+        var pair = new KeyValuePair<TKey, TValue>(key, value);
+        var args = OnDictionaryAdding(pair);
         SourceDictionary.Add(key, value);
-        OnDictionaryAdded(pair);
+        OnDictionaryAdded(args, pair);
     }
 
     /// <inheritdoc/>
-    public void Add(KeyValuePair<TKey, TValue> item)
+    void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
     {
         Add(item.Key, item.Value);
     }
@@ -138,10 +130,10 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
         if (SourceDictionary.ContainsKey(key))
             return false;
 
-        var pair = KeyValuePair.Create(key, value);
-        OnDictionaryAdding(pair);
+        var pair = new KeyValuePair<TKey, TValue>(key, value);
+        var args = OnDictionaryAdding(pair);
         SourceDictionary.Add(key, value);
-        OnDictionaryAdded(pair);
+        OnDictionaryAdded(args, pair);
         return true;
     }
 
@@ -150,14 +142,14 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     {
         if (SourceDictionary.TryGetPair(key, out var pair) is false)
             return false;
-        OnDictionaryRemoving(pair);
+        var args = OnDictionaryRemoving(pair, out var removeIndex);
         SourceDictionary.Remove(key);
-        OnDictionaryRemoved(pair);
+        OnDictionaryRemoved(args, pair, removeIndex);
         return true;
     }
 
     /// <inheritdoc/>
-    public bool Remove(KeyValuePair<TKey, TValue> item)
+    bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
     {
         if (
             SourceDictionary.TryGetValue(item.Key, out var value)
@@ -222,22 +214,33 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     /// 字典添加键值对前
     /// </summary>
     /// <param name="pair">键值对</param>
-    protected virtual void OnDictionaryAdding(KeyValuePair<TKey, TValue> pair)
+    /// <returns>事件参数</returns>
+    protected virtual NotifyDictionaryChangeEventArgs<TKey, TValue>? OnDictionaryAdding(
+        KeyValuePair<TKey, TValue> pair
+    )
     {
         if (DictionaryChanging is not null)
-            OnDictionaryChanging(new(DictionaryChangeAction.Add, pair));
+            return OnDictionaryChanging(new(DictionaryChangeAction.Add, pair));
+        return null;
     }
 
     /// <summary>
     /// 字典删除键值对前
     /// </summary>
     /// <param name="pair">键值对</param>
-    protected virtual void OnDictionaryRemoving(KeyValuePair<TKey, TValue> pair)
+    /// <param name="removeIndex">删除项的索引</param>
+    /// <returns>事件参数</returns>
+    protected virtual NotifyDictionaryChangeEventArgs<TKey, TValue>? OnDictionaryRemoving(
+        KeyValuePair<TKey, TValue> pair,
+        out int removeIndex
+    )
     {
+        removeIndex = -1;
         if (DictionaryChanging is not null)
-            OnDictionaryChanging(new(DictionaryChangeAction.Remove, pair));
+            return OnDictionaryChanging(new(DictionaryChangeAction.Remove, pair));
         if (CollectionChanged is not null)
-            _removeIndex = SourceDictionary.Keys.IndexOf(pair.Key);
+            removeIndex = SourceDictionary.Keys.IndexOf(pair.Key);
+        return null;
     }
 
     /// <summary>
@@ -245,13 +248,15 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     /// </summary>
     /// <param name="newPair">新键值对</param>
     /// <param name="oldPair">旧键值对</param>
-    protected virtual void OnDictionaryReplacing(
+    /// <returns>事件参数</returns>
+    protected virtual NotifyDictionaryChangeEventArgs<TKey, TValue>? OnDictionaryReplacing(
         KeyValuePair<TKey, TValue> newPair,
         KeyValuePair<TKey, TValue> oldPair
     )
     {
         if (DictionaryChanging is not null)
-            OnDictionaryChanging(new(DictionaryChangeAction.Replace, newPair, oldPair));
+            return OnDictionaryChanging(new(DictionaryChangeAction.Replace, newPair, oldPair));
+        return null;
     }
 
     /// <summary>
@@ -267,10 +272,13 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     /// 字典改变前
     /// </summary>
     /// <param name="args">参数</param>
-    protected virtual void OnDictionaryChanging(NotifyDictionaryChangeEventArgs<TKey, TValue> args)
+    /// <returns>事件参数</returns>
+    protected virtual NotifyDictionaryChangeEventArgs<TKey, TValue> OnDictionaryChanging(
+        NotifyDictionaryChangeEventArgs<TKey, TValue> args
+    )
     {
-        DictionaryChangeEventArgs = args;
         DictionaryChanging?.Invoke(this, args);
+        return args;
     }
 
     /// <inheritdoc/>
@@ -283,11 +291,15 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     /// <summary>
     /// 字典添加键值对后
     /// </summary>
+    /// <param name="args">事件参数</param>
     /// <param name="pair">键值对</param>
-    protected virtual void OnDictionaryAdded(KeyValuePair<TKey, TValue> pair)
+    protected virtual void OnDictionaryAdded(
+        NotifyDictionaryChangeEventArgs<TKey, TValue>? args,
+        KeyValuePair<TKey, TValue> pair
+    )
     {
         if (DictionaryChanged is not null)
-            OnDictionaryChanged(DictionaryChangeEventArgs ?? new(DictionaryChangeAction.Add, pair));
+            OnDictionaryChanged(args ?? new(DictionaryChangeAction.Add, pair));
         if (CollectionChanged is not null)
         {
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, pair));
@@ -300,21 +312,25 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     /// <summary>
     /// 字典删除键值对后
     /// </summary>
+    /// <param name="args">事件参数</param>
     /// <param name="pair">键值对</param>
-    protected virtual void OnDictionaryRemoved(KeyValuePair<TKey, TValue> pair)
+    /// <param name="removeIndex">删除项索引</param>
+    protected virtual void OnDictionaryRemoved(
+        NotifyDictionaryChangeEventArgs<TKey, TValue>? args,
+        KeyValuePair<TKey, TValue> pair,
+        int removeIndex
+    )
     {
         if (DictionaryChanged is not null)
-            OnDictionaryChanged(
-                DictionaryChangeEventArgs ?? new(DictionaryChangeAction.Remove, pair)
-            );
+            OnDictionaryChanged(args ?? new(DictionaryChangeAction.Remove, pair));
         if (CollectionChanged is not null)
         {
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, pair, _removeIndex));
+            OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, pair, removeIndex));
             _observableKeys?.InvokeEvent(
-                new(NotifyCollectionChangedAction.Remove, pair.Key, _removeIndex)
+                new(NotifyCollectionChangedAction.Remove, pair.Key, removeIndex)
             );
             _observableValues?.InvokeEvent(
-                new(NotifyCollectionChangedAction.Remove, pair.Value, _removeIndex)
+                new(NotifyCollectionChangedAction.Remove, pair.Value, removeIndex)
             );
         }
         OnCountChanged();
@@ -323,20 +339,23 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     /// <summary>
     /// 字典键值对值改变后
     /// </summary>
+    /// <param name="args">事件参数</param>
     /// <param name="newPair">新键值对</param>
     /// <param name="oldPair">旧键值对</param>
     protected virtual void OnDictionaryReplaced(
+        NotifyDictionaryChangeEventArgs<TKey, TValue>? args,
         KeyValuePair<TKey, TValue> newPair,
         KeyValuePair<TKey, TValue> oldPair
     )
     {
         if (DictionaryChanged is not null)
-            OnDictionaryChanged(
-                DictionaryChangeEventArgs ?? new(DictionaryChangeAction.Replace, newPair, oldPair)
-            );
+            OnDictionaryChanged(args ?? new(DictionaryChangeAction.Replace, newPair, oldPair));
         if (CollectionChanged is not null)
         {
-            var index = SourceDictionary.IndexOf((p => p.Key.Equals(oldPair.Key)));
+            var index = SourceDictionary.IndexOf(
+                (Comparer, oldPair),
+                static (p, a) => a.Comparer.Equals(p.Key, a.oldPair.Key)
+            );
             OnCollectionChanged(
                 new(NotifyCollectionChangedAction.Replace, newPair, oldPair, index)
             );
@@ -355,7 +374,7 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     protected virtual void OnDictionaryCleared()
     {
         if (DictionaryChanged is not null)
-            OnDictionaryChanged(DictionaryChangeEventArgs ?? new(DictionaryChangeAction.Clear));
+            OnDictionaryChanged(NotifyDictionaryChangeEventArgs<TKey, TValue>.Cache_Clear);
         if (CollectionChanged is not null)
         {
             OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
@@ -380,8 +399,6 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
 
     #endregion DictionaryChanged
 
-    #region CollectionChanged
-
     /// <summary>
     /// 集合改变后
     /// </summary>
@@ -394,17 +411,12 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     /// <inheritdoc/>
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
-    #endregion CollectionChanged
-
-    #region PropertyChanged
-
     /// <summary>
     /// 数量改变后
     /// </summary>
     private void OnCountChanged()
     {
         PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Count);
-        DictionaryChangeEventArgs = null;
     }
 
     /// <summary>
@@ -418,6 +430,4 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
 
     /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    #endregion PropertyChanged
 }

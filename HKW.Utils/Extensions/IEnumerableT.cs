@@ -122,22 +122,23 @@ public static partial class EnumerableExtensions
         /// <summary>
         /// 获取索引
         /// </summary>
+        /// <param name="args">参数</param>
         /// <param name="match">匹配</param>
         /// <returns>项目的索引, 若项目不存在则为 <see langword="-1"/> </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(Func<T, bool> match)
+        public int IndexOf<TArg>(TArg args, Func<T, TArg, bool> match)
         {
             if (source is IList<T> list)
             {
                 for (var i = 0; i < list.Count; i++)
-                    if (match(list[i]) is true)
+                    if (match(list[i], args) is true)
                         return i;
             }
             else
             {
-                foreach ((var e, var i) in source.WithIndex())
+                foreach (var (e, i) in source.WithIndex())
                 {
-                    if (match(e) is true)
+                    if (match(e, args) is true)
                         return i;
                 }
             }

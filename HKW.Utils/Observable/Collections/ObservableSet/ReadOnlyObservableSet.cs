@@ -23,7 +23,7 @@ public sealed class ReadOnlyObservableSet<T>
 
     #region Ctor
     /// <inheritdoc/>
-    /// <param name="set"></param>
+    /// <param name="set">集合</param>
     public ReadOnlyObservableSet(IObservableSet<T> set)
     {
         _set = set;
@@ -97,12 +97,6 @@ public sealed class ReadOnlyObservableSet<T>
     }
 
     /// <inheritdoc/>
-    public IEnumerator<T> GetEnumerator()
-    {
-        return _set.GetEnumerator();
-    }
-
-    /// <inheritdoc/>
     public bool IsProperSubsetOf(IEnumerable<T> other)
     {
         return _set.IsProperSubsetOf(other);
@@ -136,6 +130,12 @@ public sealed class ReadOnlyObservableSet<T>
     public bool SetEquals(IEnumerable<T> other)
     {
         return _set.SetEquals(other);
+    }
+
+    /// <inheritdoc/>
+    public IEnumerator<T> GetEnumerator()
+    {
+        return _set.GetEnumerator();
     }
 
     /// <inheritdoc/>

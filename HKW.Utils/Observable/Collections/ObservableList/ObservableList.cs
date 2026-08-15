@@ -57,33 +57,28 @@ public class ObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>,
             var oldValue = _list[index];
             if (EqualityComparer<T>.Default.Equals(oldValue, value) is true)
                 return;
-            OnListReplacing(value, oldValue, index);
+            var args = OnListReplacing(value, oldValue, index);
             _list[index] = value;
-            OnListReplaced(value, oldValue, index);
+            OnListReplaced(args, value, oldValue, index);
         }
     }
-
-    /// <summary>
-    /// 列表改变事件参数
-    /// </summary>
-    protected NotifyListChangeEventArgs<T>? ListChangeEventArgs { get; set; }
 
     /// <inheritdoc/>
     public void Add(T item)
     {
         var index = _list.Count;
-        OnListAdding(item, index);
+        var args = OnListAdding(item, index);
         _list.Add(item);
-        OnListAdded(item, index);
+        OnListAdded(args, item, index);
     }
 
     /// <inheritdoc/>
     public void Insert(int index, T item)
     {
         ArgumentOutOfRangeException.ThrowIfOutOfRangeMaxExclusive(index, 0, Count);
-        OnListAdding(item, index);
+        var args = OnListAdding(item, index);
         _list.Insert(index, item);
-        OnListAdded(item, index);
+        OnListAdded(args, item, index);
     }
 
     /// <inheritdoc/>
@@ -102,9 +97,9 @@ public class ObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>,
     public void RemoveAt(int index)
     {
         var item = _list[index];
-        OnListRemoving(item, index);
+        var args = OnListRemoving(item, index);
         _list.RemoveAt(index);
-        OnListRemoved(item, index);
+        OnListRemoved(args, item, index);
     }
 
     /// <inheritdoc/>
@@ -130,15 +125,15 @@ public class ObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>,
     }
 
     /// <inheritdoc/>
-    public IEnumerator<T> GetEnumerator()
-    {
-        return _list.GetEnumerator();
-    }
-
-    /// <inheritdoc/>
     public int IndexOf(T item)
     {
         return _list.IndexOf(item);
+    }
+
+    /// <inheritdoc/>
+    public IEnumerator<T> GetEnumerator()
+    {
+        return _list.GetEnumerator();
     }
 
     /// <inheritdoc/>
@@ -156,15 +151,7 @@ public class ObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>,
     object? IList.this[int index]
     {
         get => _list[index];
-        set
-        {
-            var oldValue = _list[index];
-            if (EqualityComparer<T>.Default.Equals((T)oldValue, (T)value!))
-                return;
-            OnListReplacing((T)value!, oldValue, index);
-            _list[index] = (T)value!;
-            OnListReplaced((T)value!, oldValue, index);
-        }
+        set => this[index] = (T)value!;
     }
 
     int IList.Add(object? value)
@@ -207,57 +194,37 @@ public class ObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>,
 
     #region ListChanging
 
-    /// <summary>
-    /// 列表添加项目前
-    /// </summary>
-    /// <param name="item">项目</param>
-    /// <param name="index">索引</param>
-    protected virtual void OnListAdding(T item, int index)
+    private NotifyListChangeEventArgs<T>? OnListAdding(T item, int index)
     {
         if (ListChanging is not null)
-            OnListChanging(new(ListChangeAction.Add, item, index));
+            return OnListChanging(new(ListChangeAction.Add, item, index));
+        return null;
     }
 
-    /// <summary>
-    /// 列表删除项目前
-    /// </summary>
-    /// <param name="item">项目</param>
-    /// <param name="index">索引</param>
-    protected virtual void OnListRemoving(T item, int index)
+    private NotifyListChangeEventArgs<T>? OnListRemoving(T item, int index)
     {
         if (ListChanging is not null)
-            OnListChanging(new(ListChangeAction.Remove, item, index));
+            return OnListChanging(new(ListChangeAction.Remove, item, index));
+        return null;
     }
 
-    /// <summary>
-    /// 列表清理前
-    /// </summary>
-    protected virtual void OnListClearing()
+    private NotifyListChangeEventArgs<T>? OnListReplacing(T newItem, T oldItem, int index)
     {
         if (ListChanging is not null)
-            OnListChanging(new(ListChangeAction.Clear));
+            return OnListChanging(new(ListChangeAction.Replace, newItem, oldItem, index));
+        return null;
     }
 
-    /// <summary>
-    /// 列表改变项目前
-    /// </summary>
-    /// <param name="newItem">新项目</param>
-    /// <param name="oldItem">旧项目</param>
-    /// <param name="index">索引</param>
-    protected virtual void OnListReplacing(T newItem, T oldItem, int index)
+    private void OnListClearing()
     {
         if (ListChanging is not null)
-            OnListChanging(new(ListChangeAction.Replace, newItem, oldItem, index));
+            OnListChanging(NotifyListChangeEventArgs<T>.Cache_Clear);
     }
 
-    /// <summary>
-    /// 列表改变前
-    /// </summary>
-    /// <param name="args">参数</param>
-    protected virtual void OnListChanging(NotifyListChangeEventArgs<T> args)
+    private NotifyListChangeEventArgs<T> OnListChanging(NotifyListChangeEventArgs<T> args)
     {
-        ListChangeEventArgs = args;
         ListChanging?.Invoke(this, args);
+        return args;
     }
 
     /// <inheritdoc/>
@@ -267,58 +234,28 @@ public class ObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>,
 
     #region ListChanged
 
-    /// <summary>
-    /// 列表添加项目后
-    /// </summary>
-    /// <param name="item">项目</param>
-    /// <param name="index">索引</param>
-    protected virtual void OnListAdded(T item, int index)
+    private void OnListAdded(NotifyListChangeEventArgs<T>? args, T item, int index)
     {
         if (ListChanged is not null)
-            OnListChanged(ListChangeEventArgs ?? new(ListChangeAction.Add, item, index));
+            OnListChanged(args ?? new(ListChangeAction.Add, item, index));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item, index));
         OnCountChanged();
     }
 
-    /// <summary>
-    /// 列表删除项目后
-    /// </summary>
-    /// <param name="item">项目</param>
-    /// <param name="index">索引</param>
-    protected virtual void OnListRemoved(T item, int index)
+    private void OnListRemoved(NotifyListChangeEventArgs<T>? args, T item, int index)
     {
         if (ListChanged is not null)
-            OnListChanged(ListChangeEventArgs ?? new(ListChangeAction.Remove, item, index));
+            OnListChanged(args ?? new(ListChangeAction.Remove, item, index));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, item, index));
         OnCountChanged();
     }
 
-    /// <summary>
-    /// 列表清理后
-    /// </summary>
-    protected virtual void OnListCleared()
+    private void OnListReplaced(NotifyListChangeEventArgs<T>? args, T newItem, T oldItem, int index)
     {
         if (ListChanged is not null)
-            OnListChanged(ListChangeEventArgs ?? new(ListChangeAction.Clear));
-        if (CollectionChanged is not null)
-            OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
-        OnCountChanged();
-    }
-
-    /// <summary>
-    /// 列表项目改变后
-    /// </summary>
-    /// <param name="newItem">新项目</param>
-    /// <param name="oldItem">旧项目</param>
-    /// <param name="index">索引</param>
-    protected virtual void OnListReplaced(T newItem, T oldItem, int index)
-    {
-        if (ListChanged is not null)
-            OnListChanged(
-                ListChangeEventArgs ?? new(ListChangeAction.Replace, newItem, oldItem, index)
-            );
+            OnListChanged(args ?? new(ListChangeAction.Replace, newItem, oldItem, index));
         if (CollectionChanged is not null)
             OnCollectionChanged(
                 new(NotifyCollectionChangedAction.Replace, newItem, oldItem, index)
@@ -326,11 +263,20 @@ public class ObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>,
         PropertyChanged?.InvokeIndexer(this);
     }
 
+    private void OnListCleared()
+    {
+        if (ListChanged is not null)
+            OnListChanged(NotifyListChangeEventArgs<T>.Cache_Clear);
+        if (CollectionChanged is not null)
+            OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
+        OnCountChanged();
+    }
+
     /// <summary>
     /// 列表改变后
     /// </summary>
     /// <param name="args">参数</param>
-    protected virtual void OnListChanged(NotifyListChangeEventArgs<T> args)
+    private void OnListChanged(NotifyListChangeEventArgs<T> args)
     {
         ListChanged?.Invoke(this, args);
     }
@@ -340,13 +286,7 @@ public class ObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>,
 
     #endregion ListChanged
 
-    #region CollectionChanged
-
-    /// <summary>
-    /// 集合改变后
-    /// </summary>
-    /// <param name="args">参数</param>
-    protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
+    private void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
     {
         CollectionChanged?.Invoke(this, args);
     }
@@ -354,29 +294,14 @@ public class ObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>,
     /// <inheritdoc/>
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
-    #endregion CollectionChanged
-
-    #region PropertyChanged
-
     /// <summary>
     /// 数量改变后
     /// </summary>
     private void OnCountChanged()
     {
         PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Count);
-        ListChangeEventArgs = null;
-    }
-
-    /// <summary>
-    /// 属性改变后
-    /// </summary>
-    /// <param name="propertyName">属性名</param>
-    protected virtual void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new(propertyName));
     }
 
     /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged;
-    #endregion PropertyChanged
 }

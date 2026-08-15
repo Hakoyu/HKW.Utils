@@ -81,7 +81,7 @@ public sealed class SingleItemReadOnlyList<T> : IList<T>, IReadOnlyList<T>, ILis
     /// <inheritdoc/>
     public bool Contains(T item)
     {
-        return _item?.Equals(item) is true;
+        return EqualityComparer<T>.Default.Equals(_item, item);
     }
 
     /// <inheritdoc/>

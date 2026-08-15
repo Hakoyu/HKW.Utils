@@ -65,7 +65,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         var items = new SingleItemReadOnlyList<T>(item);
         var args = OnSetAdding(items);
         _set.Add(item);
-        OnSetAdded(items, args);
+        OnSetAdded(args, items);
         return true;
     }
 
@@ -79,7 +79,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         var items = new SingleItemReadOnlyList<T>(item);
         var args = OnSetRemoving(items, out var removeIndex);
         _set.Remove(item);
-        OnSetRemoved(items, removeIndex, args);
+        OnSetRemoved(args, items, removeIndex);
         return true;
     }
 
@@ -117,7 +117,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
             out var removeIndexs
         );
         _set.IntersectWith(otherItems);
-        OnSetOperated(SetChangeAction.Intersect, otherItems, null, oldItems, removeIndexs, args);
+        OnSetOperated(args, SetChangeAction.Intersect, otherItems, null, oldItems, removeIndexs);
     }
 
     /// <inheritdoc/>
@@ -143,7 +143,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
             out var removeIndexs
         );
         _set.ExceptWith(otherItems);
-        OnSetOperated(SetChangeAction.Except, otherItems, null, oldItems, removeIndexs, args);
+        OnSetOperated(args, SetChangeAction.Except, otherItems, null, oldItems, removeIndexs);
     }
 
     /// <inheritdoc/>
@@ -174,12 +174,12 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         else
             _set.SymmetricExceptWith(otherItems);
         OnSetOperated(
+            args,
             SetChangeAction.SymmetricExcept,
             otherItems,
             newItems,
             oldItems,
-            removeIndexs,
-            args
+            removeIndexs
         );
     }
 
@@ -206,7 +206,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
             out var removeIndexs
         );
         _set.UnionWith(otherItems);
-        OnSetOperated(SetChangeAction.Union, otherItems, newItems, null, removeIndexs, args);
+        OnSetOperated(args, SetChangeAction.Union, otherItems, newItems, null, removeIndexs);
     }
 
     /// <inheritdoc/>
@@ -227,12 +227,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     public void CopyTo(T[] array, int arrayIndex)
     {
         _set.CopyTo(array, arrayIndex);
-    }
-
-    /// <inheritdoc/>
-    public IEnumerator<T> GetEnumerator()
-    {
-        return _set.GetEnumerator();
     }
 
     /// <inheritdoc/>
@@ -272,6 +266,12 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     }
 
     /// <inheritdoc/>
+    public IEnumerator<T> GetEnumerator()
+    {
+        return _set.GetEnumerator();
+    }
+
+    /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator()
     {
         return ((IEnumerable)_set).GetEnumerator();
@@ -281,10 +281,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
 
     #region SetChanging
 
-    /// <summary>
-    /// 集合添加项目前
-    /// </summary>
-    /// <param name="items">键值对</param>
     private NotifySetChangeEventArgs<T>? OnSetAdding(IList<T> items)
     {
         if (SetChanging is not null)
@@ -292,11 +288,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         return null;
     }
 
-    /// <summary>
-    /// 集合删除项目前
-    /// </summary>
-    /// <param name="items">键值对</param>
-    /// <param name="removeIndex">项目索引</param>
     private NotifySetChangeEventArgs<T>? OnSetRemoving(IList<T> items, out int removeIndex)
     {
         removeIndex = -1;
@@ -309,23 +300,12 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         return args;
     }
 
-    /// <summary>
-    /// 集合清理前
-    /// </summary>
     private void OnSetClearing()
     {
         if (SetChanging is not null)
             OnSetChanging(NotifySetChangeEventArgs<T>.Cache_Clear);
     }
 
-    /// <summary>
-    /// 集合运算前
-    /// </summary>
-    /// <param name="action">行动</param>
-    /// <param name="otherItems">其它集合</param>
-    /// <param name="newItems">新项目</param>
-    /// <param name="oldItems">旧项目</param>
-    /// <param name="removeIndexs">删除项目索引集合</param>
     private NotifySetChangeEventArgs<T>? OnSetOperating(
         SetChangeAction action,
         IList<T> otherItems,
@@ -355,10 +335,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         return args;
     }
 
-    /// <summary>
-    /// 集合改变前
-    /// </summary>
-    /// <param name="args">参数</param>
     private NotifySetChangeEventArgs<T> OnSetChanging(NotifySetChangeEventArgs<T> args)
     {
         SetChanging?.Invoke(this, args);
@@ -372,12 +348,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
 
     #region SetChanged
 
-    /// <summary>
-    /// 集合添加键值对后
-    /// </summary>
-    /// <param name="items">键值对</param>
-    /// <param name="args">参数</param>
-    private void OnSetAdded(IList<T> items, NotifySetChangeEventArgs<T>? args)
+    private void OnSetAdded(NotifySetChangeEventArgs<T>? args, IList<T> items)
     {
         if (SetChanged is not null)
             OnSetChanged(args ?? new(SetChangeAction.Add, items));
@@ -386,13 +357,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         OnCountChanged();
     }
 
-    /// <summary>
-    /// 集合删除项目后
-    /// </summary>
-    /// <param name="items">键值对</param>
-    /// <param name="removeIndex">删除项目的索引</param>
-    /// <param name="args">参数</param>
-    private void OnSetRemoved(IList<T> items, int removeIndex, NotifySetChangeEventArgs<T>? args)
+    private void OnSetRemoved(NotifySetChangeEventArgs<T>? args, IList<T> items, int removeIndex)
     {
         if (SetChanged is not null)
             OnSetChanged(args ?? new(SetChangeAction.Remove, items));
@@ -401,34 +366,13 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         OnCountChanged();
     }
 
-    /// <summary>
-    /// 集合清理后
-    /// </summary>
-    private void OnSetCleared()
-    {
-        if (SetChanged is not null)
-            OnSetChanged(NotifySetChangeEventArgs<T>.Cache_Clear);
-        if (CollectionChanged is not null)
-            OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
-        OnCountChanged();
-    }
-
-    /// <summary>
-    /// 集合运算前
-    /// </summary>
-    /// <param name="action">行动</param>
-    /// <param name="otherItems">其它集合</param>
-    /// <param name="newItems">新项目</param>
-    /// <param name="oldItems">旧项目</param>
-    /// <param name="removeIndexs">删除项目集合</param>
-    /// <param name="args">参数</param>
     private void OnSetOperated(
+        NotifySetChangeEventArgs<T>? args,
         SetChangeAction action,
         IList<T> otherItems,
         IList<T>? newItems,
         IList<T>? oldItems,
-        IList<int> removeIndexs,
-        NotifySetChangeEventArgs<T>? args
+        IList<int> removeIndexs
     )
     {
         if (SetChanged is not null)
@@ -450,10 +394,15 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
         OnCountChanged();
     }
 
-    /// <summary>
-    /// 集合改变后
-    /// </summary>
-    /// <param name="args">参数</param>
+    private void OnSetCleared()
+    {
+        if (SetChanged is not null)
+            OnSetChanged(NotifySetChangeEventArgs<T>.Cache_Clear);
+        if (CollectionChanged is not null)
+            OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
+        OnCountChanged();
+    }
+
     private void OnSetChanged(NotifySetChangeEventArgs<T> args)
     {
         SetChanged?.Invoke(this, args);
@@ -464,12 +413,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
 
     #endregion SetChanged
 
-    #region CollectionChanged
-
-    /// <summary>
-    /// 集合已改变前
-    /// </summary>
-    /// <param name="args">参数</param>
     private void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
     {
         CollectionChanged?.Invoke(this, args);
@@ -478,13 +421,6 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     /// <inheritdoc/>
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
-    #endregion CollectionChanged
-
-    #region PropertyChanged
-
-    /// <summary>
-    /// 数量改变后
-    /// </summary>
     private void OnCountChanged()
     {
         PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Count);
@@ -492,6 +428,4 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
 
     /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    #endregion PropertyChanged
 }
