@@ -175,54 +175,6 @@ public sealed class BidirectionalDictionary<T1, T2>
         }
     }
 
-    /// <summary>
-    /// 尝试设置值
-    /// </summary>
-    /// <param name="key">键</param>
-    /// <param name="value">值</param>
-    /// <returns>是否设置成功</returns>
-    /// <remarks>
-    /// <para>
-    /// 当 key 和 value 都不存在时, 添加新值, 返回 true.
-    /// </para>
-    /// <para>
-    /// 当 key 存在 value 不存在时, 替换 dic2 的 value, 删除 dic1 的 value 再添加新的 (value, key), 返回 true.
-    /// </para>
-    /// <para>
-    /// 当 key 不存在 value 存在时, 返回 false. 基于仅依据 key 替换 value 的原则不予替换, 可以使用 TrySetValue(T1,T2)
-    /// </para>
-    /// <para>
-    /// 当 key 和 value 都存在时, 返回 true.
-    /// </para>
-    /// </remarks>
-    public bool TrySetValue1(T1 key, T2 value)
-    {
-        if (_dictionary1.TryGetValue(key, out var d1Value))
-        {
-            // 4, 如果 d1Value 和 value 相等, 证明 dic2 存在 (value, key)
-            if (_comparer2.Equals(d1Value, value))
-                return true;
-            // 3
-            if (_dictionary2.ContainsKey(value))
-                return false;
-            // 2
-            _dictionary1[key] = value;
-            _dictionary2.Remove(d1Value);
-            _dictionary2.Add(value, key);
-            return true;
-        }
-        else
-        {
-            // 3
-            if (_dictionary2.ContainsKey(value))
-                return false;
-            // 1
-            _dictionary1.Add(key, value);
-            _dictionary2.Add(value, key);
-            return true;
-        }
-    }
-
     /// <inheritdoc/>
     public bool TryAdd(T1 key, T2 value)
     {

@@ -15,7 +15,9 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TValue">值类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
-public sealed class ReadOnlyObservableValueCollection<TKey, TValue> : IObservableCollection<TValue>
+public sealed class ReadOnlyObservableValueCollection<TKey, TValue>
+    : IObservableCollection<TValue>,
+        IReadOnlyObservableCollection<TValue>
     where TKey : notnull
 {
     /// <inheritdoc/>
@@ -71,7 +73,11 @@ public sealed class ReadOnlyObservableValueCollection<TKey, TValue> : IObservabl
         return GetEnumerator();
     }
 
-    internal void InvokeEvent(NotifyCollectionChangedEventArgs args)
+    /// <summary>
+    /// 触发事件
+    /// </summary>
+    /// <param name="args">事件参数</param>
+    public void InvokeEvent(NotifyCollectionChangedEventArgs args)
     {
         CollectionChanged?.Invoke(this, args);
         if (args.Action is not NotifyCollectionChangedAction.Replace)
