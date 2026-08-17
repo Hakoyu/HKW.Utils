@@ -14,11 +14,11 @@ public static partial class NumberUtils
         ArithmeticOperatorType
     > ArithmeticOperatorTypeByChar { get; } =
         new([
-            ('+', ArithmeticOperatorType.Addition),
-            ('-', ArithmeticOperatorType.Subtraction),
-            ('*', ArithmeticOperatorType.Multiply),
-            ('/', ArithmeticOperatorType.Division),
-            ('%', ArithmeticOperatorType.Modulus),
+            KeyValuePair.Create('+', ArithmeticOperatorType.Addition),
+            KeyValuePair.Create('-', ArithmeticOperatorType.Subtraction),
+            KeyValuePair.Create('*', ArithmeticOperatorType.Multiply),
+            KeyValuePair.Create('/', ArithmeticOperatorType.Division),
+            KeyValuePair.Create('%', ArithmeticOperatorType.Modulus),
         ]);
 
     /// <summary>

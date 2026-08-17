@@ -14,9 +14,9 @@ public partial class NumberUtils
         BitwiseShiftType
     > BitwiseShiftTypeByString { get; } =
         new([
-            ("<<", BitwiseShiftType.Left),
-            (">>", BitwiseShiftType.Right),
-            (">>>", BitwiseShiftType.UnsignedRight),
+            KeyValuePair.Create("<<", BitwiseShiftType.Left),
+            KeyValuePair.Create(">>", BitwiseShiftType.Right),
+            KeyValuePair.Create(">>>", BitwiseShiftType.UnsignedRight),
         ]);
 
     /// <summary>

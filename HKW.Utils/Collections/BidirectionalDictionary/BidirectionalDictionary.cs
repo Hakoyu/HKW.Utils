@@ -17,8 +17,8 @@ namespace HKW.HKWUtils.Collections;
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public sealed class BidirectionalDictionary<T1, T2>
-    : IDictionary<T1, T2>,
-        IReadOnlyDictionary<T1, T2>
+    : IBidirectionalDictionary<T1, T2>,
+        IReadOnlyBidirectionalDictionary<T1, T2>
     where T1 : notnull
     where T2 : notnull
 {
@@ -32,8 +32,6 @@ public sealed class BidirectionalDictionary<T1, T2>
     {
         _dictionary1 = new(comparer1);
         _dictionary2 = new(comparer2);
-        _comparer1 = _dictionary1.Comparer;
-        _comparer2 = _dictionary2.Comparer;
     }
 
     /// <inheritdoc/>
@@ -48,8 +46,6 @@ public sealed class BidirectionalDictionary<T1, T2>
     {
         _dictionary1 = new(capacity, comparer1);
         _dictionary2 = new(capacity, comparer2);
-        _comparer1 = _dictionary1.Comparer;
-        _comparer2 = _dictionary2.Comparer;
     }
 
     /// <inheritdoc/>
@@ -63,19 +59,26 @@ public sealed class BidirectionalDictionary<T1, T2>
     )
     {
         ArgumentNullException.ThrowIfNull(pairs);
-        _dictionary1 = new(pairs, comparer1);
-        _dictionary2 = new(pairs.Select(p => new KeyValuePair<T2, T1>(p.Value, p.Key)), comparer2);
-        _comparer1 = _dictionary1.Comparer;
-        _comparer2 = _dictionary2.Comparer;
+        if (pairs is ICollection<KeyValuePair<T1, T2>> c)
+        {
+            _dictionary1 = new(c.Count, comparer1);
+            _dictionary2 = new(c.Count, comparer2);
+        }
+        else
+        {
+            _dictionary1 = new(comparer1);
+            _dictionary2 = new(comparer2);
+        }
+        foreach (var pair in pairs)
+        {
+            _dictionary1.Add(pair.Key, pair.Value);
+            _dictionary2.Add(pair.Value, pair.Key);
+        }
     }
 
     private readonly Dictionary<T1, T2> _dictionary1;
 
     private readonly Dictionary<T2, T1> _dictionary2;
-
-    private readonly IEqualityComparer<T1> _comparer1;
-
-    private readonly IEqualityComparer<T2> _comparer2;
 
     /// <inheritdoc/>
     public ICollection<T1> Keys => _dictionary1.Keys;
@@ -89,16 +92,12 @@ public sealed class BidirectionalDictionary<T1, T2>
     /// <inheritdoc/>
     public bool IsReadOnly => false;
 
-    /// <summary>
-    /// 字典1
-    /// </summary>
-    public ReadOnlyDictionary<T1, T2> Dictionary1 =>
+    /// <inheritdoc/>
+    public IDictionary<T1, T2> Dictionary1 =>
         field ??= new ReadOnlyDictionary<T1, T2>(_dictionary1);
 
-    /// <summary>
-    /// 字典2
-    /// </summary>
-    public ReadOnlyDictionary<T2, T1> Dictionary2 =>
+    /// <inheritdoc/>
+    public IDictionary<T2, T1> Dictionary2 =>
         field ??= new ReadOnlyDictionary<T2, T1>(_dictionary2);
 
     IEnumerable<T1> IReadOnlyDictionary<T1, T2>.Keys => Keys;
@@ -107,90 +106,65 @@ public sealed class BidirectionalDictionary<T1, T2>
 
     #region Dictionary1
     /// <inheritdoc/>
-    public T2 this[T1 key]
+    public T2 this[T1 key1]
     {
-        get => _dictionary1[key];
+        get => _dictionary1[key1];
         set => throw new UseAlternativeMethodException(nameof(this.TrySetValue));
     }
 
     /// <inheritdoc/>
-    void IDictionary<T1, T2>.Add(T1 key, T2 value)
+    void IDictionary<T1, T2>.Add(T1 key1, T2 value2)
     {
         throw new UseAlternativeMethodException(nameof(this.TryAdd));
     }
 
     /// <inheritdoc/>
-    void ICollection<KeyValuePair<T1, T2>>.Add(KeyValuePair<T1, T2> item)
+    void ICollection<KeyValuePair<T1, T2>>.Add(KeyValuePair<T1, T2> item1)
     {
         throw new UseAlternativeMethodException(nameof(this.TryAdd));
     }
 
-    /// <summary>
-    /// 尝试设置值
-    /// </summary>
-    /// <param name="key">键</param>
-    /// <param name="value">值</param>
-    /// <returns>是否设置成功</returns>
-    /// <remarks>
-    /// <para>
-    /// 当 key 和 value 都不存在时, 添加新值, 返回 true.
-    /// </para>
-    /// <para>
-    /// 当 key 存在 value 不存在时, 替换 dic1 的 value, 删除 dic2 的 value 再添加新的 (value, key), 返回 true.
-    /// </para>
-    /// <para>
-    /// 当 key 不存在 value 存在时, 返回 false. 基于仅依据 key 替换 value 的原则不予替换, 可以使用 TrySetValue(T2,T1)
-    /// </para>
-    /// <para>
-    /// 当 key 和 value 都存在时, 返回 true.
-    /// </para>
-    /// </remarks>
-    public bool TrySetValue(T1 key, T2 value)
-    {
-        ref var d1ValueRef = ref CollectionsMarshal.GetValueRefOrNullRef(_dictionary1, key);
-        if (Unsafe.IsNullRef(ref d1ValueRef))
-        {
-            // 3
-            if (_dictionary2.ContainsKey(value))
-                return false;
-            // 1
-            _dictionary1.Add(key, value);
-            _dictionary2.Add(value, key);
-            return true;
-        }
-        else
-        {
-            var d1Value = d1ValueRef;
-            // 4, 如果 d1Value 和 value 相等, 证明 dic2 存在 (value, key)
-            if (_comparer2.Equals(d1Value, value))
-                return true;
-            // 3
-            if (_dictionary2.ContainsKey(value))
-                return false;
-            // 2
-            d1ValueRef = value;
-            _dictionary2.Remove(d1Value);
-            _dictionary2.Add(value, key);
-            return true;
-        }
-    }
-
     /// <inheritdoc/>
-    public bool TryAdd(T1 key, T2 value)
+    public bool TryAdd(T1 key1, T2 value2)
     {
-        var result = _dictionary1.TryAdd(key, value);
-        if (result && _dictionary2.TryAdd(value, key) is false)
+        var result = _dictionary1.TryAdd(key1, value2);
+        if (result && _dictionary2.TryAdd(value2, key1) is false)
         {
-            _dictionary1.Remove(key);
+            _dictionary1.Remove(key1);
             return false;
         }
         return result;
     }
 
     /// <inheritdoc/>
-    public bool TryAdd(KeyValuePair<T1, T2> item)
+    public bool TrySetValue(T1 key1, T2 value2)
     {
-        return TryAdd(item.Key, item.Value);
+        ref var d1ValueRef = ref CollectionsMarshal.GetValueRefOrNullRef(_dictionary1, key1);
+        if (Unsafe.IsNullRef(ref d1ValueRef))
+        {
+            // 3
+            if (_dictionary2.ContainsKey(value2))
+                return false;
+            // 1
+            _dictionary1.Add(key1, value2);
+            _dictionary2.Add(value2, key1);
+            return true;
+        }
+        else
+        {
+            var d1Value = d1ValueRef;
+            // 4, 如果 d1Value 和 value 相等, 证明 dic2 存在 (value, key)
+            if (_dictionary2.Comparer.Equals(d1Value, value2))
+                return true;
+            // 3
+            if (_dictionary2.ContainsKey(value2))
+                return false;
+            // 2
+            d1ValueRef = value2;
+            _dictionary2.Remove(d1Value);
+            _dictionary2.Add(value2, key1);
+            return true;
+        }
     }
 
     /// <inheritdoc/>
@@ -204,6 +178,20 @@ public sealed class BidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
+    public bool Remove(KeyValuePair<T1, T2> item1)
+    {
+        if (
+            _dictionary1.TryGetValue(item1.Key, out var value) is false
+            || _dictionary2.Comparer.Equals(item1.Value, value) is false
+        )
+            return false;
+
+        _dictionary1.Remove(item1.Key);
+        _dictionary2.Remove(value);
+        return true;
+    }
+
+    /// <inheritdoc/>
     public void Clear()
     {
         _dictionary1.Clear();
@@ -211,41 +199,28 @@ public sealed class BidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    public bool Contains(KeyValuePair<T1, T2> item)
+    public bool Contains(KeyValuePair<T1, T2> item1)
     {
-        return _dictionary1.Contains(item);
+        return _dictionary1.TryGetValue(item1.Key, out var value2)
+            && _dictionary2.Comparer.Equals(item1.Value, value2);
     }
 
     /// <inheritdoc/>
-    public bool ContainsKey(T1 key)
+    public bool ContainsKey(T1 key1)
     {
-        return _dictionary1.ContainsKey(key);
+        return _dictionary1.ContainsKey(key1);
     }
 
     /// <inheritdoc/>
-    public void CopyTo(KeyValuePair<T1, T2>[] array, int arrayIndex)
+    public void CopyTo(KeyValuePair<T1, T2>[] array1, int arrayIndex)
     {
-        ((ICollection<KeyValuePair<T1, T2>>)_dictionary1).CopyTo(array, arrayIndex);
+        ((ICollection<KeyValuePair<T1, T2>>)_dictionary1).CopyTo(array1, arrayIndex);
     }
 
     /// <inheritdoc/>
-    public bool Remove(KeyValuePair<T1, T2> item)
+    public bool TryGetValue(T1 key1, [MaybeNullWhen(false)] out T2 value)
     {
-        if (
-            _dictionary1.TryGetValue(item.Key, out var value) is false
-            || _comparer2.Equals(item.Value, value) is false
-        )
-            return false;
-
-        _dictionary1.Remove(item.Key);
-        _dictionary2.Remove(value);
-        return true;
-    }
-
-    /// <inheritdoc/>
-    public bool TryGetValue(T1 key, [MaybeNullWhen(false)] out T2 value)
-    {
-        return _dictionary1.TryGetValue(key, out value);
+        return _dictionary1.TryGetValue(key1, out value);
     }
 
     /// <inheritdoc/>
@@ -256,90 +231,65 @@ public sealed class BidirectionalDictionary<T1, T2>
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return _dictionary1.GetEnumerator();
+        return GetEnumerator();
     }
     #endregion
 
     #region Dictionary2
     /// <inheritdoc/>
-    public T1 this[T2 key]
+    public T1 this[T2 key2]
     {
-        get => _dictionary2[key];
+        get => _dictionary2[key2];
         set => throw new UseAlternativeMethodException(nameof(this.TrySetValue));
     }
 
     /// <inheritdoc/>
-    public bool TryAdd(T2 key, T1 value)
+    public bool TryAdd(T2 key2, T1 value1)
     {
-        var result = _dictionary2.TryAdd(key, value);
-        if (result && _dictionary1.TryAdd(value, key) is false)
+        var result = _dictionary2.TryAdd(key2, value1);
+        if (result && _dictionary1.TryAdd(value1, key2) is false)
         {
-            _dictionary2.Remove(key);
+            _dictionary2.Remove(key2);
             return false;
         }
         return result;
     }
 
     /// <inheritdoc/>
-    public bool TryAdd(KeyValuePair<T2, T1> item)
+    public bool TrySetValue(T2 key2, T1 value1)
     {
-        return TryAdd(item.Key, item.Value);
-    }
-
-    /// <summary>
-    /// 尝试设置值
-    /// </summary>
-    /// <param name="key">键</param>
-    /// <param name="value">值</param>
-    /// <returns>是否设置成功</returns>
-    /// <remarks>
-    /// <para>
-    /// 当 key 和 value 都不存在时, 添加新值, 返回 true.
-    /// </para>
-    /// <para>
-    /// 当 key 存在 value 不存在时, 替换 dic2 的 value, 删除 dic1 的 value 再添加新的 (value, key), 返回 true.
-    /// </para>
-    /// <para>
-    /// 当 key 不存在 value 存在时, 返回 false. 基于仅依据 key 替换 value 的原则不予替换, 可以使用 TrySetValue(T1,T2)
-    /// </para>
-    /// <para>
-    /// 当 key 和 value 都存在时, 返回 true.
-    /// </para>
-    /// </remarks>
-    public bool TrySetValue(T2 key, T1 value)
-    {
-        ref var d2ValueRef = ref CollectionsMarshal.GetValueRefOrNullRef(_dictionary2, key);
+        ref var d2ValueRef = ref CollectionsMarshal.GetValueRefOrNullRef(_dictionary2, key2);
         if (Unsafe.IsNullRef(ref d2ValueRef))
         {
             // 3
-            if (_dictionary1.ContainsKey(value))
+            if (_dictionary1.ContainsKey(value1))
                 return false;
             // 1
-            _dictionary2.Add(key, value);
-            _dictionary1.Add(value, key);
+            _dictionary2.Add(key2, value1);
+            _dictionary1.Add(value1, key2);
             return true;
         }
         else
         {
             var d2Value = d2ValueRef;
             // 4, 如果 d2Value 和 value 相等, 证明 dic1 存在 (value, key)
-            if (_comparer1.Equals(d2Value, value))
+            if (_dictionary1.Comparer.Equals(d2Value, value1))
                 return true;
             // 3
-            if (_dictionary1.ContainsKey(value))
+            if (_dictionary1.ContainsKey(value1))
                 return false;
             // 2
-            d2ValueRef = value;
+            d2ValueRef = value1;
             _dictionary1.Remove(d2Value);
-            _dictionary1.Add(value, key);
+            _dictionary1.Add(value1, key2);
             return true;
         }
     }
 
     /// <inheritdoc/>
-    public bool Remove(T2 key)
+    public bool Remove(T2 key2)
     {
-        if (_dictionary2.Remove(key, out var value) is false)
+        if (_dictionary2.Remove(key2, out var value) is false)
             return false;
 
         _dictionary1.Remove(value);
@@ -347,23 +297,17 @@ public sealed class BidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    public bool Remove(KeyValuePair<T2, T1> item)
+    public bool Remove(KeyValuePair<T2, T1> item2)
     {
         if (
-            _dictionary2.TryGetValue(item.Key, out var value) is false
-            || _comparer1.Equals(item.Value, value) is false
+            _dictionary2.TryGetValue(item2.Key, out var value) is false
+            || _dictionary1.Comparer.Equals(item2.Value, value) is false
         )
             return false;
 
         _dictionary1.Remove(value);
-        _dictionary2.Remove(item.Key);
+        _dictionary2.Remove(item2.Key);
         return true;
-    }
-
-    /// <inheritdoc/>
-    public bool Contains(KeyValuePair<T2, T1> item)
-    {
-        return _dictionary2.Contains(item);
     }
 
     /// <inheritdoc/>
@@ -373,15 +317,22 @@ public sealed class BidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    public void CopyTo(KeyValuePair<T2, T1>[] array, int arrayIndex)
+    public bool Contains(KeyValuePair<T2, T1> item2)
     {
-        ((ICollection<KeyValuePair<T2, T1>>)_dictionary2).CopyTo(array, arrayIndex);
+        return _dictionary2.TryGetValue(item2.Key, out var value1)
+            && _dictionary1.Comparer.Equals(item2.Value, value1);
     }
 
     /// <inheritdoc/>
-    public bool TryGetValue(T2 key, [MaybeNullWhen(false)] out T1 value)
+    public void CopyTo(KeyValuePair<T2, T1>[] array2, int arrayIndex)
     {
-        return _dictionary2.TryGetValue(key, out value);
+        ((ICollection<KeyValuePair<T2, T1>>)_dictionary2).CopyTo(array2, arrayIndex);
+    }
+
+    /// <inheritdoc/>
+    public bool TryGetValue(T2 key2, [MaybeNullWhen(false)] out T1 value)
+    {
+        return _dictionary2.TryGetValue(key2, out value);
     }
 
     #endregion

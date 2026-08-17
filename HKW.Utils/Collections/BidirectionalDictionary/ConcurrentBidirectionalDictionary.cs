@@ -17,9 +17,9 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="T2">项目类型2</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
-public class ConcurrentBidirectionalDictionary<T1, T2>
-    : IDictionary<T1, T2>,
-        IReadOnlyDictionary<T1, T2>,
+public sealed class ConcurrentBidirectionalDictionary<T1, T2>
+    : IBidirectionalDictionary<T1, T2>,
+        IReadOnlyBidirectionalDictionary<T1, T2>,
         IDisposable
     where T1 : notnull
     where T2 : notnull
@@ -35,7 +35,10 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
         IEqualityComparer<T1>? comparer1 = null,
         IEqualityComparer<T2>? comparer2 = null
     )
-        : this(16, comparer1, comparer2) { }
+    {
+        _dictionary1 = new(comparer1);
+        _dictionary2 = new(comparer2);
+    }
 
     /// <inheritdoc/>
     /// <param name="capacity">初始容量</param>
@@ -52,67 +55,45 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    /// <param name="keyValuePairs">键值对集合</param>
+    /// <param name="pairs">键值对集合</param>
     /// <param name="comparer1">比较器1</param>
     /// <param name="comparer2">比较器2</param>
     public ConcurrentBidirectionalDictionary(
-        IEnumerable<KeyValuePair<T1, T2>> keyValuePairs,
+        IEnumerable<KeyValuePair<T1, T2>> pairs,
         IEqualityComparer<T1>? comparer1 = null,
         IEqualityComparer<T2>? comparer2 = null
     )
     {
-        ArgumentNullException.ThrowIfNull(keyValuePairs);
+        ArgumentNullException.ThrowIfNull(pairs);
 
-        var capacity = keyValuePairs is ICollection<KeyValuePair<T1, T2>> collection
-            ? collection.Count
-            : 16;
-        _dictionary1 = new(capacity, comparer1);
-        _dictionary2 = new(capacity, comparer2);
-        foreach (var kv in keyValuePairs)
+        if (pairs is ICollection<KeyValuePair<T1, T2>> c)
         {
-            _dictionary1.Add(kv.Key, kv.Value);
-            _dictionary2.Add(kv.Value, kv.Key);
+            _dictionary1 = new(c.Count, comparer1);
+            _dictionary2 = new(c.Count, comparer2);
+        }
+        else
+        {
+            _dictionary1 = new(comparer1);
+            _dictionary2 = new(comparer2);
+        }
+        foreach (var pair in pairs)
+        {
+            _dictionary1.Add(pair.Key, pair.Value);
+            _dictionary2.Add(pair.Value, pair.Key);
         }
     }
 
     /// <inheritdoc/>
-    /// <param name="keyValuePairs">键值对集合</param>
-    /// <param name="comparer1">比较器1</param>
-    /// <param name="comparer2">比较器2</param>
-    public ConcurrentBidirectionalDictionary(
-        IEnumerable<(T1, T2)> keyValuePairs,
-        IEqualityComparer<T1>? comparer1 = null,
-        IEqualityComparer<T2>? comparer2 = null
-    )
-    {
-        ArgumentNullException.ThrowIfNull(keyValuePairs);
-
-        var capacity = keyValuePairs is ICollection<(T1, T2)> collection ? collection.Count : 16;
-        _dictionary1 = new(capacity, comparer1);
-        _dictionary2 = new(capacity, comparer2);
-
-        foreach (var kv in keyValuePairs)
-        {
-            _dictionary1.Add(kv.Item1, kv.Item2);
-            _dictionary2.Add(kv.Item2, kv.Item1);
-        }
-    }
-
-    /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
     public ICollection<T1> Keys => GetKeysSnapshot();
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
     public ICollection<T2> Values => GetValuesSnapshot();
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
     public int Count
     {
         get
         {
-            ThrowIfDisposed();
             _lock.EnterReadLock();
             try
             {
@@ -128,15 +109,11 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     /// <inheritdoc/>
     public bool IsReadOnly => false;
 
-    /// <summary>
-    /// 字典1只读快照
-    /// </summary>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public ReadOnlyDictionary<T1, T2> Dictionary1
+    /// <inheritdoc/>
+    public IDictionary<T1, T2> Dictionary1
     {
         get
         {
-            ThrowIfDisposed();
             _lock.EnterReadLock();
             try
             {
@@ -151,15 +128,11 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
         }
     }
 
-    /// <summary>
-    /// 字典2只读快照
-    /// </summary>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public ReadOnlyDictionary<T2, T1> Dictionary2
+    /// <inheritdoc/>
+    public IDictionary<T2, T1> Dictionary2
     {
         get
         {
-            ThrowIfDisposed();
             _lock.EnterReadLock();
             try
             {
@@ -175,26 +148,22 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
     IEnumerable<T1> IReadOnlyDictionary<T1, T2>.Keys => GetKeysSnapshot();
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
     IEnumerable<T2> IReadOnlyDictionary<T1, T2>.Values => GetValuesSnapshot();
 
     #region Dictionary1
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public T2 this[T1 key]
+    public T2 this[T1 key1]
     {
         get
         {
-            ThrowIfDisposed();
             _lock.EnterReadLock();
             try
             {
-                return _dictionary1[key];
+                return _dictionary1[key1];
             }
             finally
             {
@@ -205,70 +174,30 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="UseAlternativeMethodException">使用代替方法 <see cref="TryAdd(T1, T2)"/></exception>
-    void IDictionary<T1, T2>.Add(T1 key, T2 value)
+    void IDictionary<T1, T2>.Add(T1 key1, T2 value2)
     {
         throw new UseAlternativeMethodException(nameof(this.TryAdd));
     }
 
     /// <inheritdoc/>
-    /// <exception cref="UseAlternativeMethodException">使用代替方法 <see cref="TryAdd(KeyValuePair{T1, T2})"/></exception>
-    void ICollection<KeyValuePair<T1, T2>>.Add(KeyValuePair<T1, T2> item)
+    void ICollection<KeyValuePair<T1, T2>>.Add(KeyValuePair<T1, T2> item1)
     {
         throw new UseAlternativeMethodException(nameof(this.TryAdd));
     }
 
-    /// <summary>
-    /// 尝试设置值
-    /// </summary>
-    /// <param name="key">键</param>
-    /// <param name="value">值</param>
-    /// <returns>是否设置成功</returns>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public bool TrySetValue(T1 key, T2 value)
-    {
-        ThrowIfDisposed();
-        _lock.EnterWriteLock();
-        try
-        {
-            ref var d1ValueRef = ref CollectionsMarshal.GetValueRefOrNullRef(_dictionary1, key);
-            if (Unsafe.IsNullRef(ref d1ValueRef))
-                return false;
-            var d1Value = d1ValueRef;
-            if (_dictionary2.ContainsKey(value))
-                return false;
-            if (
-                _dictionary2.TryGetValue(d1Value, out var d2Value) is false
-                || _dictionary1.Comparer.Equals(d2Value, key) is false
-            )
-                return false;
-
-            d1ValueRef = value;
-            _dictionary2.Remove(d1Value);
-            _dictionary2.Add(value, key);
-            return true;
-        }
-        finally
-        {
-            _lock.ExitWriteLock();
-        }
-    }
-
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public bool TryAdd(T1 key, T2 value)
+    public bool TryAdd(T1 key1, T2 value2)
     {
-        ThrowIfDisposed();
         _lock.EnterWriteLock();
         try
         {
-            var result = _dictionary1.TryAdd(key, value);
+            var result = _dictionary1.TryAdd(key1, value2);
             if (result is false)
                 return false;
 
-            if (_dictionary2.TryAdd(value, key) is false)
+            if (_dictionary2.TryAdd(value2, key1) is false)
             {
-                _dictionary1.Remove(key);
+                _dictionary1.Remove(key1);
                 return false;
             }
 
@@ -281,21 +210,51 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public bool TryAdd(KeyValuePair<T1, T2> item)
+    public bool TrySetValue(T1 key1, T2 value2)
     {
-        return TryAdd(item.Key, item.Value);
-    }
-
-    /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public bool Remove(T1 key)
-    {
-        ThrowIfDisposed();
         _lock.EnterWriteLock();
         try
         {
-            if (_dictionary1.Remove(key, out var value) is false)
+            ref var d1ValueRef = ref CollectionsMarshal.GetValueRefOrNullRef(_dictionary1, key1);
+            if (Unsafe.IsNullRef(ref d1ValueRef))
+            {
+                // 3
+                if (_dictionary2.ContainsKey(value2))
+                    return false;
+                // 1
+                _dictionary1.Add(key1, value2);
+                _dictionary2.Add(value2, key1);
+                return true;
+            }
+            else
+            {
+                var d1Value = d1ValueRef;
+                // 4, 如果 d1Value 和 value 相等, 证明 dic2 存在 (value, key)
+                if (_dictionary2.Comparer.Equals(d1Value, value2))
+                    return true;
+                // 3
+                if (_dictionary2.ContainsKey(value2))
+                    return false;
+                // 2
+                d1ValueRef = value2;
+                _dictionary2.Remove(d1Value);
+                _dictionary2.Add(value2, key1);
+                return true;
+            }
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+    }
+
+    /// <inheritdoc/>
+    public bool Remove(T1 key1)
+    {
+        _lock.EnterWriteLock();
+        try
+        {
+            if (_dictionary1.Remove(key1, out var value) is false)
                 return false;
 
             _dictionary2.Remove(value);
@@ -308,10 +267,30 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
+    public bool Remove(KeyValuePair<T1, T2> item1)
+    {
+        _lock.EnterWriteLock();
+        try
+        {
+            if (
+                _dictionary1.TryGetValue(item1.Key, out var value) is false
+                || _dictionary2.Comparer.Equals(item1.Value, value) is false
+            )
+                return false;
+
+            _dictionary1.Remove(item1.Key);
+            _dictionary2.Remove(value);
+            return true;
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+    }
+
+    /// <inheritdoc/>
     public void Clear()
     {
-        ThrowIfDisposed();
         _lock.EnterWriteLock();
         try
         {
@@ -325,14 +304,13 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public bool Contains(KeyValuePair<T1, T2> item)
+    public bool Contains(KeyValuePair<T1, T2> item1)
     {
-        ThrowIfDisposed();
         _lock.EnterReadLock();
         try
         {
-            return _dictionary1.Contains(item);
+            return _dictionary1.TryGetValue(item1.Key, out var value2)
+                && _dictionary2.Comparer.Equals(item1.Value, value2);
         }
         finally
         {
@@ -341,14 +319,12 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public bool ContainsKey(T1 key)
+    public bool ContainsKey(T1 key1)
     {
-        ThrowIfDisposed();
         _lock.EnterReadLock();
         try
         {
-            return _dictionary1.ContainsKey(key);
+            return _dictionary1.ContainsKey(key1);
         }
         finally
         {
@@ -357,14 +333,12 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public void CopyTo(KeyValuePair<T1, T2>[] array, int arrayIndex)
+    public void CopyTo(KeyValuePair<T1, T2>[] array1, int arrayIndex)
     {
-        ThrowIfDisposed();
         _lock.EnterReadLock();
         try
         {
-            ((ICollection<KeyValuePair<T1, T2>>)_dictionary1).CopyTo(array, arrayIndex);
+            ((ICollection<KeyValuePair<T1, T2>>)_dictionary1).CopyTo(array1, arrayIndex);
         }
         finally
         {
@@ -373,38 +347,12 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public bool Remove(KeyValuePair<T1, T2> item)
+    public bool TryGetValue(T1 key1, [MaybeNullWhen(false)] out T2 value)
     {
-        ThrowIfDisposed();
-        _lock.EnterWriteLock();
-        try
-        {
-            if (
-                _dictionary1.TryGetValue(item.Key, out var value) is false
-                || _dictionary2.Comparer.Equals(item.Value, value) is false
-            )
-                return false;
-
-            _dictionary1.Remove(item.Key);
-            _dictionary2.Remove(value);
-            return true;
-        }
-        finally
-        {
-            _lock.ExitWriteLock();
-        }
-    }
-
-    /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public bool TryGetValue(T1 key, [MaybeNullWhen(false)] out T2 value)
-    {
-        ThrowIfDisposed();
         _lock.EnterReadLock();
         try
         {
-            return _dictionary1.TryGetValue(key, out value);
+            return _dictionary1.TryGetValue(key1, out value);
         }
         finally
         {
@@ -413,14 +361,12 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
     public IEnumerator<KeyValuePair<T1, T2>> GetEnumerator()
     {
         return ((IEnumerable<KeyValuePair<T1, T2>>)GetSnapshot()).GetEnumerator();
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
@@ -431,16 +377,14 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     #region Dictionary2
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public T1 this[T2 key]
+    public T1 this[T2 key2]
     {
         get
         {
-            ThrowIfDisposed();
             _lock.EnterReadLock();
             try
             {
-                return _dictionary2[key];
+                return _dictionary2[key2];
             }
             finally
             {
@@ -450,35 +394,38 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
         set => throw new UseAlternativeMethodException(nameof(this.TrySetValue));
     }
 
-    /// <summary>
-    /// 尝试设置值
-    /// </summary>
-    /// <param name="key">键</param>
-    /// <param name="value">值</param>
-    /// <returns>是否设置成功</returns>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public bool TrySetValue(T2 key, T1 value)
+    /// <inheritdoc/>
+    public bool TrySetValue(T2 key2, T1 value1)
     {
-        ThrowIfDisposed();
         _lock.EnterWriteLock();
         try
         {
-            ref var d2ValueRef = ref CollectionsMarshal.GetValueRefOrNullRef(_dictionary2, key);
+            ref var d2ValueRef = ref CollectionsMarshal.GetValueRefOrNullRef(_dictionary2, key2);
             if (Unsafe.IsNullRef(ref d2ValueRef))
-                return false;
-            var d2Value = d2ValueRef;
-            if (_dictionary1.ContainsKey(value))
-                return false;
-            if (
-                _dictionary1.TryGetValue(d2Value, out var d1Value) is false
-                || _dictionary2.Comparer.Equals(d1Value, key) is false
-            )
-                return false;
-
-            d2ValueRef = value;
-            _dictionary1.Remove(d2Value);
-            _dictionary1.Add(value, key);
-            return true;
+            {
+                // 3
+                if (_dictionary1.ContainsKey(value1))
+                    return false;
+                // 1
+                _dictionary2.Add(key2, value1);
+                _dictionary1.Add(value1, key2);
+                return true;
+            }
+            else
+            {
+                var d2Value = d2ValueRef;
+                // 4, 如果 d2Value 和 value 相等, 证明 dic1 存在 (value, key)
+                if (_dictionary1.Comparer.Equals(d2Value, value1))
+                    return true;
+                // 3
+                if (_dictionary1.ContainsKey(value1))
+                    return false;
+                // 2
+                d2ValueRef = value1;
+                _dictionary1.Remove(d2Value);
+                _dictionary1.Add(value1, key2);
+                return true;
+            }
         }
         finally
         {
@@ -487,20 +434,18 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public bool TryAdd(T2 key, T1 value)
+    public bool TryAdd(T2 key2, T1 value1)
     {
-        ThrowIfDisposed();
         _lock.EnterWriteLock();
         try
         {
-            var result = _dictionary2.TryAdd(key, value);
+            var result = _dictionary2.TryAdd(key2, value1);
             if (result is false)
                 return false;
 
-            if (_dictionary1.TryAdd(value, key) is false)
+            if (_dictionary1.TryAdd(value1, key2) is false)
             {
-                _dictionary2.Remove(key);
+                _dictionary2.Remove(key2);
                 return false;
             }
 
@@ -513,21 +458,12 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public bool TryAdd(KeyValuePair<T2, T1> item)
+    public bool Remove(T2 key2)
     {
-        return TryAdd(item.Key, item.Value);
-    }
-
-    /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public bool Remove(T2 key)
-    {
-        ThrowIfDisposed();
         _lock.EnterWriteLock();
         try
         {
-            if (_dictionary2.Remove(key, out var value) is false)
+            if (_dictionary2.Remove(key2, out var value) is false)
                 return false;
 
             _dictionary1.Remove(value);
@@ -540,21 +476,19 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public bool Remove(KeyValuePair<T2, T1> item)
+    public bool Remove(KeyValuePair<T2, T1> item2)
     {
-        ThrowIfDisposed();
         _lock.EnterWriteLock();
         try
         {
             if (
-                _dictionary2.TryGetValue(item.Key, out var value) is false
-                || _dictionary1.Comparer.Equals(item.Value, value) is false
+                _dictionary2.TryGetValue(item2.Key, out var value) is false
+                || _dictionary1.Comparer.Equals(item2.Value, value) is false
             )
                 return false;
 
             _dictionary1.Remove(value);
-            _dictionary2.Remove(item.Key);
+            _dictionary2.Remove(item2.Key);
             return true;
         }
         finally
@@ -564,14 +498,13 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public bool Contains(KeyValuePair<T2, T1> item)
+    public bool Contains(KeyValuePair<T2, T1> item2)
     {
-        ThrowIfDisposed();
         _lock.EnterReadLock();
         try
         {
-            return _dictionary2.Contains(item);
+            return _dictionary2.TryGetValue(item2.Key, out var value1)
+                && _dictionary1.Comparer.Equals(item2.Value, value1);
         }
         finally
         {
@@ -580,14 +513,12 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public bool ContainsKey(T2 key)
+    public bool ContainsKey(T2 key2)
     {
-        ThrowIfDisposed();
         _lock.EnterReadLock();
         try
         {
-            return _dictionary2.ContainsKey(key);
+            return _dictionary2.ContainsKey(key2);
         }
         finally
         {
@@ -596,14 +527,12 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
-    public void CopyTo(KeyValuePair<T2, T1>[] array, int arrayIndex)
+    public void CopyTo(KeyValuePair<T2, T1>[] array2, int arrayIndex)
     {
-        ThrowIfDisposed();
         _lock.EnterReadLock();
         try
         {
-            ((ICollection<KeyValuePair<T2, T1>>)_dictionary2).CopyTo(array, arrayIndex);
+            ((ICollection<KeyValuePair<T2, T1>>)_dictionary2).CopyTo(array2, arrayIndex);
         }
         finally
         {
@@ -612,13 +541,12 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    public bool TryGetValue(T2 key, [MaybeNullWhen(false)] out T1 value)
+    public bool TryGetValue(T2 key2, [MaybeNullWhen(false)] out T1 value)
     {
-        ThrowIfDisposed();
         _lock.EnterReadLock();
         try
         {
-            return _dictionary2.TryGetValue(key, out value);
+            return _dictionary2.TryGetValue(key2, out value);
         }
         finally
         {
@@ -633,10 +561,8 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     /// <summary>
     /// 获取键值对快照
     /// </summary>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
     public KeyValuePair<T1, T2>[] GetSnapshot()
     {
-        ThrowIfDisposed();
         _lock.EnterReadLock();
         try
         {
@@ -651,10 +577,8 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     /// <summary>
     /// 获取键快照
     /// </summary>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
     public T1[] GetKeysSnapshot()
     {
-        ThrowIfDisposed();
         _lock.EnterReadLock();
         try
         {
@@ -671,10 +595,8 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     /// <summary>
     /// 获取值快照
     /// </summary>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
     public T2[] GetValuesSnapshot()
     {
-        ThrowIfDisposed();
         _lock.EnterReadLock();
         try
         {
@@ -693,10 +615,8 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
     /// </summary>
     /// <param name="capacity">目标容量</param>
     /// <returns>最终容量</returns>
-    /// <exception cref="ObjectDisposedException">对象已释放</exception>
     public int EnsureCapacity(int capacity)
     {
-        ThrowIfDisposed();
         _lock.EnterWriteLock();
         try
         {
@@ -712,49 +632,9 @@ public class ConcurrentBidirectionalDictionary<T1, T2>
 
     #endregion
 
-    #region Dispose
-
-    private bool _disposed;
-
-    /// <inheritdoc/>
-    ~ConcurrentBidirectionalDictionary()
-    {
-        Dispose(false);
-    }
-
     /// <inheritdoc/>
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
+        _lock.Dispose();
     }
-
-    /// <inheritdoc/>
-    protected virtual void Dispose(bool disposing)
-    {
-        if (Interlocked.Exchange(ref _disposed, true))
-            return;
-
-        if (disposing)
-        {
-            _lock.EnterWriteLock();
-            try
-            {
-                _dictionary1.Clear();
-                _dictionary2.Clear();
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void ThrowIfDisposed()
-    {
-        ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed), this);
-    }
-
-    #endregion
 }

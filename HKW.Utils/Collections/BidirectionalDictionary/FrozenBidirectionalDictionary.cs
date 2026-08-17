@@ -1,8 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Frozen;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Collections;
@@ -12,68 +15,34 @@ namespace HKW.HKWUtils.Collections;
 /// </summary>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
-public class FrozenBidirectionalDictionary<T1, T2>
-    : IDictionary<T1, T2>,
-        IReadOnlyDictionary<T1, T2>,
-        IDictionary
+public sealed class FrozenBidirectionalDictionary<T1, T2>
+    : IBidirectionalDictionary<T1, T2>,
+        IReadOnlyBidirectionalDictionary<T1, T2>
     where T1 : notnull
     where T2 : notnull
 {
+    /// <inheritdoc/>
+    /// <param name="source">字典1</param>
+    /// <param name="comparer1">T1比较器</param>
+    /// <param name="comparer2">T2比较器</param>
+    public FrozenBidirectionalDictionary(
+        IEnumerable<KeyValuePair<T1, T2>> source,
+        IEqualityComparer<T1>? comparer1 = null,
+        IEqualityComparer<T2>? comparer2 = null
+    )
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        _dictionary1 = FrozenDictionary.ToFrozenDictionary(source, comparer1);
+        _dictionary2 = FrozenDictionary.ToFrozenDictionary(
+            source.Select(p => new KeyValuePair<T2, T1>(p.Value, p.Key)),
+            comparer2
+        );
+    }
+
     private readonly FrozenDictionary<T1, T2> _dictionary1;
+
     private readonly FrozenDictionary<T2, T1> _dictionary2;
-
-    /// <inheritdoc/>
-    /// <param name="keyValuePairs">键值对</param>
-    /// <param name="comparer1">比较器1</param>
-    /// <param name="comparer2">比较器2</param>
-    internal FrozenBidirectionalDictionary(
-        IEnumerable<KeyValuePair<T1, T2>> keyValuePairs,
-        IEqualityComparer<T1>? comparer1 = null,
-        IEqualityComparer<T2>? comparer2 = null
-    )
-    {
-        ArgumentNullException.ThrowIfNull(keyValuePairs);
-
-        if (keyValuePairs is not ICollection<KeyValuePair<T1, T2>> collection)
-            collection = keyValuePairs.ToArray();
-
-        _dictionary1 = FrozenDictionary.ToFrozenDictionary(collection, comparer1);
-        _dictionary2 = FrozenDictionary.ToFrozenDictionary(
-            collection,
-            kv => kv.Value,
-            kv => kv.Key,
-            comparer2
-        );
-    }
-
-    /// <inheritdoc/>
-    /// <param name="keyValuePairs">键值对</param>
-    /// <param name="comparer1">比较器1</param>
-    /// <param name="comparer2">比较器2</param>
-    internal FrozenBidirectionalDictionary(
-        IEnumerable<(T1, T2)> keyValuePairs,
-        IEqualityComparer<T1>? comparer1 = null,
-        IEqualityComparer<T2>? comparer2 = null
-    )
-    {
-        ArgumentNullException.ThrowIfNull(keyValuePairs);
-
-        if (keyValuePairs is not ICollection<(T1, T2)> collection)
-            collection = keyValuePairs.ToArray();
-
-        _dictionary1 = FrozenDictionary.ToFrozenDictionary(
-            collection,
-            x => x.Item1,
-            x => x.Item2,
-            comparer1
-        );
-        _dictionary2 = FrozenDictionary.ToFrozenDictionary(
-            collection,
-            x => x.Item2,
-            x => x.Item1,
-            comparer2
-        );
-    }
 
     /// <inheritdoc/>
     public ICollection<T1> Keys => _dictionary1.Keys;
@@ -87,65 +56,105 @@ public class FrozenBidirectionalDictionary<T1, T2>
     /// <inheritdoc/>
     public bool IsReadOnly => true;
 
+    /// <summary>
+    /// 字典1
+    /// </summary>
+    public IDictionary<T1, T2> Dictionary1 =>
+        field ??= new ReadOnlyDictionary<T1, T2>(_dictionary1);
+
+    /// <summary>
+    /// 字典2
+    /// </summary>
+    public IDictionary<T2, T1> Dictionary2 =>
+        field ??= new ReadOnlyDictionary<T2, T1>(_dictionary2);
+
     IEnumerable<T1> IReadOnlyDictionary<T1, T2>.Keys => Keys;
 
     IEnumerable<T2> IReadOnlyDictionary<T1, T2>.Values => Values;
 
-    bool IDictionary.IsFixedSize => ((IDictionary)_dictionary1).IsFixedSize;
-
-    ICollection IDictionary.Keys => ((IDictionary)_dictionary1).Keys;
-
-    ICollection IDictionary.Values => ((IDictionary)_dictionary1).Values;
-
-    bool ICollection.IsSynchronized => ((ICollection)_dictionary1).IsSynchronized;
-
-    object ICollection.SyncRoot => ((ICollection)_dictionary1).SyncRoot;
-
-    object? IDictionary.this[object key]
-    {
-        get => ((IDictionary)_dictionary1)[key];
-        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
-    }
-
     #region Dictionary1
     /// <inheritdoc/>
-    public T2 this[T1 key]
+    public T2 this[T1 key1]
     {
-        get => _dictionary1[key];
+        get => _dictionary1[key1];
         set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
-    void IDictionary<T1, T2>.Add(T1 key, T2 value)
+    void IDictionary<T1, T2>.Add(T1 key1, T2 value2)
     {
         throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
-    void ICollection<KeyValuePair<T1, T2>>.Add(KeyValuePair<T1, T2> item)
+    void ICollection<KeyValuePair<T1, T2>>.Add(KeyValuePair<T1, T2> item1)
     {
         throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
+    /// <inheritdoc/>
+    bool IBidirectionalDictionary<T1, T2>.TryAdd(T1 key1, T2 value2)
+    {
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+    }
+
+    /// <inheritdoc/>
+    bool IBidirectionalDictionary<T1, T2>.TrySetValue(T1 key1, T2 value2)
+    {
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+    }
+
+    /// <inheritdoc/>
+    bool IBidirectionalDictionary<T1, T2>.Remove(T1 key)
+    {
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+    }
+
+    /// <inheritdoc/>
+    bool IDictionary<T1, T2>.Remove(T1 key)
+    {
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+    }
+
+    /// <inheritdoc/>
+    bool IBidirectionalDictionary<T1, T2>.Remove(KeyValuePair<T1, T2> item1)
+    {
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+    }
+
+    /// <inheritdoc/>
+    bool ICollection<KeyValuePair<T1, T2>>.Remove(KeyValuePair<T1, T2> item1)
+    {
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+    }
+
+    /// <inheritdoc/>
     void ICollection<KeyValuePair<T1, T2>>.Clear()
     {
         throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
-    public bool Contains(KeyValuePair<T1, T2> item)
+    public bool Contains(KeyValuePair<T1, T2> item1)
     {
-        return _dictionary1.Contains(item);
+        return _dictionary1.TryGetValue(item1.Key, out var value2)
+            && _dictionary2.Comparer.Equals(item1.Value, value2);
     }
 
     /// <inheritdoc/>
-    public bool ContainsKey(T1 key)
+    public bool ContainsKey(T1 key1)
     {
-        return _dictionary1.ContainsKey(key);
+        return _dictionary1.ContainsKey(key1);
     }
 
     /// <inheritdoc/>
-    public void CopyTo(KeyValuePair<T1, T2>[] array, int arrayIndex)
+    public void CopyTo(KeyValuePair<T1, T2>[] array1, int arrayIndex)
     {
-        _dictionary1.CopyTo(array, arrayIndex);
+        ((ICollection<KeyValuePair<T1, T2>>)_dictionary1).CopyTo(array1, arrayIndex);
+    }
+
+    /// <inheritdoc/>
+    public bool TryGetValue(T1 key1, [MaybeNullWhen(false)] out T2 value)
+    {
+        return _dictionary1.TryGetValue(key1, out value);
     }
 
     /// <inheritdoc/>
@@ -154,70 +163,42 @@ public class FrozenBidirectionalDictionary<T1, T2>
         return _dictionary1.GetEnumerator();
     }
 
-    bool IDictionary<T1, T2>.Remove(T1 key)
-    {
-        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
-    }
-
-    bool ICollection<KeyValuePair<T1, T2>>.Remove(KeyValuePair<T1, T2> item)
-    {
-        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
-    }
-
-    /// <inheritdoc/>
-    public bool TryGetValue(T1 key, [MaybeNullWhen(false)] out T2 value)
-    {
-        return _dictionary1.TryGetValue(key, out value);
-    }
-
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return _dictionary1.GetEnumerator();
-    }
-
-    void IDictionary.Add(object key, object? value)
-    {
-        ((IDictionary)_dictionary1).Add(key, value);
-    }
-
-    void IDictionary.Clear()
-    {
-        ((IDictionary)_dictionary1).Clear();
-    }
-
-    bool IDictionary.Contains(object key)
-    {
-        return ((IDictionary)_dictionary1).Contains(key);
-    }
-
-    IDictionaryEnumerator IDictionary.GetEnumerator()
-    {
-        return ((IDictionary)_dictionary1).GetEnumerator();
-    }
-
-    void IDictionary.Remove(object key)
-    {
-        ((IDictionary)_dictionary1).Remove(key);
-    }
-
-    void ICollection.CopyTo(Array array, int index)
-    {
-        ((ICollection)_dictionary1).CopyTo(array, index);
+        return GetEnumerator();
     }
     #endregion
 
     #region Dictionary2
     /// <inheritdoc/>
-    public T1 this[T2 key]
+    public T1 this[T2 key2]
     {
-        get => _dictionary2[key];
+        get => _dictionary2[key2];
         set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
-    public bool Contains(KeyValuePair<T2, T1> item)
+    bool IBidirectionalDictionary<T1, T2>.TryAdd(T2 key2, T1 value1)
     {
-        return _dictionary2.Contains(item);
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+    }
+
+    /// <inheritdoc/>
+    bool IBidirectionalDictionary<T1, T2>.TrySetValue(T2 key2, T1 value1)
+    {
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+    }
+
+    /// <inheritdoc/>
+    bool IBidirectionalDictionary<T1, T2>.Remove(T2 key2)
+    {
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+    }
+
+    /// <inheritdoc/>
+    bool IBidirectionalDictionary<T1, T2>.Remove(KeyValuePair<T2, T1> item2)
+    {
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
@@ -227,15 +208,22 @@ public class FrozenBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    public void CopyTo(KeyValuePair<T2, T1>[] array, int arrayIndex)
+    public bool Contains(KeyValuePair<T2, T1> item2)
     {
-        _dictionary2.CopyTo(array, arrayIndex);
+        return _dictionary2.TryGetValue(item2.Key, out var value1)
+            && _dictionary1.Comparer.Equals(item2.Value, value1);
     }
 
     /// <inheritdoc/>
-    public bool TryGetValue(T2 key, [MaybeNullWhen(false)] out T1 value)
+    public void CopyTo(KeyValuePair<T2, T1>[] array2, int arrayIndex)
     {
-        return _dictionary2.TryGetValue(key, out value);
+        ((ICollection<KeyValuePair<T2, T1>>)_dictionary2).CopyTo(array2, arrayIndex);
+    }
+
+    /// <inheritdoc/>
+    public bool TryGetValue(T2 key2, [MaybeNullWhen(false)] out T1 value)
+    {
+        return _dictionary2.TryGetValue(key2, out value);
     }
 
     #endregion

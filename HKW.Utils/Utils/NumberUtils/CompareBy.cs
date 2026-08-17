@@ -15,12 +15,12 @@ public static partial class NumberUtils
         ComparisonOperatorType
     > ComparisonOperatorTypeByString { get; } =
         new([
-            ("==", ComparisonOperatorType.Equality),
-            ("!=", ComparisonOperatorType.Inequality),
-            ("<", ComparisonOperatorType.LessThan),
-            (">", ComparisonOperatorType.GreaterThan),
-            ("<=", ComparisonOperatorType.LessThanOrEqual),
-            (">=", ComparisonOperatorType.GreaterThanOrEqual),
+            KeyValuePair.Create("==", ComparisonOperatorType.Equality),
+            KeyValuePair.Create("!=", ComparisonOperatorType.Inequality),
+            KeyValuePair.Create("<", ComparisonOperatorType.LessThan),
+            KeyValuePair.Create(">", ComparisonOperatorType.GreaterThan),
+            KeyValuePair.Create("<=", ComparisonOperatorType.LessThanOrEqual),
+            KeyValuePair.Create(">=", ComparisonOperatorType.GreaterThanOrEqual),
         ]);
 
     /// <summary>

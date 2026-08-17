@@ -14,9 +14,9 @@ public static partial class NumberUtils
         BitwiseOperatorType
     > BitwiseOperatorTypeByChar { get; } =
         new([
-            ('|', BitwiseOperatorType.Or),
-            ('&', BitwiseOperatorType.And),
-            ('^', BitwiseOperatorType.LogicalOr),
+            KeyValuePair.Create('|', BitwiseOperatorType.Or),
+            KeyValuePair.Create('&', BitwiseOperatorType.And),
+            KeyValuePair.Create('^', BitwiseOperatorType.LogicalOr),
         ]);
 
     /// <summary>
