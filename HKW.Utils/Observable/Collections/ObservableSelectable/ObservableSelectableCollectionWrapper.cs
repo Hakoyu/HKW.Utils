@@ -1,9 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.DebugViews;
-using ReactiveUI;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -12,16 +12,20 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="TItem">项目类型</typeparam>
 /// <typeparam name="TCollection">集合类型</typeparam>
-public partial class ObservableSelectableCollectionWrapper<TItem, TCollection>
-    : ReactiveObject,
-        ICollectionWrapper<TItem, TCollection>,
-        IDisposable
+[DebuggerDisplay("Count = {SourceCollection.Count}")]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
+public class ObservableSelectableCollectionWrapper<TItem, TCollection>
+    : ICollectionWrapper<TItem, TCollection>,
+        IDisposable,
+        INotifyPropertyChanged
     where TCollection : ICollection<TItem>, INotifyCollectionChanged
 {
     /// <inheritdoc/>
     /// <param name="collection">集合</param>
     public ObservableSelectableCollectionWrapper(TCollection collection)
     {
+        ArgumentNullException.ThrowIfNull(collection);
+
         SourceCollection = collection;
         collection.CollectionChanged += Collection_CollectionChanged;
     }
@@ -33,26 +37,16 @@ public partial class ObservableSelectableCollectionWrapper<TItem, TCollection>
 
         if (e.Action is NotifyCollectionChangedAction.Replace)
         {
-            if (
-                e.OldItems?[0] is TItem item
-                && EqualityComparer<TItem>.Default.Equals(SelectedItem, item)
-            )
-            {
-                SelectedItem = (TItem)e.NewItems?[0]!;
-            }
+            UpdateSelectedItem(e.OldItems, e.NewItems);
         }
         else if (e.Action is NotifyCollectionChangedAction.Remove)
         {
             if (e.OldItems?.Contains(SelectedItem) is true)
-            {
-                SelectedItem = default!;
-                HasSelection = false;
-            }
+                ClearSelection();
         }
         else if (e.Action is NotifyCollectionChangedAction.Reset)
         {
-            SelectedItem = default!;
-            HasSelection = false;
+            ClearSelection();
         }
     }
 
@@ -62,40 +56,80 @@ public partial class ObservableSelectableCollectionWrapper<TItem, TCollection>
     /// <summary>
     /// 已选中
     /// </summary>
-    public bool HasSelection { get; private set; } = false;
+    public bool HasSelection { get; private set; }
 
     private TItem _selectedItem = default!;
 
     /// <summary>
     /// 选中的项目
     /// </summary>
+#pragma warning disable S4275
     public TItem SelectedItem
     {
         get => _selectedItem;
         set
         {
-            if (EqualityComparer<TItem>.Default.Equals(_selectedItem, value))
+            if (SourceCollection.Contains(value) is false)
+            {
+                ClearSelection();
                 return;
-            this.RaisePropertyChanging(nameof(SelectedItem));
-            _selectedItem = value;
-            if (SourceCollection.Contains(value))
-            {
-                HasSelection = true;
             }
-            else
-            {
-                HasSelection = false;
-            }
-            this.RaisePropertyChanged(nameof(SelectedItem));
-            this.RaisePropertyChanged(nameof(HasSelection));
+
+            SetSelectedItem(value);
         }
     }
+#pragma warning restore S4275
+
+    private void SetSelectedItem(TItem item)
+    {
+        if (HasSelection && EqualityComparer<TItem>.Default.Equals(_selectedItem, item))
+            return;
+
+        _selectedItem = item;
+        HasSelection = true;
+        OnPropertyChanged(nameof(SelectedItem));
+        OnPropertyChanged(nameof(HasSelection));
+    }
+
+    private void UpdateSelectedItem(IList? oldItems, IList? newItems)
+    {
+        if (oldItems is null || newItems is null)
+            return;
+
+        var index = oldItems.IndexOf(SelectedItem);
+        if (index < 0 || index >= newItems.Count)
+            return;
+
+        _selectedItem = (TItem)newItems[index]!;
+        OnPropertyChanged(nameof(SelectedItem));
+    }
+
+    private void ClearSelection()
+    {
+        if (
+            HasSelection is false
+            && EqualityComparer<TItem>.Default.Equals(_selectedItem, default!)
+        )
+        {
+            return;
+        }
+
+        _selectedItem = default!;
+        HasSelection = false;
+        OnPropertyChanged(nameof(SelectedItem));
+        OnPropertyChanged(nameof(HasSelection));
+    }
+
+    private void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    /// <inheritdoc/>
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     #region Dispose
     private bool _disposed;
-
-    /// <inheritdoc/>
-    ~ObservableSelectableCollectionWrapper() => Dispose(false);
 
     /// <inheritdoc/>
     public void Dispose()
@@ -109,12 +143,13 @@ public partial class ObservableSelectableCollectionWrapper<TItem, TCollection>
     {
         if (_disposed)
             return;
+
         if (disposing)
         {
-            HasSelection = false;
-            SelectedItem = default!;
+            ClearSelection();
             SourceCollection.CollectionChanged -= Collection_CollectionChanged;
         }
+
         _disposed = true;
     }
     #endregion

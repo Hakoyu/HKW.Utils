@@ -47,8 +47,7 @@ public sealed partial class ObservableValue<T> : ReactiveObjectX, IEquatable<Obs
     /// <inheritdoc/>
     public override bool Equals(object? obj)
     {
-        return obj is ObservableValue<T> value
-            && EqualityComparer<T>.Default.Equals(Value, value.Value);
+        return Equals(obj as ObservableValue<T>);
     }
 
     /// <inheritdoc/>

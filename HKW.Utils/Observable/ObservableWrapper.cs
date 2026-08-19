@@ -90,7 +90,9 @@ public sealed partial class ObservableWrapper<TObject, TProperty> : DisposableRe
     /// </summary>
     public TProperty Value
     {
+#pragma warning disable S4275
         get => _getter(Source);
+#pragma warning restore S4275
         set => RaiseAndSetValue(ref _value, value);
     }
 

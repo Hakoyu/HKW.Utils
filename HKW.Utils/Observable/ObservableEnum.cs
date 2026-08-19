@@ -14,13 +14,11 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
     where TEnum : struct, Enum
 {
     /// <inheritdoc/>
-    public ObservableEnum() { }
-
-    /// <inheritdoc/>
     /// <param name="value">枚举值</param>
-    public ObservableEnum(TEnum value)
+    public ObservableEnum(TEnum value = default)
     {
         Value = value;
+        Info = EnumInfo<TEnum>.GetInfo();
     }
 
     /// <inheritdoc/>
@@ -32,6 +30,7 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
     {
         AddFlagFunc = addFlag;
         RemoveFlagFunc = removeFlag;
+        Info = EnumInfo<TEnum>.GetInfo();
     }
 
     /// <summary>
@@ -41,13 +40,18 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
     public TEnum Value { get; set; }
 
     /// <summary>
+    /// 是可标志的
+    /// </summary>
+    public EnumInfo<TEnum> Info { get; }
+
+    /// <summary>
     /// 添加标志
     /// </summary>
     /// <param name="flag">标志</param>
     [ReactiveCommand]
     public void AddFlag(TEnum flag)
     {
-        InvalidEnumArgumentException.ThrowIfNotFlaggable(EnumInfo<TEnum>.GetInfo());
+        InvalidEnumArgumentException.ThrowIfNotFlaggable(Info);
         Value = AddFlagFunc(Value, flag);
     }
 
@@ -58,7 +62,7 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
     [ReactiveCommand]
     public void AddFlagInfo(IEnumInfo<TEnum> flag)
     {
-        InvalidEnumArgumentException.ThrowIfNotFlaggable(EnumInfo<TEnum>.GetInfo());
+        InvalidEnumArgumentException.ThrowIfNotFlaggable(Info);
         Value = AddFlagFunc(Value, flag.Value);
     }
 
@@ -69,7 +73,7 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
     [ReactiveCommand]
     public void RemoveFlag(TEnum flag)
     {
-        InvalidEnumArgumentException.ThrowIfNotFlaggable(EnumInfo<TEnum>.GetInfo());
+        InvalidEnumArgumentException.ThrowIfNotFlaggable(Info);
         Value = RemoveFlagFunc(Value, flag);
     }
 
@@ -80,7 +84,7 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
     [ReactiveCommand]
     public void RemoveFlagInfo(IEnumInfo<TEnum> flag)
     {
-        InvalidEnumArgumentException.ThrowIfNotFlaggable(EnumInfo<TEnum>.GetInfo());
+        InvalidEnumArgumentException.ThrowIfNotFlaggable(Info);
         Value = RemoveFlagFunc(Value, flag.Value);
     }
 

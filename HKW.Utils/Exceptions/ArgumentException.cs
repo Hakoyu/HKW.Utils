@@ -361,6 +361,26 @@ public static partial class ArgumentExceptions
         /// 当数组类型与集合中项的类型不兼容时抛出异常
         /// </summary>
         /// <param name="array">数组</param>
+        /// <param name="paramName">参数名</param>
+        /// <exception cref="ArgumentException">数组类型与集合中项的类型不兼容</exception>
+        public static void ThrowIfIncompatibleArrayType<T>(
+            Array array,
+            [CallerArgumentExpression("array")] string? paramName = null
+        )
+        {
+            if (array is not T[])
+            {
+                throw new ArgumentException(
+                    "Target array type is not compatible with the type of items in the collection.",
+                    paramName
+                );
+            }
+        }
+
+        /// <summary>
+        /// 当数组类型与集合中项的类型不兼容时抛出异常
+        /// </summary>
+        /// <param name="array">数组</param>
         /// <param name="values">目标数组</param>
         /// <param name="paramName">参数名</param>
         /// <exception cref="ArgumentException">数组类型与集合中项的类型不兼容</exception>
@@ -384,6 +404,26 @@ public static partial class ArgumentExceptions
         /// 当 <paramref name="obj"/> 与指定类型不相同时抛出异常
         /// </summary>
         /// <param name="obj">对象</param>
+        /// <param name="paramName">参数名</param>
+        /// <exception cref="ArgumentException"><paramref name="obj"/> 与指定类型不相同</exception>
+        public static void ThrowIfWrongType<T>(
+            object? obj,
+            [CallerArgumentExpression("obj")] string? paramName = null
+        )
+        {
+            if (obj is not T)
+            {
+                throw new ArgumentException(
+                    $"The value '{obj}' is not of type '{typeof(T)}' and cannot be used in this generic collection.",
+                    paramName
+                );
+            }
+        }
+
+        /// <summary>
+        /// 当 <paramref name="obj"/> 与指定类型不相同时抛出异常
+        /// </summary>
+        /// <param name="obj">对象</param>
         /// <param name="value">值</param>
         /// <param name="paramName">参数名</param>
         /// <exception cref="ArgumentException"><paramref name="obj"/> 与指定类型不相同</exception>
@@ -393,6 +433,32 @@ public static partial class ArgumentExceptions
             [CallerArgumentExpression("obj")] string? paramName = null
         )
         {
+            if (obj is not T v)
+            {
+                throw new ArgumentException(
+                    $"The value '{obj}' is not of type '{typeof(T)}' and cannot be used in this generic collection.",
+                    paramName
+                );
+            }
+            value = v;
+        }
+
+        /// <summary>
+        /// 当 <paramref name="obj"/> 为 null 或与指定类型不相同时抛出异常
+        /// </summary>
+        /// <param name="obj">对象</param>
+        /// <param name="value">值</param>
+        /// <param name="paramName">参数名</param>
+        /// <exception cref="ArgumentNullException"><paramref name="obj"/> 为 null</exception>
+        /// <exception cref="ArgumentException"><paramref name="obj"/> 与指定类型不相同</exception>
+        public static void ThrowIfNullOrWrongType<T>(
+            object? obj,
+            out T value,
+            [CallerArgumentExpression("obj")] string? paramName = null
+        )
+        {
+            if (obj is null)
+                throw new ArgumentNullException(paramName);
             if (obj is not T v)
             {
                 throw new ArgumentException(

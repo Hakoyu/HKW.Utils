@@ -17,8 +17,8 @@ public sealed class ObservableSetTests : ObservableSetTestsBase
 public sealed class ObservableSetWrapperTests : ObservableSetTestsBase
 {
     protected override IObservableSet<string> CreateSet() =>
-        new ObservableSetWrapper<string, OrderedSet<string>>(
-            new OrderedSet<string>(Enumerable.StringRange(1, 10)),
+        new ObservableSetWrapper<string, OrderedHashSet<string>>(
+            new OrderedHashSet<string>(Enumerable.StringRange(1, 10)),
             null
         );
 }

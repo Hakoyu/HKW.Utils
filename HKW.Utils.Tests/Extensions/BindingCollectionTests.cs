@@ -66,7 +66,7 @@ public class BindingCollectionTests
     public void BindingSet()
     {
         var obSet = new ObservableSet<int>();
-        var set = new OrderedSet<int>();
+        var set = new OrderedHashSet<int>();
         obSet.BindingSet(set);
         obSet.Add(1);
         obSet.Add(2);
@@ -88,7 +88,7 @@ public class BindingCollectionTests
     public void BindingSetX()
     {
         var obSet = new ObservableSet<int>();
-        var set = new OrderedSet<int>();
+        var set = new OrderedHashSet<int>();
         obSet.BindingSetX(set);
         obSet.Add(1);
         obSet.Add(2);

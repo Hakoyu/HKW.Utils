@@ -16,6 +16,9 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
 /// <typeparam name="TDictionary">字典类型</typeparam>
+/// <remarks>
+/// 推荐使用顺序字典 <see cref="OrderedDictionary{TKey, TValue}"/>
+/// </remarks>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 #pragma warning disable S2436

@@ -1,10 +1,8 @@
-﻿using System.Collections.Specialized;
+﻿using System.ComponentModel;
 using System.Diagnostics;
-using HKW.HKWReactiveUI;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Extensions;
-using ReactiveUI;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -14,66 +12,30 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
 /// <typeparam name="TDictionary">集合类型</typeparam>
-[DebuggerDisplay("Count = {SourceDictionary.Count}")]
+[DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 #pragma warning disable S2436
-public partial class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictionary>
+public class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictionary>
 #pragma warning restore S2436
-    : ReactiveObject,
-        IDictionaryWrapper<TKey, TValue, TDictionary>,
-        IDisposable
+    : ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     where TKey : notnull
-    where TDictionary : IDictionary<TKey, TValue>, INotifyCollectionChanged
+    where TDictionary : IDictionary<TKey, TValue>
 {
     /// <inheritdoc/>
     /// <param name="dictionary">集合</param>
-    public ObservableSelectableDictionaryWrapper(TDictionary dictionary)
-    {
-        SourceDictionary = dictionary;
-        dictionary.CollectionChanged += Collection_CollectionChanged;
-    }
+    /// <param name="comparer">比较器, 必须与 <paramref name="dictionary"/> 的比较器相同</param>
+    public ObservableSelectableDictionaryWrapper(
+        TDictionary dictionary,
+        IEqualityComparer<TKey>? comparer = null
+    )
+        : base(dictionary, comparer) { }
 
-    private void Collection_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        if (HasSelection is false)
-            return;
-
-        if (e.Action is NotifyCollectionChangedAction.Replace)
-        {
-            if (
-                e.OldItems?[0] is KeyValuePair<TKey, TValue> item
-                && EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(SelectedItem, item)
-            )
-            {
-                SelectedItem = (KeyValuePair<TKey, TValue>)e.NewItems?[0]!;
-            }
-        }
-        else if (e.Action is NotifyCollectionChangedAction.Remove)
-        {
-            if (e.OldItems?.Contains(SelectedItem) is true)
-            {
-                SelectedItem = default!;
-                HasSelection = false;
-            }
-        }
-        else if (e.Action is NotifyCollectionChangedAction.Reset)
-        {
-            SelectedItem = default!;
-            HasSelection = false;
-        }
-    }
-
-    /// <inheritdoc/>
-    public TDictionary SourceDictionary { get; }
-
-    /// <inheritdoc/>
-    TDictionary ICollectionWrapper<KeyValuePair<TKey, TValue>, TDictionary>.SourceCollection =>
-        SourceDictionary;
+    private bool _hasSelection;
 
     /// <summary>
     /// 已选中
     /// </summary>
-    public bool HasSelection { get; private set; } = false;
+    public bool HasSelection => _hasSelection;
 
     /// <summary>
     /// 选中的键
@@ -97,47 +59,77 @@ public partial class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictio
     public KeyValuePair<TKey, TValue> SelectedItem
     {
         get => _selectedItem;
-        set
-        {
-            if (EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(_selectedItem, value))
-                return;
-            _selectedItem = value;
-            if (SourceDictionary.Contains(value))
-                HasSelection = true;
-            else
-                HasSelection = false;
-            this.RaisePropertyChanged(nameof(SelectedItem));
-            this.RaisePropertyChanged(nameof(SelectedKey));
-            this.RaisePropertyChanged(nameof(SelectedValue));
-            this.RaisePropertyChanged(nameof(HasSelection));
-        }
-    }
-
-    #region Dispose
-    private bool _disposed;
-
-    /// <inheritdoc/>
-    ~ObservableSelectableDictionaryWrapper() => Dispose(false);
-
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
+        set => SetSelectedItem(value);
     }
 
     /// <inheritdoc/>
-    protected virtual void Dispose(bool disposing)
+    protected override void OnDictionaryRemoved(
+        NotifyDictionaryChangeEventArgs<TKey, TValue>? args,
+        KeyValuePair<TKey, TValue> pair,
+        int removeIndex
+    )
     {
-        if (_disposed)
+        if (EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(_selectedItem, pair))
+            ClearSelection();
+
+        base.OnDictionaryRemoved(args, pair, removeIndex);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnDictionaryReplaced(
+        NotifyDictionaryChangeEventArgs<TKey, TValue>? args,
+        KeyValuePair<TKey, TValue> newPair,
+        KeyValuePair<TKey, TValue> oldPair
+    )
+    {
+        if (EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(_selectedItem, oldPair))
+            SetSelectedItem(newPair);
+
+        base.OnDictionaryReplaced(args, newPair, oldPair);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnDictionaryCleared()
+    {
+        ClearSelection();
+        base.OnDictionaryCleared();
+    }
+
+    private void SetSelectedItem(KeyValuePair<TKey, TValue> item)
+    {
+        if (EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(_selectedItem, item))
             return;
-        if (disposing)
-        {
-            HasSelection = false;
-            SelectedItem = default!;
-            SourceDictionary.CollectionChanged -= Collection_CollectionChanged;
-        }
-        _disposed = true;
+
+        _selectedItem = item;
+        _hasSelection = EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(item, default)
+            ? false
+            : Contains(item);
+        OnPropertyChanged(nameof(SelectedItem));
+        OnPropertyChanged(nameof(SelectedKey));
+        OnPropertyChanged(nameof(SelectedValue));
+        OnPropertyChanged(nameof(HasSelection));
+        OnSelectionChanged();
     }
-    #endregion
+
+    private void ClearSelection()
+    {
+        if (
+            _hasSelection is false
+            && EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(_selectedItem, default!)
+        )
+            return;
+
+        _selectedItem = default!;
+        _hasSelection = false;
+        OnPropertyChanged(nameof(SelectedItem));
+        OnPropertyChanged(nameof(SelectedKey));
+        OnPropertyChanged(nameof(SelectedValue));
+        OnPropertyChanged(nameof(HasSelection));
+        OnSelectionChanged();
+    }
+
+    /// <summary>
+    /// 选择状态改变后
+    /// </summary>
+    protected virtual void OnSelectionChanged() { }
 }

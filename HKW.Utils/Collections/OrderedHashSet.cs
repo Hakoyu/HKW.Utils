@@ -12,7 +12,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="T">项类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
-public class OrderedSet<T> : ISet<T>, IReadOnlySet<T>
+public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
     where T : notnull
 {
     /// <summary>
@@ -26,7 +26,7 @@ public class OrderedSet<T> : ISet<T>, IReadOnlySet<T>
     public IEqualityComparer<T> Comparer { get; }
 
     /// <inheritdoc/>
-    public OrderedSet()
+    public OrderedHashSet()
     {
         _dictionary = new();
         Comparer = EqualityComparer<T>.Default;
@@ -35,7 +35,7 @@ public class OrderedSet<T> : ISet<T>, IReadOnlySet<T>
     /// <inheritdoc/>
     /// <param name="collection">集合</param>
     /// <param name="comparer">比较器</param>
-    public OrderedSet(IEnumerable<T> collection, IEqualityComparer<T>? comparer = null)
+    public OrderedHashSet(IEnumerable<T> collection, IEqualityComparer<T>? comparer = null)
     {
         ArgumentNullException.ThrowIfNull(collection);
 
@@ -47,7 +47,7 @@ public class OrderedSet<T> : ISet<T>, IReadOnlySet<T>
     /// <inheritdoc/>
     /// <param name="capacity">容量</param>
     /// <param name="comparer">比较器</param>
-    public OrderedSet(int capacity, IEqualityComparer<T>? comparer = null)
+    public OrderedHashSet(int capacity, IEqualityComparer<T>? comparer = null)
     {
         _dictionary = new(capacity, comparer);
         Comparer = comparer ?? EqualityComparer<T>.Default;
@@ -121,9 +121,12 @@ public class OrderedSet<T> : ISet<T>, IReadOnlySet<T>
         }
 
         var lookup = CreateLookupSet(other);
-        lookup.SymmetricExceptWith(_dictionary.Keys);
-        foreach (var item in lookup)
-            _dictionary.Remove(item);
+        for (var index = Count - 1; index >= 0; index--)
+        {
+            var item = _dictionary.GetAt(index).Key;
+            if (lookup.Contains(item) is false)
+                _dictionary.Remove(item);
+        }
     }
 
     /// <inheritdoc/>
@@ -296,4 +299,90 @@ public class OrderedSet<T> : ISet<T>, IReadOnlySet<T>
 
         return new HashSet<T>(other, Comparer);
     }
+
+    #region IList
+    /// <summary>获取或设置指定索引处的值。</summary>
+    /// <param name="index">索引</param>
+    /// <returns>指定索引处的值</returns>
+    public T this[int index]
+    {
+        get => _dictionary.GetAt(index).Key;
+        set => _dictionary.SetAt(index, value, 0);
+    }
+
+    /// <inheritdoc/>
+    public int IndexOf(T item) => _dictionary.IndexOf(item);
+
+    /// <inheritdoc/>
+    public void Insert(int index, T item)
+    {
+        _dictionary.Insert(index, item, 0);
+    }
+
+    /// <inheritdoc/>
+    public void RemoveAt(int index)
+    {
+        _dictionary.RemoveAt(index);
+    }
+
+    /// <inheritdoc/>
+    bool IList.IsFixedSize => false;
+
+    /// <inheritdoc/>
+    bool ICollection.IsSynchronized => false;
+
+    /// <inheritdoc/>
+    object ICollection.SyncRoot => ((ICollection)_dictionary).SyncRoot;
+
+    /// <inheritdoc/>
+    object? IList.this[int index]
+    {
+        get => _dictionary.GetAt(index).Key;
+        set
+        {
+            if (value is not T item)
+                throw new ArgumentException("Value is of incorrect type.", nameof(value));
+
+            _dictionary.SetAt(index, item, 0);
+        }
+    }
+
+    /// <inheritdoc/>
+    int IList.Add(object? value)
+    {
+        if (value is not T item)
+            throw new ArgumentException("Value is of incorrect type.", nameof(value));
+
+        _dictionary.TryAdd(item, 0, out var index);
+        return index;
+    }
+
+    /// <inheritdoc/>
+    bool IList.Contains(object? value) => value is T item && _dictionary.ContainsKey(item);
+
+    /// <inheritdoc/>
+    int IList.IndexOf(object? value) => value is T item ? _dictionary.IndexOf(item) : -1;
+
+    /// <inheritdoc/>
+    void IList.Insert(int index, object? value)
+    {
+        if (value is not T item)
+            throw new ArgumentException("Value is of incorrect type.", nameof(value));
+
+        _dictionary.Insert(index, item, 0);
+    }
+
+    /// <inheritdoc/>
+    void IList.Remove(object? value)
+    {
+        if (value is T item)
+            _dictionary.Remove(item);
+    }
+
+    /// <inheritdoc/>
+    void ICollection.CopyTo(Array array, int index)
+    {
+        ((ICollection)_dictionary.Keys).CopyTo(array, index);
+    }
+    #endregion
 }

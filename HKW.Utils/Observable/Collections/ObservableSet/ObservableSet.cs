@@ -42,7 +42,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
     }
 
     /// <inheritdoc/>
-    private readonly OrderedSet<T> _set;
+    private readonly OrderedHashSet<T> _set;
 
     #region ISet
 

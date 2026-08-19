@@ -10,7 +10,7 @@ namespace HKW.HKWUtils.Observable;
 
 /// <summary>
 /// 可观测集合包装器
-/// <para>!!!注意!!! 基础集合必须是顺序集合, <see cref="HashSet{T}"/>无法有效使用此包装器, 请使用 <see cref="OrderedSet{T}"/></para>
+/// <para>!!!注意!!! 基础集合必须是顺序集合, <see cref="HashSet{T}"/>无法有效使用此包装器, 请使用 <see cref="OrderedHashSet{T}"/></para>
 /// </summary>
 /// <typeparam name="TItem">项类型</typeparam>
 /// <typeparam name="TSet">集合类型</typeparam>

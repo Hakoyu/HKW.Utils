@@ -148,7 +148,7 @@ public class IObservableCollectionTests
     public void BindingSetX()
     {
         var o = new ObservableSet<int>();
-        var t = new OrderedSet<int>();
+        var t = new OrderedHashSet<int>();
         o.BindingSetX(t);
         o.Add(1);
         Assert.IsTrue(o.SequenceEqual(t));
@@ -185,7 +185,7 @@ public class IObservableCollectionTests
     public void BindingSet()
     {
         var o = new ObservableSet<int>();
-        var t = new OrderedSet<int>();
+        var t = new OrderedHashSet<int>();
         o.BindingSet(t);
         o.Add(1);
         Assert.IsTrue(o.SequenceEqual(t));
