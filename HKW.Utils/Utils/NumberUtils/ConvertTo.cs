@@ -17,10 +17,10 @@ public static partial class NumberUtils
     /// <param name="provider">格式提供者</param>
     /// <returns>转换后的数值</returns>
     /// <exception cref="NotImplementedException">不支持的类型</exception>
-    public static object ConvertTo<T>(object value, IFormatProvider? provider = null)
+    public static T ConvertTo<T>(object value, IFormatProvider? provider = null)
         where T : struct, INumber<T>
     {
-        return ConvertTo(value, typeof(T), provider);
+        return (T)ConvertTo(value, typeof(T), provider);
     }
 
     /// <summary>
@@ -93,7 +93,7 @@ public static partial class NumberUtils
     /// <param name="provider">格式提供者</param>
     /// <returns>转换后的数值</returns>
     /// <exception cref="NotImplementedException">不支持的类型</exception>
-    public static object ConvertTo<T>(
+    public static T ConvertTo<T>(
         ReadOnlySpan<char> str,
         NumberStyles? style = null,
         IFormatProvider? provider = null

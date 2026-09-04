@@ -9,9 +9,9 @@ public static partial class NumberUtils
     /// <param name="value">值</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object BitwiseComplementF<T>(object value)
+    public static T BitwiseComplementF<T>(object value)
     {
-        return BitwiseComplementF(value, typeof(T));
+        return (T)BitwiseComplementF(value, typeof(T));
     }
 
     /// <summary>

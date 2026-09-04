@@ -13,7 +13,7 @@ public partial class NumberUtils
     /// <param name="operator">运算符</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object BitwiseShiftF<T>(object value1, object value2, string @operator)
+    public static T BitwiseShiftF<T>(object value1, object value2, string @operator)
         where T : struct, INumber<T>
     {
         return BitwiseShiftF<T>(value1, value2, GetBitwiseShiftType(@operator));
@@ -66,14 +66,10 @@ public partial class NumberUtils
     /// <param name="operatorType">运算符类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object BitwiseShiftF<T>(
-        object value1,
-        object value2,
-        BitwiseShiftType operatorType
-    )
+    public static T BitwiseShiftF<T>(object value1, object value2, BitwiseShiftType operatorType)
         where T : struct, INumber<T>
     {
-        return BitwiseShiftF(value1, value2, typeof(T), operatorType);
+        return (T)BitwiseShiftF(value1, value2, typeof(T), operatorType);
     }
 
     /// <summary>

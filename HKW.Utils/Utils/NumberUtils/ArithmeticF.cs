@@ -13,7 +13,7 @@ public static partial class NumberUtils
     /// <param name="operator">运算符</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object ArithmeticF<T>(object value1, object value2, char @operator)
+    public static T ArithmeticF<T>(object value1, object value2, char @operator)
         where T : struct, INumber<T>
     {
         return ArithmeticF<T>(value1, value2, GetArithmeticOperatorType(@operator));
@@ -61,14 +61,14 @@ public static partial class NumberUtils
     /// <param name="operatorType">运算符类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object ArithmeticF<T>(
+    public static T ArithmeticF<T>(
         object value1,
         object value2,
         ArithmeticOperatorType operatorType
     )
         where T : struct, INumber<T>
     {
-        return ArithmeticF(value1, value2, typeof(T), operatorType);
+        return (T)ArithmeticF(value1, value2, typeof(T), operatorType);
     }
 
     /// <summary>

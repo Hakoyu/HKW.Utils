@@ -13,7 +13,7 @@ public static partial class NumberUtils
     /// <param name="operator">运算符</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object BitwiseOperatorF<T>(object value1, object value2, char @operator)
+    public static T BitwiseOperatorF<T>(object value1, object value2, char @operator)
         where T : struct, INumber<T>
     {
         return BitwiseOperatorF<T>(value1, value2, GetBitwiseOperatorType(@operator));
@@ -66,14 +66,14 @@ public static partial class NumberUtils
     /// <param name="operatorType">运算符类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object BitwiseOperatorF<T>(
+    public static T BitwiseOperatorF<T>(
         object value1,
         object value2,
         BitwiseOperatorType operatorType
     )
         where T : struct, INumber<T>
     {
-        return BitwiseOperatorF(value1, value2, typeof(T), operatorType);
+        return (T)BitwiseOperatorF(value1, value2, typeof(T), operatorType);
     }
 
     /// <summary>

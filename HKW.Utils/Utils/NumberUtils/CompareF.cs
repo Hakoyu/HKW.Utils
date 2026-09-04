@@ -12,10 +12,10 @@ public static partial class NumberUtils
     /// <param name="value2">值2</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的数值类型</exception>
-    public static object CompareF<T>(object value1, object value2)
+    public static T CompareF<T>(object value1, object value2)
         where T : struct, INumber<T>
     {
-        return CompareF(value1, value2, typeof(T));
+        return (T)CompareF(value1, value2, typeof(T));
     }
 
     /// <summary>

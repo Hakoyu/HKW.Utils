@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Numerics;
 using HKW.HKWUtils.Collections;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils;
 
@@ -17,11 +19,42 @@ public static partial class NumberUtils
         new([
             KeyValuePair.Create("==", ComparisonOperatorType.Equality),
             KeyValuePair.Create("!=", ComparisonOperatorType.Inequality),
-            KeyValuePair.Create("<", ComparisonOperatorType.LessThan),
-            KeyValuePair.Create(">", ComparisonOperatorType.GreaterThan),
             KeyValuePair.Create("<=", ComparisonOperatorType.LessThanOrEqual),
             KeyValuePair.Create(">=", ComparisonOperatorType.GreaterThanOrEqual),
+            KeyValuePair.Create("<", ComparisonOperatorType.LessThan),
+            KeyValuePair.Create(">", ComparisonOperatorType.GreaterThan),
         ]);
+
+    /// <summary>
+    /// 获取比较运算符类型
+    /// </summary>
+    /// <param name="str">字符串</param>
+    /// <returns>比较运算符类型</returns>
+    public static ComparisonOperatorType GetComparisonOperatorType(string str)
+    {
+        return ComparisonOperatorTypeByString[str];
+    }
+
+    /// <summary>
+    /// 获取比较运算符类型
+    /// </summary>
+    /// <param name="str">字符串</param>
+    /// <param name="operatorLength">比较符号长度</param>
+    /// <returns>比较运算符类型</returns>
+    public static ComparisonOperatorType GetComparisonOperatorType(
+        string str,
+        out int operatorLength
+    )
+    {
+        var pair = ComparisonOperatorTypeByString.FirstOrDefault(p => str.StartsWith(p.Key));
+        if (pair.IsEmpty)
+        {
+            operatorLength = 0;
+            return default;
+        }
+        operatorLength = pair.Key.Length;
+        return pair.Value;
+    }
 
     /// <summary>
     /// 比较 (返回结果)

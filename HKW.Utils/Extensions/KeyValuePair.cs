@@ -13,6 +13,11 @@ public static partial class KeyValuePairExtensions
     extension<TKey, TValue>(KeyValuePair<TKey, TValue> pair)
         where TKey : notnull
     {
+        /// <summary>
+        /// 是空的
+        /// </summary>
+        public bool IsEmpty => EqualityComparer<TKey>.Default.Equals(pair.Key, default);
+
         /// <inheritdoc/>
         public static bool operator ==(KeyValuePair<TKey, TValue> a, KeyValuePair<TKey, TValue> b)
         {

@@ -16,10 +16,10 @@ public static partial class NumberUtils
     /// <param name="value2">值2</param>
     /// <returns>-1 表示value1<see langword="&lt;"/>value2,0 表示value1<see langword="=="/>value2,1 表示value1<see langword="&gt;"/>value2</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object Compare<T>(object value1, object value2)
+    public static T Compare<T>(object value1, object value2)
         where T : struct, INumber<T>
     {
-        return Compare(value1, value2, typeof(T));
+        return (T)Compare(value1, value2, typeof(T));
     }
 
     /// <summary>
