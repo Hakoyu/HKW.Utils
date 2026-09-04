@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel;
-using HKW.HKWReactiveUI;
+using System.Diagnostics;
 using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Extensions;
-using ReactiveUI;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -10,7 +9,7 @@ namespace HKW.HKWUtils.Observable;
 /// 可观测枚举
 /// </summary>
 /// <typeparam name="TEnum">枚举类型</typeparam>
-public partial class ObservableEnum<TEnum> : ReactiveObjectX
+public class ObservableEnum<TEnum> : INotifyPropertyChanging, INotifyPropertyChanged
     where TEnum : struct, Enum
 {
     /// <inheritdoc/>
@@ -33,11 +32,24 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
         Info = EnumInfo<TEnum>.GetInfo();
     }
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private TEnum _value = default!;
+
     /// <summary>
     /// 枚举值
     /// </summary>
-    [ReactiveProperty]
-    public TEnum Value { get; set; }
+    public TEnum Value
+    {
+        get => _value;
+        set
+        {
+            if (_value == value)
+                return;
+            PropertyChanging?.Invoke(this, PropertyChangingEventArgs.Cache_Value);
+            _value = value;
+            PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Value);
+        }
+    }
 
     /// <summary>
     /// 是可标志的
@@ -48,7 +60,6 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
     /// 添加标志
     /// </summary>
     /// <param name="flag">标志</param>
-    [ReactiveCommand]
     public void AddFlag(TEnum flag)
     {
         InvalidEnumArgumentException.ThrowIfNotFlaggable(Info);
@@ -59,7 +70,6 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
     /// 添加标志
     /// </summary>
     /// <param name="flag">标志</param>
-    [ReactiveCommand]
     public void AddFlagInfo(IEnumInfo<TEnum> flag)
     {
         InvalidEnumArgumentException.ThrowIfNotFlaggable(Info);
@@ -70,7 +80,6 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
     /// 删除标志
     /// </summary>
     /// <param name="flag">标志</param>
-    [ReactiveCommand]
     public void RemoveFlag(TEnum flag)
     {
         InvalidEnumArgumentException.ThrowIfNotFlaggable(Info);
@@ -81,7 +90,6 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
     /// 删除标志
     /// </summary>
     /// <param name="flag">标志</param>
-    [ReactiveCommand]
     public void RemoveFlagInfo(IEnumInfo<TEnum> flag)
     {
         InvalidEnumArgumentException.ThrowIfNotFlaggable(Info);
@@ -141,6 +149,12 @@ public partial class ObservableEnum<TEnum> : ReactiveObjectX
     /// </summary>
     public static RemoveFlag<TEnum> GlobalDefaultRemoveFlagFunc { get; } =
         (v, f) => v.RemoveFlag(f);
+
+    /// <inheritdoc/>
+    public event PropertyChangingEventHandler? PropertyChanging;
+
+    /// <inheritdoc/>
+    public event PropertyChangedEventHandler? PropertyChanged;
 }
 
 /// <summary>

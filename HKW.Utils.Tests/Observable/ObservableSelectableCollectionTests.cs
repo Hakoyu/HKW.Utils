@@ -160,7 +160,7 @@ public class ObservableSelectableCollectionTests
 
         Assert.IsFalse(dictionary.HasSelection);
         Assert.AreEqual(-1, dictionary.SelectedIndex);
-        Assert.AreEqual(default(KeyValuePair<string, string>), dictionary.SelectedItem);
+        Assert.AreEqual(default, dictionary.SelectedItem);
 
         dictionary.SelectedKey = "2";
 
@@ -185,7 +185,7 @@ public class ObservableSelectableCollectionTests
 
         Assert.IsFalse(dictionary.HasSelection);
         Assert.AreEqual(-1, dictionary.SelectedIndex);
-        Assert.AreEqual(default(KeyValuePair<string, string>), dictionary.SelectedItem);
+        Assert.AreEqual(default, dictionary.SelectedItem);
     }
 
     [TestMethod]
@@ -208,7 +208,7 @@ public class ObservableSelectableCollectionTests
 
         Assert.IsFalse(dictionary.HasSelection);
         Assert.AreEqual(-1, dictionary.SelectedIndex);
-        Assert.AreEqual(default(KeyValuePair<string, string>), dictionary.SelectedItem);
+        Assert.AreEqual(default, dictionary.SelectedItem);
 
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             dictionary.SelectedIndex = dictionary.Count
@@ -228,6 +228,6 @@ public class ObservableSelectableCollectionTests
 
         Assert.IsFalse(dictionary.HasSelection);
         Assert.AreEqual(-1, dictionary.SelectedIndex);
-        Assert.AreEqual(default(KeyValuePair<string, string>), dictionary.SelectedItem);
+        Assert.AreEqual(default, dictionary.SelectedItem);
     }
 }

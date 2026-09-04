@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
-using HKW.HKWReactiveUI;
 using HKW.HKWUtils.Drawing;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -10,8 +10,9 @@ namespace HKW.HKWUtils.Observable;
 /// 可观测点
 /// </summary>
 /// <typeparam name="T">数值类型</typeparam>
-public sealed partial class ObservablePoint<T>
-    : ReactiveObjectX,
+public sealed class ObservablePoint<T>
+    : INotifyPropertyChanging,
+        INotifyPropertyChanged,
         IEquatable<IReadOnlyPoint<T>>,
         ICloneable<ObservablePoint<T>>,
         IPoint<T>
@@ -34,19 +35,54 @@ public sealed partial class ObservablePoint<T>
         Y = y;
     }
 
-    /// <inheritdoc/>
-    [ReactiveProperty]
-    public T X { get; set; }
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private T _x;
 
     /// <inheritdoc/>
-    [ReactiveProperty]
-    public T Y { get; set; }
+    public T X
+    {
+        get => _x;
+        set
+        {
+            if (_x == value)
+                return;
+            if (PropertyChanging is not null)
+            {
+                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_X);
+                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_IsEmpty);
+            }
+            _x = value;
+            if (PropertyChanged is not null)
+            {
+                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_X);
+                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_IsEmpty);
+            }
+        }
+    }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private T _y;
+
+    /// <inheritdoc/>
+    public T Y
+    {
+        get => _y;
+        set
+        {
+            if (_y == value)
+                return;
+            PropertyChanging?.Invoke(this, PropertyChangingEventArgs.Cache_Y);
+            PropertyChanging?.Invoke(this, PropertyChangingEventArgs.Cache_IsEmpty);
+            _y = value;
+            PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Y);
+            PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_IsEmpty);
+        }
+    }
 
     /// <summary>
     /// 是空的
     /// </summary>
     [Browsable(false)]
-    [NotifyPropertyChangeFrom(nameof(X), nameof(Y))]
     public bool IsEmpty => X == T.Zero && Y == T.Zero;
 
     #region ICloneable
@@ -86,4 +122,10 @@ public sealed partial class ObservablePoint<T>
     {
         return $"{{X={X},Y={Y}}}";
     }
+
+    /// <inheritdoc/>
+    public event PropertyChangingEventHandler? PropertyChanging;
+
+    /// <inheritdoc/>
+    public event PropertyChangedEventHandler? PropertyChanged;
 }

@@ -7,14 +7,11 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reactive.Disposables;
-using DynamicData.Binding;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Drawing;
 using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
-using ReactiveUI;
 
 namespace HKW.HKWUtils;
 
@@ -521,7 +518,7 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         /// </summary>
         public void Refresh()
         {
-            PropertyChanged?.Invoke(this, new(""));
+            PropertyChanged?.InvokeIndexer(this);
         }
 
         /// <inheritdoc/>
@@ -549,7 +546,7 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         /// </summary>
         public void Refresh()
         {
-            PropertyChanged?.Invoke(this, new(""));
+            PropertyChanged?.InvokeIndexer(this);
         }
 
         /// <inheritdoc/>

@@ -4,21 +4,21 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using HKW.HKWReactiveUI;
 using HKW.HKWUtils.DebugViews;
-using ReactiveUI;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
 /// 可观测的状态组
 /// </summary>
-/// <typeparam name="TStage">状态类型</typeparam>
+/// <typeparam name="TState">状态类型</typeparam>
 /// <typeparam name="TMember">成员</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
-public abstract partial class ObservableStageGroup<TStage, TMember>
-    : ReactiveObject,
+public abstract class ObservableStateGroup<TState, TMember>
+    : INotifyPropertyChanging,
+        INotifyPropertyChanged,
         ICollection<TMember>
     where TMember : INotifyPropertyChanged
 {
@@ -37,10 +37,10 @@ public abstract partial class ObservableStageGroup<TStage, TMember>
     /// <inheritdoc/>
     /// <param name="members">成员</param>
     /// <param name="initialize">初始化, 若为 <see langword="false"/> 则必须在 ctor 中手动调用 <see cref="Initialize"/></param>
-    protected ObservableStageGroup(IEnumerable<TMember> members, bool initialize)
+    protected ObservableStateGroup(IEnumerable<TMember> members, bool initialize)
     {
         ArgumentNullException.ThrowIfNull(members);
-        Stage = default!;
+        State = default!;
         _members = members.ToHashSet();
         Members = new(_members);
         foreach (var item in _members)
@@ -59,7 +59,7 @@ public abstract partial class ObservableStageGroup<TStage, TMember>
         _changing = true;
         try
         {
-            Stage = InitializeStage(Members);
+            State = InitializeState(Members);
         }
         finally
         {
@@ -71,7 +71,7 @@ public abstract partial class ObservableStageGroup<TStage, TMember>
     {
         if (_changing)
             return;
-        Stage = MemberPropertyChanged((TMember)sender!, e);
+        State = MemberPropertyChanged((TMember)sender!, e);
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public abstract partial class ObservableStageGroup<TStage, TMember>
     /// </summary>
     /// <param name="members">成员</param>
     /// <returns>状态</returns>
-    protected abstract TStage InitializeStage(ICollection<TMember> members);
+    protected abstract TState InitializeState(ICollection<TMember> members);
 
     /// <summary>
     /// 成员属性改变
@@ -87,56 +87,57 @@ public abstract partial class ObservableStageGroup<TStage, TMember>
     /// <param name="member">成员</param>
     /// <param name="e">属性改变事件参数</param>
     /// <returns>状态</returns>
-    protected abstract TStage MemberPropertyChanged(TMember member, PropertyChangedEventArgs e);
+    protected abstract TState MemberPropertyChanged(TMember member, PropertyChangedEventArgs e);
 
     /// <summary>
     /// 成员被添加
     /// </summary>
     /// <param name="member">成员</param>
     /// <returns>状态</returns>
-    protected abstract TStage MemberAdded(TMember member);
+    protected abstract TState MemberAdded(TMember member);
 
     /// <summary>
     /// 成员被删除
     /// </summary>
     /// <param name="member">成员</param>
     /// <returns>状态</returns>
-    protected abstract TStage MemberRemoved(TMember member);
+    protected abstract TState MemberRemoved(TMember member);
 
     /// <summary>
     /// 成员被清理
     /// </summary>
     /// <param name="members">成员</param>
     /// <returns>状态</returns>
-    protected abstract TStage MemberClearing(ICollection<TMember> members);
+    protected abstract TState MemberClearing(ICollection<TMember> members);
 
     /// <summary>
     /// 状态改变
     /// </summary>
-    /// <param name="stage">状态</param>
+    /// <param name="state">状态</param>
     /// <param name="members">成员</param>
     /// <remarks>新状态</remarks>
-    protected abstract TStage StageChanged(TStage stage, ICollection<TMember> members);
+    protected abstract TState StateChanged(TState state, ICollection<TMember> members);
 
     /// <summary>
     /// 状态
     /// </summary>
-    public TStage Stage
+    public TState State
     {
         get => field;
         set
         {
-            if (EqualityComparer<TStage>.Default.Equals(field, value))
+            if (EqualityComparer<TState>.Default.Equals(field, value))
                 return;
-            this.RaisePropertyChanging(nameof(Stage));
+            PropertyChanging?.Invoke(this, PropertyChangingEventArgs.Cache_State);
             field = value;
-            this.RaisePropertyChanged(nameof(Stage));
+            PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_State);
+
             if (_changing)
                 return;
             _changing = true;
             try
             {
-                field = StageChanged(value, Members);
+                field = StateChanged(value, Members);
             }
             finally
             {
@@ -160,7 +161,7 @@ public abstract partial class ObservableStageGroup<TStage, TMember>
             _changing = true;
             try
             {
-                Stage = MemberAdded(item);
+                State = MemberAdded(item);
             }
             finally
             {
@@ -179,7 +180,7 @@ public abstract partial class ObservableStageGroup<TStage, TMember>
             _changing = true;
             try
             {
-                Stage = MemberRemoved(item);
+                State = MemberRemoved(item);
             }
             finally
             {
@@ -197,7 +198,7 @@ public abstract partial class ObservableStageGroup<TStage, TMember>
         _changing = true;
         try
         {
-            Stage = MemberClearing(Members);
+            State = MemberClearing(Members);
         }
         finally
         {
@@ -228,4 +229,10 @@ public abstract partial class ObservableStageGroup<TStage, TMember>
     {
         return ((IEnumerable)_members).GetEnumerator();
     }
+
+    /// <inheritdoc/>
+    public event PropertyChangingEventHandler? PropertyChanging;
+
+    /// <inheritdoc/>
+    public event PropertyChangedEventHandler? PropertyChanged;
 }

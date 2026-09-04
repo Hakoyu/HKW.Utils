@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using DynamicData;
 using HKW.HKWUtils.Exceptions;
 
 namespace HKW.HKWUtils.Extensions;

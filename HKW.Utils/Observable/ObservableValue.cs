@@ -1,5 +1,6 @@
-﻿using System.Diagnostics;
-using HKW.HKWReactiveUI;
+﻿using System.ComponentModel;
+using System.Diagnostics;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -8,13 +9,29 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="T">值类型</typeparam>
 [DebuggerDisplay("{Value}")]
-public sealed partial class ObservableValue<T> : ReactiveObjectX, IEquatable<ObservableValue<T>>
+public sealed class ObservableValue<T>
+    : INotifyPropertyChanging,
+        INotifyPropertyChanged,
+        IEquatable<ObservableValue<T>>
 {
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private T _value = default!;
+
     /// <summary>
     /// 值
     /// </summary>
-    [ReactiveProperty]
-    public T Value { get; set; }
+    public T Value
+    {
+        get => _value;
+        set
+        {
+            if (EqualityComparer<T>.Default.Equals(_value, value))
+                return;
+            PropertyChanging?.Invoke(this, PropertyChangingEventArgs.Cache_Value);
+            _value = value;
+            PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Value);
+        }
+    }
 
     #region Ctor
     /// <inheritdoc/>
@@ -69,4 +86,10 @@ public sealed partial class ObservableValue<T> : ReactiveObjectX, IEquatable<Obs
         return (a == b) is not true;
     }
     #endregion
+
+    /// <inheritdoc/>
+    public event PropertyChangingEventHandler? PropertyChanging;
+
+    /// <inheritdoc/>
+    public event PropertyChangedEventHandler? PropertyChanged;
 }

@@ -1,15 +1,11 @@
 ﻿using System.Buffers;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using DynamicData;
-using DynamicData.Binding;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtilsTests.Collections;
 using HKW.HKWUtilsTests.Extensions;
 using HKW.HKWUtilsTests.Observable;
 using HKW.HKWUtilsTests.Utils;
-using ReactiveUI;
-using Splat;
 
 namespace HKW;
 

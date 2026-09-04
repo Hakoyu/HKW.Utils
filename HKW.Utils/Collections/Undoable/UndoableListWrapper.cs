@@ -13,7 +13,7 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TList">列表类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
-public class UndoableListWrapper<TItem, TList> : IList<TItem>, IListWrapper<TItem, TList>
+public class UndoableListWrapper<TItem, TList> : IList<TItem>
     where TList : IList<TItem>
 {
     /// <inheritdoc/>
@@ -25,8 +25,7 @@ public class UndoableListWrapper<TItem, TList> : IList<TItem>, IListWrapper<TIte
     /// <summary>
     /// 基础列表
     /// </summary>
-    public TList SourceList { get; }
-    TList ICollectionWrapper<TItem, TList>.SourceCollection => SourceList;
+    protected TList SourceList { get; }
 
     private readonly Stack<TItem> _undoStack = new();
 
@@ -40,7 +39,11 @@ public class UndoableListWrapper<TItem, TList> : IList<TItem>, IListWrapper<TIte
     public TItem this[int index]
     {
         get => SourceList[index];
-        set => SourceList[index] = value;
+        set
+        {
+            SourceList[index] = value;
+            _undoStack.Clear();
+        }
     }
 
     /// <inheritdoc/>

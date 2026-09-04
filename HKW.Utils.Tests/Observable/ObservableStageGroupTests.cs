@@ -5,16 +5,13 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using HKW.HKWReactiveUI;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
-using ReactiveUI;
 
 namespace HKW.HKWUtilsTests.Observable;
 
 [TestClass]
-[ReferenceType(typeof(ReactiveObject))]
-public class ObservableStageGroupTests
+public class ObservableStateGroupTests
 {
     [TestMethod]
     public void InitializeAllMemberSelectedTrue()
@@ -22,7 +19,7 @@ public class ObservableStageGroupTests
         var group = new ObservableSelectableGroup(
             Enumerable.Range(0, 10).Select(_ => new ObservableSelectable() { IsSelected = true })
         );
-        Assert.IsTrue(group.Stage);
+        Assert.IsTrue(group.State);
         Assert.AreEqual(10, [group.SelectedCount, group.Count(x => x.IsSelected)]);
     }
 
@@ -32,43 +29,43 @@ public class ObservableStageGroupTests
         var group = new ObservableSelectableGroup(
             Enumerable.Range(0, 10).Select(_ => new ObservableSelectable() { IsSelected = false })
         );
-        Assert.IsFalse(group.Stage);
+        Assert.IsFalse(group.State);
         Assert.AreEqual(0, [group.SelectedCount, group.Count(x => x.IsSelected)]);
     }
 
     [TestMethod]
-    public void GroupStageChengeTrue()
+    public void GroupStateChengeTrue()
     {
         var group = new ObservableSelectableGroup(
             Enumerable.Range(0, 10).Select(_ => new ObservableSelectable() { IsSelected = false })
         );
-        Assert.IsFalse(group.Stage);
-        group.Stage = true;
-        Assert.IsTrue(group.Stage);
+        Assert.IsFalse(group.State);
+        group.State = true;
+        Assert.IsTrue(group.State);
         Assert.AreEqual(10, [group.SelectedCount, group.Count(x => x.IsSelected)]);
     }
 
     [TestMethod]
-    public void GroupStageChengeFalse()
+    public void GroupStateChengeFalse()
     {
         var group = new ObservableSelectableGroup(
             Enumerable.Range(0, 10).Select(_ => new ObservableSelectable() { IsSelected = true })
         );
-        Assert.IsTrue(group.Stage);
-        group.Stage = false;
-        Assert.IsFalse(group.Stage);
+        Assert.IsTrue(group.State);
+        group.State = false;
+        Assert.IsFalse(group.State);
         Assert.AreEqual(0, [group.SelectedCount, group.Count(x => x.IsSelected)]);
     }
 
     [TestMethod]
-    public void GroupStageChengeNull()
+    public void GroupStateChengeNull()
     {
         var group = new ObservableSelectableGroup(
             Enumerable.Range(0, 10).Select(_ => new ObservableSelectable() { IsSelected = true })
         );
-        Assert.IsTrue(group.Stage);
-        group.Stage = null;
-        Assert.IsTrue(group.Stage);
+        Assert.IsTrue(group.State);
+        group.State = null;
+        Assert.IsTrue(group.State);
         Assert.AreEqual(10, [group.SelectedCount, group.Count(x => x.IsSelected)]);
     }
 
@@ -78,16 +75,16 @@ public class ObservableStageGroupTests
         var group = new ObservableSelectableGroup(
             Enumerable.Range(0, 10).Select(_ => new ObservableSelectable() { IsSelected = false })
         );
-        Assert.IsFalse(group.Stage);
+        Assert.IsFalse(group.State);
         Assert.AreEqual(0, [group.SelectedCount, group.Count(x => x.IsSelected)]);
         foreach (var (e, i) in group.WithIndex())
         {
             e.IsSelected = true;
             if (i < group.Count - 1)
-                Assert.IsNull(group.Stage);
+                Assert.IsNull(group.State);
             Assert.AreEqual(i + 1, [group.SelectedCount, group.Count(x => x.IsSelected)]);
         }
-        Assert.IsTrue(group.Stage);
+        Assert.IsTrue(group.State);
         Assert.AreEqual(10, [group.SelectedCount, group.Count(x => x.IsSelected)]);
     }
 
@@ -97,24 +94,24 @@ public class ObservableStageGroupTests
         var group = new ObservableSelectableGroup(
             Enumerable.Range(0, 10).Select(_ => new ObservableSelectable() { IsSelected = true })
         );
-        Assert.IsTrue(group.Stage);
+        Assert.IsTrue(group.State);
         Assert.AreEqual(10, [group.SelectedCount, group.Count(x => x.IsSelected)]);
         foreach (var (e, i) in group.WithIndex())
         {
             e.IsSelected = false;
             if (i < group.Count - 1)
-                Assert.IsNull(group.Stage);
+                Assert.IsNull(group.State);
             Assert.AreEqual(
                 group.Count - i - 1,
                 [group.SelectedCount, group.Count(x => x.IsSelected)]
             );
         }
-        Assert.IsFalse(group.Stage);
+        Assert.IsFalse(group.State);
         Assert.AreEqual(0, [group.SelectedCount, group.Count(x => x.IsSelected)]);
     }
 }
 
-public partial class ObservableSelectableGroup : ObservableStageGroup<bool?, ObservableSelectable>
+public partial class ObservableSelectableGroup : ObservableStateGroup<bool?, ObservableSelectable>
 {
     public ObservableSelectableGroup(IEnumerable<ObservableSelectable> members)
         : base(members, false)
@@ -125,9 +122,9 @@ public partial class ObservableSelectableGroup : ObservableStageGroup<bool?, Obs
 
     public int SelectedCount { get; private set; }
 
-    private Dictionary<ObservableSelectable, bool> _selectedByMember;
+    private readonly Dictionary<ObservableSelectable, bool> _selectedByMember;
 
-    private bool? GetStage()
+    private bool? GetState()
     {
         if (Count == 0)
             return false;
@@ -139,7 +136,7 @@ public partial class ObservableSelectableGroup : ObservableStageGroup<bool?, Obs
             return null;
     }
 
-    protected override bool? InitializeStage(ICollection<ObservableSelectable> members)
+    protected override bool? InitializeState(ICollection<ObservableSelectable> members)
     {
         foreach (var item in members)
         {
@@ -147,7 +144,7 @@ public partial class ObservableSelectableGroup : ObservableStageGroup<bool?, Obs
                 SelectedCount++;
             _selectedByMember.Add(item, item.IsSelected);
         }
-        return GetStage();
+        return GetState();
     }
 
     protected override bool? MemberPropertyChanged(
@@ -156,7 +153,7 @@ public partial class ObservableSelectableGroup : ObservableStageGroup<bool?, Obs
     )
     {
         if (e.PropertyName != nameof(member.IsSelected))
-            return Stage;
+            return State;
         if (member.IsSelected && _selectedByMember[member] is false)
         {
             SelectedCount++;
@@ -167,10 +164,10 @@ public partial class ObservableSelectableGroup : ObservableStageGroup<bool?, Obs
             SelectedCount--;
             _selectedByMember[member] = false;
         }
-        return GetStage();
+        return GetState();
     }
 
-    protected override bool? StageChanged(bool? stage, ICollection<ObservableSelectable> members)
+    protected override bool? StateChanged(bool? stage, ICollection<ObservableSelectable> members)
     {
         if (stage is true)
         {
@@ -190,7 +187,7 @@ public partial class ObservableSelectableGroup : ObservableStageGroup<bool?, Obs
             }
             SelectedCount = 0;
         }
-        return GetStage();
+        return GetState();
     }
 
     protected override bool? MemberAdded(ObservableSelectable member)
@@ -198,7 +195,7 @@ public partial class ObservableSelectableGroup : ObservableStageGroup<bool?, Obs
         if (member.IsSelected)
             SelectedCount++;
         _selectedByMember[member] = member.IsSelected;
-        return GetStage();
+        return GetState();
     }
 
     protected override bool? MemberRemoved(ObservableSelectable member)
@@ -206,7 +203,7 @@ public partial class ObservableSelectableGroup : ObservableStageGroup<bool?, Obs
         if (member.IsSelected)
             SelectedCount--;
         _selectedByMember.Remove(member);
-        return GetStage();
+        return GetState();
     }
 
     protected override bool? MemberClearing(ICollection<ObservableSelectable> members)
@@ -217,8 +214,21 @@ public partial class ObservableSelectableGroup : ObservableStageGroup<bool?, Obs
     }
 }
 
-public partial class ObservableSelectable : ReactiveObject
+public partial class ObservableSelectable : INotifyPropertyChanged
 {
-    [ReactiveProperty]
-    public bool IsSelected { get; set; }
+    private bool _isSelected;
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set
+        {
+            if (_isSelected == value)
+                return;
+            _isSelected = value;
+            PropertyChanged?.Invoke(this, new(nameof(IsSelected)));
+        }
+    }
+
+    /// <inheritdoc/>
+    public event PropertyChangedEventHandler? PropertyChanged;
 }

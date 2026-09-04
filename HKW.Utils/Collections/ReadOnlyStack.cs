@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -45,9 +44,9 @@ public sealed class ReadOnlyStack<T> : IReadOnlyCollection<T>, ICollection
         return _stack.GetEnumerator();
     }
 
-    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+    IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((System.Collections.IEnumerable)_stack).GetEnumerator();
+        return GetEnumerator();
     }
 
     /// <inheritdoc cref="Stack{T}.Contains(T)"/>

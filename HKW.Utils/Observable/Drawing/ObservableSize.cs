@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
-using HKW.HKWReactiveUI;
 using HKW.HKWUtils.Drawing;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -11,7 +11,8 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="T">数值类型</typeparam>
 public sealed partial class ObservableSize<T>
-    : ReactiveObjectX,
+    : INotifyPropertyChanging,
+        INotifyPropertyChanged,
         IEquatable<ObservableSize<T>>,
         ICloneable<ObservableSize<T>>,
         ISize<T>
@@ -34,19 +35,60 @@ public sealed partial class ObservableSize<T>
         Height = height;
     }
 
-    /// <inheritdoc/>
-    [ReactiveProperty]
-    public T Width { get; set; }
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private T _width;
 
     /// <inheritdoc/>
-    [ReactiveProperty]
-    public T Height { get; set; }
+    public T Width
+    {
+        get => _width;
+        set
+        {
+            if (_width == value)
+                return;
+            if (PropertyChanging is not null)
+            {
+                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_Width);
+                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_IsEmpty);
+            }
+            _width = value;
+            if (PropertyChanged is not null)
+            {
+                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_Width);
+                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_IsEmpty);
+            }
+        }
+    }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private T _height;
+
+    /// <inheritdoc/>
+    public T Height
+    {
+        get => _height;
+        set
+        {
+            if (_height == value)
+                return;
+            if (PropertyChanging is not null)
+            {
+                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_Height);
+                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_IsEmpty);
+            }
+            _height = value;
+            if (PropertyChanged is not null)
+            {
+                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_Height);
+                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_IsEmpty);
+            }
+        }
+    }
 
     /// <summary>
     /// 是空的
     /// </summary>
     [Browsable(false)]
-    [NotifyPropertyChangeFrom(nameof(Width), nameof(Height))]
     public bool IsEmpty => Width == T.Zero && Height == T.Zero;
 
     #region Clone
@@ -81,9 +123,16 @@ public sealed partial class ObservableSize<T>
         return this == other;
     }
     #endregion
+
     /// <inheritdoc/>
     public override string ToString()
     {
         return $"{{Width={Width},Height={Height}}}";
     }
+
+    /// <inheritdoc/>
+    public event PropertyChangingEventHandler? PropertyChanging;
+
+    /// <inheritdoc/>
+    public event PropertyChangedEventHandler? PropertyChanged;
 }

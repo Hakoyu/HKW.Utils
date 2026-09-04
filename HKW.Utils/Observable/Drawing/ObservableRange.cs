@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
-using HKW.HKWReactiveUI;
 using HKW.HKWUtils.Drawing;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -10,8 +10,9 @@ namespace HKW.HKWUtils.Observable;
 /// 可观测范围
 /// </summary>
 /// <typeparam name="T">数值类型</typeparam>
-public sealed partial class ObservableRange<T>
-    : ReactiveObjectX,
+public sealed class ObservableRange<T>
+    : INotifyPropertyChanging,
+        INotifyPropertyChanged,
         IEquatable<IReadOnlyRange<T>>,
         ICloneable<ObservableRange<T>>,
         IRange<T>
@@ -34,22 +35,57 @@ public sealed partial class ObservableRange<T>
         Max = max;
     }
 
-    /// <inheritdoc/>
-    [ReactiveProperty]
-    public T Min { get; set; }
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private T _min;
 
     /// <inheritdoc/>
-    [ReactiveProperty]
-    public T Max { get; set; }
+    public T Min
+    {
+        get => _min;
+        set
+        {
+            if (_min == value)
+                return;
+            if (PropertyChanging is not null)
+            {
+                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_Min);
+                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_IsEmpty);
+            }
+            _min = value;
+            if (PropertyChanged is not null)
+            {
+                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_Min);
+                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_IsEmpty);
+            }
+        }
+    }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private T _max;
+
+    /// <inheritdoc/>
+    public T Max
+    {
+        get => _max;
+        set
+        {
+            if (_max == value)
+                return;
+            PropertyChanging?.Invoke(this, PropertyChangingEventArgs.Cache_Max);
+            PropertyChanging?.Invoke(this, PropertyChangingEventArgs.Cache_IsEmpty);
+            _max = value;
+            PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Max);
+            PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_IsEmpty);
+        }
+    }
 
     /// <summary>
     /// 是空的
     /// </summary>
     [Browsable(false)]
-    [NotifyPropertyChangeFrom(nameof(Min), nameof(Max))]
     public bool IsEmpty => Min == T.Zero && Max == T.Zero;
 
-    #region Clone
+    #region ICloneable
     /// <inheritdoc/>
     public ObservableRange<T> Clone()
     {
@@ -59,7 +95,7 @@ public sealed partial class ObservableRange<T>
     object ICloneable.Clone() => Clone();
     #endregion
 
-    #region Equals
+    #region IEquatable
 
     /// <inheritdoc/>
     public override int GetHashCode()
@@ -81,9 +117,16 @@ public sealed partial class ObservableRange<T>
         return this == other;
     }
     #endregion
+
     /// <inheritdoc/>
     public override string ToString()
     {
         return $"{{Min={Min},Max={Max}}}";
     }
+
+    /// <inheritdoc/>
+    public event PropertyChangingEventHandler? PropertyChanging;
+
+    /// <inheritdoc/>
+    public event PropertyChangedEventHandler? PropertyChanged;
 }

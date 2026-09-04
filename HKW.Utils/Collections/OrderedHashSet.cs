@@ -15,21 +15,17 @@ namespace HKW.HKWUtils.Collections;
 public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
     where T : notnull
 {
-    /// <summary>
-    /// 顺序字典
-    /// </summary>
     private readonly OrderedDictionary<T, byte> _dictionary;
 
     /// <summary>
     /// 比较器
     /// </summary>
-    public IEqualityComparer<T> Comparer { get; }
+    public IEqualityComparer<T> Comparer => _dictionary.Comparer;
 
     /// <inheritdoc/>
     public OrderedHashSet()
     {
         _dictionary = new();
-        Comparer = EqualityComparer<T>.Default;
     }
 
     /// <inheritdoc/>
@@ -40,7 +36,6 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
         ArgumentNullException.ThrowIfNull(collection);
 
         _dictionary = new(comparer);
-        Comparer = comparer ?? EqualityComparer<T>.Default;
         UnionWith(collection);
     }
 
@@ -50,7 +45,6 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
     public OrderedHashSet(int capacity, IEqualityComparer<T>? comparer = null)
     {
         _dictionary = new(capacity, comparer);
-        Comparer = comparer ?? EqualityComparer<T>.Default;
     }
 
     /// <summary>获取指定索引处的值。</summary>
@@ -94,7 +88,7 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
 
         if (Count == 0)
             return;
-        if (other == this)
+        if (ReferenceEquals(other, this))
         {
             Clear();
             return;
@@ -112,7 +106,7 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
     {
         ArgumentNullException.ThrowIfNull(other);
 
-        if (Count == 0 || other == this)
+        if (Count == 0 || ReferenceEquals(other, this))
             return;
         if (other is ICollection<T> { Count: 0 })
         {
@@ -134,7 +128,7 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
     {
         ArgumentNullException.ThrowIfNull(other);
 
-        if (other == this)
+        if (ReferenceEquals(other, this))
         {
             Clear();
             return;
@@ -170,7 +164,7 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
     public bool IsProperSubsetOf(IEnumerable<T> other)
     {
         ArgumentNullException.ThrowIfNull(other);
-        if (other == this)
+        if (ReferenceEquals(other, this))
             return false;
 
         var lookup = CreateLookupSet(other);
@@ -187,7 +181,7 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
     public bool IsProperSupersetOf(IEnumerable<T> other)
     {
         ArgumentNullException.ThrowIfNull(other);
-        if (Count == 0 || other == this)
+        if (Count == 0 || ReferenceEquals(other, this))
             return false;
 
         var lookup = CreateLookupSet(other);
@@ -207,7 +201,7 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
     public bool IsSubsetOf(IEnumerable<T> other)
     {
         ArgumentNullException.ThrowIfNull(other);
-        if (Count == 0 || other == this)
+        if (Count == 0 || ReferenceEquals(other, this))
             return true;
 
         var lookup = CreateLookupSet(other);
@@ -224,7 +218,7 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
     public bool IsSupersetOf(IEnumerable<T> other)
     {
         ArgumentNullException.ThrowIfNull(other);
-        if (other == this)
+        if (ReferenceEquals(other, this))
             return true;
 
         var lookup = CreateLookupSet(other);
@@ -258,7 +252,7 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
     public bool SetEquals(IEnumerable<T> other)
     {
         ArgumentNullException.ThrowIfNull(other);
-        if (other == this)
+        if (ReferenceEquals(other, this))
             return true;
 
         var lookup = CreateLookupSet(other);
@@ -301,9 +295,7 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
     }
 
     #region IList
-    /// <summary>获取或设置指定索引处的值。</summary>
-    /// <param name="index">索引</param>
-    /// <returns>指定索引处的值</returns>
+    /// <inheritdoc/>
     public T this[int index]
     {
         get => _dictionary.GetAt(index).Key;
