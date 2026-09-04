@@ -93,14 +93,14 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 尝试将 UTF-8 文本解析为指定运行时类型的数值。
+    /// 尝试将 UTF-8 文本解析为指定运行时类型的数值
     /// </summary>
-    /// <param name="numberType">目标数值的运行时类型。</param>
-    /// <param name="utf8Text">UTF-8 编码的数值文本。</param>
-    /// <param name="style">允许的数值格式样式。</param>
-    /// <param name="provider">提供区域性相关格式信息的对象。</param>
-    /// <param name="result">解析结果；解析失败时为目标类型的默认值。</param>
-    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
+    /// <param name="numberType">目标数值的运行时类型</param>
+    /// <param name="utf8Text">UTF-8 编码的数值文本</param>
+    /// <param name="style">允许的数值格式样式</param>
+    /// <param name="provider">提供区域性相关格式信息的对象</param>
+    /// <param name="result">解析结果；解析失败时为目标类型的默认值</param>
+    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/></returns>
     public static bool TryParse(
         Type numberType,
         ReadOnlySpan<byte> utf8Text,
@@ -113,13 +113,13 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 尝试将 UTF-8 文本解析为指定运行时类型的数值。
+    /// 尝试将 UTF-8 文本解析为指定运行时类型的数值
     /// </summary>
-    /// <param name="numberType">目标数值的运行时类型。</param>
-    /// <param name="utf8Text">UTF-8 编码的数值文本。</param>
-    /// <param name="provider">提供区域性相关格式信息的对象。</param>
-    /// <param name="result">解析结果；解析失败时为目标类型的默认值。</param>
-    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
+    /// <param name="numberType">目标数值的运行时类型</param>
+    /// <param name="utf8Text">UTF-8 编码的数值文本</param>
+    /// <param name="provider">提供区域性相关格式信息的对象</param>
+    /// <param name="result">解析结果；解析失败时为目标类型的默认值</param>
+    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/></returns>
     public static bool TryParse(
         Type numberType,
         ReadOnlySpan<byte> utf8Text,
@@ -131,26 +131,26 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 尝试将 UTF-8 文本解析为指定运行时类型的数值。
+    /// 尝试将 UTF-8 文本解析为指定运行时类型的数值
     /// </summary>
-    /// <param name="numberType">目标数值的运行时类型。</param>
-    /// <param name="utf8Text">UTF-8 编码的数值文本。</param>
-    /// <param name="result">解析结果；解析失败时为目标类型的默认值。</param>
-    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
+    /// <param name="numberType">目标数值的运行时类型</param>
+    /// <param name="utf8Text">UTF-8 编码的数值文本</param>
+    /// <param name="result">解析结果；解析失败时为目标类型的默认值</param>
+    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/></returns>
     public static bool TryParse(Type numberType, ReadOnlySpan<byte> utf8Text, out object result)
     {
         return TryParse(GetNumberType(numberType), utf8Text, out result);
     }
 
     /// <summary>
-    /// 尝试将字符文本解析为指定数值类型的数值。
+    /// 尝试将字符文本解析为指定数值类型的数值
     /// </summary>
-    /// <param name="numberType">目标数值类型。</param>
-    /// <param name="s">数值文本。</param>
-    /// <param name="style">允许的数值格式样式。</param>
-    /// <param name="provider">提供区域性相关格式信息的对象。</param>
-    /// <param name="result">解析结果；解析失败时为目标类型的默认值。</param>
-    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
+    /// <param name="numberType">目标数值类型</param>
+    /// <param name="s">数值文本</param>
+    /// <param name="style">允许的数值格式样式</param>
+    /// <param name="provider">提供区域性相关格式信息的对象</param>
+    /// <param name="result">解析结果；解析失败时为目标类型的默认值</param>
+    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/></returns>
     public static bool TryParse(
         Type numberType,
         ReadOnlySpan<char> s,
@@ -163,13 +163,13 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 尝试将字符文本解析为指定数值类型的数值。
+    /// 尝试将字符文本解析为指定数值类型的数值
     /// </summary>
-    /// <param name="numberType">目标数值类型。</param>
-    /// <param name="s">数值文本。</param>
-    /// <param name="provider">提供区域性相关格式信息的对象。</param>
-    /// <param name="result">解析结果；解析失败时为目标类型的默认值。</param>
-    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
+    /// <param name="numberType">目标数值类型</param>
+    /// <param name="s">数值文本</param>
+    /// <param name="provider">提供区域性相关格式信息的对象</param>
+    /// <param name="result">解析结果；解析失败时为目标类型的默认值</param>
+    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/></returns>
     public static bool TryParse(
         Type numberType,
         ReadOnlySpan<char> s,
@@ -181,25 +181,25 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 尝试将字符文本解析为指定数值类型的数值。
+    /// 尝试将字符文本解析为指定数值类型的数值
     /// </summary>
-    /// <param name="numberType">目标数值类型。</param>
-    /// <param name="s">数值文本。</param>
-    /// <param name="result">解析结果；解析失败时为目标类型的默认值。</param>
-    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
+    /// <param name="numberType">目标数值类型</param>
+    /// <param name="s">数值文本</param>
+    /// <param name="result">解析结果；解析失败时为目标类型的默认值</param>
+    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/></returns>
     public static bool TryParse(Type numberType, ReadOnlySpan<char> s, out object result)
     {
         return TryParse(GetNumberType(numberType), s, out result);
     }
 
     /// <summary>
-    /// 尝试将字符串解析为指定数值类型的数值。
+    /// 尝试将字符串解析为指定数值类型的数值
     /// </summary>
-    /// <param name="numberType">目标数值类型。</param>
-    /// <param name="s">数值文本。</param>
-    /// <param name="provider">提供区域性相关格式信息的对象。</param>
-    /// <param name="result">解析结果；解析失败时为目标类型的默认值。</param>
-    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
+    /// <param name="numberType">目标数值类型</param>
+    /// <param name="s">数值文本</param>
+    /// <param name="provider">提供区域性相关格式信息的对象</param>
+    /// <param name="result">解析结果；解析失败时为目标类型的默认值</param>
+    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/></returns>
     public static bool TryParse(
         Type numberType,
         string? s,
@@ -211,26 +211,26 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 尝试将字符串解析为指定数值类型的数值。
+    /// 尝试将字符串解析为指定数值类型的数值
     /// </summary>
-    /// <param name="numberType">目标数值类型。</param>
-    /// <param name="s">数值文本。</param>
-    /// <param name="result">解析结果；解析失败时为目标类型的默认值。</param>
-    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
+    /// <param name="numberType">目标数值类型</param>
+    /// <param name="s">数值文本</param>
+    /// <param name="result">解析结果；解析失败时为目标类型的默认值</param>
+    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/></returns>
     public static bool TryParse(Type numberType, string? s, out object result)
     {
         return TryParse(GetNumberType(numberType), s, out result);
     }
 
     /// <summary>
-    /// 尝试将 UTF-8 文本解析为 <paramref name="numberType"/> 指定类型的数值。
+    /// 尝试将 UTF-8 文本解析为 <paramref name="numberType"/> 指定类型的数值
     /// </summary>
-    /// <param name="numberType">目标数值类型。</param>
-    /// <param name="utf8Text">UTF-8 编码的数值文本。</param>
-    /// <param name="style">允许的数值格式样式。</param>
-    /// <param name="provider">提供区域性相关格式信息的对象。</param>
-    /// <param name="result">解析结果；解析失败时为目标类型的默认值。</param>
-    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
+    /// <param name="numberType">目标数值类型</param>
+    /// <param name="utf8Text">UTF-8 编码的数值文本</param>
+    /// <param name="style">允许的数值格式样式</param>
+    /// <param name="provider">提供区域性相关格式信息的对象</param>
+    /// <param name="result">解析结果；解析失败时为目标类型的默认值</param>
+    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/></returns>
     public static bool TryParse(
         NumberType numberType,
         ReadOnlySpan<byte> utf8Text,
@@ -257,13 +257,13 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 尝试将 UTF-8 文本解析为 <paramref name="numberType"/> 指定类型的数值。
+    /// 尝试将 UTF-8 文本解析为 <paramref name="numberType"/> 指定类型的数值
     /// </summary>
-    /// <param name="numberType">目标数值类型。</param>
-    /// <param name="utf8Text">UTF-8 编码的数值文本。</param>
-    /// <param name="provider">提供区域性相关格式信息的对象。</param>
-    /// <param name="result">解析结果；解析失败时为目标类型的默认值。</param>
-    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
+    /// <param name="numberType">目标数值类型</param>
+    /// <param name="utf8Text">UTF-8 编码的数值文本</param>
+    /// <param name="provider">提供区域性相关格式信息的对象</param>
+    /// <param name="result">解析结果；解析失败时为目标类型的默认值</param>
+    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/></returns>
     public static bool TryParse(
         NumberType numberType,
         ReadOnlySpan<byte> utf8Text,
@@ -289,12 +289,12 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 尝试将 UTF-8 文本解析为 <paramref name="numberType"/> 指定类型的数值。
+    /// 尝试将 UTF-8 文本解析为 <paramref name="numberType"/> 指定类型的数值
     /// </summary>
-    /// <param name="numberType">目标数值类型。</param>
-    /// <param name="utf8Text">UTF-8 编码的数值文本。</param>
-    /// <param name="result">解析结果；解析失败时为目标类型的默认值。</param>
-    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
+    /// <param name="numberType">目标数值类型</param>
+    /// <param name="utf8Text">UTF-8 编码的数值文本</param>
+    /// <param name="result">解析结果；解析失败时为目标类型的默认值</param>
+    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/></returns>
     public static bool TryParse(
         NumberType numberType,
         ReadOnlySpan<byte> utf8Text,
@@ -305,14 +305,14 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 尝试将字符文本解析为 <paramref name="numberType"/> 指定类型的数值。
+    /// 尝试将字符文本解析为 <paramref name="numberType"/> 指定类型的数值
     /// </summary>
-    /// <param name="numberType">目标数值类型。</param>
-    /// <param name="s">数值文本。</param>
-    /// <param name="style">允许的数值格式样式。</param>
-    /// <param name="provider">提供区域性相关格式信息的对象。</param>
-    /// <param name="result">解析结果；解析失败时为目标类型的默认值。</param>
-    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
+    /// <param name="numberType">目标数值类型</param>
+    /// <param name="s">数值文本</param>
+    /// <param name="style">允许的数值格式样式</param>
+    /// <param name="provider">提供区域性相关格式信息的对象</param>
+    /// <param name="result">解析结果；解析失败时为目标类型的默认值</param>
+    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/></returns>
     public static bool TryParse(
         NumberType numberType,
         ReadOnlySpan<char> s,
@@ -339,13 +339,13 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 尝试将字符文本解析为 <paramref name="numberType"/> 指定类型的数值。
+    /// 尝试将字符文本解析为 <paramref name="numberType"/> 指定类型的数值
     /// </summary>
-    /// <param name="numberType">目标数值类型。</param>
-    /// <param name="s">数值文本。</param>
-    /// <param name="provider">提供区域性相关格式信息的对象。</param>
-    /// <param name="result">解析结果；解析失败时为目标类型的默认值。</param>
-    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
+    /// <param name="numberType">目标数值类型</param>
+    /// <param name="s">数值文本</param>
+    /// <param name="provider">提供区域性相关格式信息的对象</param>
+    /// <param name="result">解析结果；解析失败时为目标类型的默认值</param>
+    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/></returns>
     public static bool TryParse(
         NumberType numberType,
         ReadOnlySpan<char> s,
@@ -371,25 +371,25 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 尝试将字符文本解析为 <paramref name="numberType"/> 指定类型的数值。
+    /// 尝试将字符文本解析为 <paramref name="numberType"/> 指定类型的数值
     /// </summary>
-    /// <param name="numberType">目标数值类型。</param>
-    /// <param name="s">数值文本。</param>
-    /// <param name="result">解析结果；解析失败时为目标类型的默认值。</param>
-    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
+    /// <param name="numberType">目标数值类型</param>
+    /// <param name="s">数值文本</param>
+    /// <param name="result">解析结果；解析失败时为目标类型的默认值</param>
+    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/></returns>
     public static bool TryParse(NumberType numberType, ReadOnlySpan<char> s, out object result)
     {
         return TryParse(numberType, s, provider: null, out result);
     }
 
     /// <summary>
-    /// 尝试将字符串解析为 <paramref name="numberType"/> 指定类型的数值。
+    /// 尝试将字符串解析为 <paramref name="numberType"/> 指定类型的数值
     /// </summary>
-    /// <param name="numberType">目标数值类型。</param>
-    /// <param name="s">数值文本。</param>
-    /// <param name="provider">提供区域性相关格式信息的对象。</param>
-    /// <param name="result">解析结果；解析失败时为目标类型的默认值。</param>
-    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
+    /// <param name="numberType">目标数值类型</param>
+    /// <param name="s">数值文本</param>
+    /// <param name="provider">提供区域性相关格式信息的对象</param>
+    /// <param name="result">解析结果；解析失败时为目标类型的默认值</param>
+    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/></returns>
     public static bool TryParse(
         NumberType numberType,
         string? s,
@@ -415,12 +415,12 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 尝试将字符串解析为 <paramref name="numberType"/> 指定类型的数值。
+    /// 尝试将字符串解析为 <paramref name="numberType"/> 指定类型的数值
     /// </summary>
-    /// <param name="numberType">目标数值类型。</param>
-    /// <param name="s">数值文本。</param>
-    /// <param name="result">解析结果；解析失败时为目标类型的默认值。</param>
-    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
+    /// <param name="numberType">目标数值类型</param>
+    /// <param name="s">数值文本</param>
+    /// <param name="result">解析结果；解析失败时为目标类型的默认值</param>
+    /// <returns>解析成功时为 <see langword="true"/>；否则为 <see langword="false"/></returns>
     public static bool TryParse(NumberType numberType, string? s, out object result)
     {
         return TryParse(numberType, s, provider: null, out result);
