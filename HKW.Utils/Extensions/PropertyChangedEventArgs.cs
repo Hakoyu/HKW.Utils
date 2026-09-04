@@ -137,7 +137,20 @@ public static class PropertyChangedEventArgsExtensions
         public static PropertyChangedEventArgs Cache_State => _state;
     }
 
-    extension(PropertyChangedEventHandler value)
+    extension(PropertyChangedEventArgs eventArgs)
+    {
+        /// <summary>
+        /// 是索引器事件
+        /// </summary>
+        /// <returns>是否是索引器事件</returns>
+        public bool IsIndexer()
+        {
+            return eventArgs.PropertyName == PropertyChangedEventArgs.Cache_Indexer1.PropertyName
+                || eventArgs.PropertyName == PropertyChangedEventArgs.Cache_Indexer2.PropertyName;
+        }
+    }
+
+    extension(PropertyChangedEventHandler eventHandler)
     {
         /// <summary>
         /// 触发索引器事件"Item[]"和"Item"
@@ -145,8 +158,8 @@ public static class PropertyChangedEventArgsExtensions
         /// <param name="source">源</param>
         public void InvokeIndexer(INotifyPropertyChanged source)
         {
-            value(source, PropertyChangedEventArgs.Cache_Indexer1);
-            value(source, PropertyChangedEventArgs.Cache_Indexer2);
+            eventHandler(source, PropertyChangedEventArgs.Cache_Indexer1);
+            eventHandler(source, PropertyChangedEventArgs.Cache_Indexer2);
         }
     }
 }

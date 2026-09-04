@@ -303,12 +303,12 @@ public class ObservableI18nResourceTests
         };
         resource.GetCurrentCultureData.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == "")
+            if (e.IsIndexer())
                 getDataCoreRefreshCount++;
         };
         resource.GetCurrentCultureDataOrDefault.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == "")
+            if (e.IsIndexer())
                 getDataOrDefaultCoreRefreshCount++;
         };
 
@@ -317,8 +317,8 @@ public class ObservableI18nResourceTests
 
         Assert.AreEqual(1, currentCultureChangedCount);
         Assert.AreEqual(1, currentCulturePropertyChangedCount);
-        Assert.AreEqual(1, getDataCoreRefreshCount);
-        Assert.AreEqual(1, getDataOrDefaultCoreRefreshCount);
+        Assert.AreEqual(2, getDataCoreRefreshCount);
+        Assert.AreEqual(2, getDataOrDefaultCoreRefreshCount);
         Assert.AreEqual("v2", resource.GetCurrentCultureData["k1"]);
     }
 
