@@ -17,10 +17,8 @@ public static class EnumInfo
     /// (EnumType, (EnumValue, EnumInfo))
     /// </para>
     /// </summary>
-    public static ConcurrentDictionary<
-        Type,
-        FrozenDictionary<Enum, IEnumInfo>
-    > InfosByType { get; } = [];
+    public static ConcurrentDictionary<Type, IDictionary<Enum, IEnumInfo>> InfosByType { get; } =
+    [];
 
     #region Default
 
