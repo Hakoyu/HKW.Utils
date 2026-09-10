@@ -13,7 +13,7 @@ public partial class NumberUtils
     /// <param name="operator">运算符</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object BitwiseShiftF<T>(object value1, object value2, string @operator)
+    public static T BitwiseShiftF<T>(object value1, object value2, string @operator)
         where T : struct, INumber<T>
     {
         return BitwiseShiftF<T>(value1, value2, GetBitwiseShiftType(@operator));
@@ -66,79 +66,10 @@ public partial class NumberUtils
     /// <param name="operatorType">运算符类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object BitwiseShiftF<T>(
-        object value1,
-        object value2,
-        BitwiseShiftType operatorType
-    )
+    public static T BitwiseShiftF<T>(object value1, object value2, BitwiseShiftType operatorType)
         where T : struct, INumber<T>
     {
-        var type = typeof(T);
-        if (operatorType is BitwiseShiftType.Left)
-        {
-            if (type == typeof(sbyte))
-                return (Int32)value1 << (Int32)value2;
-            else if (type == typeof(byte))
-                return (Int32)value1 << (Int32)value2;
-            else if (type == typeof(short))
-                return (Int32)value1 << (Int32)value2;
-            else if (type == typeof(ushort))
-                return (UInt32)value1 << (Int32)value2;
-            else if (type == typeof(int))
-                return (Int32)value1 << (Int32)value2;
-            else if (type == typeof(uint))
-                return (UInt32)value1 << (Int32)value2;
-            else if (type == typeof(long))
-                return (Int64)value1 << (Int32)value2;
-            else if (type == typeof(ulong))
-                return (UInt64)value1 << (Int32)value2;
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is BitwiseShiftType.Right)
-        {
-            if (type == typeof(sbyte))
-                return (Int32)value1 >> (Int32)value2;
-            else if (type == typeof(byte))
-                return (Int32)value1 >> (Int32)value2;
-            else if (type == typeof(short))
-                return (Int32)value1 >> (Int32)value2;
-            else if (type == typeof(ushort))
-                return (UInt32)value1 >> (Int32)value2;
-            else if (type == typeof(int))
-                return (Int32)value1 >> (Int32)value2;
-            else if (type == typeof(uint))
-                return (UInt32)value1 >> (Int32)value2;
-            else if (type == typeof(long))
-                return (Int64)value1 >> (Int32)value2;
-            else if (type == typeof(ulong))
-                return (UInt64)value1 >> (Int32)value2;
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is BitwiseShiftType.UnsignedRight)
-        {
-            if (type == typeof(sbyte))
-                return (Int32)value1 >> (Int32)value2;
-            else if (type == typeof(byte))
-                return (Int32)value1 >> (Int32)value2;
-            else if (type == typeof(short))
-                return (Int32)value1 >> (Int32)value2;
-            else if (type == typeof(ushort))
-                return (UInt32)value1 >> (Int32)value2;
-            else if (type == typeof(int))
-                return (Int32)value1 >> (Int32)value2;
-            else if (type == typeof(uint))
-                return (UInt32)value1 >> (Int32)value2;
-            else if (type == typeof(long))
-                return (Int64)value1 >> (Int32)value2;
-            else if (type == typeof(ulong))
-                return (UInt64)value1 >> (Int32)value2;
-            else
-                throw new NotImplementedException();
-        }
-        else
-            throw new NotImplementedException();
+        return (T)BitwiseShiftF(value1, value2, typeof(T), operatorType);
     }
 
     /// <summary>
@@ -157,71 +88,7 @@ public partial class NumberUtils
         BitwiseShiftType operatorType
     )
     {
-        if (operatorType is BitwiseShiftType.Left)
-        {
-            if (numberType == typeof(sbyte))
-                return (Int32)value1 << (Int32)value2;
-            else if (numberType == typeof(byte))
-                return (Int32)value1 << (Int32)value2;
-            else if (numberType == typeof(short))
-                return (Int32)value1 << (Int32)value2;
-            else if (numberType == typeof(ushort))
-                return (UInt32)value1 << (Int32)value2;
-            else if (numberType == typeof(int))
-                return (Int32)value1 << (Int32)value2;
-            else if (numberType == typeof(uint))
-                return (UInt32)value1 << (Int32)value2;
-            else if (numberType == typeof(long))
-                return (Int64)value1 << (Int32)value2;
-            else if (numberType == typeof(ulong))
-                return (UInt64)value1 << (Int32)value2;
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is BitwiseShiftType.Right)
-        {
-            if (numberType == typeof(sbyte))
-                return (Int32)value1 >> (Int32)value2;
-            else if (numberType == typeof(byte))
-                return (Int32)value1 >> (Int32)value2;
-            else if (numberType == typeof(short))
-                return (Int32)value1 >> (Int32)value2;
-            else if (numberType == typeof(ushort))
-                return (UInt32)value1 >> (Int32)value2;
-            else if (numberType == typeof(int))
-                return (Int32)value1 >> (Int32)value2;
-            else if (numberType == typeof(uint))
-                return (UInt32)value1 >> (Int32)value2;
-            else if (numberType == typeof(long))
-                return (Int64)value1 >> (Int32)value2;
-            else if (numberType == typeof(ulong))
-                return (UInt64)value1 >> (Int32)value2;
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is BitwiseShiftType.UnsignedRight)
-        {
-            if (numberType == typeof(sbyte))
-                return (Int32)value1 >>> (Int32)value2;
-            else if (numberType == typeof(byte))
-                return (Int32)value1 >>> (Int32)value2;
-            else if (numberType == typeof(short))
-                return (Int32)value1 >>> (Int32)value2;
-            else if (numberType == typeof(ushort))
-                return (UInt32)value1 >>> (Int32)value2;
-            else if (numberType == typeof(int))
-                return (Int32)value1 >>> (Int32)value2;
-            else if (numberType == typeof(uint))
-                return (UInt32)value1 >>> (Int32)value2;
-            else if (numberType == typeof(long))
-                return (Int64)value1 >>> (Int32)value2;
-            else if (numberType == typeof(ulong))
-                return (UInt64)value1 >>> (Int32)value2;
-            else
-                throw new NotImplementedException();
-        }
-        else
-            throw new NotImplementedException();
+        return BitwiseShiftF(value1, value2, GetNumberType(numberType), operatorType);
     }
 
     /// <summary>
@@ -240,70 +107,50 @@ public partial class NumberUtils
         BitwiseShiftType operatorType
     )
     {
-        if (operatorType is BitwiseShiftType.Left)
+        var shift = (int)value2;
+        switch (operatorType)
         {
-            if (numberType is NumberType.SByte)
-                return (Int32)value1 << (Int32)value2;
-            else if (numberType is NumberType.Byte)
-                return (Int32)value1 << (Int32)value2;
-            else if (numberType is NumberType.Int16)
-                return (Int32)value1 << (Int32)value2;
-            else if (numberType is NumberType.UInt16)
-                return (UInt32)value1 << (Int32)value2;
-            else if (numberType is NumberType.Int32)
-                return (Int32)value1 << (Int32)value2;
-            else if (numberType is NumberType.UInt32)
-                return (UInt32)value1 << (Int32)value2;
-            else if (numberType is NumberType.Int64)
-                return (Int64)value1 << (Int32)value2;
-            else if (numberType is NumberType.UInt64)
-                return (UInt64)value1 << (Int32)value2;
-            else
-                throw new NotImplementedException();
+            case BitwiseShiftType.Left:
+                return numberType switch
+                {
+                    NumberType.SByte => (int)(sbyte)value1 << shift,
+                    NumberType.Byte => (int)(byte)value1 << shift,
+                    NumberType.Int16 => (int)(short)value1 << shift,
+                    NumberType.UInt16 => (uint)(ushort)value1 << shift,
+                    NumberType.Int32 => (int)value1 << shift,
+                    NumberType.UInt32 => (uint)value1 << shift,
+                    NumberType.Int64 => (long)value1 << shift,
+                    NumberType.UInt64 => (ulong)value1 << shift,
+                    _ => throw CreateUnsupportedNumberTypeException(numberType),
+                };
+            case BitwiseShiftType.Right:
+                return numberType switch
+                {
+                    NumberType.SByte => (int)(sbyte)value1 >> shift,
+                    NumberType.Byte => (int)(byte)value1 >> shift,
+                    NumberType.Int16 => (int)(short)value1 >> shift,
+                    NumberType.UInt16 => (uint)(ushort)value1 >> shift,
+                    NumberType.Int32 => (int)value1 >> shift,
+                    NumberType.UInt32 => (uint)value1 >> shift,
+                    NumberType.Int64 => (long)value1 >> shift,
+                    NumberType.UInt64 => (ulong)value1 >> shift,
+                    _ => throw CreateUnsupportedNumberTypeException(numberType),
+                };
+            case BitwiseShiftType.UnsignedRight:
+                return numberType switch
+                {
+                    NumberType.SByte => (int)(sbyte)value1 >>> shift,
+                    NumberType.Byte => (int)(byte)value1 >>> shift,
+                    NumberType.Int16 => (int)(short)value1 >>> shift,
+                    NumberType.UInt16 => (uint)(ushort)value1 >>> shift,
+                    NumberType.Int32 => (int)value1 >>> shift,
+                    NumberType.UInt32 => (uint)value1 >>> shift,
+                    NumberType.Int64 => (long)value1 >>> shift,
+                    NumberType.UInt64 => (ulong)value1 >>> shift,
+                    _ => throw CreateUnsupportedNumberTypeException(numberType),
+                };
+            default:
+                throw CreateUnsupportedOperatorException(operatorType);
         }
-        else if (operatorType is BitwiseShiftType.Right)
-        {
-            if (numberType is NumberType.SByte)
-                return (Int32)value1 >> (Int32)value2;
-            else if (numberType is NumberType.Byte)
-                return (Int32)value1 >> (Int32)value2;
-            else if (numberType is NumberType.Int16)
-                return (Int32)value1 >> (Int32)value2;
-            else if (numberType is NumberType.UInt16)
-                return (UInt32)value1 >> (Int32)value2;
-            else if (numberType is NumberType.Int32)
-                return (Int32)value1 >> (Int32)value2;
-            else if (numberType is NumberType.UInt32)
-                return (UInt32)value1 >> (Int32)value2;
-            else if (numberType is NumberType.Int64)
-                return (Int64)value1 >> (Int32)value2;
-            else if (numberType is NumberType.UInt64)
-                return (UInt64)value1 >> (Int32)value2;
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is BitwiseShiftType.UnsignedRight)
-        {
-            if (numberType is NumberType.SByte)
-                return (Int32)value1 >>> (Int32)value2;
-            else if (numberType is NumberType.Byte)
-                return (Int32)value1 >>> (Int32)value2;
-            else if (numberType is NumberType.Int16)
-                return (Int32)value1 >>> (Int32)value2;
-            else if (numberType is NumberType.UInt16)
-                return (UInt32)value1 >>> (Int32)value2;
-            else if (numberType is NumberType.Int32)
-                return (Int32)value1 >>> (Int32)value2;
-            else if (numberType is NumberType.UInt32)
-                return (UInt32)value1 >>> (Int32)value2;
-            else if (numberType is NumberType.Int64)
-                return (Int64)value1 >>> (Int32)value2;
-            else if (numberType is NumberType.UInt64)
-                return (UInt64)value1 >>> (Int32)value2;
-            else
-                throw new NotImplementedException();
-        }
-        else
-            throw new NotImplementedException();
     }
 }

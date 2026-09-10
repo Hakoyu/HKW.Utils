@@ -17,59 +17,10 @@ public static partial class NumberUtils
     /// <param name="provider">格式提供者</param>
     /// <returns>转换后的数值</returns>
     /// <exception cref="NotImplementedException">不支持的类型</exception>
-    public static object ConvertTo<T>(object value, IFormatProvider? provider = null)
+    public static T ConvertTo<T>(object value, IFormatProvider? provider = null)
         where T : struct, INumber<T>
     {
-        var type = typeof(T);
-        if (value is IConvertible ic)
-        {
-            if (type == typeof(sbyte))
-                return ic.ToSByte(provider);
-            else if (type == typeof(byte))
-                return ic.ToByte(provider);
-            else if (type == typeof(short))
-                return ic.ToInt16(provider);
-            else if (type == typeof(ushort))
-                return ic.ToUInt16(provider);
-            else if (type == typeof(int))
-                return ic.ToInt32(provider);
-            else if (type == typeof(uint))
-                return ic.ToUInt32(provider);
-            else if (type == typeof(long))
-                return ic.ToInt64(provider);
-            else if (type == typeof(ulong))
-                return ic.ToUInt64(provider);
-            else if (type == typeof(float))
-                return ic.ToSingle(provider);
-            else if (type == typeof(double))
-                return ic.ToDouble(provider);
-            else if (type == typeof(decimal))
-                return ic.ToDecimal(provider);
-        }
-        if (type == typeof(sbyte))
-            return Convert.ToSByte(value);
-        else if (type == typeof(byte))
-            return Convert.ToByte(value);
-        else if (type == typeof(short))
-            return Convert.ToInt16(value);
-        else if (type == typeof(ushort))
-            return Convert.ToUInt16(value);
-        else if (type == typeof(int))
-            return Convert.ToInt32(value);
-        else if (type == typeof(uint))
-            return Convert.ToUInt32(value);
-        else if (type == typeof(long))
-            return Convert.ToInt64(value);
-        else if (type == typeof(ulong))
-            return Convert.ToUInt64(value);
-        else if (type == typeof(float))
-            return Convert.ToSingle(value);
-        else if (type == typeof(double))
-            return Convert.ToDouble(value);
-        else if (type == typeof(decimal))
-            return Convert.ToDecimal(value);
-        else
-            return Convert.ChangeType(value, type)!;
+        return (T)ConvertTo(value, typeof(T), provider);
     }
 
     /// <summary>
@@ -82,55 +33,7 @@ public static partial class NumberUtils
     /// <exception cref="NotImplementedException">不支持的类型</exception>
     public static object ConvertTo(object value, Type numberType, IFormatProvider? provider = null)
     {
-        if (value is IConvertible ic)
-        {
-            if (numberType == typeof(sbyte))
-                return ic.ToSByte(provider);
-            else if (numberType == typeof(byte))
-                return ic.ToByte(provider);
-            else if (numberType == typeof(short))
-                return ic.ToInt16(provider);
-            else if (numberType == typeof(ushort))
-                return ic.ToUInt16(provider);
-            else if (numberType == typeof(int))
-                return ic.ToInt32(provider);
-            else if (numberType == typeof(uint))
-                return ic.ToUInt32(provider);
-            else if (numberType == typeof(long))
-                return ic.ToInt64(provider);
-            else if (numberType == typeof(ulong))
-                return ic.ToUInt64(provider);
-            else if (numberType == typeof(float))
-                return ic.ToSingle(provider);
-            else if (numberType == typeof(double))
-                return ic.ToDouble(provider);
-            else if (numberType == typeof(decimal))
-                return ic.ToDecimal(provider);
-        }
-        if (numberType == typeof(sbyte))
-            return Convert.ToSByte(value);
-        else if (numberType == typeof(byte))
-            return Convert.ToByte(value);
-        else if (numberType == typeof(short))
-            return Convert.ToInt16(value);
-        else if (numberType == typeof(ushort))
-            return Convert.ToUInt16(value);
-        else if (numberType == typeof(int))
-            return Convert.ToInt32(value);
-        else if (numberType == typeof(uint))
-            return Convert.ToUInt32(value);
-        else if (numberType == typeof(long))
-            return Convert.ToInt64(value);
-        else if (numberType == typeof(ulong))
-            return Convert.ToUInt64(value);
-        else if (numberType == typeof(float))
-            return Convert.ToSingle(value);
-        else if (numberType == typeof(double))
-            return Convert.ToDouble(value);
-        else if (numberType == typeof(decimal))
-            return Convert.ToDecimal(value);
-        else
-            throw new NotImplementedException();
+        return ConvertTo(value, GetNumberType(numberType), provider);
     }
 
     /// <summary>
@@ -145,53 +48,38 @@ public static partial class NumberUtils
     {
         if (value is IConvertible ic)
         {
-            if (type is NumberType.SByte)
-                return ic.ToSByte(provider);
-            else if (type is NumberType.Byte)
-                return ic.ToByte(provider);
-            else if (type is NumberType.Int16)
-                return ic.ToInt16(provider);
-            else if (type is NumberType.UInt16)
-                return ic.ToUInt16(provider);
-            else if (type is NumberType.Int32)
-                return ic.ToInt32(provider);
-            else if (type is NumberType.UInt32)
-                return ic.ToUInt32(provider);
-            else if (type is NumberType.Int64)
-                return ic.ToInt64(provider);
-            else if (type is NumberType.UInt64)
-                return ic.ToUInt64(provider);
-            else if (type is NumberType.Single)
-                return ic.ToSingle(provider);
-            else if (type is NumberType.Double)
-                return ic.ToDouble(provider);
-            else if (type is NumberType.Decimal)
-                return ic.ToDecimal(provider);
+            return type switch
+            {
+                NumberType.SByte => ic.ToSByte(provider),
+                NumberType.Byte => ic.ToByte(provider),
+                NumberType.Int16 => ic.ToInt16(provider),
+                NumberType.UInt16 => ic.ToUInt16(provider),
+                NumberType.Int32 => ic.ToInt32(provider),
+                NumberType.UInt32 => ic.ToUInt32(provider),
+                NumberType.Int64 => ic.ToInt64(provider),
+                NumberType.UInt64 => ic.ToUInt64(provider),
+                NumberType.Single => ic.ToSingle(provider),
+                NumberType.Double => ic.ToDouble(provider),
+                NumberType.Decimal => ic.ToDecimal(provider),
+                _ => throw CreateUnsupportedNumberTypeException(type),
+            };
         }
-        if (type is NumberType.SByte)
-            return Convert.ToSByte(provider);
-        else if (type is NumberType.Byte)
-            return Convert.ToByte(provider);
-        else if (type is NumberType.Int16)
-            return Convert.ToInt16(provider);
-        else if (type is NumberType.UInt16)
-            return Convert.ToUInt16(provider);
-        else if (type is NumberType.Int32)
-            return Convert.ToInt32(provider);
-        else if (type is NumberType.UInt32)
-            return Convert.ToUInt32(provider);
-        else if (type is NumberType.Int64)
-            return Convert.ToInt64(provider);
-        else if (type is NumberType.UInt64)
-            return Convert.ToUInt64(provider);
-        else if (type is NumberType.Single)
-            return Convert.ToSingle(provider);
-        else if (type is NumberType.Double)
-            return Convert.ToDouble(provider);
-        else if (type is NumberType.Decimal)
-            return Convert.ToDecimal(provider);
-        else
-            throw new NotImplementedException();
+
+        return type switch
+        {
+            NumberType.SByte => Convert.ToSByte(value, provider),
+            NumberType.Byte => Convert.ToByte(value, provider),
+            NumberType.Int16 => Convert.ToInt16(value, provider),
+            NumberType.UInt16 => Convert.ToUInt16(value, provider),
+            NumberType.Int32 => Convert.ToInt32(value, provider),
+            NumberType.UInt32 => Convert.ToUInt32(value, provider),
+            NumberType.Int64 => Convert.ToInt64(value, provider),
+            NumberType.UInt64 => Convert.ToUInt64(value, provider),
+            NumberType.Single => Convert.ToSingle(value, provider),
+            NumberType.Double => Convert.ToDouble(value, provider),
+            NumberType.Decimal => Convert.ToDecimal(value, provider),
+            _ => throw CreateUnsupportedNumberTypeException(type),
+        };
     }
     #endregion
 
@@ -205,7 +93,7 @@ public static partial class NumberUtils
     /// <param name="provider">格式提供者</param>
     /// <returns>转换后的数值</returns>
     /// <exception cref="NotImplementedException">不支持的类型</exception>
-    public static object ConvertTo<T>(
+    public static T ConvertTo<T>(
         ReadOnlySpan<char> str,
         NumberStyles? style = null,
         IFormatProvider? provider = null
@@ -227,7 +115,9 @@ public static partial class NumberUtils
     /// <param name="provider">格式提供者</param>
     /// <returns>转换后的数值</returns>
     /// <exception cref="NotImplementedException">不支持的类型</exception>
+#pragma warning disable S3776
     public static object ConvertTo(
+#pragma warning restore S3776
         ReadOnlySpan<char> str,
         Type numberType,
         NumberStyles? style = null,
@@ -299,7 +189,9 @@ public static partial class NumberUtils
     /// <param name="provider">格式提供者</param>
     /// <returns>转换后的数值</returns>
     /// <exception cref="NotImplementedException">不支持的类型</exception>
+#pragma warning disable S3776
     public static object ConvertTo(
+#pragma warning restore S3776
         ReadOnlySpan<char> str,
         NumberType numberType,
         NumberStyles? style = null,

@@ -11,18 +11,16 @@ namespace HKW.HKWUtils.Observable;
 public interface IReadOnlyObservableDictionary<TKey, TValue>
     : IReadOnlyDictionary<TKey, TValue>,
         IReadOnlyObservableCollection<KeyValuePair<TKey, TValue>>,
-        INotifyDictionaryChanged<TKey, TValue>,
-        INotifyCollectionChanged,
-        INotifyPropertyChanged
+        INotifyDictionaryChanged<TKey, TValue>
     where TKey : notnull
 {
     /// <summary>
     /// 可观测的键集合
     /// </summary>
-    public IReadOnlyObservableCollection<TKey> ObservableKeys { get; }
+    public IObservableCollection<TKey> ObservableKeys { get; }
 
     /// <summary>
     /// 可观测的值集合
     /// </summary>
-    public IReadOnlyObservableCollection<TValue> ObservableValues { get; }
+    public IObservableCollection<TValue> ObservableValues { get; }
 }

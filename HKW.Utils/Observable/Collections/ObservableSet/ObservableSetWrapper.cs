@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Extensions;
 
@@ -9,117 +10,166 @@ namespace HKW.HKWUtils.Observable;
 
 /// <summary>
 /// 可观测集合包装器
-/// <para>!!!注意!!! 基础集合必须是顺序集合 <see cref="HashSet{T}"/>无法有效使用此包装器</para>
+/// <para>!!!注意!!! 基础集合必须是顺序集合, <see cref="HashSet{T}"/>无法有效使用此包装器, 请使用 <see cref="OrderedHashSet{T}"/></para>
 /// </summary>
 /// <typeparam name="TItem">项类型</typeparam>
 /// <typeparam name="TSet">集合类型</typeparam>
 public class ObservableSetWrapper<TItem, TSet>
     : IObservableSet<TItem>,
-        IReadOnlyObservableSet<TItem>,
-        ISetWrapper<TItem, TSet>
+        IReadOnlyObservableSet<TItem>
     where TSet : ISet<TItem>
 {
     /// <inheritdoc/>
-    public ObservableSetWrapper(TSet set, IEqualityComparer<TItem> comparer)
+    /// <param name="set">集合</param>
+    /// <param name="comparer">比较器, 必须与 <see langword="set"/> 的比较器相同</param>
+    public ObservableSetWrapper(TSet set, IEqualityComparer<TItem>? comparer)
     {
-        BaseSet = set;
-        Comparer = comparer;
+        SourceSet = set;
+        Comparer = comparer ?? EqualityComparer<TItem>.Default;
     }
 
     /// <inheritdoc/>
-    public TSet BaseSet { get; }
+    protected TSet SourceSet { get; }
 
     #region ISet
 
     /// <inheritdoc/>
-    public int Count => ((ICollection<TItem>)BaseSet).Count;
+    public int Count => SourceSet.Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<TItem>)BaseSet).IsReadOnly;
+    public bool IsReadOnly => false;
 
     /// <inheritdoc cref="HashSet{T}.Comparer"/>
     public IEqualityComparer<TItem> Comparer { get; }
 
     #region Change
 
-    /// <summary>
-    /// 集合改变参数
-    /// </summary>
-    protected NotifySetChangeEventArgs<TItem>? SetChangeEventArgs { get; set; }
-
     /// <inheritdoc/>
     public bool Add(TItem item)
     {
-        var list = new SimpleSingleItemReadOnlyList<TItem>(item);
-        OnSetAdding(list);
-        var result = BaseSet.Add(item);
-        if (result)
-            OnSetAdded(list);
-        return result;
+        if (SourceSet.Contains(item))
+            return false;
+        var list = new SingleItemReadOnlyList<TItem>(item);
+        var args = OnSetAdding(list);
+        SourceSet.Add(item);
+        OnSetAdded(args, list);
+        return true;
     }
 
     /// <inheritdoc/>
     public bool Remove(TItem item)
     {
-        var list = new SimpleSingleItemReadOnlyList<TItem>(item);
-        OnSetRemoving(list);
-        var result = BaseSet.Remove(item);
-        if (result)
-            OnSetRemoved(list);
-        return result;
+        if (SourceSet.Count == 0)
+            return false;
+        if (SourceSet.Contains(item) is false)
+            return false;
+        var list = new SingleItemReadOnlyList<TItem>(item);
+        var args = OnSetRemoving(list, out var removeIndex);
+        SourceSet.Remove(item);
+        OnSetRemoved(args, list, removeIndex);
+        return true;
     }
 
     /// <inheritdoc/>
     public void Clear()
     {
+        if (SourceSet.Count == 0)
+            return;
         OnSetClearing();
-        BaseSet.Clear();
+        SourceSet.Clear();
         OnSetCleared();
     }
 
     /// <inheritdoc/>
     public void IntersectWith(IEnumerable<TItem> other)
     {
-        var oldItems = new SimpleReadOnlyList<TItem>(BaseSet.Except(other, Comparer));
-        var otherItems = new SimpleReadOnlyList<TItem>(other);
-        OnSetOperating(SetChangeAction.Intersect, otherItems, null, oldItems);
-        BaseSet.IntersectWith(otherItems);
-        OnSetOperated(SetChangeAction.Intersect, otherItems, null, oldItems);
+        ArgumentNullException.ThrowIfNull(other);
+
+        var otherItems = new ReadOnlyList<TItem>(other);
+        var oldItems = new ReadOnlyList<TItem>(SourceSet.Except(otherItems, Comparer));
+        if (oldItems.Count == 0)
+            return;
+
+        var args = OnSetOperating(
+            SetChangeAction.Intersect,
+            otherItems,
+            null,
+            oldItems,
+            out var removeIndexs
+        );
+        SourceSet.IntersectWith(otherItems);
+        OnSetOperated(args, SetChangeAction.Intersect, otherItems, null, oldItems, removeIndexs);
     }
 
     /// <inheritdoc/>
     public void ExceptWith(IEnumerable<TItem> other)
     {
-        var oldItems = new SimpleReadOnlyList<TItem>(BaseSet.Intersect(other));
-        var otherItems = new SimpleReadOnlyList<TItem>(other);
-        OnSetOperating(SetChangeAction.Except, otherItems, null, oldItems);
-        BaseSet.ExceptWith(otherItems);
-        OnSetOperated(SetChangeAction.Except, otherItems, null, oldItems);
+        ArgumentNullException.ThrowIfNull(other);
+
+        var otherItems = new ReadOnlyList<TItem>(other);
+        var oldItems = new ReadOnlyList<TItem>(SourceSet.Intersect(otherItems, Comparer));
+        if (oldItems.Count == 0)
+            return;
+
+        var args = OnSetOperating(
+            SetChangeAction.Except,
+            otherItems,
+            null,
+            oldItems,
+            out var removeIndexs
+        );
+        SourceSet.ExceptWith(otherItems);
+        OnSetOperated(args, SetChangeAction.Except, otherItems, null, oldItems, removeIndexs);
     }
 
     /// <inheritdoc/>
     public void SymmetricExceptWith(IEnumerable<TItem> other)
     {
-        var otherItems = new SimpleReadOnlyList<TItem>(other);
-        var oldItems = new SimpleReadOnlyList<TItem>(otherItems.Intersect(BaseSet, Comparer));
-        var newItems = new SimpleReadOnlyList<TItem>(otherItems.Except(oldItems, Comparer));
-        OnSetOperating(SetChangeAction.SymmetricExcept, otherItems, newItems, oldItems);
+        ArgumentNullException.ThrowIfNull(other);
+
+        var otherItems = new ReadOnlyList<TItem>(other);
+        var oldItems = new ReadOnlyList<TItem>(SourceSet.Intersect(otherItems, Comparer));
+        var newItems = new ReadOnlyList<TItem>(otherItems.Except(oldItems, Comparer));
+        if (oldItems.Count == 0 && newItems.Count == 0)
+            return;
+
+        var args = OnSetOperating(
+            SetChangeAction.SymmetricExcept,
+            otherItems,
+            newItems,
+            oldItems,
+            out var removeIndexs
+        );
         if (other is HashSet<TItem> otherSet)
-            BaseSet.SymmetricExceptWith(otherSet);
+            SourceSet.SymmetricExceptWith(otherSet);
         else
-            BaseSet.SymmetricExceptWith(otherItems);
-        OnSetOperated(SetChangeAction.SymmetricExcept, otherItems, newItems, oldItems);
+            SourceSet.SymmetricExceptWith(otherItems);
+        OnSetOperated(
+            args,
+            SetChangeAction.SymmetricExcept,
+            otherItems,
+            newItems,
+            oldItems,
+            removeIndexs
+        );
     }
 
     /// <inheritdoc/>
     public void UnionWith(IEnumerable<TItem> other)
     {
-        TrimExcess();
-        var otherItems = new SimpleReadOnlyList<TItem>(other);
-        var newItems = new SimpleReadOnlyList<TItem>(other.Except(BaseSet, Comparer));
-        OnSetOperating(SetChangeAction.Union, otherItems, newItems, null);
-        BaseSet.UnionWith(otherItems);
-        OnSetOperated(SetChangeAction.Union, otherItems, newItems, null);
+        var otherItems = new ReadOnlyList<TItem>(other);
+        var newItems = new ReadOnlyList<TItem>(otherItems.Except(SourceSet, Comparer));
+        if (newItems.Count == 0)
+            return;
+        var args = OnSetOperating(
+            SetChangeAction.Union,
+            otherItems,
+            newItems,
+            null,
+            out var removeIndexs
+        );
+        SourceSet.UnionWith(otherItems);
+        OnSetOperated(args, SetChangeAction.Union, otherItems, newItems, null, removeIndexs);
     }
 
     /// <inheritdoc/>
@@ -133,76 +183,64 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public bool Contains(TItem item)
     {
-        return ((ICollection<TItem>)BaseSet).Contains(item);
+        return SourceSet.Contains(item);
     }
 
     /// <inheritdoc/>
     public void CopyTo(TItem[] array, int arrayIndex)
     {
-        ((ICollection<TItem>)BaseSet).CopyTo(array, arrayIndex);
+        SourceSet.CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
     public IEnumerator<TItem> GetEnumerator()
     {
-        return ((IEnumerable<TItem>)BaseSet).GetEnumerator();
+        return SourceSet.GetEnumerator();
     }
 
     /// <inheritdoc/>
     public bool IsProperSubsetOf(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).IsProperSubsetOf(other);
+        return SourceSet.IsProperSubsetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsProperSupersetOf(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).IsProperSupersetOf(other);
+        return SourceSet.IsProperSupersetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsSubsetOf(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).IsSubsetOf(other);
+        return SourceSet.IsSubsetOf(other);
     }
 
     /// <inheritdoc/>
     public bool IsSupersetOf(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).IsSupersetOf(other);
+        return SourceSet.IsSupersetOf(other);
     }
 
     /// <inheritdoc/>
     public bool Overlaps(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).Overlaps(other);
+        return SourceSet.Overlaps(other);
     }
 
     /// <inheritdoc/>
     public bool SetEquals(IEnumerable<TItem> other)
     {
-        return ((ISet<TItem>)BaseSet).SetEquals(other);
+        return SourceSet.SetEquals(other);
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)BaseSet).GetEnumerator();
-    }
-
-    /// <inheritdoc cref="HashSet{T}.TrimExcess"/>
-    public void TrimExcess()
-    {
-        if (BaseSet is HashSet<TItem> set)
-            set.TrimExcess();
+        return ((IEnumerable)SourceSet).GetEnumerator();
     }
 
     #endregion ISet
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private readonly List<int> _addIndexs = new();
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private readonly List<int> _removeIndexs = new();
 
     #region SetChanging
 
@@ -210,47 +248,41 @@ public class ObservableSetWrapper<TItem, TSet>
     /// 集合添加项目前
     /// </summary>
     /// <param name="items">键值对</param>
-    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    protected virtual void OnSetAdding(IList<TItem> items)
+    /// <returns>事件参数</returns>
+    protected virtual NotifySetChangeEventArgs<TItem>? OnSetAdding(IList<TItem> items)
     {
         if (SetChanging is not null)
-            OnSetChanging(new(SetChangeAction.Add, items));
+            return OnSetChanging(new(SetChangeAction.Add, items));
+        return null;
     }
 
     /// <summary>
     /// 集合删除项目前
     /// </summary>
     /// <param name="items">键值对</param>
-    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    protected virtual void OnSetRemoving(IList<TItem> items)
+    /// <param name="removeIndex">项目索引</param>
+    /// <returns>事件参数</returns>
+    protected virtual NotifySetChangeEventArgs<TItem>? OnSetRemoving(
+        IList<TItem> items,
+        out int removeIndex
+    )
     {
+        removeIndex = -1;
+        NotifySetChangeEventArgs<TItem>? args = null;
         if (SetChanging is not null)
-            OnSetChanging(new(SetChangeAction.Remove, items));
+            args = OnSetChanging(new(SetChangeAction.Remove, items));
         if (CollectionChanged is not null)
-        {
-            _removeIndexs.Clear();
-            var removeItems = items.ToHashSet();
-            foreach ((var index, var item) in BaseSet.ReverseEnumerateIndex())
-            {
-                if (removeItems.Contains(item))
-                {
-                    _removeIndexs.Add(index);
-                    removeItems.Remove(item);
-                    if (removeItems.HasValue() is false)
-                        break;
-                }
-            }
-        }
+            removeIndex = SourceSet.IndexOf(items[0]);
+        return args;
     }
 
     /// <summary>
     /// 集合清理前
     /// </summary>
-    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
     protected virtual void OnSetClearing()
     {
         if (SetChanging is not null)
-            OnSetChanging(new(SetChangeAction.Clear));
+            OnSetChanging(NotifySetChangeEventArgs<TItem>.Cache_Clear);
     }
 
     /// <summary>
@@ -260,41 +292,47 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <param name="otherItems">其它集合</param>
     /// <param name="newItems">新项目</param>
     /// <param name="oldItems">旧项目</param>
-    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    protected virtual void OnSetOperating(
+    /// <param name="removeIndexs">删除项目索引集合</param>
+    /// <returns>事件参数</returns>
+    protected virtual NotifySetChangeEventArgs<TItem>? OnSetOperating(
         SetChangeAction action,
         IList<TItem> otherItems,
         IList<TItem>? newItems,
-        IList<TItem>? oldItems
+        IList<TItem>? oldItems,
+        out IList<int> removeIndexs
     )
     {
+        removeIndexs = null!;
+        NotifySetChangeEventArgs<TItem>? args = null;
         if (SetChanging is not null)
-            OnSetChanging(new(action, otherItems, newItems, oldItems));
+            args = OnSetChanging(new(action, otherItems, newItems, oldItems));
         if (CollectionChanged is not null && oldItems is not null)
         {
-            _removeIndexs.Clear();
-            var removeItems = oldItems.ToHashSet();
-            foreach ((var index, var item) in BaseSet.ReverseEnumerateIndex())
+            removeIndexs = new List<int>();
+            var removeItems = oldItems.ToHashSet(Comparer);
+            foreach (var (e, i) in SourceSet.ReverseWithIndex())
             {
-                if (removeItems.Contains(item))
+                if (removeItems.Remove(e))
                 {
-                    _removeIndexs.Add(index);
-                    removeItems.Remove(item);
-                    if (removeItems.HasValue() is false)
+                    removeIndexs.Add(i);
+                    if (removeItems.Count == 0)
                         break;
                 }
             }
         }
+        return args;
     }
 
     /// <summary>
     /// 集合改变前
     /// </summary>
     /// <param name="args">参数</param>
-    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    protected virtual void OnSetChanging(NotifySetChangeEventArgs<TItem> args)
+    protected virtual NotifySetChangeEventArgs<TItem>? OnSetChanging(
+        NotifySetChangeEventArgs<TItem> args
+    )
     {
-        SetChanging?.Invoke(this, SetChangeEventArgs = args);
+        SetChanging?.Invoke(this, args);
+        return args;
     }
 
     /// <inheritdoc/>
@@ -307,31 +345,33 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <summary>
     /// 集合添加键值对后
     /// </summary>
+    /// <param name="args">事件参数</param>
     /// <param name="items">键值对</param>
-    protected virtual void OnSetAdded(IList<TItem> items)
+    protected virtual void OnSetAdded(NotifySetChangeEventArgs<TItem>? args, IList<TItem> items)
     {
         if (SetChanged is not null)
-            OnSetChanged(SetChangeEventArgs ?? new(SetChangeAction.Add, items));
+            OnSetChanged(args ?? new(SetChangeAction.Add, items));
         if (CollectionChanged is not null)
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Add, (IList)items, Count - 1));
+            OnCollectionChanged(new(NotifyCollectionChangedAction.Add, (IList)items));
         OnCountChanged();
     }
 
     /// <summary>
     /// 集合删除项目后
     /// </summary>
+    /// <param name="args">事件参数</param>
     /// <param name="items">键值对</param>
-    protected virtual void OnSetRemoved(IList<TItem> items)
+    /// <param name="removeIndex">删除项目的索引</param>
+    protected virtual void OnSetRemoved(
+        NotifySetChangeEventArgs<TItem>? args,
+        IList<TItem> items,
+        int removeIndex
+    )
     {
         if (SetChanged is not null)
-            OnSetChanged(SetChangeEventArgs ?? new(SetChangeAction.Remove, items));
+            OnSetChanged(args ?? new(SetChangeAction.Remove, items));
         if (CollectionChanged is not null)
-        {
-            foreach (
-                (var item, var index) in ((IEnumerable<TItem>)items).Reverse().Zip(_removeIndexs)
-            )
-                OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, item, index));
-        }
+            OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, items[0], removeIndex));
         OnCountChanged();
     }
 
@@ -341,50 +381,44 @@ public class ObservableSetWrapper<TItem, TSet>
     protected virtual void OnSetCleared()
     {
         if (SetChanged is not null)
-            OnSetChanged(SetChangeEventArgs ?? new(SetChangeAction.Clear));
+            OnSetChanged(NotifySetChangeEventArgs<TItem>.Cache_Clear);
         if (CollectionChanged is not null)
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Reset));
+            OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
         OnCountChanged();
     }
 
     /// <summary>
     /// 集合运算前
     /// </summary>
+    /// <param name="args">事件参数</param>
     /// <param name="action">行动</param>
     /// <param name="otherItems">其它集合</param>
     /// <param name="newItems">新项目</param>
     /// <param name="oldItems">旧项目</param>
+    /// <param name="removeIndexs">删除项目集合</param>
     protected virtual void OnSetOperated(
+        NotifySetChangeEventArgs<TItem>? args,
         SetChangeAction action,
         IList<TItem> otherItems,
         IList<TItem>? newItems,
-        IList<TItem>? oldItems
+        IList<TItem>? oldItems,
+        IList<int> removeIndexs
     )
     {
         if (SetChanged is not null)
-            OnSetChanged(SetChangeEventArgs ?? new(action, otherItems, newItems, oldItems));
+            OnSetChanged(args ?? new(action, otherItems, newItems, oldItems));
         if (CollectionChanged is not null)
         {
             if (oldItems is not null)
             {
-                foreach (
-                    (var item, var index) in ((IEnumerable<TItem>)oldItems)
-                        .Reverse()
-                        .Zip(_removeIndexs)
-                )
-                {
-                    OnCollectionChanged(
-                        new(NotifyCollectionChangedAction.Remove, item, index: index)
-                    );
-                }
+                foreach (var (e, i) in oldItems.Reverse().Zip(removeIndexs))
+                    OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, e, index: i));
             }
             if (newItems is not null)
             {
-                var index = BaseSet.Count - newItems.Count;
+                var index = SourceSet.Count - newItems.Count;
                 foreach (var item in newItems)
-                {
                     OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item, index++));
-                }
             }
         }
         OnCountChanged();
@@ -404,8 +438,6 @@ public class ObservableSetWrapper<TItem, TSet>
 
     #endregion SetChanged
 
-    #region CollectionChanged
-
     /// <summary>
     /// 集合已改变前
     /// </summary>
@@ -418,17 +450,12 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
-    #endregion CollectionChanged
-
-    #region PropertyChanged
-
     /// <summary>
     /// 数量改变后
     /// </summary>
-    private void OnCountChanged()
+    protected virtual void OnCountChanged()
     {
-        OnPropertyChanged(nameof(Count));
-        SetChangeEventArgs = null;
+        PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Count);
     }
 
     /// <summary>
@@ -442,6 +469,4 @@ public class ObservableSetWrapper<TItem, TSet>
 
     /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    #endregion PropertyChanged
 }

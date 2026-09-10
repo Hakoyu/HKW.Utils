@@ -1,147 +1,135 @@
-﻿using System.Collections;
+﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using HKW.HKWReactiveUI;
+using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可观测可选中字典包装器
+/// 可观测可选择集合包装器
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
-/// <typeparam name="TDictionary">字典类型</typeparam>
+/// <typeparam name="TDictionary">集合类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
-public partial class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictionary>
-    : ReactiveObjectX,
-        IDictionary<TKey, TValue>,
-        IDictionaryWrapper<TKey, TValue, TDictionary>
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
+#pragma warning disable S2436
+public class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictionary>
+#pragma warning restore S2436
+    : ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     where TKey : notnull
     where TDictionary : IDictionary<TKey, TValue>
 {
     /// <inheritdoc/>
-    /// <param name="dictionary">字典</param>
-    public ObservableSelectableDictionaryWrapper(TDictionary dictionary)
+    /// <param name="dictionary">集合</param>
+    /// <param name="comparer">比较器, 必须与 <paramref name="dictionary"/> 的比较器相同</param>
+    public ObservableSelectableDictionaryWrapper(
+        TDictionary dictionary,
+        IEqualityComparer<TKey>? comparer = null
+    )
+        : base(dictionary, comparer) { }
+
+    private bool _hasSelection;
+
+    /// <summary>
+    /// 已选中
+    /// </summary>
+    public bool HasSelection => _hasSelection;
+
+    /// <summary>
+    /// 选中的键
+    /// </summary>
+    public TKey SelectedKey
     {
-        BaseDictionary = dictionary;
+        get => SelectedItem.Key;
+        set => SelectedItem = SourceDictionary.GetPair(value);
     }
 
-    /// <inheritdoc/>
-    /// <param name="dictionary">字典</param>
-    /// <param name="seletedKey">选中的键</param>
-    public ObservableSelectableDictionaryWrapper(TDictionary dictionary, TKey seletedKey)
-        : this(dictionary)
-    {
-        SelectedItem = BaseDictionary.GetPair(seletedKey);
-    }
+    /// <summary>
+    /// 选中的值
+    /// </summary>
+    public TValue SelectedValue => _selectedItem.Value;
 
-    /// <inheritdoc/>
-    public TDictionary BaseDictionary { get; }
+    private KeyValuePair<TKey, TValue> _selectedItem = default!;
 
     /// <summary>
     /// 选中的项目
     /// </summary>
-    [ReactiveProperty]
-    public KeyValuePair<TKey, TValue> SelectedItem { get; set; }
-
-    #region IDictionary
-    /// <inheritdoc/>
-    public TValue this[TKey key]
+    public KeyValuePair<TKey, TValue> SelectedItem
     {
-        get => BaseDictionary[key];
-        set
-        {
-            BaseDictionary[key] = value;
-            SelectedItem = BaseDictionary.GetPair(key);
-        }
+        get => _selectedItem;
+        set => SetSelectedItem(value);
     }
 
     /// <inheritdoc/>
-    public ICollection<TKey> Keys => BaseDictionary.Keys;
-
-    /// <inheritdoc/>
-    public ICollection<TValue> Values => BaseDictionary.Values;
-
-    /// <inheritdoc/>
-    public int Count => BaseDictionary.Count;
-
-    /// <inheritdoc/>
-    public bool IsReadOnly => BaseDictionary.IsReadOnly;
-
-    /// <inheritdoc/>
-    public void Add(TKey key, TValue value)
+    protected override void OnDictionaryRemoved(
+        NotifyDictionaryChangeEventArgs<TKey, TValue>? args,
+        KeyValuePair<TKey, TValue> pair,
+        int removeIndex
+    )
     {
-        BaseDictionary.Add(key, value);
+        if (EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(_selectedItem, pair))
+            ClearSelection();
+
+        base.OnDictionaryRemoved(args, pair, removeIndex);
     }
 
     /// <inheritdoc/>
-    public void Add(KeyValuePair<TKey, TValue> item)
+    protected override void OnDictionaryReplaced(
+        NotifyDictionaryChangeEventArgs<TKey, TValue>? args,
+        KeyValuePair<TKey, TValue> newPair,
+        KeyValuePair<TKey, TValue> oldPair
+    )
     {
-        BaseDictionary.Add(item);
+        if (EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(_selectedItem, oldPair))
+            SetSelectedItem(newPair);
+
+        base.OnDictionaryReplaced(args, newPair, oldPair);
     }
 
     /// <inheritdoc/>
-    public void Clear()
+    protected override void OnDictionaryCleared()
     {
-        BaseDictionary.Clear();
-        SelectedItem = default;
+        ClearSelection();
+        base.OnDictionaryCleared();
     }
 
-    /// <inheritdoc/>
-    public bool Contains(KeyValuePair<TKey, TValue> item)
+    private void SetSelectedItem(KeyValuePair<TKey, TValue> item)
     {
-        return BaseDictionary.Contains(item);
+        if (EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(_selectedItem, item))
+            return;
+
+        _selectedItem = item;
+        _hasSelection = EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(item, default)
+            ? false
+            : Contains(item);
+        OnPropertyChanged(nameof(SelectedItem));
+        OnPropertyChanged(nameof(SelectedKey));
+        OnPropertyChanged(nameof(SelectedValue));
+        OnPropertyChanged(nameof(HasSelection));
+        OnSelectionChanged();
     }
 
-    /// <inheritdoc/>
-    public bool ContainsKey(TKey key)
+    private void ClearSelection()
     {
-        return BaseDictionary.ContainsKey(key);
+        if (
+            _hasSelection is false
+            && EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(_selectedItem, default!)
+        )
+            return;
+
+        _selectedItem = default!;
+        _hasSelection = false;
+        OnPropertyChanged(nameof(SelectedItem));
+        OnPropertyChanged(nameof(SelectedKey));
+        OnPropertyChanged(nameof(SelectedValue));
+        OnPropertyChanged(nameof(HasSelection));
+        OnSelectionChanged();
     }
 
-    /// <inheritdoc/>
-    public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
-    {
-        BaseDictionary.CopyTo(array, arrayIndex);
-    }
-
-    /// <inheritdoc/>
-    public bool Remove(TKey key)
-    {
-        var r = BaseDictionary.Remove(key);
-        if (r && key.Equals(SelectedItem.Key))
-            SelectedItem = default;
-        return r;
-    }
-
-    /// <inheritdoc/>
-    public bool Remove(KeyValuePair<TKey, TValue> item)
-    {
-        var r = BaseDictionary.Remove(item);
-        if (r && item.Key.Equals(SelectedItem.Key))
-            SelectedItem = default;
-        return r;
-    }
-
-    /// <inheritdoc/>
-    public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
-    {
-        return BaseDictionary.TryGetValue(key, out value);
-    }
-
-    /// <inheritdoc/>
-    public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-    {
-        return BaseDictionary.GetEnumerator();
-    }
-
-    /// <inheritdoc/>
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return ((IEnumerable)BaseDictionary).GetEnumerator();
-    }
-    #endregion
+    /// <summary>
+    /// 选择状态改变后
+    /// </summary>
+    protected virtual void OnSelectionChanged() { }
 }

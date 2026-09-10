@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Exceptions;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -13,91 +15,69 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TItem">项类型</typeparam>
 /// <typeparam name="TList">列表类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public class ObservableListWrapper<TItem, TList>
     : IObservableList<TItem>,
         IReadOnlyObservableList<TItem>,
-        IList,
-        IListWrapper<TItem, TList>
+        IList
     where TList : IList<TItem>
 {
     /// <inheritdoc/>
     public ObservableListWrapper(TList list)
     {
-        BaseList = list;
+        SourceList = list;
     }
 
     /// <inheritdoc/>
-    public TList BaseList { get; }
+    protected TList SourceList { get; }
 
     #region IListT
 
     /// <inheritdoc/>
-    public int Count => BaseList.Count;
+    public int Count => SourceList.Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => ((ICollection<TItem>)BaseList).IsReadOnly;
+    public bool IsReadOnly => false;
 
     #region Change
 
     /// <inheritdoc/>
     public TItem this[int index]
     {
-        get => BaseList[index];
+        get => SourceList[index];
         set
         {
-            var oldValue = BaseList[index];
-            if (oldValue?.Equals(value) is true)
+            var oldValue = SourceList[index];
+            if (EqualityComparer<TItem>.Default.Equals(oldValue, value) is true)
                 return;
-            OnListReplacing(value, oldValue, index);
-            BaseList[index] = value;
-            OnListReplaced(value, oldValue, index);
+            var args = OnListReplacing(value, oldValue, index);
+            SourceList[index] = value;
+            OnListReplaced(args, value, oldValue, index);
         }
     }
-
-    /// <inheritdoc/>
-    public TItem this[int index, bool skipCheck]
-    {
-        get => BaseList[index];
-        set
-        {
-            var oldValue = BaseList[index];
-            if (skipCheck is false && oldValue?.Equals(value) is true)
-                return;
-            OnListReplacing(value, oldValue, index);
-            BaseList[index] = value;
-            OnListReplaced(value, oldValue, index);
-        }
-    }
-
-    /// <summary>
-    /// 列表改变事件参数
-    /// </summary>
-    protected NotifyListChangeEventArgs<TItem>? ListChangeEventArgs { get; set; }
 
     /// <inheritdoc/>
     public void Add(TItem item)
     {
-        var index = BaseList.Count;
-        OnListAdding(item, index);
-        BaseList.Add(item);
-        OnListAdded(item, index);
+        var index = SourceList.Count;
+        var args = OnListAdding(item, index);
+        SourceList.Add(item);
+        OnListAdded(args, item, index);
     }
 
     /// <inheritdoc/>
     public void Insert(int index, TItem item)
     {
-        if (index < 0 || index > BaseList.Count)
-            BaseList.Insert(index, item);
-        OnListAdding(item, index);
-        BaseList.Insert(index, item);
-        OnListAdded(item, index);
+        ArgumentOutOfRangeException.ThrowIfOutOfRangeMaxExclusive(index, 0, Count);
+        var args = OnListAdding(item, index);
+        SourceList.Insert(index, item);
+        OnListAdded(args, item, index);
     }
 
     /// <inheritdoc/>
     public bool Remove(TItem item)
     {
-        var index = BaseList.IndexOf(item);
+        var index = SourceList.IndexOf(item);
         if (index >= 0)
         {
             RemoveAt(index);
@@ -109,17 +89,17 @@ public class ObservableListWrapper<TItem, TList>
     /// <inheritdoc/>
     public void RemoveAt(int index)
     {
-        var item = BaseList[index];
-        OnListRemoving(item, index);
-        BaseList.RemoveAt(index);
-        OnListRemoved(item, index);
+        var item = SourceList[index];
+        var args = OnListRemoving(item, index);
+        SourceList.RemoveAt(index);
+        OnListRemoved(args, item, index);
     }
 
     /// <inheritdoc/>
     public void Clear()
     {
         OnListClearing();
-        BaseList.Clear();
+        SourceList.Clear();
         OnListCleared();
     }
 
@@ -128,51 +108,43 @@ public class ObservableListWrapper<TItem, TList>
     /// <inheritdoc/>
     public bool Contains(TItem item)
     {
-        return BaseList.Contains(item);
+        return SourceList.Contains(item);
     }
 
     /// <inheritdoc/>
     public void CopyTo(TItem[] array, int arrayIndex)
     {
-        BaseList.CopyTo(array, arrayIndex);
-    }
-
-    /// <inheritdoc/>
-    public IEnumerator<TItem> GetEnumerator()
-    {
-        return BaseList.GetEnumerator();
+        SourceList.CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
     public int IndexOf(TItem item)
     {
-        return BaseList.IndexOf(item);
+        return SourceList.IndexOf(item);
+    }
+
+    /// <inheritdoc/>
+    public IEnumerator<TItem> GetEnumerator()
+    {
+        return SourceList.GetEnumerator();
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)BaseList).GetEnumerator();
+        return ((IEnumerable)SourceList).GetEnumerator();
     }
 
     #endregion IListT
 
     #region IList
-    bool IList.IsFixedSize => ((IList)BaseList).IsFixedSize;
-    bool ICollection.IsSynchronized => ((ICollection)BaseList).IsSynchronized;
-    object ICollection.SyncRoot => ((ICollection)BaseList).SyncRoot;
+    bool IList.IsFixedSize => ((IList)SourceList).IsFixedSize;
+    bool ICollection.IsSynchronized => ((ICollection)SourceList).IsSynchronized;
+    object ICollection.SyncRoot => ((ICollection)SourceList).SyncRoot;
     object? IList.this[int index]
     {
-        get => BaseList[index];
-        set
-        {
-            var oldValue = BaseList[index];
-            if (oldValue?.Equals(value) is true)
-                return;
-            OnListReplacing((TItem)value!, oldValue, index);
-            BaseList[index] = (TItem)value!;
-            OnListReplaced((TItem)value!, oldValue, index);
-        }
+        get => SourceList[index];
+        set => this[index] = (TItem)value!;
     }
 
     int IList.Add(object? value)
@@ -197,22 +169,21 @@ public class ObservableListWrapper<TItem, TList>
     bool IList.Contains(object? value)
     {
         var item = (TItem)value!;
-        return BaseList.Contains(item);
+        return SourceList.Contains(item);
     }
 
     int IList.IndexOf(object? value)
     {
         var item = (TItem)value!;
-        return BaseList.IndexOf(item);
+        return SourceList.IndexOf(item);
     }
 
     void ICollection.CopyTo(Array array, int index)
     {
-        ((ICollection)BaseList).CopyTo(array, index);
+        ((ICollection)SourceList).CopyTo(array, index);
     }
 
     #endregion
-
 
     #region ListChanging
 
@@ -221,10 +192,12 @@ public class ObservableListWrapper<TItem, TList>
     /// </summary>
     /// <param name="item">项目</param>
     /// <param name="index">索引</param>
-    protected virtual void OnListAdding(TItem item, int index)
+    /// <returns>事件参数</returns>
+    protected virtual NotifyListChangeEventArgs<TItem>? OnListAdding(TItem item, int index)
     {
         if (ListChanging is not null)
-            OnListChanging(new(ListChangeAction.Add, item, index));
+            return OnListChanging(new(ListChangeAction.Add, item, index));
+        return null;
     }
 
     /// <summary>
@@ -232,10 +205,30 @@ public class ObservableListWrapper<TItem, TList>
     /// </summary>
     /// <param name="item">项目</param>
     /// <param name="index">索引</param>
-    protected virtual void OnListRemoving(TItem item, int index)
+    /// <returns>事件参数</returns>
+    protected virtual NotifyListChangeEventArgs<TItem>? OnListRemoving(TItem item, int index)
     {
         if (ListChanging is not null)
-            OnListChanging(new(ListChangeAction.Remove, item, index));
+            return OnListChanging(new(ListChangeAction.Remove, item, index));
+        return null;
+    }
+
+    /// <summary>
+    /// 列表改变项目前
+    /// </summary>
+    /// <param name="newItem">新项目</param>
+    /// <param name="oldItem">旧项目</param>
+    /// <param name="index">索引</param>
+    /// <returns>事件参数</returns>
+    protected virtual NotifyListChangeEventArgs<TItem>? OnListReplacing(
+        TItem newItem,
+        TItem oldItem,
+        int index
+    )
+    {
+        if (ListChanging is not null)
+            return OnListChanging(new(ListChangeAction.Replace, newItem, oldItem, index));
+        return null;
     }
 
     /// <summary>
@@ -244,29 +237,20 @@ public class ObservableListWrapper<TItem, TList>
     protected virtual void OnListClearing()
     {
         if (ListChanging is not null)
-            OnListChanging(new(ListChangeAction.Clear));
-    }
-
-    /// <summary>
-    /// 列表改变项目前
-    /// </summary>
-    /// <param name="newItem">新项目</param>
-    /// <param name="oldItem">旧项目</param>
-    /// <param name="index"></param>
-    protected virtual void OnListReplacing(TItem newItem, TItem oldItem, int index)
-    {
-        if (ListChanging is not null)
-            OnListChanging(new(ListChangeAction.Replace, newItem, oldItem, index));
+            OnListChanging(NotifyListChangeEventArgs<TItem>.Cache_Clear);
     }
 
     /// <summary>
     /// 列表改变前
     /// </summary>
     /// <param name="args">参数</param>
-    /// <returns>不取消为 <see langword="true"/> 取消为 <see langword="false"/></returns>
-    protected virtual void OnListChanging(NotifyListChangeEventArgs<TItem> args)
+    /// <returns>事件参数</returns>
+    protected virtual NotifyListChangeEventArgs<TItem> OnListChanging(
+        NotifyListChangeEventArgs<TItem> args
+    )
     {
-        ListChanging?.Invoke(this, ListChangeEventArgs = args);
+        ListChanging?.Invoke(this, args);
+        return args;
     }
 
     /// <inheritdoc/>
@@ -279,41 +263,62 @@ public class ObservableListWrapper<TItem, TList>
     /// <summary>
     /// 列表添加项目后
     /// </summary>
+    /// <param name="args">事件参数</param>
     /// <param name="item">项目</param>
     /// <param name="index">索引</param>
-    protected virtual void OnListAdded(TItem item, int index)
+    protected virtual void OnListAdded(
+        NotifyListChangeEventArgs<TItem>? args,
+        TItem item,
+        int index
+    )
     {
         if (ListChanged is not null)
-            OnListChanged(ListChangeEventArgs ?? new(ListChangeAction.Add, item, index));
+            OnListChanged(args ?? new(ListChangeAction.Add, item, index));
         if (CollectionChanged is not null)
-            OnCollectionChanged(
-                new(
-                    NotifyCollectionChangedAction.Add,
-                    new SimpleSingleItemReadOnlyList<TItem>(item),
-                    index
-                )
-            );
+            OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item, index));
         OnCountChanged();
     }
 
     /// <summary>
     /// 列表删除项目后
     /// </summary>
+    /// <param name="args">事件参数</param>
     /// <param name="item">项目</param>
     /// <param name="index">索引</param>
-    protected virtual void OnListRemoved(TItem item, int index)
+    protected virtual void OnListRemoved(
+        NotifyListChangeEventArgs<TItem>? args,
+        TItem item,
+        int index
+    )
     {
         if (ListChanged is not null)
-            OnListChanged(ListChangeEventArgs ?? new(ListChangeAction.Remove, item, index));
+            OnListChanged(args ?? new(ListChangeAction.Remove, item, index));
+        if (CollectionChanged is not null)
+            OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, item, index));
+        OnCountChanged();
+    }
+
+    /// <summary>
+    /// 列表项目改变后
+    /// </summary>
+    /// <param name="args">事件参数</param>
+    /// <param name="newItem">新项目</param>
+    /// <param name="oldItem">旧项目</param>
+    /// <param name="index">索引</param>
+    protected virtual void OnListReplaced(
+        NotifyListChangeEventArgs<TItem>? args,
+        TItem newItem,
+        TItem oldItem,
+        int index
+    )
+    {
+        if (ListChanged is not null)
+            OnListChanged(args ?? new(ListChangeAction.Replace, newItem, oldItem, index));
         if (CollectionChanged is not null)
             OnCollectionChanged(
-                new(
-                    NotifyCollectionChangedAction.Remove,
-                    new SimpleSingleItemReadOnlyList<TItem>(item),
-                    index
-                )
+                new(NotifyCollectionChangedAction.Replace, newItem, oldItem, index)
             );
-        OnCountChanged();
+        PropertyChanged?.InvokeIndexer(this);
     }
 
     /// <summary>
@@ -322,33 +327,10 @@ public class ObservableListWrapper<TItem, TList>
     protected virtual void OnListCleared()
     {
         if (ListChanged is not null)
-            OnListChanged(ListChangeEventArgs ?? new(ListChangeAction.Clear));
+            OnListChanged(NotifyListChangeEventArgs<TItem>.Cache_Clear);
         if (CollectionChanged is not null)
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Reset));
+            OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
         OnCountChanged();
-    }
-
-    /// <summary>
-    /// 列表项目改变后
-    /// </summary>
-    /// <param name="newItem">新项目</param>
-    /// <param name="oldItem">旧项目</param>
-    /// <param name="index">索引</param>
-    protected virtual void OnListReplaced(TItem newItem, TItem oldItem, int index)
-    {
-        if (ListChanged is not null)
-            OnListChanged(
-                ListChangeEventArgs ?? new(ListChangeAction.Replace, newItem, oldItem, index)
-            );
-        if (CollectionChanged is not null)
-            OnCollectionChanged(
-                new(
-                    NotifyCollectionChangedAction.Replace,
-                    new SimpleSingleItemReadOnlyList<TItem>(newItem),
-                    new SimpleSingleItemReadOnlyList<TItem>(oldItem),
-                    index
-                )
-            );
     }
 
     /// <summary>
@@ -365,8 +347,6 @@ public class ObservableListWrapper<TItem, TList>
 
     #endregion ListChanged
 
-    #region CollectionChanged
-
     /// <summary>
     /// 集合改变后
     /// </summary>
@@ -379,30 +359,23 @@ public class ObservableListWrapper<TItem, TList>
     /// <inheritdoc/>
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
-    #endregion CollectionChanged
-
-    #region PropertyChanged
-
-
     /// <summary>
     /// 数量改变后
     /// </summary>
-    private void OnCountChanged()
+    protected virtual void OnCountChanged()
     {
-        OnPropertyChanged(nameof(Count));
-        ListChangeEventArgs = null;
+        PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Count);
     }
 
     /// <summary>
     /// 属性改变后
     /// </summary>
-    /// <param name="name">参数</param>
-    protected virtual void OnPropertyChanged(string name)
+    /// <param name="propertyName">属性名</param>
+    protected virtual void OnPropertyChanged(string propertyName)
     {
-        PropertyChanged?.Invoke(this, new(name));
+        PropertyChanged?.Invoke(this, new(propertyName));
     }
 
     /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged;
-    #endregion PropertyChanged
 }

@@ -7,7 +7,7 @@ using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
 
-namespace HKW.HKWUtils.Tests.Extensions;
+namespace HKW.HKWUtilsTests.Extensions;
 
 [TestClass]
 public class BindingCollectionTests
@@ -42,7 +42,7 @@ public class BindingCollectionTests
     {
         var obList = new ObservableList<int>();
         var list = new List<int>();
-        obList.BindingListX(list);
+        obList.BindingList(list);
         obList.Add(1);
         obList.Add(2);
         obList.Add(3);
@@ -57,7 +57,7 @@ public class BindingCollectionTests
         Assert.IsTrue(obList.SequenceEqual(list));
         obList.Clear();
         Assert.IsTrue(obList.SequenceEqual(list));
-        obList.BindingListX(list, true);
+        obList.BindingList(list, true);
         obList.Add(1);
         Assert.IsTrue(obList.SequenceEqual(list) is false);
     }
@@ -66,7 +66,7 @@ public class BindingCollectionTests
     public void BindingSet()
     {
         var obSet = new ObservableSet<int>();
-        var set = new OrderedSet<int>();
+        var set = new OrderedHashSet<int>();
         obSet.BindingSet(set);
         obSet.Add(1);
         obSet.Add(2);
@@ -88,7 +88,7 @@ public class BindingCollectionTests
     public void BindingSetX()
     {
         var obSet = new ObservableSet<int>();
-        var set = new OrderedSet<int>();
+        var set = new OrderedHashSet<int>();
         obSet.BindingSetX(set);
         obSet.Add(1);
         obSet.Add(2);

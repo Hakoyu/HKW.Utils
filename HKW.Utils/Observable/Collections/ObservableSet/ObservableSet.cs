@@ -1,6 +1,10 @@
-﻿using System.Diagnostics;
+﻿using System.Collections;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Diagnostics;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -8,37 +12,420 @@ namespace HKW.HKWUtils.Observable;
 /// 可观测集合
 /// </summary>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
-public class ObservableSet<T> : ObservableSetWrapper<T, OrderedSet<T>>
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
+public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
+    where T : notnull
 {
     /// <inheritdoc/>
     public ObservableSet()
-        : base(new(), EqualityComparer<T>.Default) { }
-
-    /// <inheritdoc/>
-    /// <param name="capacity">容量</param>
-    public ObservableSet(int capacity)
-        : base(new(capacity), EqualityComparer<T>.Default) { }
-
-    /// <inheritdoc/>
-    /// <param name="comparer">比较器</param>
-    public ObservableSet(IEqualityComparer<T> comparer)
-        : base(new(comparer), comparer) { }
-
-    /// <inheritdoc/>
-    /// <param name="collection">集合</param>
-    public ObservableSet(IEnumerable<T> collection)
-        : base(new(collection), EqualityComparer<T>.Default) { }
+    {
+        Comparer = EqualityComparer<T>.Default;
+        _set = new();
+    }
 
     /// <inheritdoc/>
     ///  <param name="collection">集合</param>
     /// <param name="comparer">比较器</param>
-    public ObservableSet(IEnumerable<T> collection, IEqualityComparer<T> comparer)
-        : base(new(collection, comparer), comparer) { }
+    public ObservableSet(IEnumerable<T> collection, IEqualityComparer<T>? comparer = null)
+    {
+        Comparer = comparer ?? EqualityComparer<T>.Default;
+        _set = new(collection, Comparer);
+    }
 
     /// <inheritdoc/>
     /// <param name="capacity">容量</param>
     /// <param name="comparer">比较器</param>
-    public ObservableSet(int capacity, IEqualityComparer<T> comparer)
-        : base(new(capacity, comparer), comparer) { }
+    public ObservableSet(int capacity, IEqualityComparer<T>? comparer = null)
+    {
+        Comparer = comparer ?? EqualityComparer<T>.Default;
+        _set = new(capacity, comparer);
+    }
+
+    /// <inheritdoc/>
+    private readonly OrderedHashSet<T> _set;
+
+    #region ISet
+
+    /// <inheritdoc/>
+    public int Count => _set.Count;
+
+    /// <inheritdoc/>
+    public bool IsReadOnly => false;
+
+    /// <inheritdoc cref="HashSet{T}.Comparer"/>
+    public IEqualityComparer<T> Comparer { get; }
+
+    #region Change
+
+    /// <inheritdoc/>
+    public bool Add(T item)
+    {
+        if (_set.Contains(item))
+            return false;
+        var items = new SingleItemReadOnlyList<T>(item);
+        var args = OnSetAdding(items);
+        _set.Add(item);
+        OnSetAdded(args, items);
+        return true;
+    }
+
+    /// <inheritdoc/>
+    public bool Remove(T item)
+    {
+        if (_set.Count == 0)
+            return false;
+        if (_set.Contains(item) is false)
+            return false;
+        var items = new SingleItemReadOnlyList<T>(item);
+        var args = OnSetRemoving(items, out var removeIndex);
+        _set.Remove(item);
+        OnSetRemoved(args, items, removeIndex);
+        return true;
+    }
+
+    /// <inheritdoc/>
+    public void Clear()
+    {
+        if (_set.Count == 0)
+            return;
+
+        OnSetClearing();
+        _set.Clear();
+        OnSetCleared();
+    }
+
+    /// <inheritdoc/>
+    public void IntersectWith(IEnumerable<T> other)
+    {
+        ArgumentNullException.ThrowIfNull(other);
+
+        if (_set.Count == 0)
+            return;
+        if (other is ICollection<T> { Count: 0 })
+            return;
+
+        var otherItems = new ReadOnlyList<T>(other);
+        var oldItems = new ReadOnlyList<T>(_set.Except(otherItems, Comparer));
+        if (oldItems.Count == 0)
+            return;
+
+        var args = OnSetOperating(
+            SetChangeAction.Intersect,
+            otherItems,
+            null,
+            oldItems,
+            out var removeIndexs
+        );
+        _set.IntersectWith(otherItems);
+        OnSetOperated(args, SetChangeAction.Intersect, otherItems, null, oldItems, removeIndexs);
+    }
+
+    /// <inheritdoc/>
+    public void ExceptWith(IEnumerable<T> other)
+    {
+        ArgumentNullException.ThrowIfNull(other);
+
+        if (_set.Count == 0)
+            return;
+        if (other is ICollection<T> { Count: 0 })
+            return;
+
+        var otherItems = new ReadOnlyList<T>(other);
+        var oldItems = new ReadOnlyList<T>(_set.Intersect(otherItems, Comparer));
+        if (oldItems.Count == 0)
+            return;
+
+        var args = OnSetOperating(
+            SetChangeAction.Except,
+            otherItems,
+            null,
+            oldItems,
+            out var removeIndexs
+        );
+        _set.ExceptWith(otherItems);
+        OnSetOperated(args, SetChangeAction.Except, otherItems, null, oldItems, removeIndexs);
+    }
+
+    /// <inheritdoc/>
+    public void SymmetricExceptWith(IEnumerable<T> other)
+    {
+        ArgumentNullException.ThrowIfNull(other);
+
+        if (_set.Count == 0)
+            return;
+        if (other is ICollection<T> { Count: 0 })
+            return;
+
+        var otherItems = new ReadOnlyList<T>(other);
+        var oldItems = new ReadOnlyList<T>(_set.Intersect(otherItems, Comparer));
+        var newItems = new ReadOnlyList<T>(otherItems.Except(oldItems, Comparer));
+        if (oldItems.Count == 0 && newItems.Count == 0)
+            return;
+
+        var args = OnSetOperating(
+            SetChangeAction.SymmetricExcept,
+            otherItems,
+            newItems,
+            oldItems,
+            out var removeIndexs
+        );
+        if (other is HashSet<T> otherSet)
+            _set.SymmetricExceptWith(otherSet);
+        else
+            _set.SymmetricExceptWith(otherItems);
+        OnSetOperated(
+            args,
+            SetChangeAction.SymmetricExcept,
+            otherItems,
+            newItems,
+            oldItems,
+            removeIndexs
+        );
+    }
+
+    /// <inheritdoc/>
+    public void UnionWith(IEnumerable<T> other)
+    {
+        ArgumentNullException.ThrowIfNull(other);
+
+        if (_set.Count == 0)
+            return;
+        if (other is ICollection<T> { Count: 0 })
+            return;
+
+        var otherItems = new ReadOnlyList<T>(other);
+        var newItems = new ReadOnlyList<T>(otherItems.Except(_set, Comparer));
+        if (newItems.Count == 0)
+            return;
+
+        var args = OnSetOperating(
+            SetChangeAction.Union,
+            otherItems,
+            newItems,
+            null,
+            out var removeIndexs
+        );
+        _set.UnionWith(otherItems);
+        OnSetOperated(args, SetChangeAction.Union, otherItems, newItems, null, removeIndexs);
+    }
+
+    /// <inheritdoc/>
+    void ICollection<T>.Add(T item)
+    {
+        Add(item);
+    }
+
+    #endregion Change
+
+    /// <inheritdoc/>
+    public bool Contains(T item)
+    {
+        return _set.Contains(item);
+    }
+
+    /// <inheritdoc/>
+    public void CopyTo(T[] array, int arrayIndex)
+    {
+        _set.CopyTo(array, arrayIndex);
+    }
+
+    /// <inheritdoc/>
+    public bool IsProperSubsetOf(IEnumerable<T> other)
+    {
+        return _set.IsProperSubsetOf(other);
+    }
+
+    /// <inheritdoc/>
+    public bool IsProperSupersetOf(IEnumerable<T> other)
+    {
+        return _set.IsProperSupersetOf(other);
+    }
+
+    /// <inheritdoc/>
+    public bool IsSubsetOf(IEnumerable<T> other)
+    {
+        return _set.IsSubsetOf(other);
+    }
+
+    /// <inheritdoc/>
+    public bool IsSupersetOf(IEnumerable<T> other)
+    {
+        return _set.IsSupersetOf(other);
+    }
+
+    /// <inheritdoc/>
+    public bool Overlaps(IEnumerable<T> other)
+    {
+        return _set.Overlaps(other);
+    }
+
+    /// <inheritdoc/>
+    public bool SetEquals(IEnumerable<T> other)
+    {
+        return _set.SetEquals(other);
+    }
+
+    /// <inheritdoc/>
+    public IEnumerator<T> GetEnumerator()
+    {
+        return _set.GetEnumerator();
+    }
+
+    /// <inheritdoc/>
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return ((IEnumerable)_set).GetEnumerator();
+    }
+
+    #endregion ISet
+
+    #region SetChanging
+
+    private NotifySetChangeEventArgs<T>? OnSetAdding(IList<T> items)
+    {
+        if (SetChanging is not null)
+            return OnSetChanging(new(SetChangeAction.Add, items));
+        return null;
+    }
+
+    private NotifySetChangeEventArgs<T>? OnSetRemoving(IList<T> items, out int removeIndex)
+    {
+        removeIndex = -1;
+        NotifySetChangeEventArgs<T>? args = null;
+        if (SetChanging is not null)
+            args = OnSetChanging(new(SetChangeAction.Remove, items));
+
+        if (CollectionChanged is not null)
+            removeIndex = _set.IndexOf(items[0]);
+        return args;
+    }
+
+    private void OnSetClearing()
+    {
+        if (SetChanging is not null)
+            OnSetChanging(NotifySetChangeEventArgs<T>.Cache_Clear);
+    }
+
+    private NotifySetChangeEventArgs<T>? OnSetOperating(
+        SetChangeAction action,
+        IList<T> otherItems,
+        IList<T>? newItems,
+        IList<T>? oldItems,
+        out IList<int> removeIndexs
+    )
+    {
+        removeIndexs = null!;
+        NotifySetChangeEventArgs<T>? args = null;
+        if (SetChanging is not null)
+            args = OnSetChanging(new(action, otherItems, newItems, oldItems));
+        if (CollectionChanged is not null && oldItems is not null)
+        {
+            removeIndexs = new List<int>();
+            var removeItems = oldItems.ToHashSet(Comparer);
+            foreach (var (e, i) in _set.ReverseWithIndex())
+            {
+                if (removeItems.Remove(e))
+                {
+                    removeIndexs.Add(i);
+                    if (removeItems.Count == 0)
+                        break;
+                }
+            }
+        }
+        return args;
+    }
+
+    private NotifySetChangeEventArgs<T> OnSetChanging(NotifySetChangeEventArgs<T> args)
+    {
+        SetChanging?.Invoke(this, args);
+        return args;
+    }
+
+    /// <inheritdoc/>
+    public event ObservableSetChangingEventHandler<T>? SetChanging;
+
+    #endregion SetChanging
+
+    #region SetChanged
+
+    private void OnSetAdded(NotifySetChangeEventArgs<T>? args, IList<T> items)
+    {
+        if (SetChanged is not null)
+            OnSetChanged(args ?? new(SetChangeAction.Add, items));
+        if (CollectionChanged is not null)
+            OnCollectionChanged(new(NotifyCollectionChangedAction.Add, (IList)items));
+        OnCountChanged();
+    }
+
+    private void OnSetRemoved(NotifySetChangeEventArgs<T>? args, IList<T> items, int removeIndex)
+    {
+        if (SetChanged is not null)
+            OnSetChanged(args ?? new(SetChangeAction.Remove, items));
+        if (CollectionChanged is not null)
+            OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, items[0], removeIndex));
+        OnCountChanged();
+    }
+
+    private void OnSetOperated(
+        NotifySetChangeEventArgs<T>? args,
+        SetChangeAction action,
+        IList<T> otherItems,
+        IList<T>? newItems,
+        IList<T>? oldItems,
+        IList<int> removeIndexs
+    )
+    {
+        if (SetChanged is not null)
+            OnSetChanged(args ?? new(action, otherItems, newItems, oldItems));
+        if (CollectionChanged is not null)
+        {
+            if (oldItems is not null)
+            {
+                foreach (var (e, i) in oldItems.Reverse().Zip(removeIndexs))
+                    OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, e, index: i));
+            }
+            if (newItems is not null)
+            {
+                var index = _set.Count - newItems.Count;
+                foreach (var item in newItems)
+                    OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item, index++));
+            }
+        }
+        OnCountChanged();
+    }
+
+    private void OnSetCleared()
+    {
+        if (SetChanged is not null)
+            OnSetChanged(NotifySetChangeEventArgs<T>.Cache_Clear);
+        if (CollectionChanged is not null)
+            OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
+        OnCountChanged();
+    }
+
+    private void OnSetChanged(NotifySetChangeEventArgs<T> args)
+    {
+        SetChanged?.Invoke(this, args);
+    }
+
+    /// <inheritdoc/>
+    public event ObservableSetChangedEventHandler<T>? SetChanged;
+
+    #endregion SetChanged
+
+    private void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
+    {
+        CollectionChanged?.Invoke(this, args);
+    }
+
+    /// <inheritdoc/>
+    public event NotifyCollectionChangedEventHandler? CollectionChanged;
+
+    private void OnCountChanged()
+    {
+        PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Count);
+    }
+
+    /// <inheritdoc/>
+    public event PropertyChangedEventHandler? PropertyChanged;
 }

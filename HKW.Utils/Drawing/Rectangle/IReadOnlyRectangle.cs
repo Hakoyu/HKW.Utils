@@ -68,4 +68,9 @@ public interface IReadOnlyRectangle<T>
     /// 右下角
     /// </summary>
     public Point<T> RightBottom { get; }
+
+    /// <summary>
+    /// 是空的
+    /// </summary>
+    public bool IsEmpty { get; }
 }

@@ -10,6 +10,4 @@ namespace HKW.HKWUtils.Observable;
 public interface IReadOnlyObservableList<T>
     : IReadOnlyList<T>,
         IReadOnlyObservableCollection<T>,
-        INotifyListChanged<T>,
-        INotifyCollectionChanged,
-        INotifyPropertyChanged { }
+        INotifyListChanged<T> { }

@@ -1,23 +1,23 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Drawing;
 
 /// <summary>
-/// 只读点
+/// 点
 /// </summary>
-/// <typeparam name="T">数据类型</typeparam>
-[DebuggerDisplay("({X}, {Y})")]
+/// <typeparam name="T">数值类型</typeparam>
 public struct Point<T> : IEquatable<IReadOnlyPoint<T>>, IPoint<T>
     where T : struct, INumber<T>
 {
     /// <summary>
     /// 空
     /// </summary>
-    public static Point<T> Empty = new(default(T), default(T));
+    public static readonly Point<T> Empty;
 
-    #region ctor
     /// <inheritdoc/>
     /// <param name="x">坐标X</param>
     /// <param name="y">坐标Y</param>
@@ -28,65 +28,73 @@ public struct Point<T> : IEquatable<IReadOnlyPoint<T>>, IPoint<T>
     }
 
     /// <inheritdoc/>
-    /// <param name="point">点接口</param>
-    public Point(IReadOnlyPoint<T> point)
-        : this(point.X, point.Y) { }
+    /// <param name="pt">点</param>
+    public Point(IReadOnlyPoint<T> pt)
+        : this(pt.X, pt.Y) { }
 
     /// <inheritdoc/>
-    /// <param name="data">数据</param>
-    /// <param name="separator">分割符</param>
-    public Point(string data, char separator = ',')
-    {
-        var datas = data.AsSpan().Split(separator);
-        datas.MoveNext();
-        X = T.Parse(datas.Current, null);
-        datas.MoveNext();
-        Y = T.Parse(datas.Current, null);
-    }
-    #endregion
+    /// <param name="sz">大小</param>
+    public Point(IReadOnlySize<T> sz)
+        : this(sz.Width, sz.Height) { }
+
     /// <inheritdoc/>
     public T X { readonly get; set; }
 
     /// <inheritdoc/>
     public T Y { readonly get; set; }
 
-    #region Equals
-
     /// <inheritdoc/>
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(X, Y);
-    }
+    [Browsable(false)]
+    public readonly bool IsEmpty => X == T.Zero && Y == T.Zero;
 
+    #region IEquatable
     /// <inheritdoc/>
-    public override bool Equals(object? obj)
+    public override readonly bool Equals([NotNullWhen(true)] object? obj)
     {
         return Equals(obj as IReadOnlyPoint<T>);
     }
 
     /// <inheritdoc/>
-    public bool Equals(IReadOnlyPoint<T>? other)
+    public readonly bool Equals(IReadOnlyPoint<T>? other)
     {
-        if (other is null)
+        if (other is not Point<T> p)
             return false;
-        return X == other.X && Y == other.Y;
+        return this == p;
     }
 
     /// <inheritdoc/>
-    public static bool operator ==(Point<T> a, IReadOnlyPoint<T> b)
+    public override readonly int GetHashCode()
     {
-        return a.Equals(b);
-    }
-
-    /// <inheritdoc/>
-    public static bool operator !=(Point<T> a, IReadOnlyPoint<T> b)
-    {
-        return a.Equals(b) is not true;
+        return HashCode.Combine(X, Y);
     }
     #endregion
+
     /// <inheritdoc/>
-    public override string ToString()
+    public override readonly string ToString()
     {
-        return $"{{X = {X}, Y = {Y}}}";
+        return $"{{X={X},Y={Y}}}";
+    }
+
+    /// <summary>
+    /// 解析字符串数创建点
+    /// </summary>
+    /// <param name="span">数据</param>
+    /// <param name="separator">分割符</param>
+    /// <returns>创建的点</returns>
+    /// <remarks><![CDATA[
+    /// Parse("123,456",',')
+    /// return:
+    /// {X=123,Y=456}
+    /// ]]></remarks>
+    /// <exception cref="Exception">数据 <paramref name="span"/> 解析错误</exception>
+    public static Point<T> Parse(ReadOnlySpan<char> span, char separator = ',')
+    {
+        var point = new Point<T>();
+        var datas = span.Split(separator);
+        datas.MoveNext();
+        point.X = T.Parse(span[datas.Current], null);
+        datas.MoveNext();
+        point.Y = T.Parse(span[datas.Current], null);
+        return point;
     }
 }

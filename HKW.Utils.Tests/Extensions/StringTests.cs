@@ -1,11 +1,17 @@
 ﻿using System.Buffers;
 using HKW.HKWUtils.Extensions;
 
-namespace HKW.HKWUtils.Tests.Extensions;
+namespace HKW.HKWUtilsTests.Extensions;
 
 [TestClass]
 public class StringTests
 {
+    [TestMethod]
+    public void FirstToLower()
+    {
+        Assert.AreEqual("rED", "RED".FirstToLower());
+    }
+
     [TestMethod]
     public void FirstToUpper()
     {

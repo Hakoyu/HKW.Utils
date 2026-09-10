@@ -1,170 +1,115 @@
-﻿using System.Collections;
+﻿using System.ComponentModel;
 using System.Diagnostics;
-using HKW.HKWReactiveUI;
+using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.DebugViews;
 
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可观测可选中集合包装器
+/// 可观测可选择集合包装器
 /// </summary>
-/// <typeparam name="TItem">项类型</typeparam>
-/// <typeparam name="TSet">集合</typeparam>
+/// <typeparam name="TItem">项目类型</typeparam>
+/// <typeparam name="TSet">集合类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
-public partial class ObservableSelectableSetWrapper<TItem, TSet>
-    : ReactiveObjectX,
-        ISet<TItem>,
-        ISetWrapper<TItem, TSet>
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
+public class ObservableSelectableSetWrapper<TItem, TSet> : ObservableSetWrapper<TItem, TSet>
+    where TItem : notnull
     where TSet : ISet<TItem>
 {
     /// <inheritdoc/>
     /// <param name="set">集合</param>
-    public ObservableSelectableSetWrapper(TSet set)
-    {
-        BaseSet = set;
-    }
+    /// <param name="comparer">比较器, 必须与 <paramref name="set"/> 的比较器相同</param>
+    public ObservableSelectableSetWrapper(TSet set, IEqualityComparer<TItem>? comparer = null)
+        : base(set, comparer) { }
 
-    /// <inheritdoc/>
-    /// <param name="set">集合</param>
-    /// <param name="seletedItem">选中项</param>
-    public ObservableSelectableSetWrapper(TSet set, TItem seletedItem)
-        : this(set)
-    {
-        SelectedItem = seletedItem;
-    }
+    private bool _hasSelection;
 
-    /// <inheritdoc/>
-    public TSet BaseSet { get; }
+    /// <summary>
+    /// 已选中
+    /// </summary>
+    public bool HasSelection => _hasSelection;
+
+    private TItem _selectedItem = default!;
 
     /// <summary>
     /// 选中的项目
     /// </summary>
-    [ReactiveProperty]
-    public TItem? SelectedItem { get; set; }
-
-    #region ISet
-    /// <inheritdoc/>
-    public int Count => ((ISet<TItem>)BaseSet).Count;
-
-    /// <inheritdoc/>
-    public bool IsReadOnly => ((ISet<TItem>)BaseSet).IsReadOnly;
-
-    /// <inheritdoc/>
-    public bool Add(TItem item)
+    public TItem SelectedItem
     {
-        return ((ISet<TItem>)BaseSet).Add(item);
+        get => _selectedItem;
+        set => SetSelectedItem(value);
     }
 
     /// <inheritdoc/>
-    public bool Remove(TItem item)
+    protected override void OnSetRemoved(
+        NotifySetChangeEventArgs<TItem>? args,
+        IList<TItem> items,
+        int removeIndex
+    )
     {
-        var result = BaseSet.Remove(item);
-        if (result && item?.Equals(SelectedItem) is true)
-            SelectedItem = default;
-        return result;
-    }
+        if (_hasSelection is true && Comparer.Equals(_selectedItem, items[0]))
+            ClearSelection();
 
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return ((IEnumerable)BaseSet).GetEnumerator();
-    }
-
-    /// <inheritdoc/>
-    public void ExceptWith(IEnumerable<TItem> other)
-    {
-        BaseSet.ExceptWith(other);
-        if (SelectedItem is not null && BaseSet.Contains(SelectedItem) is false)
-            SelectedItem = default;
+        base.OnSetRemoved(args, items, removeIndex);
     }
 
     /// <inheritdoc/>
-    public void IntersectWith(IEnumerable<TItem> other)
+    protected override void OnSetCleared()
     {
-        BaseSet.IntersectWith(other);
-        if (SelectedItem is not null && BaseSet.Contains(SelectedItem) is false)
-            SelectedItem = default;
+        ClearSelection();
+        base.OnSetCleared();
     }
 
     /// <inheritdoc/>
-    public void SymmetricExceptWith(IEnumerable<TItem> other)
+    protected override void OnSetOperated(
+        NotifySetChangeEventArgs<TItem>? args,
+        SetChangeAction action,
+        IList<TItem> otherItems,
+        IList<TItem>? newItems,
+        IList<TItem>? oldItems,
+        IList<int> removeIndexs
+    )
     {
-        BaseSet.SymmetricExceptWith(other);
-        if (SelectedItem is not null && BaseSet.Contains(SelectedItem) is false)
-            SelectedItem = default;
+        if (_hasSelection is true && oldItems?.Contains(_selectedItem, Comparer) is true)
+        {
+            ClearSelection();
+        }
+
+        base.OnSetOperated(args, action, otherItems, newItems, oldItems, removeIndexs);
     }
 
-    /// <inheritdoc/>
-    public void UnionWith(IEnumerable<TItem> other)
+    private void SetSelectedItem(TItem item)
     {
-        BaseSet.UnionWith(other);
+        if (Comparer.Equals(_selectedItem, item))
+            return;
+
+        _selectedItem = item;
+        _hasSelection = Contains(item);
+        OnPropertyChanged(nameof(SelectedItem));
+        OnPropertyChanged(nameof(HasSelection));
+        OnSelectionChanged();
     }
 
-    void ICollection<TItem>.Add(TItem item)
+    /// <summary>
+    /// 清除选择
+    /// </summary>
+    protected void ClearSelection()
     {
-        BaseSet.Add(item);
+        if (
+            _hasSelection is false
+            && EqualityComparer<TItem>.Default.Equals(_selectedItem, default!)
+        )
+            return;
+
+        _selectedItem = default!;
+        _hasSelection = false;
+        OnPropertyChanged(nameof(SelectedItem));
+        OnPropertyChanged(nameof(HasSelection));
+        OnSelectionChanged();
     }
 
-    /// <inheritdoc/>
-    public bool IsProperSubsetOf(IEnumerable<TItem> other)
-    {
-        return BaseSet.IsProperSubsetOf(other);
-    }
-
-    /// <inheritdoc/>
-    public bool IsProperSupersetOf(IEnumerable<TItem> other)
-    {
-        return BaseSet.IsProperSupersetOf(other);
-    }
-
-    /// <inheritdoc/>
-    public bool IsSubsetOf(IEnumerable<TItem> other)
-    {
-        return BaseSet.IsSubsetOf(other);
-    }
-
-    /// <inheritdoc/>
-    public bool IsSupersetOf(IEnumerable<TItem> other)
-    {
-        return BaseSet.IsSupersetOf(other);
-    }
-
-    /// <inheritdoc/>
-    public bool Overlaps(IEnumerable<TItem> other)
-    {
-        return BaseSet.Overlaps(other);
-    }
-
-    /// <inheritdoc/>
-    public bool SetEquals(IEnumerable<TItem> other)
-    {
-        return BaseSet.SetEquals(other);
-    }
-
-    /// <inheritdoc/>
-    public void Clear()
-    {
-        ((ISet<TItem>)BaseSet).Clear();
-        SelectedItem = default;
-    }
-
-    /// <inheritdoc/>
-    public bool Contains(TItem item)
-    {
-        return ((ISet<TItem>)BaseSet).Contains(item);
-    }
-
-    /// <inheritdoc/>
-    public void CopyTo(TItem[] array, int arrayIndex)
-    {
-        ((ISet<TItem>)BaseSet).CopyTo(array, arrayIndex);
-    }
-
-    /// <inheritdoc/>
-    public IEnumerator<TItem> GetEnumerator()
-    {
-        return ((IEnumerable<TItem>)BaseSet).GetEnumerator();
-    }
-
-    #endregion
+    /// <summary>
+    /// 选择状态改变后
+    /// </summary>
+    protected virtual void OnSelectionChanged() { }
 }

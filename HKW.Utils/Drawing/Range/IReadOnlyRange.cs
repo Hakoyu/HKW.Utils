@@ -18,4 +18,9 @@ public interface IReadOnlyRange<T>
     /// 最大值
     /// </summary>
     public T Max { get; }
+
+    /// <summary>
+    /// 是空的
+    /// </summary>
+    public bool IsEmpty { get; }
 }

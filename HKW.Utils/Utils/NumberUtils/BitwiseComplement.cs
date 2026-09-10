@@ -1,6 +1,6 @@
 ﻿namespace HKW.HKWUtils;
 
-public partial class NumberUtils
+public static partial class NumberUtils
 {
     /// <summary>
     /// 位运算取反
@@ -9,27 +9,9 @@ public partial class NumberUtils
     /// <param name="value">值</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object BitwiseComplement<T>(object value)
+    public static T BitwiseComplement<T>(object value)
     {
-        var type = typeof(T);
-        if (type == typeof(sbyte))
-            return ~Convert.ToSByte(value);
-        else if (type == typeof(byte))
-            return ~Convert.ToByte(value);
-        else if (type == typeof(short))
-            return ~Convert.ToInt16(value);
-        else if (type == typeof(ushort))
-            return ~Convert.ToUInt16(value);
-        else if (type == typeof(int))
-            return ~Convert.ToInt32(value);
-        else if (type == typeof(uint))
-            return ~Convert.ToUInt32(value);
-        else if (type == typeof(long))
-            return ~Convert.ToInt64(value);
-        else if (type == typeof(ulong))
-            return ~Convert.ToUInt64(value);
-        else
-            throw new NotImplementedException();
+        return (T)BitwiseComplement(value, typeof(T));
     }
 
     /// <summary>
@@ -41,24 +23,7 @@ public partial class NumberUtils
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static object BitwiseComplement(object value, Type numberType)
     {
-        if (numberType == typeof(sbyte))
-            return ~Convert.ToSByte(value);
-        else if (numberType == typeof(byte))
-            return ~Convert.ToByte(value);
-        else if (numberType == typeof(short))
-            return ~Convert.ToInt16(value);
-        else if (numberType == typeof(ushort))
-            return ~Convert.ToUInt16(value);
-        else if (numberType == typeof(int))
-            return ~Convert.ToInt32(value);
-        else if (numberType == typeof(uint))
-            return ~Convert.ToUInt32(value);
-        else if (numberType == typeof(long))
-            return ~Convert.ToInt64(value);
-        else if (numberType == typeof(ulong))
-            return ~Convert.ToUInt64(value);
-        else
-            throw new NotImplementedException();
+        return BitwiseComplement(value, GetNumberType(numberType));
     }
 
     /// <summary>
@@ -70,23 +35,17 @@ public partial class NumberUtils
     /// <exception cref="NotImplementedException">不支持的操作</exception>
     public static object BitwiseComplement(object value, NumberType numberType)
     {
-        if (numberType is NumberType.SByte)
-            return ~Convert.ToSByte(value);
-        else if (numberType is NumberType.Byte)
-            return ~Convert.ToByte(value);
-        else if (numberType is NumberType.Int16)
-            return ~Convert.ToInt16(value);
-        else if (numberType is NumberType.UInt16)
-            return ~Convert.ToUInt16(value);
-        else if (numberType is NumberType.Int32)
-            return ~Convert.ToInt32(value);
-        else if (numberType is NumberType.UInt32)
-            return ~Convert.ToUInt32(value);
-        else if (numberType is NumberType.Int64)
-            return ~Convert.ToInt64(value);
-        else if (numberType is NumberType.UInt64)
-            return ~Convert.ToUInt64(value);
-        else
-            throw new NotImplementedException();
+        return numberType switch
+        {
+            NumberType.SByte => ~Convert.ToSByte(value),
+            NumberType.Byte => ~Convert.ToByte(value),
+            NumberType.Int16 => ~Convert.ToInt16(value),
+            NumberType.UInt16 => ~Convert.ToUInt16(value),
+            NumberType.Int32 => ~Convert.ToInt32(value),
+            NumberType.UInt32 => ~Convert.ToUInt32(value),
+            NumberType.Int64 => ~Convert.ToInt64(value),
+            NumberType.UInt64 => ~Convert.ToUInt64(value),
+            _ => throw CreateUnsupportedOperatorException(numberType),
+        };
     }
 }

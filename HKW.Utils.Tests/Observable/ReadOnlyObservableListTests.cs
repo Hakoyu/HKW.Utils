@@ -1,7 +1,7 @@
 ﻿using HKW.HKWUtils.Extensions;
 using HKW.HKWUtils.Observable;
 
-namespace HKW.HKWUtils.Tests.Observable;
+namespace HKW.HKWUtilsTests.Observable;
 
 [TestClass]
 public class ReadOnlyObservableListTests
@@ -104,71 +104,6 @@ public class ReadOnlyObservableListTests
         observableList.Clear();
         Assert.AreEqual(0, readOnlyObservableList.Count);
         Assert.IsTrue(triggered);
-    }
-    #endregion
-    #region IListFind
-    [TestMethod]
-    public void Find()
-    {
-        var readOnlyObservableList = new ReadOnlyObservableList<int>(
-            new ObservableList<int>(Enumerable.Range(1, 10))
-        );
-
-        Assert.AreEqual(1, readOnlyObservableList.Find(x => x == 1));
-        Assert.IsTrue(readOnlyObservableList.Find(1, x => x == 2) == (1, 2));
-        Assert.IsTrue(readOnlyObservableList.Find(1, 3, x => x == 3) == (2, 3));
-
-        Assert.AreEqual(default, readOnlyObservableList.Find(x => x == -1));
-        Assert.IsTrue(readOnlyObservableList.Find(1, x => x == -1) == (-1, default));
-        Assert.IsTrue(readOnlyObservableList.Find(1, 3, x => x == -1) == (-1, default));
-    }
-
-    [TestMethod]
-    public void FindIndex()
-    {
-        var readOnlyObservableList = new ReadOnlyObservableList<int>(
-            new ObservableList<int>(Enumerable.Range(1, 10))
-        );
-
-        Assert.AreEqual(0, readOnlyObservableList.FindIndex(x => x == 1));
-        Assert.AreEqual(1, readOnlyObservableList.FindIndex(1, x => x == 2));
-        Assert.AreEqual(2, readOnlyObservableList.FindIndex(1, 3, x => x == 3));
-
-        Assert.AreEqual(-1, readOnlyObservableList.FindIndex(x => x == -1));
-        Assert.AreEqual(-1, readOnlyObservableList.FindIndex(1, x => x == -1));
-        Assert.AreEqual(-1, readOnlyObservableList.FindIndex(1, 3, x => x == -1));
-    }
-
-    [TestMethod]
-    public void FindLast()
-    {
-        var readOnlyObservableList = new ReadOnlyObservableList<int>(
-            new ObservableList<int>(Enumerable.Range(1, 10))
-        );
-
-        Assert.AreEqual(1, readOnlyObservableList.FindLast(x => x == 1));
-        Assert.IsTrue(readOnlyObservableList.FindLast(1, x => x == 2) == (1, 2));
-        Assert.IsTrue(readOnlyObservableList.FindLast(4, 3, x => x == 3) == (2, 3));
-
-        Assert.AreEqual(default, readOnlyObservableList.FindLast(x => x == -1));
-        Assert.IsTrue(readOnlyObservableList.FindLast(1, x => x == -1) == (-1, default));
-        Assert.IsTrue(readOnlyObservableList.FindLast(4, 3, x => x == -1) == (-1, default));
-    }
-
-    [TestMethod]
-    public void FindLastIndex()
-    {
-        var readOnlyObservableList = new ReadOnlyObservableList<int>(
-            new ObservableList<int>(Enumerable.Range(1, 10))
-        );
-
-        Assert.AreEqual(0, readOnlyObservableList.FindLastIndex(x => x == 1));
-        Assert.AreEqual(1, readOnlyObservableList.FindLastIndex(1, x => x == 2));
-        Assert.AreEqual(2, readOnlyObservableList.FindLastIndex(4, 3, x => x == 3));
-
-        Assert.AreEqual(-1, readOnlyObservableList.FindLastIndex(x => x == -1));
-        Assert.AreEqual(-1, readOnlyObservableList.FindLastIndex(1, x => x == -1));
-        Assert.AreEqual(-1, readOnlyObservableList.FindLastIndex(4, 3, x => x == -1));
     }
     #endregion
 }

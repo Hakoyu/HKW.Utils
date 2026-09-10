@@ -1,6 +1,8 @@
-﻿using HKW.HKWUtils;
+﻿using System.Globalization;
+using HKW.HKWUtils;
+using HKW.HKWUtils.Extensions;
 
-namespace HKW.HKWUtils.Tests.Utils;
+namespace HKW.HKWUtilsTests.Utils;
 
 [TestClass]
 public class CultureUtilsTests
@@ -8,17 +10,17 @@ public class CultureUtilsTests
     [TestMethod]
     public void Exists()
     {
-        Assert.IsTrue(CultureUtils.Exists("en"));
-        Assert.IsTrue(CultureUtils.Exists("aaaa") is false);
+        Assert.IsTrue(CultureInfo.Exists("en"));
+        Assert.IsFalse(CultureInfo.Exists("aaaa"));
     }
 
     [TestMethod]
     public void TryGetCultureInfo()
     {
-        if (CultureUtils.TryGetCultureInfo("en", out var cultureInfo1))
+        if (CultureInfo.TryGetCultureInfo("en", out var cultureInfo1))
             Assert.IsNotNull(cultureInfo1);
 
-        if (CultureUtils.TryGetCultureInfo("aaaa", out var cultureInfo2) is false)
+        if (CultureInfo.TryGetCultureInfo("aaaa", out var cultureInfo2) is false)
             Assert.IsNull(cultureInfo2);
     }
 }

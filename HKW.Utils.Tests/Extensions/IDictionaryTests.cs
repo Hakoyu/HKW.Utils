@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using HKW.HKWUtils.Extensions;
 
-namespace HKW.HKWUtils.Tests.Extensions;
+namespace HKW.HKWUtilsTests.Extensions;
 
 [TestClass]
 public class IDictionaryTests
@@ -48,41 +48,41 @@ public class IDictionaryTests
         Assert.IsTrue(pair.Equals(default(KeyValuePair<int, int>)));
     }
 
-    [TestMethod]
-    public void AsReadOnlyOnWrapper()
-    {
-        var dic = Enumerable.Range(0, 10).ToDictionary(x => x, x => new List<int> { x });
-        var readOnlyDictionary = new ReadOnlyDictionary<int, IReadOnlyCollection<int>>(
-            dic.ToDictionary(x => x.Key, x => (IReadOnlyCollection<int>)x.Value)
-        );
-        var readOnlyDictionaryOnWrapper = dic.AsReadOnlyOnWrapper<
-            int,
-            List<int>,
-            IReadOnlyCollection<int>
-        >();
-        Assert.IsTrue(
-            readOnlyDictionary.SequenceEqual(
-                readOnlyDictionaryOnWrapper,
-                (x, y) => x.Value.SequenceEqual(y.Value)
-            )
-        );
-    }
+    //[TestMethod]
+    //public void AsReadOnlyOnWrapper()
+    //{
+    //    var dic = Enumerable.Range(0, 10).ToDictionary(x => x, x => new List<int> { x });
+    //    var readOnlyDictionary = new ReadOnlyDictionary<int, IReadOnlyCollection<int>>(
+    //        dic.ToDictionary(x => x.Key, x => (IReadOnlyCollection<int>)x.Value)
+    //    );
+    //    var readOnlyDictionaryOnWrapper = dic.AsReadOnlyOnWrapper<
+    //        int,
+    //        List<int>,
+    //        IReadOnlyCollection<int>
+    //    >();
+    //    Assert.IsTrue(
+    //        readOnlyDictionary.SequenceEqual(
+    //            readOnlyDictionaryOnWrapper,
+    //            (x, y) => x.Value.SequenceEqual(y.Value)
+    //        )
+    //    );
+    //}
 
-    [TestMethod]
-    public void AsReadOnlyOnWrappe_SourceDictionaryChange()
-    {
-        var dic = Enumerable.Range(0, 10).ToDictionary(x => x, x => new List<int> { x });
-        var readOnlyDictionary = new ReadOnlyDictionary<int, IReadOnlyList<int>>(
-            dic.ToDictionary(x => x.Key, x => (IReadOnlyList<int>)x.Value)
-        );
-        var readOnlyDictionaryOnWrapper = dic.AsReadOnlyOnWrapper<
-            int,
-            List<int>,
-            IReadOnlyList<int>
-        >();
-        dic.Add(dic.Count, new() { dic.Count });
-        Assert.IsLessThan(readOnlyDictionaryOnWrapper.Count, readOnlyDictionary.Count);
-        Assert.IsTrue(readOnlyDictionary.Last().Value is List<int>);
-        Assert.IsNotNull(readOnlyDictionaryOnWrapper.Last().Value);
-    }
+    //[TestMethod]
+    //public void AsReadOnlyOnWrapper_SourceDictionaryChange()
+    //{
+    //    var dic = Enumerable.Range(0, 10).ToDictionary(x => x, x => new List<int> { x });
+    //    var readOnlyDictionary = new ReadOnlyDictionary<int, IReadOnlyList<int>>(
+    //        dic.ToDictionary(x => x.Key, x => (IReadOnlyList<int>)x.Value)
+    //    );
+    //    var readOnlyDictionaryOnWrapper = dic.AsReadOnlyOnWrapper<
+    //        int,
+    //        List<int>,
+    //        IReadOnlyList<int>
+    //    >();
+    //    dic.Add(dic.Count, new() { dic.Count });
+    //    Assert.IsLessThan(readOnlyDictionaryOnWrapper.Count, readOnlyDictionary.Count);
+    //    Assert.IsTrue(readOnlyDictionary.Last().Value is List<int>);
+    //    Assert.IsNotNull(readOnlyDictionaryOnWrapper.Last().Value);
+    //}
 }

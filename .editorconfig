@@ -2,3 +2,7 @@
 
 # Default severity for all analyzer diagnostics
 dotnet_analyzer_diagnostic.severity = none
+
+
+# MSTEST0058: 不要在 catch 块中使用断言
+dotnet_diagnostic.MSTEST0058.severity = none

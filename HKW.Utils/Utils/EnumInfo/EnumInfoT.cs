@@ -1,7 +1,10 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Reflection;
+using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils;
@@ -11,31 +14,39 @@ namespace HKW.HKWUtils;
 /// </summary>
 /// <typeparam name="TEnum">枚举类型</typeparam>
 [DebuggerDisplay("{Value}")]
-public class EnumInfo<TEnum> : IEnumInfo<TEnum>
+public sealed class EnumInfo<TEnum> : IEnumInfo<TEnum>
     where TEnum : struct, Enum
 {
     /// <inheritdoc/>
-    public EnumInfo(TEnum value)
+    private EnumInfo(TEnum value, bool isNone)
     {
         Value = value;
+        IsNone = isNone;
     }
 
     /// <inheritdoc/>
     public static EnumInfo<TEnum> Create(Enum @enum)
     {
-        EnumInfo.InfosByType.TryAdd(EnumType, Infos);
-        return new EnumInfo<TEnum>((TEnum)@enum);
+        ArgumentNullException.ThrowIfNull(@enum);
+        EnumInfo.InfosByType.TryAdd(StaticEnumType, StaticInfoDictionary.Untyped);
+        if (StaticInfoDictionary.TryGetValue((TEnum)@enum, out var enumInfo))
+            return enumInfo;
+        // 找不到意味着枚举由多个 flag 组成, 创建新枚举
+        return new EnumInfo<TEnum>((TEnum)@enum, false);
     }
 
     /// <inheritdoc/>
     IEnumInfo IEnumInfo.Create(Enum @enum)
     {
-        return new EnumInfo<TEnum>((TEnum)@enum);
+        return Create(@enum);
     }
 
     /// <inheritdoc/>
     public TEnum Value { get; }
     Enum IEnumInfo.Value => Value;
+
+    /// <inheritdoc/>
+    public bool IsNone { get; }
 
     /// <inheritdoc/>
     public string DisplayName => GetDisplayName(this);
@@ -47,23 +58,67 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     public string DisplayDescription => GetDisplayDescription(this);
 
     /// <inheritdoc/>
-    public DisplayAttribute? Display =>
-        EnumDisplays is null ? null : EnumDisplays!.GetValueOrDefault(Value, defaultValue: null);
+    public DisplayAttribute? Display => EnumDisplays.GetValueOrDefault(Value, defaultValue: null);
 
-    Type IEnumInfo.EnumType => EnumInfo<TEnum>.EnumType;
+    /// <inheritdoc/>
+    public Type EnumType => EnumInfo<TEnum>.StaticEnumType;
 
-    Type IEnumInfo.UnderlyingType => EnumInfo<TEnum>.UnderlyingType;
+    /// <inheritdoc/>
+    public Type UnderlyingType => EnumInfo<TEnum>.StaticUnderlyingType;
 
-    bool IEnumInfo.IsFlagable => EnumInfo<TEnum>.IsFlagable;
+    /// <inheritdoc/>
+    public bool IsFlaggable => EnumInfo<TEnum>.StaticIsFlaggable;
 
-    FrozenSet<string> IEnumInfo.Names => EnumInfo<TEnum>.Names;
+    /// <inheritdoc/>
+    public ImmutableArray<string> Names => EnumInfo<TEnum>.StaticNames;
 
-    FrozenDictionary<Enum, IEnumInfo> IEnumInfo.Infos => EnumInfo<TEnum>.Infos;
+    /// <inheritdoc/>
+    public ImmutableArray<string> ValidNames => EnumInfo<TEnum>.StaticValidNames;
 
-    FrozenSet<string> IEnumInfo.ValidNames => EnumInfo<TEnum>.ValidNames;
+    #region IEnumInfoT
+    /// <inheritdoc/>
+    public FrozenEnumInfoDictionary<TEnum> InfoDictionary => EnumInfo<TEnum>.StaticInfoDictionary;
 
-    FrozenDictionary<Enum, IEnumInfo> IEnumInfo.ValidInfos => EnumInfo<TEnum>.ValidInfos;
+    /// <inheritdoc/>
+    public FrozenEnumInfoDictionary<TEnum> ValidInfoDictionary =>
+        EnumInfo<TEnum>.StaticValidInfoDictionary;
 
+    /// <inheritdoc/>
+    public ImmutableArray<TEnum> Values => EnumInfo<TEnum>.StaticInfoDictionary.Keys;
+
+    /// <inheritdoc/>
+    public ImmutableArray<TEnum> ValidValues => EnumInfo<TEnum>.StaticValidInfoDictionary.Keys;
+
+    /// <inheritdoc/>
+    public ImmutableArray<EnumInfo<TEnum>> Infos => EnumInfo<TEnum>.StaticInfoDictionary.Values;
+
+    /// <inheritdoc/>
+    public ImmutableArray<EnumInfo<TEnum>> ValidInfos =>
+        EnumInfo<TEnum>.StaticValidInfoDictionary.Values;
+    #endregion
+    #region IEnumInfo
+    /// <inheritdoc/>
+    IDictionary<Enum, IEnumInfo> IEnumInfo.InfoDictionary =>
+        EnumInfo<TEnum>.StaticInfoDictionary.Untyped;
+
+    /// <inheritdoc/>
+    IDictionary<Enum, IEnumInfo> IEnumInfo.ValidInfoDictionary =>
+        EnumInfo<TEnum>.StaticValidInfoDictionary.Untyped;
+
+    /// <inheritdoc/>
+    ICollection<Enum> IEnumInfo.Values => EnumInfo<TEnum>.StaticInfoDictionary.Untyped.Keys;
+
+    /// <inheritdoc/>
+    ICollection<Enum> IEnumInfo.ValidValues =>
+        EnumInfo<TEnum>.StaticValidInfoDictionary.Untyped.Keys;
+
+    /// <inheritdoc/>
+    ICollection<IEnumInfo> IEnumInfo.Infos => EnumInfo<TEnum>.StaticInfoDictionary.Untyped.Values;
+
+    /// <inheritdoc/>
+    ICollection<IEnumInfo> IEnumInfo.ValidInfos =>
+        EnumInfo<TEnum>.StaticValidInfoDictionary.Untyped.Values;
+    #endregion
     #region GetName
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private Func<EnumInfo<TEnum>, string>? _getDisplayName;
@@ -120,36 +175,6 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     }
     #endregion
 
-    #region IEnumInfo
-    /// <inheritdoc/>
-    bool IEnumInfo.HasFlag(Enum flag)
-    {
-        return Value.HasFlag(flag);
-    }
-
-    /// <inheritdoc/>
-    bool IEnumInfo.HasFlag(IEnumInfo flag)
-    {
-        return Value.HasFlag(flag.Value);
-    }
-
-    /// <inheritdoc/>
-    IEnumerable<Enum> IEnumInfo.GetFlags()
-    {
-        if (IsFlagable is false)
-            throw new Exception($"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\".");
-        return ValidValues.Where(x => Value.HasFlag(x)).Cast<Enum>();
-    }
-
-    /// <inheritdoc/>
-    IEnumerable<IEnumInfo> IEnumInfo.GetFlagInfos()
-    {
-        if (IsFlagable is false)
-            throw new Exception($"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\".");
-        return ValidInfos.Values.Where(x => Value.HasFlag(x.Value));
-    }
-    #endregion
-
     #region IEnumInfoT
     /// <inheritdoc/>
     public bool HasFlag(TEnum flag)
@@ -166,20 +191,49 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// <inheritdoc/>
     public IEnumerable<TEnum> GetFlags()
     {
-        if (IsFlagable is false)
-            throw new Exception($"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\".");
-        return ValidValues.Where(x => Value.HasFlag(x));
+        InvalidEnumArgumentException.ThrowIfNotFlaggable(this);
+        return StaticValidValues.Where(x => Value.HasFlag(x));
     }
 
     /// <inheritdoc/>
     public IEnumerable<IEnumInfo<TEnum>> GetFlagInfos()
     {
-        if (IsFlagable is false)
-            throw new Exception($"Enum \"{EnumType}\" not use \"{nameof(FlagsAttribute)}\".");
-        return ValidInfos.Values.Cast<EnumInfo<TEnum>>().Where(x => Value.HasFlag(x));
+        InvalidEnumArgumentException.ThrowIfNotFlaggable(this);
+        return StaticValidInfoDictionary.Values.Where(x => Value.HasFlag(x));
     }
 
     #endregion
+
+    #region IEnumInfo
+    /// <inheritdoc/>
+    bool IEnumInfo.HasFlag(Enum flag)
+    {
+        return Value.HasFlag(flag);
+    }
+
+    /// <inheritdoc/>
+    bool IEnumInfo.HasFlag(IEnumInfo flag)
+    {
+        return Value.HasFlag(flag.Value);
+    }
+
+    /// <inheritdoc/>
+    IEnumerable<Enum> IEnumInfo.GetFlags()
+    {
+        InvalidEnumArgumentException.ThrowIfNotFlaggable(this);
+        return StaticValidValues.Where(x => Value.HasFlag(x)).Cast<Enum>();
+    }
+
+    /// <inheritdoc/>
+    IEnumerable<IEnumInfo> IEnumInfo.GetFlagInfos()
+    {
+        InvalidEnumArgumentException.ThrowIfNotFlaggable(this);
+        return ((IDictionary<TEnum, EnumInfo<TEnum>>)StaticValidInfoDictionary).Values.Where(x =>
+            Value.HasFlag(x.Value)
+        );
+    }
+    #endregion
+
     /// <inheritdoc/>
     public override string ToString()
     {
@@ -192,13 +246,13 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     {
         if (other is null)
             return false;
-        return Value.Equals(other.Value);
+        return Value == other.Value;
     }
 
     /// <inheritdoc/>
     public bool Equals(TEnum other)
     {
-        return Value.Equals(other);
+        return Value == other;
     }
 
     /// <inheritdoc/>
@@ -220,145 +274,115 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     {
         return info.Value;
     }
-
-    /// <inheritdoc/>
-    public static bool operator ==(EnumInfo<TEnum> a, TEnum b)
-    {
-        return a.Equals(b);
-    }
-
-    /// <inheritdoc/>
-    public static bool operator !=(EnumInfo<TEnum> a, TEnum b)
-    {
-        return a.Equals(b) is not true;
-    }
-
-    /// <inheritdoc/>
-    public static bool operator ==(TEnum a, EnumInfo<TEnum> b)
-    {
-        return a.Equals(b.Value);
-    }
-
-    /// <inheritdoc/>
-    public static bool operator !=(TEnum a, EnumInfo<TEnum> b)
-    {
-        return a.Equals(b.Value) is not true;
-    }
-
-    /// <inheritdoc/>
-    public static bool operator ==(EnumInfo<TEnum> a, EnumInfo<TEnum> b)
-    {
-        return a.Equals(other: b.Value) is true;
-    }
-
-    /// <inheritdoc/>
-    public static bool operator !=(EnumInfo<TEnum> a, EnumInfo<TEnum> b)
-    {
-        return a.Equals(other: b.Value) is not true;
-    }
     #endregion
 
     #region static
 
-    /// <summary>
-    /// 枚举类型
-    /// </summary>
-    public static Type EnumType { get; } = typeof(TEnum);
+    /// <inheritdoc cref="IEnumInfo.EnumType"/>
+    public static Type StaticEnumType { get; } = typeof(TEnum);
 
-    /// <summary>
-    /// 基础类型
-    /// </summary>
-    public static Type UnderlyingType { get; } = EnumType.GetEnumUnderlyingType();
+    /// <inheritdoc cref="IEnumInfo.UnderlyingType"/>
+    public static Type StaticUnderlyingType { get; } = StaticEnumType.GetEnumUnderlyingType();
 
-    /// <summary>
-    /// 是可标记的
-    /// </summary>
-    public static bool IsFlagable { get; } = Attribute.IsDefined(EnumType, typeof(FlagsAttribute));
+    /// <inheritdoc cref="IEnumInfo.IsFlaggable"/>
+    public static bool StaticIsFlaggable { get; } =
+        Attribute.IsDefined(StaticEnumType, typeof(FlagsAttribute));
 
-    #region Names
-    private static FrozenSet<string>? _names;
+    ///  <inheritdoc cref="IEnumInfo.Names"/>
+    public static ImmutableArray<string> StaticNames { get; } =
+        Enum.GetNames<TEnum>().ToImmutableArray();
 
-    /// <summary>
-    /// 全部名称
-    /// </summary>
-    public static FrozenSet<string> Names => _names ??= Enum.GetNames<TEnum>().ToFrozenSet();
+    ///  <inheritdoc cref="IEnumInfo.Values"/>
+    public static ImmutableArray<TEnum> StaticValues => StaticInfoDictionary.Keys;
+
+    ///  <inheritdoc cref="IEnumInfo.Infos"/>
+    public static ImmutableArray<EnumInfo<TEnum>> StaticInfos => StaticInfoDictionary.Values;
+
+    #region InfoDictionary
+    private static readonly Lazy<FrozenEnumInfoDictionary<TEnum>> _infoDictionaryHolder = new(() =>
+        new FrozenEnumInfoDictionary<TEnum>(
+            Enum.GetValues<TEnum>()
+                .Select(v => new KeyValuePair<TEnum, EnumInfo<TEnum>>(
+                    v,
+                    new EnumInfo<TEnum>(
+                        v,
+                        NumberUtils.CompareByF(
+                            v,
+                            0,
+                            StaticUnderlyingType,
+                            ComparisonOperatorType.Equality
+                        )
+                    )
+                ))
+        )
+    );
+
+    ///  <inheritdoc cref="IEnumInfo.InfoDictionary"/>
+    public static FrozenEnumInfoDictionary<TEnum> StaticInfoDictionary =>
+        _infoDictionaryHolder.Value;
     #endregion
 
-    #region Values
-    private static FrozenSet<TEnum>? _values;
+    /// <inheritdoc cref="IEnumInfo.ValidValues"/>
+    public static ImmutableArray<TEnum> StaticValidValues => StaticValidInfoDictionary.Keys;
 
-    /// <summary>
-    /// 全部值
-    /// </summary>
-    public static FrozenSet<TEnum> Values => _values ??= Enum.GetValues<TEnum>().ToFrozenSet();
-    #endregion
-
-    #region Infos
-    private static FrozenDictionary<Enum, IEnumInfo>? _infos;
-
-    /// <summary>
-    /// 全部信息
-    /// </summary>
-    public static FrozenDictionary<Enum, IEnumInfo> Infos =>
-        _infos ??= Values.ToFrozenDictionary(v => (Enum)v, v => (IEnumInfo)new EnumInfo<TEnum>(v));
-    #endregion
-    #region ValidEnum
-
-    #region ValidValues
-    private static FrozenSet<TEnum>? _validValues;
-
-    /// <summary>
-    /// 有效的全部值 (为设置 <see cref="FlagsAttribute"/> 的枚举排除None)
-    /// </summary>
-    public static FrozenSet<TEnum> ValidValues =>
-        _validValues ??= IsFlagable
-            ? Enum.GetValues<TEnum>()
-                .Where(x =>
-                    NumberUtils.CompareX(x, 0, UnderlyingType, ComparisonOperatorType.Inequality)
-                )
-                .ToFrozenSet()
-            : Values;
-    #endregion
+    ///  <inheritdoc cref="IEnumInfo.Infos"/>
+    public static ImmutableArray<EnumInfo<TEnum>> StaticValidInfos =>
+        StaticValidInfoDictionary.Values;
 
     #region ValidNames
-    private static FrozenSet<string>? _validNames;
+    private static readonly Lazy<ImmutableArray<string>> _validNamesHolder = new(() =>
+        StaticIsFlaggable
+            ? StaticValidValues.Select(x => Enum.GetName<TEnum>(x)!).ToImmutableArray()
+            : StaticNames
+    );
 
-    /// <summary>
-    /// 有效的全部名称 (为设置 <see cref="FlagsAttribute"/> 的枚举排除None)
-    /// </summary>
-    public static FrozenSet<string> ValidNames =>
-        _validNames ??= IsFlagable
-            ? ValidValues.Select(x => Enum.GetName<TEnum>(x)).ToFrozenSet()!
-            : Names;
+    ///  <inheritdoc cref="IEnumInfo.ValidNames"/>
+    public static ImmutableArray<string> StaticValidNames => _validNamesHolder.Value;
     #endregion
 
     #region ValidInfos
-    private static FrozenDictionary<Enum, IEnumInfo>? _validInfos;
+    private static readonly Lazy<FrozenEnumInfoDictionary<TEnum>> _validInfoDictionaryHolder = new(
+        () =>
+            StaticIsFlaggable
+                ? new(StaticInfoDictionary.Where(p => p.Value.IsNone is false))
+                : StaticInfoDictionary
+    );
+
+    ///  <inheritdoc cref="IEnumInfo.ValidInfoDictionary"/>
+    public static FrozenEnumInfoDictionary<TEnum> StaticValidInfoDictionary =>
+        _validInfoDictionaryHolder.Value;
+    #endregion
+    #endregion
 
     /// <summary>
-    /// 有效的全部信息 (为设置 <see cref="FlagsAttribute"/> 的枚举排除None)
+    /// 获取默认(首个)枚举信息
     /// </summary>
-    public static FrozenDictionary<Enum, IEnumInfo> ValidInfos =>
-        _validInfos ??= IsFlagable
-            ? ValidValues.ToFrozenDictionary(v => (Enum)v, v => (IEnumInfo)new EnumInfo<TEnum>(v))
-            : Infos;
-    #endregion
-    #endregion
+    /// <returns>信息</returns>
+    public static EnumInfo<TEnum> GetInfo()
+    {
+        return EnumInfo<TEnum>.Create(default(TEnum));
+    }
 
     /// <summary>
-    /// 获取信息
+    /// 获取枚举信息
     /// </summary>
     /// <param name="enum">枚举值</param>
     /// <returns>信息</returns>
     public static EnumInfo<TEnum> GetInfo(TEnum @enum)
     {
-        if (Infos.TryGetValue(@enum, out var info))
-            return (EnumInfo<TEnum>)info;
-        return (EnumInfo<TEnum>)Infos.First().Value.Create(@enum);
+        return EnumInfo<TEnum>.Create(@enum);
     }
 
     #region EnumDisplays
-    private static FrozenDictionary<TEnum, DisplayAttribute>? _enumDisplays;
+    private static readonly Lazy<FrozenDictionary<TEnum, DisplayAttribute?>> _enumDisplaysHolder =
+        new(() =>
+            StaticValues
+                .Select(static v => (Value: v, FieldInfo: StaticEnumType.GetField(v.ToString())!))
+                .ToFrozenDictionary(
+                    v => v.Value,
+                    v => v.FieldInfo.GetCustomAttribute<DisplayAttribute>()
+                )
+        );
 
     /// <summary>
     /// 枚举信息
@@ -366,14 +390,8 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
     /// (Enum, DisplayAttribute)
     /// </para>
     /// </summary>
-    public static FrozenDictionary<TEnum, DisplayAttribute> EnumDisplays =>
-        _enumDisplays ??= Values
-            .Select(static v => (Value: v, FieldInfo: EnumType.GetField(v.ToString())!))
-            .Where(static v => v.FieldInfo.IsDefined(typeof(DisplayAttribute)))
-            .ToFrozenDictionary(
-                v => v.Value,
-                v => v.FieldInfo.GetCustomAttribute<DisplayAttribute>()!
-            );
+    public static FrozenDictionary<TEnum, DisplayAttribute?> EnumDisplays =>
+        _enumDisplaysHolder.Value;
 
     #endregion
 
@@ -429,8 +447,6 @@ public class EnumInfo<TEnum> : IEnumInfo<TEnum>
         get => _defaultGetDisplayDescription ?? EnumInfo.DefaultGetDisplayDescription;
         set => _defaultGetDisplayDescription = value;
     }
-    #endregion
-
     #endregion
 
     #endregion

@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Diagnostics;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Exceptions;
+using HKW.HKWUtils.Extensions;
 
-namespace HKW.HKWUtils;
+namespace HKW.HKWUtils.Collections;
 
 /// <summary>
 /// 可撤销列表包装器
@@ -10,176 +12,205 @@ namespace HKW.HKWUtils;
 /// <typeparam name="TItem">项类型</typeparam>
 /// <typeparam name="TList">列表类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
-public class UndoableListWrapper<TItem, TList>
-    : IList<TItem>,
-        IUndoableCollection<TItem>,
-        IRedoableCollection<TItem>,
-        IListWrapper<TItem, TList>
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
+public class UndoableListWrapper<TItem, TList> : IList<TItem>
     where TList : IList<TItem>
 {
     /// <inheritdoc/>
     public UndoableListWrapper(TList list)
     {
-        BaseList = list;
+        SourceList = list;
     }
 
     /// <summary>
     /// 基础列表
     /// </summary>
-    public TList BaseList { get; }
+    protected TList SourceList { get; }
+
+    private readonly Stack<TItem> _undoStack = new();
 
     /// <summary>
     /// 撤销栈
     /// </summary>
-    public Stack<TItem> UndoStack { get; } = new();
+    public ReadOnlyStack<TItem> UndoStack => field ??= new(_undoStack);
 
     #region IList
     /// <inheritdoc/>
     public TItem this[int index]
     {
-        get => BaseList[index];
-        set => BaseList[index] = value;
+        get => SourceList[index];
+        set
+        {
+            SourceList[index] = value;
+            _undoStack.Clear();
+        }
     }
 
     /// <inheritdoc/>
-    public int Count => BaseList.Count;
+    public int Count => SourceList.Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => BaseList.IsReadOnly;
+    public bool IsReadOnly => SourceList.IsReadOnly;
 
-    /// <summary>
-    /// 添加项
-    /// <para>
-    /// 此操作会清空 <see cref="UndoStack"/>
-    /// </para>
-    /// </summary>
+    /// <inheritdoc/>
+    /// <remarks>
+    /// 此操作会清空 <see cref="_undoStack"/>
+    /// </remarks>
     public void Add(TItem item)
     {
-        BaseList.Add(item);
-        UndoStack.Clear();
+        SourceList.Add(item);
+        _undoStack.Clear();
     }
 
-    /// <summary>
-    /// 清空列表
-    /// <para>
-    /// 此操作会清空 <see cref="UndoStack"/>
-    /// </para>
-    /// </summary>
+    /// <inheritdoc/>
+    /// <remarks>
+    /// 此操作会清空 <see cref="_undoStack"/>
+    /// </remarks>
+    public void Insert(int index, TItem item)
+    {
+        SourceList.Insert(index, item);
+        _undoStack.Clear();
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// 此操作会清空 <see cref="_undoStack"/>
+    /// </remarks>
+    public bool Remove(TItem item)
+    {
+        var result = SourceList.Remove(item);
+        if (result)
+            _undoStack.Clear();
+        return result;
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// 此操作会清空 <see cref="_undoStack"/>
+    /// </remarks>
+    public void RemoveAt(int index)
+    {
+        SourceList.RemoveAt(index);
+        _undoStack.Clear();
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// 此操作会清空 <see cref="_undoStack"/>
+    /// </remarks>
     public void Clear()
     {
-        BaseList.Clear();
-        UndoStack.Clear();
-    }
-
-    /// <inheritdoc/>
-    public bool Contains(TItem item)
-    {
-        return BaseList.Contains(item);
-    }
-
-    /// <inheritdoc/>
-    public void CopyTo(TItem[] array, int arrayIndex)
-    {
-        BaseList.CopyTo(array, arrayIndex);
+        SourceList.Clear();
+        _undoStack.Clear();
     }
 
     /// <inheritdoc/>
     public int IndexOf(TItem item)
     {
-        return BaseList.IndexOf(item);
+        return SourceList.IndexOf(item);
     }
 
     /// <inheritdoc/>
-    public void Insert(int index, TItem item)
+    public bool Contains(TItem item)
     {
-        BaseList.Insert(index, item);
+        return SourceList.Contains(item);
     }
 
     /// <inheritdoc/>
-    public bool Remove(TItem item)
+    public void CopyTo(TItem[] array, int arrayIndex)
     {
-        return BaseList.Remove(item);
-    }
-
-    /// <inheritdoc/>
-    public void RemoveAt(int index)
-    {
-        BaseList.RemoveAt(index);
+        SourceList.CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
     public IEnumerator<TItem> GetEnumerator()
     {
-        return BaseList.GetEnumerator();
+        return SourceList.GetEnumerator();
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable)BaseList).GetEnumerator();
+        return ((IEnumerable)SourceList).GetEnumerator();
     }
 
     #endregion
     #region Undo
     /// <inheritdoc/>
-    public TItem Undo()
+    public bool Undo()
     {
-        var i = BaseList.Count - 1;
-        var item = BaseList[i];
-        BaseList.RemoveAt(i);
-        UndoStack.Push(item);
-        return item;
+        if (SourceList.Count == 0)
+            return false;
+        var index = SourceList.Count - 1;
+        var item = SourceList[index];
+        SourceList.RemoveAt(index);
+        _undoStack.Push(item);
+        return true;
     }
 
     /// <inheritdoc/>
     public bool Undo(int count)
     {
-        if (Count - count < 0 || count < 0)
-            throw new ArgumentOutOfRangeException(nameof(count));
-        if (Count == 0)
+        if (count <= 0 || count > SourceList.Count || SourceList.Count == 0)
             return false;
-        var temp = Count - count;
-        for (var i = Count - 1; i >= temp; i--)
+        var endIndex = SourceList.Count - count;
+        for (var i = SourceList.Count - 1; i >= endIndex; i--)
         {
-            var item = BaseList[i];
-            BaseList.RemoveAt(i);
-            UndoStack.Push(item);
+            var item = SourceList[i];
+            SourceList.RemoveAt(i);
+            _undoStack.Push(item);
         }
         return true;
     }
 
-    object IUndoableCollection.Undo()
+    /// <inheritdoc/>
+    public bool Undo(TItem item)
     {
-        return Undo()!;
+        var index = SourceList.LastIndexOf(item);
+        if (index < 0)
+            return false;
+        for (var i = SourceList.Count - 1; i >= index; i--)
+        {
+            var tempItem = SourceList[i];
+            SourceList.RemoveAt(i);
+            _undoStack.Push(tempItem);
+        }
+        return true;
     }
     #endregion
     #region Redo
     /// <inheritdoc/>
-    public TItem Redo()
+    public bool Redo()
     {
-        var item = UndoStack.Pop();
-        BaseList.Add(item);
-        return item;
+        if (_undoStack.Count == 0)
+            return false;
+        var item = _undoStack.Pop();
+        SourceList.Add(item);
+        return true;
     }
 
     /// <inheritdoc/>
     public bool Redo(int count)
     {
-        if (count > UndoStack.Count || count < 0)
-            throw new ArgumentOutOfRangeException(nameof(count));
-        if (count == 0)
+        if (count <= 0 || count > _undoStack.Count || _undoStack.Count == 0)
             return false;
         for (var i = 0; i < count; i++)
-        {
-            BaseList.Add(UndoStack.Pop());
-        }
+            SourceList.Add(_undoStack.Pop());
         return true;
     }
 
-    object IRedoableCollection.Redo()
+    /// <inheritdoc/>
+    public bool Redo(TItem item)
     {
-        return Redo()!;
+        var count = _undoStack.IndexOf(item);
+        if (count < 0)
+            return false;
+        count++;
+        for (var i = 0; i < count; i++)
+        {
+            SourceList.Add(_undoStack.Pop());
+        }
+        return true;
     }
     #endregion
 }

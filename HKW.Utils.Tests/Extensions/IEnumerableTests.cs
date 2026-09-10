@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using HKW.HKWUtils.Extensions;
 
-namespace HKW.HKWUtils.Tests.Extensions;
+namespace HKW.HKWUtilsTests.Extensions;
 
 [TestClass]
 public class IEnumerableTests
@@ -10,9 +10,10 @@ public class IEnumerableTests
     public void SequenceEqual()
     {
         List<List<int>> ll = Enumerable.Range(0, 10).Select(i => new List<int>() { i }).ToList();
-        Collection<List<int>> cl =
-            new(Enumerable.Range(0, 10).Select(i => new List<int>() { i }).ToList());
-        Assert.IsTrue(cl.SequenceEqual(ll) is false);
+        Collection<List<int>> cl = new(
+            Enumerable.Range(0, 10).Select(i => new List<int>() { i }).ToList()
+        );
+        Assert.IsFalse(cl.SequenceEqual(ll));
         Assert.IsTrue(cl.SequenceEqual(ll, (x, y) => x.SequenceEqual(y)));
     }
 
@@ -21,10 +22,10 @@ public class IEnumerableTests
     {
         var index = 0;
         var list = Enumerable.Range(0, 10).ToList();
-        foreach (var (i, item) in list.EnumerateIndex())
+        foreach (var (e, i) in list.WithIndex())
         {
             Assert.AreEqual(i, index);
-            Assert.AreEqual(item, list[i]);
+            Assert.AreEqual(e, list[i]);
             index++;
         }
     }
@@ -51,7 +52,7 @@ public class IEnumerableTests
     {
         var set = Enumerable.Range(0, 10).ToHashSet();
         var randomOrder = set.RandomOrder();
-        Assert.IsTrue(set.ItemsEqual(randomOrder));
+        Assert.IsTrue(set.UnorderedEqual(randomOrder));
     }
 
     [TestMethod]
@@ -59,7 +60,7 @@ public class IEnumerableTests
     {
         var set = Enumerable.Range(0, 10).ToHashSet();
         var random = new Random(set.GetHashCode());
-        var randomOrder = set.RandomOrder();
-        Assert.IsTrue(set.ItemsEqual(randomOrder));
+        var randomOrder = set.RandomOrder(random);
+        Assert.IsTrue(set.UnorderedEqual(randomOrder));
     }
 }

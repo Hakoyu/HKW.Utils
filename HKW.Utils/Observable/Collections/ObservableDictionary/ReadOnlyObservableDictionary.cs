@@ -1,10 +1,13 @@
 ﻿using System.Collections;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Extensions;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Observable;
 
@@ -14,38 +17,31 @@ namespace HKW.HKWUtils.Observable;
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
-public class ReadOnlyObservableDictionary<TKey, TValue>
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
+public sealed class ReadOnlyObservableDictionary<TKey, TValue>
     : IObservableDictionary<TKey, TValue>,
-        IReadOnlyObservableDictionary<TKey, TValue>
+        IReadOnlyObservableDictionary<TKey, TValue>,
+        IDisposable
     where TKey : notnull
 {
     /// <summary>
     /// 原始字典
     /// </summary>
-    protected readonly IObservableDictionary<TKey, TValue> _dictionary;
+    private readonly IObservableDictionary<TKey, TValue> _dictionary;
 
     #region Ctor
     /// <inheritdoc/>
-    /// <param name="dictionary"></param>
+    /// <param name="dictionary">可观测字典</param>
     public ReadOnlyObservableDictionary(IObservableDictionary<TKey, TValue> dictionary)
     {
         _dictionary = dictionary;
-        _dictionary.DictionaryChanging -= Dictionary_DictionaryChanging;
-        _dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
-        _dictionary.CollectionChanged -= Dictionary_CollectionChanged;
-        _dictionary.PropertyChanged -= Dictionary_PropertyChanged;
 
         _dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
         _dictionary.DictionaryChanged += Dictionary_DictionaryChanged;
         _dictionary.CollectionChanged += Dictionary_CollectionChanged;
         _dictionary.PropertyChanged += Dictionary_PropertyChanged;
-        ObservableKeys = new ReadOnlyObservableList<TKey>(
-            (IObservableList<TKey>)_dictionary.ObservableKeys
-        );
-        ObservableValues = new ReadOnlyObservableList<TValue>(
-            (IObservableList<TValue>)_dictionary.ObservableValues
-        );
+        _dictionary.ObservableKeys.CollectionChanged += ObservableKeys_CollectionChanged;
+        _dictionary.ObservableValues.CollectionChanged += ObservableValues_CollectionChanged;
     }
 
     private void Dictionary_DictionaryChanging(
@@ -73,43 +69,43 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
     {
         PropertyChanged?.Invoke(this, e);
     }
+
+    private void ObservableKeys_CollectionChanged(
+        object? sender,
+        NotifyCollectionChangedEventArgs e
+    )
+    {
+        _observableKeys?.InvokeEvent(e);
+    }
+
+    private void ObservableValues_CollectionChanged(
+        object? sender,
+        NotifyCollectionChangedEventArgs e
+    )
+    {
+        _observableValues?.InvokeEvent(e);
+    }
     #endregion
 
 
     #region IDisposable
     private bool _disposed;
 
-    /// <summary>
-    /// 为了防止忘记显式的调用Dispose方法
-    /// </summary>
+    /// <inheritdoc/>
     ~ReadOnlyObservableDictionary()
     {
-        //必须为false
         Dispose(false);
     }
 
     /// <inheritdoc/>
     public void Dispose()
     {
-        //必须为true
         Dispose(true);
-        //通知垃圾回收器不再调用终结器
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>
-    /// 关闭
-    /// </summary>
-    public void Close()
-    {
-        Dispose();
-    }
-
-    /// <summary>
-    /// 非密封类可重写的Dispose方法，方便子类继承时可重写
-    /// </summary>
-    /// <param name="disposing">释放中</param>
-    protected virtual void Dispose(bool disposing)
+    /// <inheritdoc/>
+    private void Dispose(bool disposing)
     {
         if (_disposed)
             return;
@@ -120,91 +116,85 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
             _dictionary.DictionaryChanged -= Dictionary_DictionaryChanged;
             _dictionary.CollectionChanged -= Dictionary_CollectionChanged;
             _dictionary.PropertyChanged -= Dictionary_PropertyChanged;
+            _dictionary.ObservableKeys.CollectionChanged -= ObservableKeys_CollectionChanged;
+            _dictionary.ObservableValues.CollectionChanged -= ObservableValues_CollectionChanged;
         }
         _disposed = true;
     }
     #endregion
 
     /// <inheritdoc/>
-    public TValue this[TKey key] => ((IReadOnlyDictionary<TKey, TValue>)_dictionary)[key];
+    public TValue this[TKey key] => _dictionary[key];
+
+    IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => _dictionary.Keys;
+
+    IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => _dictionary.Values;
 
     /// <inheritdoc/>
-    public IEnumerable<TKey> Keys => ((IReadOnlyDictionary<TKey, TValue>)_dictionary).Keys;
-
-    /// <inheritdoc/>
-    public IEnumerable<TValue> Values => ((IReadOnlyDictionary<TKey, TValue>)_dictionary).Values;
-
-    /// <inheritdoc/>
-    public int Count => ((IReadOnlyDictionary<TKey, TValue>)_dictionary).Count;
+    public int Count => _dictionary.Count;
 
     /// <inheritdoc/>
     public bool IsReadOnly => true;
 
-    ICollection<TKey> IDictionary<TKey, TValue>.Keys => _dictionary.Keys;
-
-    ICollection<TValue> IDictionary<TKey, TValue>.Values => _dictionary.Values;
+    /// <inheritdoc/>
+    public ICollection<TKey> Keys => _dictionary.Keys;
 
     /// <inheritdoc/>
-    public IReadOnlyObservableCollection<TKey> ObservableKeys { get; }
+    public ICollection<TValue> Values => _dictionary.Values;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private ReadOnlyObservableKeyCollection<TKey, TValue>? _observableKeys;
 
     /// <inheritdoc/>
-    public IReadOnlyObservableCollection<TValue> ObservableValues { get; }
+    public IObservableCollection<TKey> ObservableKeys => _observableKeys ??= new(_dictionary);
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private ReadOnlyObservableValueCollection<TKey, TValue>? _observableValues;
+
+    /// <inheritdoc/>
+    public IObservableCollection<TValue> ObservableValues => _observableValues ??= new(_dictionary);
 
     TValue IDictionary<TKey, TValue>.this[TKey key]
     {
         get => _dictionary[key];
-        set => throw new ReadOnlyException();
+        set => throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
-    /// <inheritdoc/>
-    TValue IObservableDictionary<TKey, TValue>.this[TKey key, bool skipCheck]
+    void IDictionary<TKey, TValue>.Add(TKey key, TValue value)
     {
-        get => _dictionary[key];
-        set => throw new ReadOnlyException();
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+    }
+
+    bool IDictionary<TKey, TValue>.Remove(TKey key)
+    {
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+    }
+
+    void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
+    {
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+    }
+
+    bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
+    {
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+    }
+
+    void ICollection<KeyValuePair<TKey, TValue>>.Clear()
+    {
+        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
     }
 
     /// <inheritdoc/>
     public bool ContainsKey(TKey key)
     {
-        return ((IReadOnlyDictionary<TKey, TValue>)_dictionary).ContainsKey(key);
+        return _dictionary.ContainsKey(key);
     }
 
     /// <inheritdoc/>
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
-        return ((IReadOnlyDictionary<TKey, TValue>)_dictionary).TryGetValue(key, out value);
-    }
-
-    /// <inheritdoc/>
-    public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-    {
-        return ((IReadOnlyDictionary<TKey, TValue>)_dictionary).GetEnumerator();
-    }
-
-    /// <inheritdoc/>
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return ((IEnumerable)_dictionary).GetEnumerator();
-    }
-
-    void IDictionary<TKey, TValue>.Add(TKey key, TValue value)
-    {
-        throw new ReadOnlyException();
-    }
-
-    bool IDictionary<TKey, TValue>.Remove(TKey key)
-    {
-        throw new ReadOnlyException();
-    }
-
-    void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
-    {
-        throw new ReadOnlyException();
-    }
-
-    void ICollection<KeyValuePair<TKey, TValue>>.Clear()
-    {
-        throw new ReadOnlyException();
+        return _dictionary.TryGetValue(key, out value);
     }
 
     bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
@@ -220,9 +210,16 @@ public class ReadOnlyObservableDictionary<TKey, TValue>
         _dictionary.CopyTo(array, arrayIndex);
     }
 
-    bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
+    /// <inheritdoc/>
+    public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
-        throw new ReadOnlyException();
+        return _dictionary.GetEnumerator();
+    }
+
+    /// <inheritdoc/>
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return ((IEnumerable)_dictionary).GetEnumerator();
     }
 
     #region Event

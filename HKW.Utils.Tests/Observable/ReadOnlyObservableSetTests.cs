@@ -2,7 +2,7 @@
 //using HKW.HKWUtils.Extensions;
 //using HKW.HKWUtils.Observable;
 
-//namespace HKW.HKWUtils.Tests.Observable;
+//namespace HKW.HKWUtilsTests.Observable;
 
 //[TestClass]
 //public class ReadOnlyObservableSetTests

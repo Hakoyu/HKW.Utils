@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 
 namespace HKW.HKWUtils;
@@ -13,18 +14,36 @@ public interface IEnumInfo<TEnum> : IEnumInfo, IEquatable<IEnumInfo<TEnum>>, IEq
     /// <inheritdoc/>
     public new TEnum Value { get; }
 
+    /// <inheritdoc cref="IEnumInfo.InfoDictionary"/>
+    public new FrozenEnumInfoDictionary<TEnum> InfoDictionary { get; }
+
+    /// <inheritdoc cref="IEnumInfo.ValidInfoDictionary"/>
+    public new FrozenEnumInfoDictionary<TEnum> ValidInfoDictionary { get; }
+
+    /// <inheritdoc cref="IEnumInfo.Values"/>
+    public new ImmutableArray<TEnum> Values { get; }
+
+    /// <inheritdoc cref="IEnumInfo.ValidValues"/>
+    public new ImmutableArray<TEnum> ValidValues { get; }
+
+    /// <inheritdoc cref="IEnumInfo.Infos"/>
+    public new ImmutableArray<EnumInfo<TEnum>> Infos { get; }
+
+    /// <inheritdoc cref="IEnumInfo.ValidInfos"/>
+    public new ImmutableArray<EnumInfo<TEnum>> ValidInfos { get; }
+
     /// <summary>
     /// 拥有标记
     /// </summary>
     /// <param name="flag">标记</param>
-    /// <returns>有标记为 <see langword="true"/> 没有为 <see langword="false"/></returns>
+    /// <returns>是否有标记</returns>
     public bool HasFlag(TEnum flag);
 
     /// <summary>
     /// 拥有标记
     /// </summary>
     /// <param name="flag">标记</param>
-    /// <returns>有标记为 <see langword="true"/> 没有为 <see langword="false"/></returns>
+    /// <returns>是否有标记</returns>
     public bool HasFlag(IEnumInfo<TEnum> flag);
 
     /// <summary>
@@ -51,6 +70,11 @@ public interface IEnumInfo
     /// 枚举值
     /// </summary>
     public Enum Value { get; }
+
+    /// <summary>
+    /// 枚举是否为 0 占位符
+    /// </summary>
+    public bool IsNone { get; }
 
     /// <summary>
     /// 名称
@@ -85,40 +109,60 @@ public interface IEnumInfo
     /// <summary>
     /// 是可标记的
     /// </summary>
-    public bool IsFlagable { get; }
+    public bool IsFlaggable { get; }
 
     /// <summary>
     /// 全部名称
     /// </summary>
-    public FrozenSet<string> Names { get; }
-
-    /// <summary>
-    /// 全部信息
-    /// </summary>
-    public FrozenDictionary<Enum, IEnumInfo> Infos { get; }
+    public ImmutableArray<string> Names { get; }
 
     /// <summary>
     /// 有效的全部名称 (为设置 <see cref="FlagsAttribute"/> 的枚举排除None)
     /// </summary>
-    public FrozenSet<string> ValidNames { get; }
+    public ImmutableArray<string> ValidNames { get; }
 
     /// <summary>
-    /// 有效的全部信息 (为设置 <see cref="FlagsAttribute"/> 的枚举排除None)
+    /// 信息字典
     /// </summary>
-    public FrozenDictionary<Enum, IEnumInfo> ValidInfos { get; }
+    public IDictionary<Enum, IEnumInfo> InfoDictionary { get; }
+
+    /// <summary>
+    /// 全部有效字典 (为设置 <see cref="FlagsAttribute"/> 的枚举排除None)
+    /// </summary>
+    public IDictionary<Enum, IEnumInfo> ValidInfoDictionary { get; }
+
+    /// <summary>
+    /// 全部值
+    /// </summary>
+    public ICollection<Enum> Values { get; }
+
+    /// <summary>
+    /// 全部有效值
+    /// </summary>
+    public ICollection<Enum> ValidValues { get; }
+
+    /// <summary>
+    /// 全部信息
+    /// </summary>
+    public ICollection<IEnumInfo> Infos { get; }
+
+    /// <summary>
+    /// 全部有效信息
+    /// </summary>
+    public ICollection<IEnumInfo> ValidInfos { get; }
 
     /// <summary>
     /// 拥有标记
     /// </summary>
     /// <param name="flag">标记</param>
-    /// <returns>有标记为 <see langword="true"/> 没有为 <see langword="false"/></returns>
+    /// <returns>是否有标记</returns>
     public bool HasFlag(Enum flag);
 
     /// <summary>
     /// 拥有标记
     /// </summary>
     /// <param name="flag">标记</param>
-    /// <returns>有标记为 <see langword="true"/> 没有为 <see langword="false"/></returns>
+    /// <returns>是否有标记</returns>
     public bool HasFlag(IEnumInfo flag);
 
     /// <summary>

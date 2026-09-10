@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using HKW.HKWUtils.Collections;
 
 namespace HKW.HKWUtils;
 
@@ -12,13 +13,11 @@ public partial class NumberUtils
         string,
         BitwiseShiftType
     > BitwiseShiftTypeByString { get; } =
-        FrozenBidirectionalDictionary.Create<string, BitwiseShiftType>(
-            [
-                ("<<", BitwiseShiftType.Left),
-                (">>", BitwiseShiftType.Right),
-                (">>>", BitwiseShiftType.UnsignedRight),
-            ]
-        );
+        new([
+            KeyValuePair.Create("<<", BitwiseShiftType.Left),
+            KeyValuePair.Create(">>", BitwiseShiftType.Right),
+            KeyValuePair.Create(">>>", BitwiseShiftType.UnsignedRight),
+        ]);
 
     /// <summary>
     /// 获取位运算位移符类型
@@ -50,7 +49,7 @@ public partial class NumberUtils
     /// <param name="operator">运算符</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object BitwiseShift<T>(object value1, object value2, string @operator)
+    public static T BitwiseShift<T>(object value1, object value2, string @operator)
         where T : struct, INumber<T>
     {
         return BitwiseShift<T>(value1, value2, GetBitwiseShiftType(@operator));
@@ -103,79 +102,10 @@ public partial class NumberUtils
     /// <param name="operatorType">运算符类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
-    public static object BitwiseShift<T>(
-        object value1,
-        object value2,
-        BitwiseShiftType operatorType
-    )
+    public static T BitwiseShift<T>(object value1, object value2, BitwiseShiftType operatorType)
         where T : struct, INumber<T>
     {
-        var type = typeof(T);
-        if (operatorType is BitwiseShiftType.Left)
-        {
-            if (type == typeof(sbyte))
-                return Convert.ToInt32(value1) << Convert.ToInt32(value2);
-            else if (type == typeof(byte))
-                return Convert.ToInt32(value1) << Convert.ToInt32(value2);
-            else if (type == typeof(short))
-                return Convert.ToInt32(value1) << Convert.ToInt32(value2);
-            else if (type == typeof(ushort))
-                return Convert.ToUInt32(value1) << Convert.ToInt32(value2);
-            else if (type == typeof(int))
-                return Convert.ToInt32(value1) << Convert.ToInt32(value2);
-            else if (type == typeof(uint))
-                return Convert.ToUInt32(value1) << Convert.ToInt32(value2);
-            else if (type == typeof(long))
-                return Convert.ToInt64(value1) << Convert.ToInt32(value2);
-            else if (type == typeof(ulong))
-                return Convert.ToUInt64(value1) << Convert.ToInt32(value2);
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is BitwiseShiftType.Right)
-        {
-            if (type == typeof(sbyte))
-                return Convert.ToInt32(value1) >> Convert.ToInt32(value2);
-            else if (type == typeof(byte))
-                return Convert.ToInt32(value1) >> Convert.ToInt32(value2);
-            else if (type == typeof(short))
-                return Convert.ToInt32(value1) >> Convert.ToInt32(value2);
-            else if (type == typeof(ushort))
-                return Convert.ToUInt32(value1) >> Convert.ToInt32(value2);
-            else if (type == typeof(int))
-                return Convert.ToInt32(value1) >> Convert.ToInt32(value2);
-            else if (type == typeof(uint))
-                return Convert.ToUInt32(value1) >> Convert.ToInt32(value2);
-            else if (type == typeof(long))
-                return Convert.ToInt64(value1) >> Convert.ToInt32(value2);
-            else if (type == typeof(ulong))
-                return Convert.ToUInt64(value1) >> Convert.ToInt32(value2);
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is BitwiseShiftType.UnsignedRight)
-        {
-            if (type == typeof(sbyte))
-                return Convert.ToInt32(value1) >> Convert.ToInt32(value2);
-            else if (type == typeof(byte))
-                return Convert.ToInt32(value1) >> Convert.ToInt32(value2);
-            else if (type == typeof(short))
-                return Convert.ToInt32(value1) >> Convert.ToInt32(value2);
-            else if (type == typeof(ushort))
-                return Convert.ToUInt32(value1) >> Convert.ToInt32(value2);
-            else if (type == typeof(int))
-                return Convert.ToInt32(value1) >> Convert.ToInt32(value2);
-            else if (type == typeof(uint))
-                return Convert.ToUInt32(value1) >> Convert.ToInt32(value2);
-            else if (type == typeof(long))
-                return Convert.ToInt64(value1) >> Convert.ToInt32(value2);
-            else if (type == typeof(ulong))
-                return Convert.ToUInt64(value1) >> Convert.ToInt32(value2);
-            else
-                throw new NotImplementedException();
-        }
-        else
-            throw new NotImplementedException();
+        return (T)BitwiseShift(value1, value2, typeof(T), operatorType);
     }
 
     /// <summary>
@@ -194,71 +124,7 @@ public partial class NumberUtils
         BitwiseShiftType operatorType
     )
     {
-        if (operatorType is BitwiseShiftType.Left)
-        {
-            if (numberType == typeof(sbyte))
-                return Convert.ToInt32(value1) << Convert.ToInt32(value2);
-            else if (numberType == typeof(byte))
-                return Convert.ToInt32(value1) << Convert.ToInt32(value2);
-            else if (numberType == typeof(short))
-                return Convert.ToInt32(value1) << Convert.ToInt32(value2);
-            else if (numberType == typeof(ushort))
-                return Convert.ToUInt32(value1) << Convert.ToInt32(value2);
-            else if (numberType == typeof(int))
-                return Convert.ToInt32(value1) << Convert.ToInt32(value2);
-            else if (numberType == typeof(uint))
-                return Convert.ToUInt32(value1) << Convert.ToInt32(value2);
-            else if (numberType == typeof(long))
-                return Convert.ToInt64(value1) << Convert.ToInt32(value2);
-            else if (numberType == typeof(ulong))
-                return Convert.ToUInt64(value1) << Convert.ToInt32(value2);
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is BitwiseShiftType.Right)
-        {
-            if (numberType == typeof(sbyte))
-                return Convert.ToInt32(value1) >> Convert.ToInt32(value2);
-            else if (numberType == typeof(byte))
-                return Convert.ToInt32(value1) >> Convert.ToInt32(value2);
-            else if (numberType == typeof(short))
-                return Convert.ToInt32(value1) >> Convert.ToInt32(value2);
-            else if (numberType == typeof(ushort))
-                return Convert.ToUInt32(value1) >> Convert.ToInt32(value2);
-            else if (numberType == typeof(int))
-                return Convert.ToInt32(value1) >> Convert.ToInt32(value2);
-            else if (numberType == typeof(uint))
-                return Convert.ToUInt32(value1) >> Convert.ToInt32(value2);
-            else if (numberType == typeof(long))
-                return Convert.ToInt64(value1) >> Convert.ToInt32(value2);
-            else if (numberType == typeof(ulong))
-                return Convert.ToUInt64(value1) >> Convert.ToInt32(value2);
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is BitwiseShiftType.UnsignedRight)
-        {
-            if (numberType == typeof(sbyte))
-                return Convert.ToInt32(value1) >>> Convert.ToInt32(value2);
-            else if (numberType == typeof(byte))
-                return Convert.ToInt32(value1) >>> Convert.ToInt32(value2);
-            else if (numberType == typeof(short))
-                return Convert.ToInt32(value1) >>> Convert.ToInt32(value2);
-            else if (numberType == typeof(ushort))
-                return Convert.ToUInt32(value1) >>> Convert.ToInt32(value2);
-            else if (numberType == typeof(int))
-                return Convert.ToInt32(value1) >>> Convert.ToInt32(value2);
-            else if (numberType == typeof(uint))
-                return Convert.ToUInt32(value1) >>> Convert.ToInt32(value2);
-            else if (numberType == typeof(long))
-                return Convert.ToInt64(value1) >>> Convert.ToInt32(value2);
-            else if (numberType == typeof(ulong))
-                return Convert.ToUInt64(value1) >>> Convert.ToInt32(value2);
-            else
-                throw new NotImplementedException();
-        }
-        else
-            throw new NotImplementedException();
+        return BitwiseShift(value1, value2, GetNumberType(numberType), operatorType);
     }
 
     /// <summary>
@@ -270,77 +136,108 @@ public partial class NumberUtils
     /// <param name="operatorType">运算符类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的操作</exception>
+#pragma warning disable S3776
     public static object BitwiseShift(
+#pragma warning restore S3776
         object value1,
         object value2,
         NumberType numberType,
         BitwiseShiftType operatorType
     )
     {
-        if (operatorType is BitwiseShiftType.Left)
+        var shift = Convert.ToInt32(value2);
+        switch (numberType)
         {
-            if (numberType is NumberType.SByte)
-                return Convert.ToInt32(value1) << Convert.ToInt32(value2);
-            else if (numberType is NumberType.Byte)
-                return Convert.ToInt32(value1) << Convert.ToInt32(value2);
-            else if (numberType is NumberType.Int16)
-                return Convert.ToInt32(value1) << Convert.ToInt32(value2);
-            else if (numberType is NumberType.UInt16)
-                return Convert.ToUInt32(value1) << Convert.ToInt32(value2);
-            else if (numberType is NumberType.Int32)
-                return Convert.ToInt32(value1) << Convert.ToInt32(value2);
-            else if (numberType is NumberType.UInt32)
-                return Convert.ToUInt32(value1) << Convert.ToInt32(value2);
-            else if (numberType is NumberType.Int64)
-                return Convert.ToInt64(value1) << Convert.ToInt32(value2);
-            else if (numberType is NumberType.UInt64)
-                return Convert.ToUInt64(value1) << Convert.ToInt32(value2);
-            else
-                throw new NotImplementedException();
+            case NumberType.SByte:
+            {
+                var left = Convert.ToInt32(Convert.ToSByte(value1));
+                return operatorType switch
+                {
+                    BitwiseShiftType.Left => left << shift,
+                    BitwiseShiftType.Right => left >> shift,
+                    BitwiseShiftType.UnsignedRight => left >>> shift,
+                    _ => throw CreateUnsupportedOperatorException(operatorType),
+                };
+            }
+            case NumberType.Byte:
+            {
+                var left = Convert.ToInt32(Convert.ToByte(value1));
+                return operatorType switch
+                {
+                    BitwiseShiftType.Left => left << shift,
+                    BitwiseShiftType.Right => left >> shift,
+                    BitwiseShiftType.UnsignedRight => left >>> shift,
+                    _ => throw CreateUnsupportedOperatorException(operatorType),
+                };
+            }
+            case NumberType.Int16:
+            {
+                var left = Convert.ToInt32(Convert.ToInt16(value1));
+                return operatorType switch
+                {
+                    BitwiseShiftType.Left => left << shift,
+                    BitwiseShiftType.Right => left >> shift,
+                    BitwiseShiftType.UnsignedRight => left >>> shift,
+                    _ => throw CreateUnsupportedOperatorException(operatorType),
+                };
+            }
+            case NumberType.UInt16:
+            {
+                var left = Convert.ToUInt32(value1);
+                return operatorType switch
+                {
+                    BitwiseShiftType.Left => left << shift,
+                    BitwiseShiftType.Right => left >> shift,
+                    BitwiseShiftType.UnsignedRight => left >>> shift,
+                    _ => throw CreateUnsupportedOperatorException(operatorType),
+                };
+            }
+            case NumberType.Int32:
+            {
+                var left = Convert.ToInt32(value1);
+                return operatorType switch
+                {
+                    BitwiseShiftType.Left => left << shift,
+                    BitwiseShiftType.Right => left >> shift,
+                    BitwiseShiftType.UnsignedRight => left >>> shift,
+                    _ => throw CreateUnsupportedOperatorException(operatorType),
+                };
+            }
+            case NumberType.UInt32:
+            {
+                var left = Convert.ToUInt32(value1);
+                return operatorType switch
+                {
+                    BitwiseShiftType.Left => left << shift,
+                    BitwiseShiftType.Right => left >> shift,
+                    BitwiseShiftType.UnsignedRight => left >>> shift,
+                    _ => throw CreateUnsupportedOperatorException(operatorType),
+                };
+            }
+            case NumberType.Int64:
+            {
+                var left = Convert.ToInt64(value1);
+                return operatorType switch
+                {
+                    BitwiseShiftType.Left => left << shift,
+                    BitwiseShiftType.Right => left >> shift,
+                    BitwiseShiftType.UnsignedRight => left >>> shift,
+                    _ => throw CreateUnsupportedOperatorException(operatorType),
+                };
+            }
+            case NumberType.UInt64:
+            {
+                var left = Convert.ToUInt64(value1);
+                return operatorType switch
+                {
+                    BitwiseShiftType.Left => left << shift,
+                    BitwiseShiftType.Right => left >> shift,
+                    BitwiseShiftType.UnsignedRight => left >>> shift,
+                    _ => throw CreateUnsupportedOperatorException(operatorType),
+                };
+            }
+            default:
+                throw CreateUnsupportedNumberTypeException(numberType);
         }
-        else if (operatorType is BitwiseShiftType.Right)
-        {
-            if (numberType is NumberType.SByte)
-                return Convert.ToInt32(value1) >> Convert.ToInt32(value2);
-            else if (numberType is NumberType.Byte)
-                return Convert.ToInt32(value1) >> Convert.ToInt32(value2);
-            else if (numberType is NumberType.Int16)
-                return Convert.ToInt32(value1) >> Convert.ToInt32(value2);
-            else if (numberType is NumberType.UInt16)
-                return Convert.ToUInt32(value1) >> Convert.ToInt32(value2);
-            else if (numberType is NumberType.Int32)
-                return Convert.ToInt32(value1) >> Convert.ToInt32(value2);
-            else if (numberType is NumberType.UInt32)
-                return Convert.ToUInt32(value1) >> Convert.ToInt32(value2);
-            else if (numberType is NumberType.Int64)
-                return Convert.ToInt64(value1) >> Convert.ToInt32(value2);
-            else if (numberType is NumberType.UInt64)
-                return Convert.ToUInt64(value1) >> Convert.ToInt32(value2);
-            else
-                throw new NotImplementedException();
-        }
-        else if (operatorType is BitwiseShiftType.UnsignedRight)
-        {
-            if (numberType is NumberType.SByte)
-                return Convert.ToInt32(value1) >>> Convert.ToInt32(value2);
-            else if (numberType is NumberType.Byte)
-                return Convert.ToInt32(value1) >>> Convert.ToInt32(value2);
-            else if (numberType is NumberType.Int16)
-                return Convert.ToInt32(value1) >>> Convert.ToInt32(value2);
-            else if (numberType is NumberType.UInt16)
-                return Convert.ToUInt32(value1) >>> Convert.ToInt32(value2);
-            else if (numberType is NumberType.Int32)
-                return Convert.ToInt32(value1) >>> Convert.ToInt32(value2);
-            else if (numberType is NumberType.UInt32)
-                return Convert.ToUInt32(value1) >>> Convert.ToInt32(value2);
-            else if (numberType is NumberType.Int64)
-                return Convert.ToInt64(value1) >>> Convert.ToInt32(value2);
-            else if (numberType is NumberType.UInt64)
-                return Convert.ToUInt64(value1) >>> Convert.ToInt32(value2);
-            else
-                throw new NotImplementedException();
-        }
-        else
-            throw new NotImplementedException();
     }
 }

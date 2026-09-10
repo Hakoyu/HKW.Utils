@@ -1,14 +1,14 @@
 ﻿using System.Diagnostics;
 using HKW.HKWUtils.DebugViews;
 
-namespace HKW.HKWUtils;
+namespace HKW.HKWUtils.Collections;
 
 /// <summary>
 /// 可撤销列表
 /// </summary>
 /// <typeparam name="T">项类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(ICollectionDebugView))]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public class UndoableList<T> : UndoableListWrapper<T, List<T>>
 {
     /// <inheritdoc/>

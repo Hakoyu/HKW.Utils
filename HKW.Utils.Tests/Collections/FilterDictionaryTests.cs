@@ -4,96 +4,159 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HKW.HKWUtils.Collections;
+using HKW.HKWUtils.Extensions;
 
-namespace HKW.HKWUtils.Tests.Collections;
+namespace HKW.HKWUtilsTests.Collections;
 
+[TestClass]
 public class FilterDictionaryTests
 {
-    bool Filter(KeyValuePair<int, int> kv) => kv.Key > 5 && kv.Value > 5;
+    static readonly Func<
+        FilteredDictionaryWrapper<int, string, Dictionary<int, string>, Dictionary<int, string>>
+    > _createDictionary = () =>
+        new(
+            new(Enumerable.Range(5, 10).Select(i => KeyValuePair.Create(i, i.ToString()))),
+            filteredDictionary: new(),
+            Filter
+        );
+
+    static readonly Func<
+        FilteredDictionaryWrapper<int, string, Dictionary<int, string>, Dictionary<int, string>>
+    > _createEmptyDictionary = () => new(new(), filteredDictionary: new(), Filter);
+
+    static IReadOnlyCollection<KeyValuePair<int, string>> _newItems = Enumerable
+        .Range(0, 5)
+        .Concat(Enumerable.Range(100, 5))
+        .Select(i => KeyValuePair.Create(i, i.ToString()))
+        .ToArray();
+
+    static bool Filter(KeyValuePair<int, string> kv) => kv.Key > 10 && int.Parse(kv.Value) > 10;
+
+    [TestMethod]
+    public void IDictionaryTest()
+    {
+        IDictionaryTTestUtils.Test(_createDictionary, _newItems);
+    }
 
     [TestMethod]
     public void Add()
     {
-        var filterDictionary = new FilterDictionaryWrapper<
-            int,
-            int,
-            Dictionary<int, int>,
-            Dictionary<int, int>
-        >(new(), filteredDictionary: new(), Filter);
-        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, filterDictionary.Count);
-        filterDictionary.Add(5, 5);
-        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, 0);
-        filterDictionary.Add(6, 6);
-        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, 1);
-        Assert.AreEqual(
-            filterDictionary.FilteredDictionary.Count,
-            filterDictionary.Where(Filter).Count()
-        );
+        var dictionary = _createEmptyDictionary();
+        Assert.AreEqual(0, [dictionary.Count, dictionary.FilteredDictionary.Count]);
+
+        foreach (var item in _newItems)
+        {
+            dictionary.Add(item.Key, item.Value);
+            Assert.IsTrue(dictionary.FilteredDictionary.SequenceEqual(dictionary.Where(Filter)));
+        }
+    }
+
+    [TestMethod]
+    public void TryAdd()
+    {
+        var dictionary = _createEmptyDictionary();
+        Assert.AreEqual(0, [dictionary.Count, dictionary.FilteredDictionary.Count]);
+
+        foreach (var item in _newItems)
+        {
+            Assert.IsTrue(dictionary.TryAdd(item.Key, item.Value));
+            Assert.IsTrue(dictionary.FilteredDictionary.SequenceEqual(dictionary.Where(Filter)));
+        }
+
+        foreach (var item in _newItems)
+        {
+            Assert.IsFalse(dictionary.TryAdd(item.Key, item.Value));
+            Assert.IsTrue(dictionary.FilteredDictionary.SequenceEqual(dictionary.Where(Filter)));
+        }
     }
 
     [TestMethod]
     public void Remove()
     {
-        var filterDictionary = new FilterDictionaryWrapper<
-            int,
-            int,
-            Dictionary<int, int>,
-            Dictionary<int, int>
-        >(Enumerable.Range(0, 10).ToDictionary(i => i, i => i), filteredDictionary: new(), Filter);
-        Assert.AreEqual(
-            filterDictionary.FilteredDictionary.Count,
-            filterDictionary.Where(Filter).Count()
-        );
-        var oldCount = filterDictionary.FilteredDictionary.Count;
-        filterDictionary.Remove(5);
-        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, oldCount);
-        filterDictionary.Remove(6);
-        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, oldCount - 1);
-        Assert.AreEqual(
-            filterDictionary.FilteredDictionary.Count,
-            filterDictionary.Where(Filter).Count()
-        );
+        var dictionary = _createDictionary();
+        var removeItems = dictionary.ToArray();
+
+        foreach (var item in removeItems)
+        {
+            Assert.IsTrue(dictionary.Remove(item.Key));
+            Assert.IsTrue(dictionary.FilteredDictionary.SequenceEqual(dictionary.Where(Filter)));
+        }
+
+        foreach (var item in removeItems)
+        {
+            Assert.IsFalse(dictionary.Remove(item.Key));
+            Assert.IsTrue(dictionary.FilteredDictionary.SequenceEqual(dictionary.Where(Filter)));
+        }
     }
 
     [TestMethod]
-    public void ValueChange()
+    public void ItemSet()
     {
-        var filterDictionary = new FilterDictionaryWrapper<
-            int,
-            int,
-            Dictionary<int, int>,
-            Dictionary<int, int>
-        >(Enumerable.Range(0, 10).ToDictionary(i => i, i => i), filteredDictionary: new(), Filter);
-        Assert.AreEqual(
-            filterDictionary.FilteredDictionary.Count,
-            filterDictionary.Where(Filter).Count()
-        );
-        var oldCount = filterDictionary.FilteredDictionary.Count;
-        filterDictionary[10] = 5;
-        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, oldCount);
-        filterDictionary[10] = 6;
-        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, oldCount + 1);
-        Assert.AreEqual(
-            filterDictionary.FilteredDictionary.Count,
-            filterDictionary.Where(Filter).Count()
-        );
+        var dictionary = _createDictionary();
+        var newItems = dictionary.Keys.Zip(_newItems.Select(x => x.Value)).ToArray();
+
+        foreach (var (key, value) in newItems)
+        {
+            dictionary[key] = value;
+            Assert.IsTrue(dictionary.FilteredDictionary.SequenceEqual(dictionary.Where(Filter)));
+        }
+
+        foreach (var item in _newItems)
+        {
+            dictionary[item.Key] = item.Value;
+            Assert.IsTrue(dictionary.FilteredDictionary.SequenceEqual(dictionary.Where(Filter)));
+        }
     }
 
     [TestMethod]
     public void Clear()
     {
-        var filterDictionary = new FilterDictionaryWrapper<
-            int,
-            int,
-            Dictionary<int, int>,
-            Dictionary<int, int>
-        >(Enumerable.Range(0, 10).ToDictionary(i => i, i => i), filteredDictionary: new(), Filter);
-        Assert.AreEqual(
-            filterDictionary.FilteredDictionary.Count,
-            filterDictionary.Where(Filter).Count()
-        );
-        filterDictionary.Clear();
-        Assert.AreEqual(filterDictionary.FilteredDictionary.Count, filterDictionary.Count);
-        Assert.AreEqual(0, filterDictionary.Count);
+        var dictionary = _createDictionary();
+        dictionary.Clear();
+        Assert.AreEqual(0, [dictionary.Count, dictionary.FilteredDictionary.Count]);
+
+        foreach (var item in _newItems)
+        {
+            dictionary.Add(item.Key, item.Value);
+        }
+        Assert.IsTrue(dictionary.FilteredDictionary.SequenceEqual(dictionary.Where(Filter)));
+
+        dictionary.Clear();
+        Assert.AreEqual(0, [dictionary.Count, dictionary.FilteredDictionary.Count]);
+    }
+
+    [TestMethod]
+    public void AutoFilter()
+    {
+        var dictionary = _createDictionary();
+        dictionary.AutoFilter = false;
+        var oldFilteredDictionary = dictionary.FilteredDictionary.ToDictionary();
+        Assert.IsGreaterThan(0, oldFilteredDictionary.Count);
+
+        foreach (var item in _newItems)
+        {
+            dictionary.Add(item.Key, item.Value);
+            Assert.IsTrue(dictionary.FilteredDictionary.SequenceEqual(oldFilteredDictionary));
+        }
+
+        foreach (var item in _newItems)
+        {
+            dictionary.Remove(item.Key);
+            Assert.IsTrue(dictionary.FilteredDictionary.SequenceEqual(oldFilteredDictionary));
+        }
+
+        var newItems = dictionary
+            .Select(kv => KeyValuePair.Create(kv.Key, (kv.Value + 1).ToString()))
+            .ToArray();
+
+        foreach (var item in newItems)
+        {
+            dictionary[item.Key] = item.Value;
+            Assert.IsTrue(dictionary.FilteredDictionary.SequenceEqual(oldFilteredDictionary));
+        }
+
+        // Clear 不受 AutoFilter 影响
+        dictionary.Clear();
+        Assert.AreEqual(0, [dictionary.Count, dictionary.FilteredDictionary.Count]);
     }
 }

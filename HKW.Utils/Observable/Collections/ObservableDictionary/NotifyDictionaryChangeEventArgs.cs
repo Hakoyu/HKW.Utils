@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils.Observable;
@@ -9,10 +10,16 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
-[DebuggerDisplay("DictionaryChanged, Action = {Action}")]
+[DebuggerDisplay("DictionaryChange, Action = {Action}")]
 public class NotifyDictionaryChangeEventArgs<TKey, TValue> : EventArgs
     where TKey : notnull
 {
+    /// <summary>
+    /// 清理
+    /// </summary>
+    public static NotifyDictionaryChangeEventArgs<TKey, TValue> Cache_Clear { get; } =
+        new(DictionaryChangeAction.Clear);
+
     /// <summary>
     /// 改变行动
     /// </summary>
@@ -35,11 +42,7 @@ public class NotifyDictionaryChangeEventArgs<TKey, TValue> : EventArgs
     /// <param name="action">改变行动</param>
     public NotifyDictionaryChangeEventArgs(DictionaryChangeAction action)
     {
-        if (action != DictionaryChangeAction.Clear)
-            throw new ArgumentException(
-                $"{ExceptionMessage.MustBe} {nameof(DictionaryChangeAction.Clear)}",
-                nameof(action)
-            );
+        ArgumentException.ThrowIfNotEquals(action, DictionaryChangeAction.Clear);
         Action = action;
     }
 
@@ -55,11 +58,11 @@ public class NotifyDictionaryChangeEventArgs<TKey, TValue> : EventArgs
         KeyValuePair<TKey, TValue> pair
     )
     {
-        if (action != DictionaryChangeAction.Add && action != DictionaryChangeAction.Remove)
-            throw new ArgumentException(
-                $"{ExceptionMessage.MustBe} {nameof(DictionaryChangeAction.Add)} or {nameof(DictionaryChangeAction.Remove)}",
-                nameof(action)
-            );
+        ArgumentException.ThrowIfAllNotEquals(
+            action,
+            DictionaryChangeAction.Add,
+            DictionaryChangeAction.Remove
+        );
         Action = action;
         if (Action is DictionaryChangeAction.Add)
             NewPair = pair;
@@ -78,11 +81,7 @@ public class NotifyDictionaryChangeEventArgs<TKey, TValue> : EventArgs
         KeyValuePair<TKey, TValue> oldPair
     )
     {
-        if (action != DictionaryChangeAction.Replace)
-            throw new ArgumentException(
-                $"{ExceptionMessage.MustBe} {nameof(DictionaryChangeAction.Replace)}",
-                nameof(action)
-            );
+        ArgumentException.ThrowIfNotEquals(action, DictionaryChangeAction.Replace);
         Action = action;
         NewPair = newPair;
         OldPair = oldPair;
@@ -94,7 +93,7 @@ public class NotifyDictionaryChangeEventArgs<TKey, TValue> : EventArgs
     /// 尝试获取新键值对
     /// </summary>
     /// <param name="newPair">键值对</param>
-    /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否获取成功</returns>
     public bool TryGetNewPair([MaybeNullWhen(false)] out KeyValuePair<TKey, TValue> newPair)
     {
         if (NewPair.HasValue)
@@ -107,32 +106,10 @@ public class NotifyDictionaryChangeEventArgs<TKey, TValue> : EventArgs
     }
 
     /// <summary>
-    /// 尝试获取新键值对
-    /// </summary>
-    /// <param name="key">键</param>
-    /// <param name="value">值</param>
-    /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
-    public bool TryGetNewPair(
-        [MaybeNullWhen(false)] out TKey key,
-        [MaybeNullWhen(false)] out TValue value
-    )
-    {
-        if (NewPair.HasValue)
-        {
-            key = NewPair!.Value.Key;
-            value = NewPair!.Value.Value;
-            return true;
-        }
-        key = default;
-        value = default;
-        return false;
-    }
-
-    /// <summary>
     /// 尝试获取旧键值对
     /// </summary>
     /// <param name="oldPair">键值对</param>
-    /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
+    /// <returns>是否获取成功</returns>
     public bool TryGetOldPair([MaybeNullWhen(false)] out KeyValuePair<TKey, TValue> oldPair)
     {
         if (OldPair.HasValue)
@@ -144,31 +121,9 @@ public class NotifyDictionaryChangeEventArgs<TKey, TValue> : EventArgs
         return false;
     }
 
-    /// <summary>
-    /// 尝试获取新键值对
-    /// </summary>
-    /// <param name="key">键</param>
-    /// <param name="value">值</param>
-    /// <returns>获取成功为 <see langword="true"/> 失败为 <see langword="false"/></returns>
-    public bool TryGetOldPair(
-        [MaybeNullWhen(false)] out TKey key,
-        [MaybeNullWhen(false)] out TValue value
-    )
-    {
-        if (OldPair.HasValue)
-        {
-            key = OldPair!.Value.Key;
-            value = OldPair!.Value.Value;
-            return true;
-        }
-        key = default;
-        value = default;
-        return false;
-    }
-
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"DictionaryChanged, Action = {Action}, NewPair = {NewPair}, OldPair = {NewPair}";
+        return $"DictionaryChange, Action = {Action}, NewPair = {NewPair}, OldPair = {OldPair}";
     }
 }

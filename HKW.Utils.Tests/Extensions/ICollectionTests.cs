@@ -1,6 +1,6 @@
 using HKW.HKWUtils.Extensions;
 
-namespace HKW.HKWUtils.Tests.Extensions;
+namespace HKW.HKWUtilsTests.Extensions;
 
 [TestClass]
 public class ICollectionTests
@@ -9,7 +9,7 @@ public class ICollectionTests
     public void HasValue_True()
     {
         var list = Enumerable.Range(0, 10).ToList();
-        var hasValue = list.HasValue();
+        var hasValue = list.HasValue;
         Assert.IsTrue(hasValue);
     }
 
@@ -17,7 +17,7 @@ public class ICollectionTests
     public void HasValue_False()
     {
         var list = new List<int>();
-        var hasValue = list.HasValue();
-        Assert.IsTrue(hasValue is false);
+        var hasValue = list.HasValue;
+        Assert.IsFalse(hasValue);
     }
 }
