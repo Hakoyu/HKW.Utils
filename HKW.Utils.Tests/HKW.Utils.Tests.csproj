@@ -9,7 +9,7 @@
     <RootNamespace>HKW.HKWUtilsTests</RootNamespace>
     <Configurations>Debug;Release</Configurations>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <StartupObject>HKW.Program</StartupObject>
+    <StartupObject>HKW.HKWUtilsTests.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

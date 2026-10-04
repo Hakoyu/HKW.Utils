@@ -6,7 +6,6 @@
     <Company>HKW</Company>
     <PackageDescription>Utils by HKW.</PackageDescription>
     <PackageTags>MVVM;ReactiveUI;Observable;Collection;FilterCollection;NumberUtils;Extensions;EnumInfo</PackageTags>
-    <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>

@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Drawing;
 using HKW.HKWUtils.Exceptions;
@@ -97,6 +98,9 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         {
             if (e.TryGetNewPair(out var newPair))
             {
+                if (newPair.Value.Count == _indexByCulture.Count)
+                    return;
+
                 foreach (var culture in _indexByCulture)
                     newPair.Value.Add(DefaultValue);
                 newPair.Value.ListChanged += Datas_ListChanged;
@@ -117,6 +121,8 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             }
             if (e.TryGetNewPair(out var newPair))
             {
+                if (newPair.Value.Count == _indexByCulture.Count)
+                    return;
                 foreach (var culture in _indexByCulture)
                     newPair.Value.Add(DefaultValue);
                 newPair.Value.ListChanged += Datas_ListChanged;
@@ -247,6 +253,31 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         if (_indexByCulture.TryGetValue(cultureInfo, out var index) is false)
             return getDefaultValue(key, cultureInfo);
         return datas[index];
+    }
+
+    /// <summary>
+    /// 获取数据或默认
+    /// </summary>
+    /// <param name="key">键</param>
+    /// <param name="cultureInfo">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
+    /// <param name="getDefaultValue">获取默认值</param>
+    /// <returns>值</returns>
+    public TValue GetDataOrDefault(
+        TKey key,
+        INotifyPropertyChanged source,
+        CultureInfo? cultureInfo = null,
+        GetDefaultCultureDataHandler<TKey, TValue>? getDefaultValue = null,
+        [CallerArgumentExpression(nameof(key))] string? keyPropertyName = null
+    )
+    {
+        return default;
+        //cultureInfo ??= CurrentCulture;
+        //getDefaultValue ??= GetDefaultValue;
+        //if (DatasByKey.TryGetValue(key, out var datas) is false)
+        //    return getDefaultValue(key, cultureInfo);
+        //if (_indexByCulture.TryGetValue(cultureInfo, out var index) is false)
+        //    return getDefaultValue(key, cultureInfo);
+        //return datas[index];
     }
 
     /// <summary>
