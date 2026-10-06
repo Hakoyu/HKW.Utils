@@ -24,7 +24,7 @@ public class I18nCoreTests
         for (var i = 0; i < 10; i++)
         {
             core.AddResource(
-                new ObservableI18nResource<string, string>(i.ToString(), Cultures, Cultures[0])
+                new ObservableI18nResource<string, string>(i.ToString(), Cultures[0], Cultures)
             );
         }
         for (var i = 0; i < Cultures.Length; i++)

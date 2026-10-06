@@ -22,59 +22,41 @@ public static class EnumInfo
 
     #region Default
 
-    #region DefaultToString
-
-    private static Func<IEnumInfo, string>? _defaultToString;
-
     /// <summary>
     /// 默认到字符串方法
     /// </summary>
     public static Func<IEnumInfo, string> DefaultToString
     {
-        get => _defaultToString ?? GlobalDefaultToString;
-        set => _defaultToString = value;
+        get => field ?? GlobalDefaultToString;
+        set => field = value;
     }
-    #endregion
-
-    #region DefaultGetName
-    private static Func<IEnumInfo, string>? _defaultGetDisplayName;
 
     /// <summary>
     /// 默认获取名称方法
     /// </summary>
     public static Func<IEnumInfo, string> DefaultGetDisplayName
     {
-        get => _defaultGetDisplayName ?? GlobalDefaultGetDisplayName;
-        set => _defaultGetDisplayName = value;
+        get => field ?? GlobalDefaultGetDisplayName;
+        set => field = value;
     }
-    #endregion
-
-    #region DefaultGetShortName
-    private static Func<IEnumInfo, string>? _defaultGetDisplayShortName;
 
     /// <summary>
     /// 默认获取短名称方法
     /// </summary>
     public static Func<IEnumInfo, string> DefaultGetDisplayShortName
     {
-        get => _defaultGetDisplayShortName ?? GlobalDefaultGetDisplayShortName;
-        set => _defaultGetDisplayShortName = value;
+        get => field ?? GlobalDefaultGetDisplayShortName;
+        set => field = value;
     }
-    #endregion
-
-    #region DefaultGetDescription
-    private static Func<IEnumInfo, string>? _defaultGetDisplayDescription;
 
     /// <summary>
     /// 默认获取描述方法
     /// </summary>
     public static Func<IEnumInfo, string> DefaultGetDisplayDescription
     {
-        get => _defaultGetDisplayDescription ?? GlobalDefaultGetDisplayDescription;
-        set => _defaultGetDisplayDescription = value;
+        get => field ?? GlobalDefaultGetDisplayDescription;
+        set => field = value;
     }
-    #endregion
-
     #endregion
 
     #region GlobalDefault

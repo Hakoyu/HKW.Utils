@@ -64,7 +64,7 @@ public interface IEnumInfo<TEnum> : IEnumInfo, IEquatable<IEnumInfo<TEnum>>, IEq
 /// <summary>
 /// 枚举信息接口
 /// </summary>
-public interface IEnumInfo
+public interface IEnumInfo : ICloneable
 {
     /// <summary>
     /// 枚举值

@@ -20,11 +20,11 @@ internal class Program
     {
         var vm = new TestViewModel();
         var i18nRes = vm.I18nResource;
+
         vm.PropertyChanged += Vm_PropertyChanged;
-        vm.ID = "114";
         vm.Name = "Name_CN";
         vm.ID = "514";
-        //i18nRes.RenameKey("114", "514");
+        i18nRes.RenameKey("114", "514");
         // source.PropertyName
         // source.GetPropertyValue()
         // Pro
@@ -43,7 +43,7 @@ public class TestViewModel : INotifyPropertyChanged
 {
     public TestViewModel()
     {
-        I18nResource!.AddCulture(Program.CultureEN);
+        I18nResource.AddCulture(Program.CultureEN);
     }
 
     /// <summary>
@@ -59,10 +59,8 @@ public class TestViewModel : INotifyPropertyChanged
             field = value;
             OnPropertyChanged(nameof(ID));
             OnPropertyChanged(nameof(DescriptionID));
-            OnPropertyChanged(nameof(Name));
-            OnPropertyChanged(nameof(Description));
         }
-    }
+    } = "114";
 
     /// <summary>
     /// 描述ID
@@ -74,27 +72,30 @@ public class TestViewModel : INotifyPropertyChanged
     /// </summary>
     public string Name
     {
-        get => I18nResource.GetDataOrDefault(ID, this);
-        set => I18nResource.SetData(ID, value);
+        get => I18nObserver.GetDataOrDefault(ID);
+        set => I18nObserver.SetData(ID, value);
     }
 
-    /// <summary>
-    /// 详情
-    /// </summary>
-    public string Description
-    {
-        get => I18nResource.GetDataOrDefault(DescriptionID);
-        set =>
-            I18nResource
-                .SetData(DescriptionID, value)
-                .Action(() => OnPropertyChanged(nameof(Description)), null);
-    }
+    ///// <summary>
+    ///// 详情
+    ///// </summary>
+    //public string Description
+    //{
+    //    get => I18nResource.GetDataOrDefault(DescriptionID);
+    //    set => I18nResource.SetData(DescriptionID, value);
+    //}
 
     /// <summary>
     /// I18n资源
     /// </summary>
-    public ObservableI18nResource<string, string> I18nResource =>
-        field ??= new(nameof(TestViewModel), Program.CultureCN) { GetDefaultValue = (s, _) => s };
+    public ObservableI18nResource<string, string> I18nResource { get; } =
+        new(nameof(TestViewModel), Program.CultureCN) { GetDefaultValue = (s, _) => s };
+
+    public I18nObserver<TestViewModel, string, string> I18nObserver =>
+        field ??= new(I18nResource, this, (s, p) => s.OnPropertyChanged(p))
+        {
+            new(s => s.ID, nameof(Name)),
+        };
 
     protected virtual void OnPropertyChanged(string propertyName)
     {

@@ -21,8 +21,8 @@ public class ObservableI18nResourceTests
         {
             var i18nResource = new ObservableI18nResource<string, string>(
                 "Main",
-                Cultures,
-                Cultures.First()
+                Cultures.First(),
+                Cultures
             );
             foreach (var c in i18nResource.Cultures)
                 i18nResource.SetDatas(
@@ -68,8 +68,8 @@ public class ObservableI18nResourceTests
     {
         var resource = new ObservableI18nResource<string, string>(
             "Main",
-            Cultures,
-            Cultures.First()
+            Cultures.First(),
+            Cultures
         );
         foreach (var (c, i) in resource.Cultures.WithIndex())
         {
@@ -108,8 +108,8 @@ public class ObservableI18nResourceTests
     {
         var resource = new ObservableI18nResource<string, string>(
             "Main",
-            Cultures,
-            Cultures.First()
+            Cultures.First(),
+            Cultures
         );
         foreach (var (c, i) in resource.Cultures.WithIndex())
         {
@@ -174,14 +174,14 @@ public class ObservableI18nResourceTests
         var c1 = cultures[0];
         var c2 = cultures[1];
         var c3 = cultures[2];
-        var resource = new ObservableI18nResource<string, string>("Main", [c1, c2], c1);
+        var resource = new ObservableI18nResource<string, string>("Main", c1, [c1, c2]);
         resource.GetDefaultValue = (key, culture) => $"fallback_{key}_{culture.Name}";
         resource.SetData("k1", "v1", c1);
 
         Assert.AreEqual("v1", resource.GetDataOrDefault("k1", c1));
         Assert.AreEqual("fallback_k2_" + c1.Name, resource.GetDataOrDefault("k2", c1));
         Assert.AreEqual("fallback_k1_" + c3.Name, resource.GetDataOrDefault("k1", c3));
-        Assert.AreEqual("custom", resource.GetDataOrDefault("k3", c1, static (_, _) => "custom"));
+        Assert.AreEqual("custom", resource.GetDataOrDefault("k3", "custom", c1));
     }
 
     [TestMethod]
@@ -190,7 +190,7 @@ public class ObservableI18nResourceTests
         var cultures = GetTestCultures(2);
         var c1 = cultures[0];
         var c2 = cultures[1];
-        var resource = new ObservableI18nResource<string, string>("Main", [c1, c2], c1)
+        var resource = new ObservableI18nResource<string, string>("Main", c1, [c1, c2])
         {
             DefaultValue = "__default__",
         };
@@ -213,7 +213,7 @@ public class ObservableI18nResourceTests
         var c1 = cultures[0];
         var c2 = cultures[1];
         var c3 = cultures[2];
-        var resource = new ObservableI18nResource<string, string>("Main", [c1, c2], c1)
+        var resource = new ObservableI18nResource<string, string>("Main", c1, [c1, c2])
         {
             DefaultValue = "__default__",
         };
@@ -231,7 +231,7 @@ public class ObservableI18nResourceTests
         var c1 = cultures[0];
         var c2 = cultures[1];
         var c3 = cultures[2];
-        var resource = new ObservableI18nResource<string, string>("Main", [c1, c2, c3], c1);
+        var resource = new ObservableI18nResource<string, string>("Main", c1, [c1, c2, c3]);
 
         resource.SetData("k1", "v1", c1);
         resource.SetData("k1", "v2", c2);
@@ -249,7 +249,7 @@ public class ObservableI18nResourceTests
         var cultures = GetTestCultures(2);
         var c1 = cultures[0];
         var c2 = cultures[1];
-        var resource = new ObservableI18nResource<string, string>("Main", [c1, c2], c1);
+        var resource = new ObservableI18nResource<string, string>("Main", c1, [c1, c2]);
 
         Assert.Throws<ArgumentException>(() => resource.RemoveCulture(c1));
     }
@@ -260,7 +260,7 @@ public class ObservableI18nResourceTests
         var cultures = GetTestCultures(2);
         var c1 = cultures[0];
         var c2 = cultures[1];
-        var resource = new ObservableI18nResource<string, string>("Main", [c1, c2], c1);
+        var resource = new ObservableI18nResource<string, string>("Main", c1, [c1, c2]);
 
         resource.SetData("old", "v1", c1);
         resource.SetData("old", "v2", c2);
@@ -281,7 +281,7 @@ public class ObservableI18nResourceTests
         var cultures = GetTestCultures(2);
         var c1 = cultures[0];
         var c2 = cultures[1];
-        var resource = new ObservableI18nResource<string, string>("Main", [c1, c2], c1);
+        var resource = new ObservableI18nResource<string, string>("Main", c1, [c1, c2]);
 
         resource.SetData("k1", "v1", c1);
         resource.SetData("k1", "v2", c2);
@@ -328,7 +328,7 @@ public class ObservableI18nResourceTests
         var cultures = GetTestCultures(2);
         var c1 = cultures[0];
         var c2 = cultures[1];
-        var resource = new ObservableI18nResource<string, string>("Main", [c1, c2], c1)
+        var resource = new ObservableI18nResource<string, string>("Main", c1, [c1, c2])
         {
             DefaultValue = "__default__",
         };

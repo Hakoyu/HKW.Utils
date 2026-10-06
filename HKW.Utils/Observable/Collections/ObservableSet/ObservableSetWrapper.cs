@@ -455,7 +455,7 @@ public class ObservableSetWrapper<TItem, TSet>
     /// </summary>
     protected virtual void OnCountChanged()
     {
-        PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Count);
+        PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Count);
     }
 
     /// <summary>

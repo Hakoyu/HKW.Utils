@@ -128,9 +128,9 @@ public abstract class ObservableStateGroup<TState, TMember>
         {
             if (EqualityComparer<TState>.Default.Equals(field, value))
                 return;
-            PropertyChanging?.Invoke(this, PropertyChangingEventArgs.Cache_State);
+            PropertyChanging?.Invoke(this, PropertyChangingArgsCache.State);
             field = value;
-            PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_State);
+            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.State);
 
             if (_changing)
                 return;

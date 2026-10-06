@@ -364,7 +364,7 @@ public class ObservableListWrapper<TItem, TList>
     /// </summary>
     protected virtual void OnCountChanged()
     {
-        PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Count);
+        PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Count);
     }
 
     /// <summary>

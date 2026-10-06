@@ -81,7 +81,7 @@ public sealed class ReadOnlyObservableValueCollection<TKey, TValue>
     {
         CollectionChanged?.Invoke(this, args);
         if (args.Action is not NotifyCollectionChangedAction.Replace)
-            PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Count);
+            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Count);
     }
 
     /// <inheritdoc/>

@@ -48,14 +48,14 @@ public sealed class ObservablePoint<T>
                 return;
             if (PropertyChanging is not null)
             {
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_X);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_IsEmpty);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.X);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.IsEmpty);
             }
             _x = value;
             if (PropertyChanged is not null)
             {
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_X);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_IsEmpty);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.X);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.IsEmpty);
             }
         }
     }
@@ -71,11 +71,11 @@ public sealed class ObservablePoint<T>
         {
             if (_y == value)
                 return;
-            PropertyChanging?.Invoke(this, PropertyChangingEventArgs.Cache_Y);
-            PropertyChanging?.Invoke(this, PropertyChangingEventArgs.Cache_IsEmpty);
+            PropertyChanging?.Invoke(this, PropertyChangingArgsCache.Y);
+            PropertyChanging?.Invoke(this, PropertyChangingArgsCache.IsEmpty);
             _y = value;
-            PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Y);
-            PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_IsEmpty);
+            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Y);
+            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.IsEmpty);
         }
     }
 
