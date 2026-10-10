@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
 using System.Text;
@@ -370,6 +371,80 @@ public class ObservableI18nResourceTests
     {
         var resource = GetI18nResource();
         Assert.IsFalse(resource.RemoveData("__missing__"));
+    }
+
+    [TestMethod]
+    public void CulturesChanged_ShouldReportStandardCollectionChanges()
+    {
+        var cultures = GetTestCultures(4);
+        var c1 = cultures[0];
+        var c2 = cultures[1];
+        var c3 = cultures[2];
+        var c4 = cultures[3];
+        var resource = new ObservableI18nResource<string, string>("Main", c1, [c1, c2]);
+        var changes = new List<NotifyCollectionChangedEventArgs>();
+        resource.ObservableCultures.CollectionChanged += (_, e) => changes.Add(e);
+
+        Assert.IsTrue(resource.AddCulture(c3));
+        Assert.AreEqual(NotifyCollectionChangedAction.Add, changes[^1].Action);
+        Assert.AreEqual(c3, changes[^1].NewItems![0]);
+        Assert.AreEqual(2, changes[^1].NewStartingIndex);
+
+        resource.CurrentCulture = c2;
+        Assert.IsTrue(resource.ReplaceCulture(c2, c4));
+        Assert.AreEqual(NotifyCollectionChangedAction.Replace, changes[^1].Action);
+        Assert.AreEqual(c2, changes[^1].OldItems![0]);
+        Assert.AreEqual(c4, changes[^1].NewItems![0]);
+        Assert.AreEqual(1, changes[^1].NewStartingIndex);
+        Assert.AreSequenceEqual([c1, c4, c3], resource.Cultures);
+        Assert.AreEqual(c4, resource.CurrentCulture);
+
+        resource.CurrentCulture = c1;
+        Assert.IsTrue(resource.RemoveCulture(c4));
+        Assert.AreEqual(NotifyCollectionChangedAction.Remove, changes[^1].Action);
+        Assert.AreEqual(c4, changes[^1].OldItems![0]);
+        Assert.AreEqual(1, changes[^1].OldStartingIndex);
+        Assert.AreSequenceEqual([c1, c3], resource.Cultures);
+        Assert.AreEqual(1, resource.IndexByCulture[c3]);
+
+        resource.SetData("key", "value", c1);
+        resource.ClearCulture();
+        Assert.AreEqual(NotifyCollectionChangedAction.Reset, changes[^1].Action);
+    }
+
+    [TestMethod]
+    public void DatasByKey_Add_ShouldNormalizeAndObserveCultureDataList()
+    {
+        var cultures = GetTestCultures(2);
+        var c1 = cultures[0];
+        var c2 = cultures[1];
+        var resource = new ObservableI18nResource<string, string>("Main", c1, [c1, c2])
+        {
+            DefaultValue = "__default__",
+        };
+        var data = new ObservableCultureDataList<string, string>("key") { "value" };
+        CultureDataChangedEventArgs<string, string>? changed = null;
+        resource.CultureDataChanged += (_, e) => changed = e;
+
+        resource.DatasByKey.Add("key", data);
+
+        Assert.HasCount(2, data);
+        Assert.AreEqual("__default__", data[1]);
+        data[1] = "changed";
+        Assert.IsNotNull(changed);
+        Assert.AreEqual(c2, changed.CultureInfo);
+        Assert.AreEqual("changed", changed.NewValue);
+    }
+
+    [TestMethod]
+    public void DatasByKey_Add_WhenCultureDataCountIsTooLarge_ShouldThrow()
+    {
+        var cultures = GetTestCultures(2);
+        var resource = new ObservableI18nResource<string, string>("Main", cultures[0], cultures);
+        var data = new ObservableCultureDataList<string, string>("key") { "1", "2", "3" };
+
+        Assert.Throws<ArgumentException>(() => resource.DatasByKey.Add("key", data));
+        Assert.IsFalse(resource.DatasByKey.ContainsKey("key"));
     }
 }
 #pragma warning restore S6608

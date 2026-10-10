@@ -14,6 +14,7 @@ namespace HKW.HKWUtilsTests;
 internal class Program
 {
     public static CultureInfo CultureCN { get; } = CultureInfo.GetCultureInfo("cn");
+    public static CultureInfo CultureCNHans { get; } = CultureInfo.GetCultureInfo("cn-Hans");
     public static CultureInfo CultureEN { get; } = CultureInfo.GetCultureInfo("en");
 
     private static void Main(string[] args)
@@ -24,7 +25,7 @@ internal class Program
         vm.PropertyChanged += Vm_PropertyChanged;
         vm.Name = "Name_CN";
         vm.ID = "514";
-        i18nRes.RenameKey("114", "514");
+        i18nRes.ReplaceCulture(CultureCN, CultureCNHans);
         // source.PropertyName
         // source.GetPropertyValue()
         // Pro

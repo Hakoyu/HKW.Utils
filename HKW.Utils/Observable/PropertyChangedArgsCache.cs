@@ -33,5 +33,6 @@ public static class PropertyChangedArgsCache
     public static PropertyChangedEventArgs Stage { get; } = new("Stage");
     public static PropertyChangedEventArgs Indexer1 { get; } = new("Item");
     public static PropertyChangedEventArgs Indexer2 { get; } = new("Item[]");
+    public static PropertyChangedEventArgs CurrentCulture { get; } = new("CurrentCulture");
 }
 #pragma warning restore CS1591

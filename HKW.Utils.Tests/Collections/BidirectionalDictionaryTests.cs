@@ -143,12 +143,12 @@ public abstract class BidirectionalDictionaryTestsBase
         Assert.Throws<UseAlternativeMethodException>(() => dictionary[pair.Value] = pair.Key);
 
         Assert.Throws<UseAlternativeMethodException>(() =>
-            dictionary.As<IDictionary<int, string>>().Add(pair.Key, pair.Value)
+            dictionary.CastTo<IDictionary<int, string>>().Add(pair.Key, pair.Value)
         );
 
         Assert.Throws<UseAlternativeMethodException>(() =>
             dictionary
-                .As<ICollection<KeyValuePair<int, string>>>()
+                .CastTo<ICollection<KeyValuePair<int, string>>>()
                 .Add(KeyValuePair.Create(pair.Key, pair.Value))
         );
     }

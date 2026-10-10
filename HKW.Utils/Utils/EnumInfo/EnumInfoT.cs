@@ -224,6 +224,12 @@ public sealed class EnumInfo<TEnum> : IEnumInfo<TEnum>
     {
         return info.Value;
     }
+
+    /// <inheritdoc/>
+    public static implicit operator EnumInfo<TEnum>(TEnum @enum)
+    {
+        return @enum.GetInfo();
+    }
     #endregion
 
     #region static

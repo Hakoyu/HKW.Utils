@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -64,7 +65,8 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         : this(resourceName, keyComparer, valueComparer)
     {
         currentCulture ??= CultureInfo.CurrentCulture;
-        _indexByCulture.Add(currentCulture, 0);
+        _indexByCulture.TryAdd(currentCulture, 0);
+        _cultures.Add(currentCulture);
         CurrentCulture = currentCulture;
     }
 
@@ -83,8 +85,14 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     )
         : this(resourceName, currentCulture, keyComparer, valueComparer)
     {
+#pragma warning disable S3267
         foreach (var culture in cultures)
-            _indexByCulture.TryAdd(culture, _indexByCulture.Count);
+        {
+            if (_indexByCulture.TryAdd(culture, _indexByCulture.Count))
+                _cultures.Add(culture);
+        }
+#pragma warning restore S3267
+        ArgumentException.ThrowIfNotContains(_cultures, currentCulture);
     }
 
     private void DatasByKey_DictionaryChanging(
@@ -92,6 +100,18 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         NotifyDictionaryChangeEventArgs<TKey, ObservableCultureDataList<TKey, TValue>> e
     )
     {
+        if (
+            e.Action is DictionaryChangeAction.Add or DictionaryChangeAction.Replace
+            && e.TryGetNewPair(out var newPair)
+            && newPair.Value.Count > _indexByCulture.Count
+        )
+        {
+            throw new ArgumentException(
+                "The culture data count cannot exceed the culture count.",
+                nameof(e)
+            );
+        }
+
         if (e.Action is DictionaryChangeAction.Clear)
         {
             foreach (var value in sender.Values)
@@ -102,9 +122,7 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         }
     }
 
-#pragma warning disable S3776
     private void DatasByKey_DictionaryChanged(
-#pragma warning restore S3776
         IObservableDictionary<TKey, ObservableCultureDataList<TKey, TValue>> sender,
         NotifyDictionaryChangeEventArgs<TKey, ObservableCultureDataList<TKey, TValue>> e
     )
@@ -112,36 +130,27 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         if (e.Action is DictionaryChangeAction.Add)
         {
             if (e.TryGetNewPair(out var newPair))
-            {
-                if (newPair.Value.Count == _indexByCulture.Count)
-                    return;
-
-                foreach (var culture in _indexByCulture)
-                    newPair.Value.Add(DefaultValue);
-                newPair.Value.ListChanged += Datas_ListChanged;
-            }
+                InitializeCultureDataList(newPair.Value);
         }
         else if (e.Action is DictionaryChangeAction.Remove)
         {
             if (e.TryGetOldPair(out var oldPair))
-            {
                 oldPair.Value.ListChanged -= Datas_ListChanged;
-            }
         }
         else if (e.Action is DictionaryChangeAction.Replace)
         {
             if (e.TryGetOldPair(out var oldPair))
-            {
                 oldPair.Value.ListChanged -= Datas_ListChanged;
-            }
             if (e.TryGetNewPair(out var newPair))
-            {
-                if (newPair.Value.Count == _indexByCulture.Count)
-                    return;
-                foreach (var culture in _indexByCulture)
-                    newPair.Value.Add(DefaultValue);
-                newPair.Value.ListChanged += Datas_ListChanged;
-            }
+                InitializeCultureDataList(newPair.Value);
+        }
+
+        void InitializeCultureDataList(ObservableCultureDataList<TKey, TValue> dataList)
+        {
+            for (var i = dataList.Count; i < _indexByCulture.Count; i++)
+                dataList.Add(DefaultValue);
+            dataList.ListChanged -= Datas_ListChanged;
+            dataList.ListChanged += Datas_ListChanged;
         }
     }
 
@@ -150,11 +159,14 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         NotifyListChangeEventArgs<TValue> e
     )
     {
-        if (sender is not ObservableCultureDataList<TKey, TValue> dic)
+        if (
+            sender is not ObservableCultureDataList<TKey, TValue> dic
+            || e.Action is ListChangeAction.Clear
+        )
             return;
         CultureDataChanged?.Invoke(
             this,
-            new(dic.Key, e.OldItem, e.NewItem, _indexByCulture.GetAt(e.Index).Key)
+            new(dic.Key, e.OldItem, e.NewItem, _indexByCulture[e.Index])
         );
 
         Observable.DoActionsBy(dic.Key);
@@ -176,15 +188,22 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     public ObservableDictionary<TKey, ObservableCultureDataList<TKey, TValue>> DatasByKey { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private readonly OrderedDictionary<CultureInfo, int> _indexByCulture = new();
+    private readonly BidirectionalDictionary<CultureInfo, int> _indexByCulture = new();
 
     /// <summary>
-    /// 文化和文化索引, (culture, cultureIndex)
+    /// 文化和文化索引, (Culture, CultureIndex)
     /// </summary>
     public ReadOnlyDictionary<CultureInfo, int> IndexByCulture => field ??= new(_indexByCulture);
 
     /// <inheritdoc/>
     public ICollection<CultureInfo> Cultures => _indexByCulture.Keys;
+
+    private readonly ObservableList<CultureInfo> _cultures = [];
+
+    /// <summary>
+    /// 可观测的文化
+    /// </summary>
+    public ReadOnlyObservableList<CultureInfo> ObservableCultures => field ??= new(_cultures);
 
     /// <inheritdoc/>
     public string ResourceName { get; }
@@ -197,10 +216,15 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         {
             if (field == value)
                 return;
-            ArgumentException.ThrowIfNotContains(_indexByCulture.Keys, value);
-            field = value;
-            CurrentCultureChanged?.Invoke(this, value);
-            PropertyChanged?.Invoke(this, new(nameof(CurrentCulture)));
+            if (value is null && _indexByCulture.Count == 0)
+            {
+                field = value!;
+                return;
+            }
+            ArgumentException.ThrowIfNotContains(_indexByCulture.Keys, value!);
+            field = value!;
+            CurrentCultureChanged?.Invoke(this, value!);
+            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.CurrentCulture);
             GetCurrentCultureData?.Refresh();
             GetCurrentCultureDataOrDefault?.Refresh();
 
@@ -239,28 +263,28 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     /// 获取数据
     /// </summary>
     /// <param name="key">键</param>
-    /// <param name="cultureInfo">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
+    /// <param name="culture">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
     /// <returns>值</returns>
     /// <exception cref="KeyNotFoundException">当键不存在时</exception>
-    public TValue GetData(TKey key, CultureInfo? cultureInfo = null)
+    public TValue GetData(TKey key, CultureInfo? culture = null)
     {
-        cultureInfo ??= CurrentCulture;
-        return DatasByKey[key][_indexByCulture[cultureInfo]];
+        culture ??= CurrentCulture;
+        return DatasByKey[key][_indexByCulture[culture]];
     }
 
     /// <summary>
     /// 获取数据或从 <see cref="GetDefaultValue"/> 获取的默认值
     /// </summary>
     /// <param name="key">键</param>
-    /// <param name="cultureInfo">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
+    /// <param name="culture">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
     /// <returns>值</returns>
-    public TValue GetDataOrDefault(TKey key, CultureInfo? cultureInfo = null)
+    public TValue GetDataOrDefault(TKey key, CultureInfo? culture = null)
     {
-        cultureInfo ??= CurrentCulture;
+        culture ??= CurrentCulture;
         if (DatasByKey.TryGetValue(key, out var datas) is false)
-            return GetDefaultValue(key, cultureInfo);
-        if (_indexByCulture.TryGetValue(cultureInfo, out var index) is false)
-            return GetDefaultValue(key, cultureInfo);
+            return GetDefaultValue(key, culture);
+        if (_indexByCulture.TryGetValue(culture, out var index) is false)
+            return GetDefaultValue(key, culture);
         return datas[index];
     }
 
@@ -268,19 +292,15 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     /// 获取数据或默认
     /// </summary>
     /// <param name="key">键</param>
-    /// <param name="cultureInfo">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
+    /// <param name="culture">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
     /// <param name="defaultValue">默认值</param>
     /// <returns>值</returns>
-    public TValue GetDataOrDefault(
-        TKey key,
-        TValue defaultValue = default!,
-        CultureInfo? cultureInfo = null
-    )
+    public TValue GetDataOrDefault(TKey key, TValue defaultValue, CultureInfo? culture = null)
     {
-        cultureInfo ??= CurrentCulture;
+        culture ??= CurrentCulture;
         if (DatasByKey.TryGetValue(key, out var datas) is false)
             return defaultValue;
-        if (_indexByCulture.TryGetValue(cultureInfo, out var index) is false)
+        if (_indexByCulture.TryGetValue(culture, out var index) is false)
             return defaultValue;
         return datas[index];
     }
@@ -290,14 +310,14 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     /// </summary>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    /// <param name="cultureInfo">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
+    /// <param name="culture">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
     /// <returns>是否设置成功</returns>
     /// <exception cref="ArgumentNullException"><paramref name="key"/> 为 <see langword="null"/></exception>
-    public bool SetData(TKey key, TValue value, CultureInfo? cultureInfo = null)
+    public bool SetData(TKey key, TValue value, CultureInfo? culture = null)
     {
         ArgumentNullException.ThrowIfNull(key);
-        cultureInfo ??= CurrentCulture;
-        if (_indexByCulture.TryGetValue(cultureInfo, out var index) is false)
+        culture ??= CurrentCulture;
+        if (_indexByCulture.TryGetValue(culture, out var index) is false)
             return false;
         if (DatasByKey.TryGetValue(key, out var list) is false)
             list = DatasByKey[key] = new(key);
@@ -309,16 +329,13 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     /// 设置数据
     /// </summary>
     /// <param name="pairs">数据对</param>
-    /// <param name="cultureInfo">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
+    /// <param name="culture">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
     /// <exception cref="ArgumentNullException"><paramref name="pairs"/> 为 <see langword="null"/></exception>
-    public void SetDatas(
-        IEnumerable<KeyValuePair<TKey, TValue>> pairs,
-        CultureInfo? cultureInfo = null
-    )
+    public void SetDatas(IEnumerable<KeyValuePair<TKey, TValue>> pairs, CultureInfo? culture = null)
     {
         ArgumentNullException.ThrowIfNull(pairs);
-        cultureInfo ??= CurrentCulture;
-        if (_indexByCulture.TryGetValue(cultureInfo, out var index) is false)
+        culture ??= CurrentCulture;
+        if (_indexByCulture.TryGetValue(culture, out var index) is false)
             return;
         foreach (var pair in pairs)
         {
@@ -333,14 +350,14 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     /// </summary>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    /// <param name="cultureInfo">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
+    /// <param name="culture">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
     /// <returns>是否设置成功</returns>
     /// <exception cref="ArgumentNullException"><paramref name="key"/> 为 <see langword="null"/></exception>
-    public bool SetDataWhenDefault(TKey key, TValue value, CultureInfo? cultureInfo = null)
+    public bool SetDataWhenDefault(TKey key, TValue value, CultureInfo? culture = null)
     {
         ArgumentNullException.ThrowIfNull(key);
-        cultureInfo ??= CurrentCulture;
-        if (_indexByCulture.TryGetValue(cultureInfo, out var index) is false)
+        culture ??= CurrentCulture;
+        if (_indexByCulture.TryGetValue(culture, out var index) is false)
             return false;
         if (DatasByKey.TryGetValue(key, out var dic) is false)
             dic = DatasByKey[key] = new(key);
@@ -356,16 +373,16 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     /// 为为 <see cref="DefaultValue"/> 的值设置数据
     /// </summary>
     /// <param name="pairs">键值对</param>
-    /// <param name="cultureInfo">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
+    /// <param name="culture">文化, 为 <see langword="null"/> 时使用 <see cref="CurrentCulture"/></param>
     /// <exception cref="ArgumentNullException"><paramref name="pairs"/> 为 <see langword="null"/></exception>
     public void SetDatasWhenDefault(
         IEnumerable<KeyValuePair<TKey, TValue>> pairs,
-        CultureInfo? cultureInfo = null
+        CultureInfo? culture = null
     )
     {
         ArgumentNullException.ThrowIfNull(pairs);
-        cultureInfo ??= CurrentCulture;
-        if (_indexByCulture.TryGetValue(cultureInfo, out var index) is false)
+        culture ??= CurrentCulture;
+        if (_indexByCulture.TryGetValue(culture, out var index) is false)
             return;
         foreach (var pair in pairs)
         {
@@ -437,19 +454,49 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     }
 
     /// <summary>
+    /// 从文化获取索引
+    /// </summary>
+    /// <param name="culture">文化</param>
+    /// <returns>文化索引</returns>
+    public int GetIndexByCulture(CultureInfo culture)
+    {
+        ArgumentNullException.ThrowIfNull(culture);
+        if (_indexByCulture.TryGetValue(culture, out var index))
+            return index;
+        return -1;
+    }
+
+    /// <summary>
+    /// 从索引获取文化
+    /// </summary>
+    /// <param name="index">索引</param>
+    /// <returns>文化</returns>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> 范围错误</exception>
+    public CultureInfo GetCultureByIndex(int index)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(index, _indexByCulture.Count);
+        if (_indexByCulture.TryGetValue(index, out var culture))
+            return culture;
+        return null!;
+    }
+
+    /// <summary>
     /// 添加文化, 会自动为所有键的新文化添加 <see cref="DefaultValue"/>
     /// </summary>
-    /// <param name="cultureInfo">文化</param>
+    /// <param name="culture">文化</param>
     /// <returns>是否添加成功</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="cultureInfo"/> 为 <see langword="null"/></exception>
-    public bool AddCulture(CultureInfo cultureInfo)
+    /// <exception cref="ArgumentNullException"><paramref name="culture"/> 为 <see langword="null"/></exception>
+    public bool AddCulture(CultureInfo culture)
     {
-        ArgumentNullException.ThrowIfNull(cultureInfo);
-        var result = _indexByCulture.TryAdd(cultureInfo, _indexByCulture.Count);
+        ArgumentNullException.ThrowIfNull(culture);
+        var index = _indexByCulture.Count;
+        var result = _indexByCulture.TryAdd(culture, index);
         if (result)
         {
             foreach (var pair in DatasByKey)
                 pair.Value.Add(DefaultValue);
+            _cultures.Add(culture);
         }
         return result;
     }
@@ -457,45 +504,56 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     /// <summary>
     /// 删除文化, 禁止删除 <see cref="CurrentCulture"/>
     /// </summary>
-    /// <param name="cultureInfo">文化</param>
+    /// <param name="culture">文化</param>
     /// <returns>是否删除成功</returns>
-    /// <exception cref="ArgumentException"><paramref name="cultureInfo"/> == <see cref="CurrentCulture"/></exception>
-    /// <exception cref="ArgumentNullException"><paramref name="cultureInfo"/> 为 <see langword="null"/></exception>
-    public bool RemoveCulture(CultureInfo cultureInfo)
+    /// <exception cref="ArgumentException"><paramref name="culture"/> == <see cref="CurrentCulture"/></exception>
+    /// <exception cref="ArgumentNullException"><paramref name="culture"/> 为 <see langword="null"/></exception>
+    public bool RemoveCulture(CultureInfo culture)
     {
-        ArgumentNullException.ThrowIfNull(cultureInfo);
-        if (CurrentCulture == cultureInfo)
+        ArgumentNullException.ThrowIfNull(culture);
+        if (CurrentCulture == culture)
             throw new ArgumentException(
-                "The deleted cultureInfo cannot be the same as CurrentCulture",
-                nameof(cultureInfo)
+                "The deleted culture cannot be the same as CurrentCulture",
+                nameof(culture)
             );
-        var result = _indexByCulture.Remove(cultureInfo, out var index);
-        if (result)
+        if (_indexByCulture.TryGetValue(culture, out var index) is false)
+            return false;
+
+        foreach (var pair in DatasByKey)
+            pair.Value.RemoveAt(index);
+
+        _indexByCulture.Remove(culture);
+        foreach (var pair in _indexByCulture)
         {
-            foreach (var pair in DatasByKey)
-                pair.Value.RemoveAt(index);
-            foreach (var (e, i) in _indexByCulture.WithIndex())
-                _indexByCulture[e.Key] = i;
+            if (pair.Value >= index)
+                _indexByCulture.TrySetValue(pair.Key, pair.Value - 1);
         }
-        return result;
+        _cultures.Remove(culture);
+        return true;
     }
 
     /// <summary>
-    /// 清除除了 <see cref="CurrentCulture"/> 外的其他文化
+    /// 替换文化
     /// </summary>
-    public void ClearOtherCulture()
+    /// <param name="oldCultureInfo">旧文化</param>
+    /// <param name="culture">文化</param>
+    /// <returns>是否添加成功</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="culture"/> 为 <see langword="null"/></exception>
+    public bool ReplaceCulture(CultureInfo oldCultureInfo, CultureInfo culture)
     {
-        if (_indexByCulture.Count == 1)
-            return;
-        var list = _indexByCulture.Where(x => x.Key != CurrentCulture).ToArray();
-        for (var i = list.Length - 1; i >= 0; i--)
-            _indexByCulture.Remove(list[i].Key);
-        foreach (var pair in DatasByKey)
-        {
-            for (var i = list.Length - 1; i >= 0; i--)
-                pair.Value.RemoveAt(list[i].Value);
-        }
-        _indexByCulture[CurrentCulture] = 0;
+        ArgumentNullException.ThrowIfNull(oldCultureInfo);
+        ArgumentNullException.ThrowIfNull(culture);
+        if (_indexByCulture.TryGetValue(oldCultureInfo, out var index) is false)
+            return false;
+        if (_indexByCulture.ContainsKey(culture))
+            return false;
+
+        _indexByCulture.TrySetValue(index, culture);
+
+        if (CurrentCulture == oldCultureInfo)
+            CurrentCulture = culture;
+        _cultures[index] = culture;
+        return true;
     }
 
     /// <summary>
@@ -503,13 +561,15 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     /// </summary>
     public void ClearCulture()
     {
-        if (_indexByCulture.Count == 1)
+        if (_indexByCulture.Count == 0)
             return;
         _indexByCulture.Clear();
         foreach (var pair in DatasByKey)
         {
             pair.Value.Clear();
         }
+        _cultures.Clear();
+        CurrentCulture = null!;
     }
 
     /// <summary>
@@ -568,7 +628,7 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             DatasByKey.DictionaryChanged -= DatasByKey_DictionaryChanged;
             Observable.ActionsByKey.Clear();
             ClearData();
-            ClearOtherCulture();
+            ClearCulture();
         }
         _disposed = true;
     }
@@ -743,11 +803,11 @@ public delegate void ValueChangedActionHandler<in TKey>(INotifyPropertyChanged s
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
 /// <param name="key">键</param>
-/// <param name="cultureInfo">文化信息</param>
+/// <param name="culture">文化信息</param>
 /// <returns>值</returns>
 public delegate TValue GetDefaultCultureDataHandler<in TKey, out TValue>(
     TKey key,
-    CultureInfo cultureInfo
+    CultureInfo culture
 )
     where TKey : notnull;
 
@@ -832,20 +892,20 @@ public sealed class I18nObserver<TObservable, TKey, TValue>
     readonly Dictionary<string, ObservedPropertyRegistration> _datas = [];
 
     /// <inheritdoc cref="ObservableI18nResource{TKey,TValue}.GetData(TKey, CultureInfo?)"/>
-    public TValue GetData(TKey key, CultureInfo? cultureInfo = null)
+    public TValue GetData(TKey key, CultureInfo? culture = null)
     {
-        cultureInfo ??= Resource.CurrentCulture;
-        return Resource.DatasByKey[key][Resource.IndexByCulture[cultureInfo]];
+        culture ??= Resource.CurrentCulture;
+        return Resource.DatasByKey[key][Resource.IndexByCulture[culture]];
     }
 
     /// <inheritdoc cref="ObservableI18nResource{TKey,TValue}.GetDataOrDefault(TKey, CultureInfo?)"/>
     public TValue GetDataOrDefault(
         TKey key,
-        CultureInfo? cultureInfo = null,
+        CultureInfo? culture = null,
         GetDefaultCultureDataHandler<TKey, TValue>? getDefaultValue = null
     )
     {
-        return Resource.GetDataOrDefault(key, cultureInfo);
+        return Resource.GetDataOrDefault(key, culture);
     }
 
     /// <summary>
@@ -853,17 +913,17 @@ public sealed class I18nObserver<TObservable, TKey, TValue>
     /// </summary>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    /// <param name="cultureInfo">文化信息, 为 <see langword="null"/> 则使用 <see cref="ObservableI18nResource{TKey,TValue}.CurrentCulture"/></param>
+    /// <param name="culture">文化信息, 为 <see langword="null"/> 则使用 <see cref="ObservableI18nResource{TKey,TValue}.CurrentCulture"/></param>
     /// <param name="keyPropertyName">键属性名</param>
     /// <returns>是否设置成功</returns>
     public bool SetData(
         TKey key,
         TValue value,
-        CultureInfo? cultureInfo = null,
+        CultureInfo? culture = null,
         [CallerArgumentExpression(nameof(key))] string? keyPropertyName = null
     )
     {
-        if (Resource.SetData(key, value, cultureInfo) is false || keyPropertyName is null)
+        if (Resource.SetData(key, value, culture) is false || keyPropertyName is null)
             return false;
         var data = _datas[keyPropertyName];
         foreach (var name in data.TargetPropertyNames)
