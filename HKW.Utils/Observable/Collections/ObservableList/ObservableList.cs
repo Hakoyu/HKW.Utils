@@ -299,7 +299,7 @@ public class ObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>,
     /// </summary>
     private void OnCountChanged()
     {
-        PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Count);
+        PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Count);
     }
 
     /// <inheritdoc/>

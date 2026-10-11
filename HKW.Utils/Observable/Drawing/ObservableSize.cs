@@ -48,14 +48,14 @@ public sealed partial class ObservableSize<T>
                 return;
             if (PropertyChanging is not null)
             {
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_Width);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_IsEmpty);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Width);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.IsEmpty);
             }
             _width = value;
             if (PropertyChanged is not null)
             {
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_Width);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_IsEmpty);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Width);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.IsEmpty);
             }
         }
     }
@@ -73,14 +73,14 @@ public sealed partial class ObservableSize<T>
                 return;
             if (PropertyChanging is not null)
             {
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_Height);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_IsEmpty);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Height);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.IsEmpty);
             }
             _height = value;
             if (PropertyChanged is not null)
             {
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_Height);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_IsEmpty);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Height);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.IsEmpty);
             }
         }
     }

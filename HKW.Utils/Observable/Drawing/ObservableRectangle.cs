@@ -60,26 +60,26 @@ public sealed class ObservableRectangle<T>
                 return;
             if (PropertyChanging is not null)
             {
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_X);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_IsEmpty);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_Left);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_Right);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_LeftTop);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_RightTop);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_LeftBottom);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_RightBottom);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.X);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.IsEmpty);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Left);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Right);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.LeftTop);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.RightTop);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.LeftBottom);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.RightBottom);
             }
             _x = value;
             if (PropertyChanged is not null)
             {
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_X);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_IsEmpty);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_Left);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_Right);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_LeftTop);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_RightTop);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_LeftBottom);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_RightBottom);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.X);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.IsEmpty);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Left);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Right);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.LeftTop);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.RightTop);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.LeftBottom);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.RightBottom);
             }
         }
     }
@@ -97,26 +97,26 @@ public sealed class ObservableRectangle<T>
                 return;
             if (PropertyChanging is not null)
             {
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_Y);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_IsEmpty);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_Top);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_Bottom);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_LeftTop);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_RightTop);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_LeftBottom);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_RightBottom);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Y);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.IsEmpty);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Top);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Bottom);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.LeftTop);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.RightTop);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.LeftBottom);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.RightBottom);
             }
             _y = value;
             if (PropertyChanged is not null)
             {
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_Y);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_IsEmpty);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_Top);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_Bottom);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_LeftTop);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_RightTop);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_LeftBottom);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_RightBottom);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Y);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.IsEmpty);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Top);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Bottom);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.LeftTop);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.RightTop);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.LeftBottom);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.RightBottom);
             }
         }
     }
@@ -136,20 +136,20 @@ public sealed class ObservableRectangle<T>
                 return;
             if (PropertyChanging is not null)
             {
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_Width);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_IsEmpty);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_Right);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_RightTop);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_RightBottom);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Width);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.IsEmpty);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Right);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.RightTop);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.RightBottom);
             }
             _width = value;
             if (PropertyChanged is not null)
             {
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_Width);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_IsEmpty);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_Right);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_RightTop);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_RightBottom);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Width);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.IsEmpty);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Right);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.RightTop);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.RightBottom);
             }
         }
     }
@@ -167,20 +167,20 @@ public sealed class ObservableRectangle<T>
                 return;
             if (PropertyChanging is not null)
             {
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_Height);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_IsEmpty);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_Bottom);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_LeftBottom);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_RightBottom);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Height);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.IsEmpty);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Bottom);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.LeftBottom);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.RightBottom);
             }
             _height = value;
             if (PropertyChanged is not null)
             {
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_Height);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_IsEmpty);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_Bottom);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_LeftBottom);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_RightBottom);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Height);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.IsEmpty);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Bottom);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.LeftBottom);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.RightBottom);
             }
         }
     }

@@ -53,22 +53,22 @@ public static partial class ObservableCollectionExtensions
         {
             if (e.Action is ListChangeAction.Add)
             {
-                foreach (var list in _bindingListXs[sender].Cast<IList<T>>())
+                foreach (var list in Enumerable.Cast<IList<T>>(_bindingListXs[sender]))
                     list.Insert(e.Index, e.NewItem!);
             }
             else if (e.Action is ListChangeAction.Remove)
             {
-                foreach (var list in _bindingListXs[sender].Cast<IList<T>>())
+                foreach (var list in Enumerable.Cast<IList<T>>(_bindingListXs[sender]))
                     list.Remove(e.OldItem!);
             }
             else if (e.Action is ListChangeAction.Replace)
             {
-                foreach (var list in _bindingListXs[sender].Cast<IList<T>>())
+                foreach (var list in Enumerable.Cast<IList<T>>(_bindingListXs[sender]))
                     list[e.Index] = e.NewItem!;
             }
             else if (e.Action is ListChangeAction.Clear)
             {
-                foreach (var list in _bindingListXs[sender].Cast<IList<T>>())
+                foreach (var list in Enumerable.Cast<IList<T>>(_bindingListXs[sender]))
                     list.Clear();
             }
         }
@@ -117,9 +117,9 @@ public static partial class ObservableCollectionExtensions
             {
                 if (e.NewItems is not null)
                 {
-                    foreach (var item in e.NewItems.Cast<T>())
+                    foreach (var item in Enumerable.Cast<T>(e.NewItems))
                     {
-                        foreach (var list in _bindingLists[sender].Cast<IList<T>>())
+                        foreach (var list in Enumerable.Cast<IList<T>>(_bindingLists[sender]))
                             list.Insert(e.NewStartingIndex, item);
                     }
                 }
@@ -130,7 +130,7 @@ public static partial class ObservableCollectionExtensions
                 {
                     for (var i = e.OldStartingIndex; i > e.OldStartingIndex - e.OldItems.Count; i--)
                     {
-                        foreach (var list in _bindingLists[sender].Cast<IList<T>>())
+                        foreach (var list in Enumerable.Cast<IList<T>>(_bindingLists[sender]))
                             list.RemoveAt(i);
                     }
                 }
@@ -140,9 +140,9 @@ public static partial class ObservableCollectionExtensions
                 if (e.NewItems is not null)
                 {
                     var index = e.NewStartingIndex;
-                    foreach (var item in e.NewItems.Cast<T>())
+                    foreach (var item in Enumerable.Cast<T>(e.NewItems))
                     {
-                        foreach (var list in _bindingLists[sender].Cast<IList<T>>())
+                        foreach (var list in Enumerable.Cast<IList<T>>(_bindingLists[sender]))
                             list[index] = item;
                         index++;
                     }
@@ -150,7 +150,7 @@ public static partial class ObservableCollectionExtensions
             }
             else if (e.Action is NotifyCollectionChangedAction.Reset)
             {
-                foreach (var list in _bindingLists[sender].Cast<IList<T>>())
+                foreach (var list in Enumerable.Cast<IList<T>>(_bindingLists[sender]))
                     list.Clear();
             }
         }
@@ -206,8 +206,9 @@ public static partial class ObservableCollectionExtensions
                 if (e.TryGetNewPair(out var newPair))
                 {
                     foreach (
-                        var dictionary in _bindingDictionaryXs[sender]
-                            .Cast<IDictionary<TKey, TValue>>()
+                        var dictionary in Enumerable.Cast<IDictionary<TKey, TValue>>(
+                            _bindingDictionaryXs[sender]
+                        )
                     )
                         dictionary.Add(newPair);
                 }
@@ -217,8 +218,9 @@ public static partial class ObservableCollectionExtensions
                 if (e.TryGetOldPair(out var oldPair))
                 {
                     foreach (
-                        var dictionary in _bindingDictionaryXs[sender]
-                            .Cast<IDictionary<TKey, TValue>>()
+                        var dictionary in Enumerable.Cast<IDictionary<TKey, TValue>>(
+                            _bindingDictionaryXs[sender]
+                        )
                     )
                         dictionary.Remove(oldPair);
                 }
@@ -228,8 +230,9 @@ public static partial class ObservableCollectionExtensions
                 if (e.TryGetNewPair(out var newPair))
                 {
                     foreach (
-                        var dictionary in _bindingDictionaryXs[sender]
-                            .Cast<IDictionary<TKey, TValue>>()
+                        var dictionary in Enumerable.Cast<IDictionary<TKey, TValue>>(
+                            _bindingDictionaryXs[sender]
+                        )
                     )
                         dictionary[newPair.Key] = newPair.Value;
                 }
@@ -237,7 +240,9 @@ public static partial class ObservableCollectionExtensions
             else if (e.Action is DictionaryChangeAction.Clear)
             {
                 foreach (
-                    var dictionary in _bindingDictionaryXs[sender].Cast<IDictionary<TKey, TValue>>()
+                    var dictionary in Enumerable.Cast<IDictionary<TKey, TValue>>(
+                        _bindingDictionaryXs[sender]
+                    )
                 )
                     dictionary.Clear();
             }
@@ -290,33 +295,36 @@ public static partial class ObservableCollectionExtensions
             ArgumentNullException.ThrowIfNull(sender);
             if (e.Action is NotifyCollectionChangedAction.Add)
             {
-                foreach (var item in e.NewItems!.Cast<KeyValuePair<TKey, TValue>>())
+                foreach (var item in Enumerable.Cast<KeyValuePair<TKey, TValue>>(e.NewItems!))
                 {
                     foreach (
-                        var dictionary in _bindingDictionarys[sender]
-                            .Cast<IDictionary<TKey, TValue>>()
+                        var dictionary in Enumerable.Cast<IDictionary<TKey, TValue>>(
+                            _bindingDictionarys[sender]
+                        )
                     )
                         dictionary.Add(item);
                 }
             }
             else if (e.Action is NotifyCollectionChangedAction.Remove)
             {
-                foreach (var item in e.OldItems!.Cast<KeyValuePair<TKey, TValue>>())
+                foreach (var item in Enumerable.Cast<KeyValuePair<TKey, TValue>>(e.OldItems!))
                 {
                     foreach (
-                        var dictionary in _bindingDictionarys[sender]
-                            .Cast<IDictionary<TKey, TValue>>()
+                        var dictionary in Enumerable.Cast<IDictionary<TKey, TValue>>(
+                            _bindingDictionarys[sender]
+                        )
                     )
                         dictionary.Remove(item);
                 }
             }
             else if (e.Action is NotifyCollectionChangedAction.Replace)
             {
-                foreach (var item in e.NewItems!.Cast<KeyValuePair<TKey, TValue>>())
+                foreach (var item in Enumerable.Cast<KeyValuePair<TKey, TValue>>(e.NewItems!))
                 {
                     foreach (
-                        var dictionary in _bindingDictionarys[sender]
-                            .Cast<IDictionary<TKey, TValue>>()
+                        var dictionary in Enumerable.Cast<IDictionary<TKey, TValue>>(
+                            _bindingDictionarys[sender]
+                        )
                     )
                         dictionary[item.Key] = item.Value;
                 }
@@ -324,7 +332,9 @@ public static partial class ObservableCollectionExtensions
             else if (e.Action is NotifyCollectionChangedAction.Reset)
             {
                 foreach (
-                    var dictionary in _bindingDictionarys[sender].Cast<IDictionary<TKey, TValue>>()
+                    var dictionary in Enumerable.Cast<IDictionary<TKey, TValue>>(
+                        _bindingDictionarys[sender]
+                    )
                 )
                     dictionary.Clear();
             }
@@ -374,7 +384,7 @@ public static partial class ObservableCollectionExtensions
             if (e.Action is SetChangeAction.Add)
             {
                 ArgumentNullException.ThrowIfNull(e.NewItems);
-                foreach (var set in _bindingSetXs[sender].Cast<ISet<T>>())
+                foreach (var set in Enumerable.Cast<ISet<T>>(_bindingSetXs[sender]))
                 {
                     foreach (var item in e.NewItems)
                         set.Add(item);
@@ -383,7 +393,7 @@ public static partial class ObservableCollectionExtensions
             else if (e.Action is SetChangeAction.Remove)
             {
                 ArgumentNullException.ThrowIfNull(e.OldItems);
-                foreach (var set in _bindingSetXs[sender].Cast<ISet<T>>())
+                foreach (var set in Enumerable.Cast<ISet<T>>(_bindingSetXs[sender]))
                 {
                     foreach (var item in e.OldItems)
                         set.Remove(item);
@@ -391,13 +401,13 @@ public static partial class ObservableCollectionExtensions
             }
             else if (e.Action is SetChangeAction.Clear)
             {
-                foreach (var set in _bindingSetXs[sender].Cast<ISet<T>>())
+                foreach (var set in Enumerable.Cast<ISet<T>>(_bindingSetXs[sender]))
                     set.Clear();
             }
             else if (e.Action is SetChangeAction.Union)
             {
                 ArgumentNullException.ThrowIfNull(e.OtherItems);
-                foreach (var set in _bindingSetXs[sender].Cast<ISet<T>>())
+                foreach (var set in Enumerable.Cast<ISet<T>>(_bindingSetXs[sender]))
                 {
                     if (set is HashSet<T> hashSet)
                         hashSet.TrimExcess();
@@ -407,19 +417,19 @@ public static partial class ObservableCollectionExtensions
             else if (e.Action is SetChangeAction.Except)
             {
                 ArgumentNullException.ThrowIfNull(e.OtherItems);
-                foreach (var set in _bindingSetXs[sender].Cast<ISet<T>>())
+                foreach (var set in Enumerable.Cast<ISet<T>>(_bindingSetXs[sender]))
                     set.ExceptWith(e.OtherItems);
             }
             else if (e.Action is SetChangeAction.Intersect)
             {
                 ArgumentNullException.ThrowIfNull(e.OtherItems);
-                foreach (var set in _bindingSetXs[sender].Cast<ISet<T>>())
+                foreach (var set in Enumerable.Cast<ISet<T>>(_bindingSetXs[sender]))
                     set.IntersectWith(e.OtherItems);
             }
             else if (e.Action is SetChangeAction.SymmetricExcept)
             {
                 ArgumentNullException.ThrowIfNull(e.OtherItems);
-                foreach (var set in _bindingSetXs[sender].Cast<ISet<T>>())
+                foreach (var set in Enumerable.Cast<ISet<T>>(_bindingSetXs[sender]))
                     set.SymmetricExceptWith(e.OtherItems);
             }
         }
@@ -466,25 +476,25 @@ public static partial class ObservableCollectionExtensions
             ArgumentNullException.ThrowIfNull(sender);
             if (e.Action is NotifyCollectionChangedAction.Add)
             {
-                foreach (var set in _bindingSets[sender].Cast<ISet<T>>())
+                foreach (var set in Enumerable.Cast<ISet<T>>(_bindingSets[sender]))
                 {
                     if (set is HashSet<T> hashSet)
                         hashSet.TrimExcess();
-                    foreach (var item in e.NewItems!.Cast<T>())
+                    foreach (var item in Enumerable.Cast<T>(e.NewItems!))
                         set.Add(item);
                 }
             }
             else if (e.Action is NotifyCollectionChangedAction.Remove)
             {
-                foreach (var item in e.OldItems!.Cast<T>())
+                foreach (var item in Enumerable.Cast<T>(e.OldItems!))
                 {
-                    foreach (var set in _bindingSets[sender].Cast<ISet<T>>())
+                    foreach (var set in Enumerable.Cast<ISet<T>>(_bindingSets[sender]))
                         set.Remove(item);
                 }
             }
             else if (e.Action is NotifyCollectionChangedAction.Reset)
             {
-                foreach (var set in _bindingSets[sender].Cast<ISet<T>>())
+                foreach (var set in Enumerable.Cast<ISet<T>>(_bindingSets[sender]))
                     set.Clear();
             }
         }

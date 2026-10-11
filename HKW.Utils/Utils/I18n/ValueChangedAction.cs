@@ -49,9 +49,9 @@ public sealed class ValueChangedAction<TKey> : IDisposable
                 _actionsByKey.Remove(Key);
         }
 
-        Key = newKey!;
-        if (_actionsByKey.TryGetValue(newKey!, out var newActions) is false)
-            newActions = _actionsByKey[newKey!] = new();
+        Key = newKey;
+        if (_actionsByKey.TryGetValue(newKey, out var newActions) is false)
+            newActions = _actionsByKey[newKey] = new();
         newActions.Add(this);
     }
 

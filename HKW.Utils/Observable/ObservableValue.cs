@@ -27,9 +27,9 @@ public sealed class ObservableValue<T>
         {
             if (EqualityComparer<T>.Default.Equals(_value, value))
                 return;
-            PropertyChanging?.Invoke(this, PropertyChangingEventArgs.Cache_Value);
+            PropertyChanging?.Invoke(this, PropertyChangingArgsCache.Value);
             _value = value;
-            PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Value);
+            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Value);
         }
     }
 

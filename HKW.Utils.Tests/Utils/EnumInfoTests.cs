@@ -94,29 +94,29 @@ public class EnumInfoTests
             TestEnum.C
         );
 
-        Assert.AreEqual("B_Name", info.GetDisplayName(info));
-        Assert.AreEqual("B_ShortName", info.GetDisplayShortName(info));
-        Assert.AreEqual("B_Description", info.GetDisplayDescription(info));
-        Assert.AreEqual("B", info.ToStringFunc(info));
-
         static string getDisplayName(EnumInfo<TestEnum> _) => "Custom_Name";
         static string getDisplayShortName(EnumInfo<TestEnum> _) => "Custom_ShortName";
         static string getDisplayDescription(EnumInfo<TestEnum> _) => "Custom_Description";
         static string toStringFunc(EnumInfo<TestEnum> _) => "Custom_ToString";
 
-        info.GetDisplayName = getDisplayName;
-        info.GetDisplayShortName = getDisplayShortName;
-        info.GetDisplayDescription = getDisplayDescription;
-        info.ToStringFunc = toStringFunc;
+        EnumInfo<TestEnum>.DefaultGetDisplayName = getDisplayName;
+        EnumInfo<TestEnum>.DefaultGetDisplayShortName = getDisplayShortName;
+        EnumInfo<TestEnum>.DefaultGetDisplayDescription = getDisplayDescription;
+        EnumInfo<TestEnum>.DefaultToString = toStringFunc;
 
         Assert.AreEqual("Custom_Name", info.DisplayName);
         Assert.AreEqual("Custom_ShortName", info.DisplayShortName);
         Assert.AreEqual("Custom_Description", info.DisplayDescription);
         Assert.AreEqual("Custom_ToString", info.ToString());
-        Assert.AreSame(getDisplayName, info.GetDisplayName);
-        Assert.AreSame(getDisplayShortName, info.GetDisplayShortName);
-        Assert.AreSame(getDisplayDescription, info.GetDisplayDescription);
-        Assert.AreSame(toStringFunc, info.ToStringFunc);
+        Assert.AreSame(getDisplayName, EnumInfo<TestEnum>.DefaultGetDisplayName);
+        Assert.AreSame(getDisplayShortName, EnumInfo<TestEnum>.DefaultGetDisplayShortName);
+        Assert.AreSame(getDisplayDescription, EnumInfo<TestEnum>.DefaultGetDisplayDescription);
+        Assert.AreSame(toStringFunc, EnumInfo<TestEnum>.DefaultToString);
+
+        EnumInfo<TestEnum>.DefaultGetDisplayName = null!;
+        EnumInfo<TestEnum>.DefaultGetDisplayShortName = null!;
+        EnumInfo<TestEnum>.DefaultGetDisplayDescription = null!;
+        EnumInfo<TestEnum>.DefaultToString = null!;
     }
 
     [TestMethod]
@@ -210,11 +210,6 @@ public class EnumInfoTests
             TestFlaggableEnum.B,
             TestFlaggableEnum.C
         );
-
-        Assert.AreEqual("A_Name, C_Name", info.GetDisplayName(info));
-        Assert.AreEqual("A_ShortName, C_ShortName", info.GetDisplayShortName(info));
-        Assert.AreEqual("A_Description, C_Description", info.GetDisplayDescription(info));
-        Assert.AreEqual("A, C", info.ToStringFunc(info));
     }
 
     [TestMethod]

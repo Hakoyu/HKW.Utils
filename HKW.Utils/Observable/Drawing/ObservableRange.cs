@@ -48,14 +48,14 @@ public sealed class ObservableRange<T>
                 return;
             if (PropertyChanging is not null)
             {
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_Min);
-                PropertyChanging.Invoke(this, PropertyChangingEventArgs.Cache_IsEmpty);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Min);
+                PropertyChanging.Invoke(this, PropertyChangingArgsCache.IsEmpty);
             }
             _min = value;
             if (PropertyChanged is not null)
             {
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_Min);
-                PropertyChanged.Invoke(this, PropertyChangedEventArgs.Cache_IsEmpty);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Min);
+                PropertyChanged.Invoke(this, PropertyChangedArgsCache.IsEmpty);
             }
         }
     }
@@ -71,11 +71,11 @@ public sealed class ObservableRange<T>
         {
             if (_max == value)
                 return;
-            PropertyChanging?.Invoke(this, PropertyChangingEventArgs.Cache_Max);
-            PropertyChanging?.Invoke(this, PropertyChangingEventArgs.Cache_IsEmpty);
+            PropertyChanging?.Invoke(this, PropertyChangingArgsCache.Max);
+            PropertyChanging?.Invoke(this, PropertyChangingArgsCache.IsEmpty);
             _max = value;
-            PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Max);
-            PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_IsEmpty);
+            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Max);
+            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.IsEmpty);
         }
     }
 

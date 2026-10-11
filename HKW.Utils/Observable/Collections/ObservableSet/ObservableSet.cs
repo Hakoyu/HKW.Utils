@@ -423,7 +423,7 @@ public class ObservableSet<T> : IObservableSet<T>, IReadOnlyObservableSet<T>
 
     private void OnCountChanged()
     {
-        PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Count);
+        PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Count);
     }
 
     /// <inheritdoc/>

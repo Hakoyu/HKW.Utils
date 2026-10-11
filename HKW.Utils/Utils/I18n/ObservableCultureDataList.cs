@@ -1,4 +1,6 @@
-﻿using HKW.HKWUtils.Observable;
+﻿using System.Diagnostics;
+using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Observable;
 
 namespace HKW.HKWUtils;
 
@@ -7,6 +9,8 @@ namespace HKW.HKWUtils;
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
+[DebuggerDisplay("Key = {Key}, Count = {Count}")]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public class ObservableCultureDataList<TKey, TValue> : ObservableList<TValue>
     where TKey : notnull
 {

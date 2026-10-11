@@ -153,7 +153,7 @@ public sealed class BidirectionalDictionary<T1, T2>
         else
         {
             var d1Value = d1ValueRef;
-            // 4, 如果 d1Value 和 value 相等, 证明 dic2 存在 (value, key)
+            // 4
             if (_dictionary2.Comparer.Equals(d1Value, value2))
                 return true;
             // 3
@@ -272,7 +272,7 @@ public sealed class BidirectionalDictionary<T1, T2>
         else
         {
             var d2Value = d2ValueRef;
-            // 4, 如果 d2Value 和 value 相等, 证明 dic1 存在 (value, key)
+            // 4
             if (_dictionary1.Comparer.Equals(d2Value, value1))
                 return true;
             // 3
