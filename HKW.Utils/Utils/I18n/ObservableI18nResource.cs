@@ -216,7 +216,7 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         {
             if (field == value)
                 return;
-            if (value is null && _indexByCulture.Count == 0)
+            if (value is null)
             {
                 field = value!;
                 return;
@@ -454,6 +454,16 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     }
 
     /// <summary>
+    /// 包含文化
+    /// </summary>
+    /// <param name="culture">文化</param>
+    /// <returns>是否包含</returns>
+    public bool HasCulture(CultureInfo culture)
+    {
+        return _indexByCulture.ContainsKey(culture);
+    }
+
+    /// <summary>
     /// 从文化获取索引
     /// </summary>
     /// <param name="culture">文化</param>
@@ -512,10 +522,7 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     {
         ArgumentNullException.ThrowIfNull(culture);
         if (CurrentCulture == culture)
-            throw new ArgumentException(
-                "The deleted culture cannot be the same as CurrentCulture",
-                nameof(culture)
-            );
+            CurrentCulture = null!;
         if (_indexByCulture.TryGetValue(culture, out var index) is false)
             return false;
 
@@ -570,6 +577,14 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         }
         _cultures.Clear();
         CurrentCulture = null!;
+    }
+
+    /// <summary>
+    /// 设置主要文化
+    /// </summary>
+    public void SetCurrentCulture(CultureInfo culture)
+    {
+        CurrentCulture = culture;
     }
 
     /// <summary>

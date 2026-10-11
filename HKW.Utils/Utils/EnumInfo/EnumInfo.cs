@@ -66,7 +66,15 @@ public static class EnumInfo
     /// 全局默认到字符串方法
     /// </summary>
     public static Func<IEnumInfo, string> GlobalDefaultToString { get; } =
-        static v => v.Value.ToString();
+        static v =>
+        {
+            if (v.IsFlaggable is false || v.IsNone)
+                return $"{v.EnumType.Name}_{v.Value}";
+            return string.Join(
+                ", ",
+                v.GetFlagInfos().Select(static i => $"{i.EnumType.Name}_{i.Value}")
+            );
+        };
 
     /// <summary>
     /// 全局默认获取名称方法
