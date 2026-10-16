@@ -50,9 +50,9 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
         ArgumentException.ThrowIfReadOnlyCollection(dictionary);
         ArgumentException.ThrowIfReadOnlyCollection(filteredDictionary);
 
-        SourceDictionary = dictionary;
         FilteredDictionary = filteredDictionary;
-        Filter = filter;
+        _sourceDictionary = dictionary;
+        _filter = filter;
         AutoFilter = autoFilter;
         Refresh();
     }
@@ -60,20 +60,31 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
 
     /// <inheritdoc/>
     public bool AutoFilter { get; set; }
+    private Predicate<KeyValuePair<TKey, TValue>> _filter;
 
     /// <inheritdoc/>
     public Predicate<KeyValuePair<TKey, TValue>> Filter
     {
-        get => field;
+        get => _filter;
         set
         {
-            field = value;
+            ArgumentNullException.ThrowIfNull(value);
+            _filter = value;
             Refresh();
         }
     }
+    private TDictionary _sourceDictionary;
 
     /// <inheritdoc/>
-    public TDictionary SourceDictionary { get; }
+    public TDictionary SourceDictionary
+    {
+        get => _sourceDictionary;
+        set
+        {
+            _sourceDictionary = value;
+            Refresh();
+        }
+    }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     TDictionary ICollectionWrapper<KeyValuePair<TKey, TValue>, TDictionary>.SourceCollection =>
@@ -92,7 +103,7 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
     >.FilteredCollection => FilteredDictionary;
 
     /// <inheritdoc/>
-    public void BatchUpdate(Action<TDictionary> updateAction)
+    public virtual void BatchUpdate(Action<TDictionary> updateAction)
     {
         ArgumentNullException.ThrowIfNull(updateAction);
 
@@ -114,35 +125,26 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
     public void Refresh()
     {
         FilteredDictionary.Clear();
-        if (SourceDictionary.Count > 0)
+        if (SourceDictionary?.Count > 0)
             FilteredDictionary.AddRange(SourceDictionary.Where(i => Filter(i)));
     }
 
-    #region IDictionary
-    /// <inheritdoc/>
-    public ICollection<TKey> Keys => SourceDictionary.Keys;
-
-    /// <inheritdoc/>
-    public ICollection<TValue> Values => SourceDictionary.Values;
-
+    #region IDictionaryT
     /// <inheritdoc/>
     public int Count => SourceDictionary.Count;
 
     /// <inheritdoc/>
     public bool IsReadOnly => SourceDictionary.IsReadOnly;
 
+    /// <inheritdoc/>
+    public ICollection<TKey> Keys => SourceDictionary.Keys;
+
+    /// <inheritdoc/>
+    public ICollection<TValue> Values => SourceDictionary.Values;
+
     IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => SourceDictionary.Keys;
 
     IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => SourceDictionary.Values;
-
-    /// <inheritdoc/>
-    public bool IsFixedSize => ((IDictionary)SourceDictionary).IsFixedSize;
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    ICollection IDictionary.Keys => ((IDictionary)SourceDictionary).Keys;
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    ICollection IDictionary.Values => ((IDictionary)SourceDictionary).Values;
 
     /// <inheritdoc/>
     public bool IsSynchronized => ((ICollection)SourceDictionary).IsSynchronized;
@@ -150,14 +152,8 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
     /// <inheritdoc/>
     public object SyncRoot => ((ICollection)SourceDictionary).SyncRoot;
 
-    object? IDictionary.this[object key]
-    {
-        get => this[(TKey)key];
-        set => this[(TKey)key] = (TValue)value!;
-    }
-
     /// <inheritdoc/>
-    public TValue this[TKey key]
+    public virtual TValue this[TKey key]
     {
         get => SourceDictionary[key];
         set
@@ -178,15 +174,11 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
     /// <inheritdoc/>
     public void Add(TKey key, TValue value)
     {
-        SourceDictionary.Add(key, value);
-        if (AutoFilter is false)
-            return;
-        if (Filter(new(key, value)))
-            FilteredDictionary.Add(key, value);
+        Add(new(key, value));
     }
 
     /// <inheritdoc/>
-    public bool TryAdd(TKey key, TValue value)
+    public virtual bool TryAdd(TKey key, TValue value)
     {
         var result = SourceDictionary.TryAddX(key, value);
         if (result is false)
@@ -199,20 +191,25 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
     }
 
     /// <inheritdoc/>
-    public bool ContainsKey(TKey key)
+    public bool Remove(TKey key)
     {
-        return SourceDictionary.ContainsKey(key);
+        var result = SourceDictionary.TryGetPair(key, out var pair);
+        if (result)
+            Remove(pair);
+        return result;
     }
 
     /// <inheritdoc/>
-    public bool Remove(TKey key)
+    public virtual void Clear()
     {
-        var result = SourceDictionary.Remove(key);
-        if (AutoFilter is false)
-            return result;
-        if (result)
-            FilteredDictionary.Remove(key);
-        return result;
+        SourceDictionary.Clear();
+        FilteredDictionary.Clear();
+    }
+
+    /// <inheritdoc/>
+    public bool ContainsKey(TKey key)
+    {
+        return SourceDictionary.ContainsKey(key);
     }
 
     /// <inheritdoc/>
@@ -222,7 +219,13 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
     }
 
     /// <inheritdoc/>
-    public void Add(KeyValuePair<TKey, TValue> item)
+    public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
+    {
+        SourceDictionary.CopyTo(array, arrayIndex);
+    }
+
+    /// <inheritdoc/>
+    protected virtual void Add(KeyValuePair<TKey, TValue> item)
     {
         SourceDictionary.Add(item);
         if (AutoFilter is false)
@@ -232,26 +235,7 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
     }
 
     /// <inheritdoc/>
-    public void Clear()
-    {
-        SourceDictionary.Clear();
-        FilteredDictionary.Clear();
-    }
-
-    /// <inheritdoc/>
-    public bool Contains(KeyValuePair<TKey, TValue> item)
-    {
-        return SourceDictionary.Contains(item);
-    }
-
-    /// <inheritdoc/>
-    public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
-    {
-        SourceDictionary.CopyTo(array, arrayIndex);
-    }
-
-    /// <inheritdoc/>
-    public bool Remove(KeyValuePair<TKey, TValue> item)
+    protected virtual bool Remove(KeyValuePair<TKey, TValue> item)
     {
         var result = SourceDictionary.Remove(item);
         if (AutoFilter is false)
@@ -259,6 +243,24 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
         if (result)
             FilteredDictionary.Remove(item);
         return result;
+    }
+
+    /// <inheritdoc/>
+    void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
+    {
+        Add(item);
+    }
+
+    /// <inheritdoc/>
+    bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
+    {
+        return Remove(item);
+    }
+
+    /// <inheritdoc/>
+    bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
+    {
+        return SourceDictionary.Contains(item);
     }
 
     /// <inheritdoc/>
@@ -270,6 +272,21 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
     IEnumerator IEnumerable.GetEnumerator()
     {
         return ((IEnumerable)SourceDictionary).GetEnumerator();
+    }
+    #endregion
+    #region IDictionary
+    /// <inheritdoc/>
+    bool IDictionary.IsFixedSize => ((IDictionary)SourceDictionary).IsFixedSize;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    ICollection IDictionary.Keys => ((IDictionary)SourceDictionary).Keys;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    ICollection IDictionary.Values => ((IDictionary)SourceDictionary).Values;
+    object? IDictionary.this[object key]
+    {
+        get => this[(TKey)key];
+        set => this[(TKey)key] = (TValue)value!;
     }
 
     /// <inheritdoc/>

@@ -68,6 +68,6 @@ public class ObservableSelectableDictionary<TKey, TValue>
     /// <inheritdoc/>
     protected override void OnSelectionChanged()
     {
-        OnPropertyChanged(nameof(SelectedIndex));
+        OnPropertyChanged(PropertyChangedArgsCache.SelectedIndex);
     }
 }

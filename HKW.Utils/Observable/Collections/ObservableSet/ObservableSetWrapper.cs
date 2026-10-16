@@ -4,9 +4,35 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using HKW.HKWUtils.Collections;
+using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Observable;
+
+/// <summary>
+/// 可观测集合
+/// </summary>
+[DebuggerDisplay("Count = {Count}")]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
+public class ObservableSet<T> : ObservableSetWrapper<T, OrderedHashSet<T>>
+    where T : notnull
+{
+    /// <inheritdoc/>
+    public ObservableSet(IEqualityComparer<T>? comparer = null)
+        : base(new(comparer), comparer) { }
+
+    /// <inheritdoc/>
+    ///  <param name="collection">集合</param>
+    /// <param name="comparer">比较器</param>
+    public ObservableSet(IEnumerable<T> collection, IEqualityComparer<T>? comparer = null)
+        : base(new(collection, comparer), comparer) { }
+
+    /// <inheritdoc/>
+    /// <param name="capacity">容量</param>
+    /// <param name="comparer">比较器</param>
+    public ObservableSet(int capacity, IEqualityComparer<T>? comparer = null)
+        : base(new(capacity, comparer), comparer) { }
+}
 
 /// <summary>
 /// 可观测集合包装器
@@ -14,6 +40,8 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="TItem">项类型</typeparam>
 /// <typeparam name="TSet">集合类型</typeparam>
+[DebuggerDisplay("Count = {Count}")]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public class ObservableSetWrapper<TItem, TSet>
     : IObservableSet<TItem>,
         IReadOnlyObservableSet<TItem>
@@ -353,7 +381,7 @@ public class ObservableSetWrapper<TItem, TSet>
             OnSetChanged(args ?? new(SetChangeAction.Add, items));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, (IList)items));
-        OnCountChanged();
+        OnPropertyChanged(PropertyChangedArgsCache.Count);
     }
 
     /// <summary>
@@ -372,7 +400,7 @@ public class ObservableSetWrapper<TItem, TSet>
             OnSetChanged(args ?? new(SetChangeAction.Remove, items));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, items[0], removeIndex));
-        OnCountChanged();
+        OnPropertyChanged(PropertyChangedArgsCache.Count);
     }
 
     /// <summary>
@@ -384,7 +412,7 @@ public class ObservableSetWrapper<TItem, TSet>
             OnSetChanged(NotifySetChangeEventArgs<TItem>.Cache_Clear);
         if (CollectionChanged is not null)
             OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
-        OnCountChanged();
+        OnPropertyChanged(PropertyChangedArgsCache.Count);
     }
 
     /// <summary>
@@ -421,11 +449,11 @@ public class ObservableSetWrapper<TItem, TSet>
                     OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item, index++));
             }
         }
-        OnCountChanged();
+        OnPropertyChanged(PropertyChangedArgsCache.Count);
     }
 
     /// <summary>
-    /// 集合改变后
+    /// 当集合改变后
     /// </summary>
     /// <param name="args">参数</param>
     protected virtual void OnSetChanged(NotifySetChangeEventArgs<TItem> args)
@@ -435,11 +463,10 @@ public class ObservableSetWrapper<TItem, TSet>
 
     /// <inheritdoc/>
     public event ObservableSetChangedEventHandler<TItem>? SetChanged;
-
     #endregion SetChanged
 
     /// <summary>
-    /// 集合已改变前
+    /// 当集合改变后
     /// </summary>
     /// <param name="args">参数</param>
     protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
@@ -451,20 +478,12 @@ public class ObservableSetWrapper<TItem, TSet>
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
     /// <summary>
-    /// 数量改变后
-    /// </summary>
-    protected virtual void OnCountChanged()
-    {
-        PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Count);
-    }
-
-    /// <summary>
     /// 属性已改变前
     /// </summary>
-    /// <param name="name">参数</param>
-    protected virtual void OnPropertyChanged(string name)
+    /// <param name="args">参数</param>
+    protected virtual void OnPropertyChanged(PropertyChangedEventArgs args)
     {
-        PropertyChanged?.Invoke(this, new(name));
+        PropertyChanged?.Invoke(this, args);
     }
 
     /// <inheritdoc/>

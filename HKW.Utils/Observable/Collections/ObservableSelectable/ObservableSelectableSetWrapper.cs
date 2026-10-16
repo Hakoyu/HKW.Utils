@@ -85,8 +85,8 @@ public class ObservableSelectableSetWrapper<TItem, TSet> : ObservableSetWrapper<
 
         _selectedItem = item;
         _hasSelection = Contains(item);
-        OnPropertyChanged(nameof(SelectedItem));
-        OnPropertyChanged(nameof(HasSelection));
+        OnPropertyChanged(PropertyChangedArgsCache.SelectedItem);
+        OnPropertyChanged(PropertyChangedArgsCache.HasSelection);
         OnSelectionChanged();
     }
 
@@ -103,8 +103,8 @@ public class ObservableSelectableSetWrapper<TItem, TSet> : ObservableSetWrapper<
 
         _selectedItem = default!;
         _hasSelection = false;
-        OnPropertyChanged(nameof(SelectedItem));
-        OnPropertyChanged(nameof(HasSelection));
+        OnPropertyChanged(PropertyChangedArgsCache.SelectedItem);
+        OnPropertyChanged(PropertyChangedArgsCache.HasSelection);
         OnSelectionChanged();
     }
 

@@ -45,9 +45,9 @@ public class FilteredSetWrapper<TItem, TSet, TFilteredSet>
         ArgumentException.ThrowIfReadOnlyCollection(set);
         ArgumentException.ThrowIfReadOnlyCollection(filteredSet);
 
-        SourceSet = set;
         FilteredSet = filteredSet;
-        Filter = filter;
+        _sourceSet = set;
+        _filter = filter;
         AutoFilter = autoFilter;
         Refresh();
     }
@@ -55,22 +55,33 @@ public class FilteredSetWrapper<TItem, TSet, TFilteredSet>
 
     /// <inheritdoc/>
     public bool AutoFilter { get; set; }
+    private Predicate<TItem> _filter;
 
     /// <summary>
     /// 过滤器
     /// </summary>
     public Predicate<TItem> Filter
     {
-        get => field;
+        get => _filter;
         set
         {
-            field = value;
+            ArgumentNullException.ThrowIfNull(value);
+            _filter = value;
             Refresh();
         }
     }
+    private TSet _sourceSet;
 
     /// <inheritdoc/>
-    public TSet SourceSet { get; }
+    public TSet SourceSet
+    {
+        get => _sourceSet;
+        set
+        {
+            _sourceSet = value;
+            Refresh();
+        }
+    }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     TSet ICollectionWrapper<TItem, TSet>.SourceCollection => SourceSet;
@@ -85,7 +96,7 @@ public class FilteredSetWrapper<TItem, TSet, TFilteredSet>
         FilteredSet;
 
     /// <inheritdoc/>
-    public void BatchUpdate(Action<TSet> updateAction)
+    public virtual void BatchUpdate(Action<TSet> updateAction)
     {
         ArgumentNullException.ThrowIfNull(updateAction);
 
@@ -107,7 +118,7 @@ public class FilteredSetWrapper<TItem, TSet, TFilteredSet>
     public void Refresh()
     {
         FilteredSet.Clear();
-        if (SourceSet.Count > 0)
+        if (SourceSet?.Count > 0)
             FilteredSet.AddRange(SourceSet.Where(i => Filter(i)));
     }
 
@@ -119,7 +130,7 @@ public class FilteredSetWrapper<TItem, TSet, TFilteredSet>
     public bool IsReadOnly => SourceSet.IsReadOnly;
 
     /// <inheritdoc/>
-    public bool Add(TItem item)
+    public virtual bool Add(TItem item)
     {
         var result = SourceSet.Add(item);
         if (result is false)
@@ -132,7 +143,7 @@ public class FilteredSetWrapper<TItem, TSet, TFilteredSet>
     }
 
     /// <inheritdoc/>
-    public bool Remove(TItem item)
+    public virtual bool Remove(TItem item)
     {
         var result = SourceSet.Remove(item);
         if (AutoFilter is false)
@@ -142,14 +153,14 @@ public class FilteredSetWrapper<TItem, TSet, TFilteredSet>
     }
 
     /// <inheritdoc/>
-    public void Clear()
+    public virtual void Clear()
     {
         SourceSet.Clear();
         FilteredSet.Clear();
     }
 
     /// <inheritdoc/>
-    public void ExceptWith(IEnumerable<TItem> other)
+    public virtual void ExceptWith(IEnumerable<TItem> other)
     {
         SourceSet.ExceptWith(other);
         if (AutoFilter is false)
@@ -158,7 +169,7 @@ public class FilteredSetWrapper<TItem, TSet, TFilteredSet>
     }
 
     /// <inheritdoc/>
-    public void IntersectWith(IEnumerable<TItem> other)
+    public virtual void IntersectWith(IEnumerable<TItem> other)
     {
         SourceSet.IntersectWith(other);
         if (AutoFilter is false)
@@ -167,7 +178,7 @@ public class FilteredSetWrapper<TItem, TSet, TFilteredSet>
     }
 
     /// <inheritdoc/>
-    public void SymmetricExceptWith(IEnumerable<TItem> other)
+    public virtual void SymmetricExceptWith(IEnumerable<TItem> other)
     {
         SourceSet.SymmetricExceptWith(other);
         if (AutoFilter is false)
@@ -176,7 +187,7 @@ public class FilteredSetWrapper<TItem, TSet, TFilteredSet>
     }
 
     /// <inheritdoc/>
-    public void UnionWith(IEnumerable<TItem> other)
+    public virtual void UnionWith(IEnumerable<TItem> other)
     {
         SourceSet.UnionWith(other);
         if (AutoFilter is false)

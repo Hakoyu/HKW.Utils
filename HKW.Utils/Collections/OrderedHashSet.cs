@@ -23,9 +23,9 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
     public IEqualityComparer<T> Comparer => _dictionary.Comparer;
 
     /// <inheritdoc/>
-    public OrderedHashSet()
+    public OrderedHashSet(IEqualityComparer<T>? comparer = null)
     {
-        _dictionary = new();
+        _dictionary = new(comparer);
     }
 
     /// <inheritdoc/>

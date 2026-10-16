@@ -245,14 +245,14 @@ public class ObservableI18nResourceTests
     }
 
     [TestMethod]
-    public void RemoveCulture_WhenRemovingCurrentCulture_ShouldThrow()
+    public void RemoveCulture_WhenRemovingCurrentCulture()
     {
         var cultures = GetTestCultures(2);
         var c1 = cultures[0];
         var c2 = cultures[1];
         var resource = new ObservableI18nResource<string, string>("Main", c1, [c1, c2]);
-
-        Assert.Throws<ArgumentException>(() => resource.RemoveCulture(c1));
+        resource.RemoveCulture(c1);
+        Assert.IsNull(resource.CurrentCulture);
     }
 
     [TestMethod]

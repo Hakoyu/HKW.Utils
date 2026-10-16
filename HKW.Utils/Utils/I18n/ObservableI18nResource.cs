@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -8,8 +7,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
 using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.Drawing;
 using HKW.HKWUtils.Exceptions;
@@ -168,8 +165,6 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             this,
             new(dic.Key, e.OldItem, e.NewItem, _indexByCulture[e.Index])
         );
-
-        Observable.DoActionsBy(dic.Key);
     }
 
     /// <summary>
@@ -221,15 +216,12 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
                 field = value!;
                 return;
             }
-            ArgumentException.ThrowIfNotContains(_indexByCulture.Keys, value!);
-            field = value!;
-            CurrentCultureChanged?.Invoke(this, value!);
+            ArgumentException.ThrowIfNotContains(_indexByCulture.Keys, value);
+            field = value;
+            CurrentCultureChanged?.Invoke(this, value);
             PropertyChanged?.Invoke(this, PropertyChangedArgsCache.CurrentCulture);
             GetCurrentCultureData?.Refresh();
             GetCurrentCultureDataOrDefault?.Refresh();
-
-            foreach (var key in DatasByKey.Keys)
-                Observable.DoActionsBy(key);
         }
     }
 
@@ -253,11 +245,6 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     /// 获取当前文化数据或默认, 提供 this[]
     /// </summary>
     public GetDataOrDefaultCore GetCurrentCultureDataOrDefault => field ??= new(this);
-
-    /// <summary>
-    /// 可观察核心, 提供与 <see cref="INotifyPropertyChanged"/> 的联动接口
-    /// </summary>
-    public ObservableCore Observable => field ??= new();
 
     /// <summary>
     /// 获取数据
@@ -605,6 +592,7 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             DatasByKey.Remove(oldKey);
             dic.Key = newKey;
             DatasByKey[newKey] = dic;
+            KeyRenamed?.Invoke(this, (oldKey, newKey));
             return true;
         }
         else
@@ -614,6 +602,7 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             {
                 dic.Key = newKey;
                 DatasByKey.Remove(oldKey);
+                KeyRenamed?.Invoke(this, (oldKey, newKey));
             }
             return result;
         }
@@ -641,7 +630,6 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         {
             DatasByKey.DictionaryChanging -= DatasByKey_DictionaryChanging;
             DatasByKey.DictionaryChanged -= DatasByKey_DictionaryChanged;
-            Observable.ActionsByKey.Clear();
             ClearData();
             ClearCulture();
         }
@@ -660,9 +648,14 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     public event PropertyChangedEventHandler? PropertyChanged;
 
     /// <summary>
-    /// 文化数据改变
+    /// 文化数据改变事件
     /// </summary>
     public event CultureDataChangedEventHandler<TKey, TValue>? CultureDataChanged;
+
+    /// <summary>
+    /// 键重命名后事件
+    /// </summary>
+    public event KeyRenamedEventHandler<TKey, TValue>? KeyRenamed;
 
     /// <summary>
     /// 获取数据核心
@@ -720,87 +713,6 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         /// <inheritdoc/>
         public event PropertyChangedEventHandler? PropertyChanged;
     }
-
-    /// <summary>
-    /// 可观察核心
-    /// </summary>
-    public sealed class ObservableCore()
-    {
-        internal Dictionary<TKey, List<ValueChangedAction<TKey>>> ActionsByKey { get; } = new();
-
-        /// <summary>
-        /// 注册行动
-        /// </summary>
-        /// <param name="source">源</param>
-        /// <param name="getKeyExpression">获取键表达式</param>
-        /// <param name="handler">值改变行动</param>
-        /// <returns>释放注册的行动</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="source"/> 或 <paramref name="getKeyExpression"/> 或 <paramref name="handler"/> 为 <see langword="null"/></exception>
-        public IDisposable Action(
-            INotifyPropertyChanged source,
-            Expression<Func<INotifyPropertyChanged, TKey>> getKeyExpression,
-            ValueChangedActionHandler<TKey> handler
-        )
-        {
-            ArgumentNullException.ThrowIfNull(source);
-            ArgumentNullException.ThrowIfNull(getKeyExpression);
-            ArgumentNullException.ThrowIfNull(handler);
-            return new ValueChangedAction<TKey>(source, getKeyExpression, handler, ActionsByKey);
-        }
-
-        /// <summary>
-        /// 清除源注册的所有行动
-        /// </summary>
-        /// <param name="source">源</param>
-        /// <exception cref="ArgumentNullException"> <paramref name="source"/> 为 <see langword="null"/></exception>
-        public void ClearActionsBy(INotifyPropertyChanged source)
-        {
-            ArgumentNullException.ThrowIfNull(source);
-            var list = new List<TKey>();
-            foreach (var pair in ActionsByKey)
-            {
-                pair.Value.RemoveAll(action =>
-                    source.Equals(action.Source).Action(action, a => a.Dispose(), null)
-                );
-                if (pair.Value.Count == 0)
-                    list.Add(pair.Key);
-            }
-            for (var i = 0; i < list.Count; i++)
-                ActionsByKey.Remove(list[i]);
-        }
-
-        /// <summary>
-        /// 执行键相关的所有行动
-        /// </summary>
-        /// <param name="key">键</param>
-        /// <exception cref="ArgumentNullException"><paramref name="key"/> 为 <see langword="null"/></exception>
-        public void DoActionsBy(TKey key)
-        {
-            ArgumentNullException.ThrowIfNull(key);
-            if (ActionsByKey.TryGetValue(key, out var actions))
-            {
-                foreach (var action in actions)
-                    action.Action(action.Source, key);
-            }
-        }
-
-        /// <summary>
-        /// 执行源相关的所有行动
-        /// </summary>
-        /// <param name="source">源</param>
-        /// <exception cref="ArgumentNullException"><paramref name="source"/> 为 <see langword="null"/></exception>
-        public void DoActionsBy(INotifyPropertyChanged source)
-        {
-            ArgumentNullException.ThrowIfNull(source);
-            foreach (var pair in ActionsByKey)
-            {
-                foreach (
-                    var action in pair.Value.Where(source, static (x, s) => x.Source.Equals(s))
-                )
-                    action.Action(action.Source, pair.Key);
-            }
-        }
-    }
 }
 
 /// <summary>
@@ -827,7 +739,7 @@ public delegate TValue GetDefaultCultureDataHandler<in TKey, out TValue>(
     where TKey : notnull;
 
 /// <summary>
-/// 文化数据改变后事件
+/// 文化数据改变后事件处理器
 /// </summary>
 /// <param name="sender">发送者</param>
 /// <param name="e">参数</param>
@@ -838,307 +750,12 @@ public delegate void CultureDataChangedEventHandler<TKey, TValue>(
     where TKey : notnull;
 
 /// <summary>
-/// I18n观察者
+/// 键重命名事件处理器
 /// </summary>
-/// <typeparam name="TObservable">被观察的源对象类型</typeparam>
-/// <typeparam name="TKey">键类型</typeparam>
-/// <typeparam name="TValue">值类型</typeparam>
-#pragma warning disable S2436
-public sealed class I18nObserver<TObservable, TKey, TValue>
-#pragma warning restore S2436
-    : ICollection<I18nObserver<TObservable, TKey, TValue>.ObservedPropertyRegistration>,
-        IDisposable
-    where TObservable : class, INotifyPropertyChanged
-    where TKey : notnull
-{
-    /// <inheritdoc/>
-    /// <param name="resource">I18n资源</param>
-    /// <param name="source">观察者源</param>
-    /// <param name="notifyPropertyChanged">观察者通知属性改变方法</param>
-    public I18nObserver(
-        ObservableI18nResource<TKey, TValue> resource,
-        TObservable source,
-        Action<TObservable, string> notifyPropertyChanged
-    )
-    {
-        ArgumentNullException.ThrowIfNull(resource);
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(notifyPropertyChanged);
-        Resource = resource;
-        _source = source;
-        _notifyPropertyChanged = notifyPropertyChanged;
-        _source.PropertyChanged += Source_PropertyChanged;
-    }
-
-    private void Resource_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (sender is not ObservableI18nResource<TKey, TValue> resource)
-            return;
-        if (
-            string.IsNullOrEmpty(e.PropertyName)
-            || e.PropertyName == nameof(resource.CurrentCulture)
-        )
-        {
-            foreach (var data in _datas.Values)
-            {
-                foreach (var name in data.TargetPropertyNames)
-                    _notifyPropertyChanged(_source, name);
-            }
-        }
-    }
-
-    /// <summary>
-    /// I18n资源
-    /// </summary>
-    public ObservableI18nResource<TKey, TValue> Resource
-    {
-        get => field;
-        set
-        {
-            if (field?.Equals(value) is true)
-                return;
-            field?.PropertyChanged -= Resource_PropertyChanged;
-            field = value;
-            field?.PropertyChanged += Resource_PropertyChanged;
-        }
-    }
-    readonly TObservable _source;
-    readonly Action<TObservable, string> _notifyPropertyChanged;
-    readonly Dictionary<string, ObservedPropertyRegistration> _datas = [];
-
-    /// <inheritdoc cref="ObservableI18nResource{TKey,TValue}.GetData(TKey, CultureInfo?)"/>
-    public TValue GetData(TKey key, CultureInfo? culture = null)
-    {
-        culture ??= Resource.CurrentCulture;
-        return Resource.DatasByKey[key][Resource.IndexByCulture[culture]];
-    }
-
-    /// <inheritdoc cref="ObservableI18nResource{TKey,TValue}.GetDataOrDefault(TKey, CultureInfo?)"/>
-    public TValue GetDataOrDefault(
-        TKey key,
-        CultureInfo? culture = null,
-        GetDefaultCultureDataHandler<TKey, TValue>? getDefaultValue = null
-    )
-    {
-        return Resource.GetDataOrDefault(key, culture);
-    }
-
-    /// <summary>
-    /// 设置数据并通知
-    /// </summary>
-    /// <param name="key">键</param>
-    /// <param name="value">值</param>
-    /// <param name="culture">文化信息, 为 <see langword="null"/> 则使用 <see cref="ObservableI18nResource{TKey,TValue}.CurrentCulture"/></param>
-    /// <param name="keyPropertyName">键属性名</param>
-    /// <returns>是否设置成功</returns>
-    public bool SetData(
-        TKey key,
-        TValue value,
-        CultureInfo? culture = null,
-        [CallerArgumentExpression(nameof(key))] string? keyPropertyName = null
-    )
-    {
-        if (Resource.SetData(key, value, culture) is false || keyPropertyName is null)
-            return false;
-        var data = _datas[keyPropertyName];
-        foreach (var name in data.TargetPropertyNames)
-            _notifyPropertyChanged(_source, name);
-        return true;
-    }
-
-    private void Source_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (sender is not TObservable source)
-            return;
-        if (string.IsNullOrEmpty(e.PropertyName))
-        {
-            foreach (var data in _datas.Values)
-            {
-                TryUpdateAndNotify(source, data);
-            }
-        }
-        else if (_datas.TryGetValue(e.PropertyName, out var data))
-        {
-            TryUpdateAndNotify(source, data);
-        }
-
-        void TryUpdateAndNotify(TObservable source, ObservedPropertyRegistration data)
-        {
-            var newKey = data.GetKey(source);
-            if (Resource.KeyComparer.Equals(data.OldKey, newKey) is false)
-            {
-                Resource.RenameKey(data.OldKey, newKey, true);
-                data.OldKey = newKey;
-                foreach (var name in data.TargetPropertyNames)
-                    _notifyPropertyChanged(source, name);
-            }
-        }
-    }
-
-    #region ICollection
-    /// <inheritdoc/>
-    public int Count => _datas.Count;
-
-    /// <inheritdoc/>
-    public bool IsReadOnly => false;
-
-    /// <summary>
-    /// 尝试添加
-    /// </summary>
-    /// <param name="item">项目</param>
-    /// <returns>是否添加成功</returns>
-    public bool TryAdd(ObservedPropertyRegistration item)
-    {
-        ArgumentNullException.ThrowIfNull(item);
-        var result = _datas.TryAdd(item.PropertyName, item);
-        if (result)
-            item.OldKey = item.GetKey(_source);
-        return result;
-    }
-
-    /// <inheritdoc/>
-    public void Add(ObservedPropertyRegistration item)
-    {
-        ArgumentNullException.ThrowIfNull(item);
-        _datas.Add(item.PropertyName, item);
-        item.OldKey = item.GetKey(_source);
-    }
-
-    /// <inheritdoc/>
-    public bool Remove(string propertyName)
-    {
-        return _datas.Remove(propertyName);
-    }
-
-    /// <inheritdoc/>
-    bool ICollection<ObservedPropertyRegistration>.Remove(ObservedPropertyRegistration item)
-    {
-        ArgumentNullException.ThrowIfNull(item);
-
-        return _datas.Remove(item.PropertyName);
-    }
-
-    /// <inheritdoc/>
-    public void Clear()
-    {
-        _datas.Clear();
-    }
-
-    /// <inheritdoc/>
-    public bool Contains(ObservedPropertyRegistration item)
-    {
-        ArgumentNullException.ThrowIfNull(item);
-        return _datas.ContainsKey(item.PropertyName);
-    }
-
-    /// <inheritdoc/>
-    public void CopyTo(ObservedPropertyRegistration[] array, int arrayIndex)
-    {
-        ArgumentNullException.ThrowIfNull(array);
-        _datas.Values.CopyTo(array, arrayIndex);
-    }
-
-    /// <inheritdoc/>
-    public IEnumerator<ObservedPropertyRegistration> GetEnumerator()
-    {
-        return _datas.Values.GetEnumerator();
-    }
-
-    /// <inheritdoc/>
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
-    #endregion
-
-    #region Dispose
-    private bool _disposed;
-
-    /// <inheritdoc/>
-    ~I18nObserver() => Dispose(false);
-
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    /// <inheritdoc/>
-    private void Dispose(bool disposing)
-    {
-        if (_disposed)
-            return;
-        if (disposing)
-        {
-            Resource?.PropertyChanged -= Resource_PropertyChanged;
-            _source.PropertyChanged -= Source_PropertyChanged;
-            _datas.Clear();
-        }
-        _disposed = true;
-    }
-
-    #endregion
-    /// <summary>
-    /// 源属性注册信息
-    /// </summary>
-    public sealed class ObservedPropertyRegistration : IEquatable<ObservedPropertyRegistration>
-    {
-        /// <inheritdoc/>
-        /// <param name="getKeyExpression">获取键的表达式, 可同时获取键属性名和获取键方法</param>
-        /// <param name="targetPropertyName">目标属性名</param>
-        /// <param name="targetPropertyNames">目标属性名</param>
-        public ObservedPropertyRegistration(
-            Expression<Func<TObservable, TKey>> getKeyExpression,
-            string targetPropertyName,
-            params string[] targetPropertyNames
-        )
-        {
-            ArgumentNullException.ThrowIfNull(getKeyExpression);
-            PropertyName = getKeyExpression.GetPropertyName();
-            var getKey = getKeyExpression.Compile();
-            GetKey = getKey;
-            TargetPropertyNames = [targetPropertyName, .. targetPropertyNames];
-        }
-
-        /// <summary>
-        /// 属性名
-        /// </summary>
-        public string PropertyName { get; }
-
-        /// <summary>
-        /// 旧键
-        /// </summary>
-        public TKey OldKey { get; set; } = default!;
-
-        /// <summary>
-        /// 获取键方法
-        /// </summary>
-        public Func<TObservable, TKey> GetKey { get; }
-
-        /// <summary>
-        /// 通知的目标属性
-        /// </summary>
-        public string[] TargetPropertyNames { get; set; }
-
-        /// <inheritdoc/>
-        public override bool Equals(object? obj)
-        {
-            return Equals(obj as ObservedPropertyRegistration);
-        }
-
-        /// <inheritdoc/>
-        public bool Equals(ObservedPropertyRegistration? other)
-        {
-            if (other is null)
-                return false;
-            return PropertyName == other.PropertyName;
-        }
-
-        /// <inheritdoc/>
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(PropertyName);
-        }
-    }
-}
+/// <param name="sender">发送者</param>
+/// <param name="e">参数</param>
+public delegate void KeyRenamedEventHandler<TKey, TValue>(
+    II18nResource sender,
+    (TKey OldKey, TKey NewKey) e
+)
+    where TKey : notnull;

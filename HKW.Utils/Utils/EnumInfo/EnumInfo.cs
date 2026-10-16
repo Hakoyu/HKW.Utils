@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Linq.Expressions;
 using HKW.HKWUtils.Extensions;
 
@@ -65,7 +66,20 @@ public static class EnumInfo
     /// <summary>
     /// 全局默认到字符串方法
     /// </summary>
+    [DefaultValue("EnumValue")]
     public static Func<IEnumInfo, string> GlobalDefaultToString { get; } =
+        static v =>
+        {
+            if (v.IsFlaggable is false || v.IsNone)
+                return v.Value.ToString();
+            return string.Join(", ", v.GetFlagInfos().Select(static i => i.Value));
+        };
+
+    /// <summary>
+    /// 全局默认到字符串方法1
+    /// </summary>
+    [DefaultValue("EnumType_EnumValue")]
+    public static Func<IEnumInfo, string> GlobalDefaultToString1 { get; } =
         static v =>
         {
             if (v.IsFlaggable is false || v.IsNone)

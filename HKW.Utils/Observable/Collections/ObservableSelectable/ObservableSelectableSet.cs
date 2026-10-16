@@ -60,6 +60,6 @@ public partial class ObservableSelectableSet<T>
     /// <inheritdoc/>
     protected override void OnSelectionChanged()
     {
-        OnPropertyChanged(nameof(SelectedIndex));
+        OnPropertyChanged(PropertyChangedArgsCache.SelectedIndex);
     }
 }

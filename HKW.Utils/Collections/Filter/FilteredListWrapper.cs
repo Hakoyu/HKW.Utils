@@ -46,9 +46,9 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
         ArgumentException.ThrowIfReadOnlyCollection(list);
         ArgumentException.ThrowIfReadOnlyCollection(filteredList);
 
-        SourceList = list;
         FilteredList = filteredList;
-        Filter = filter;
+        _sourceList = list;
+        _filter = filter;
         AutoFilter = autoFilter;
         Refresh();
     }
@@ -57,21 +57,34 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
     /// <inheritdoc/>
     public bool AutoFilter { get; set; }
 
+    private Predicate<TItem> _filter;
+
     /// <summary>
     /// 过滤器
     /// </summary>
     public Predicate<TItem> Filter
     {
-        get => field;
+        get => _filter;
         set
         {
-            field = value;
+            ArgumentNullException.ThrowIfNull(value);
+            _filter = value;
             Refresh();
         }
     }
 
+    private TList _sourceList;
+
     /// <inheritdoc/>
-    public TList SourceList { get; }
+    public TList SourceList
+    {
+        get => _sourceList;
+        set
+        {
+            _sourceList = value;
+            Refresh();
+        }
+    }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     TList ICollectionWrapper<TItem, TList>.SourceCollection => SourceList;
@@ -86,7 +99,7 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
         FilteredList;
 
     /// <inheritdoc/>
-    public void BatchUpdate(Action<TList> updateAction)
+    public virtual void BatchUpdate(Action<TList> updateAction)
     {
         ArgumentNullException.ThrowIfNull(updateAction);
 
@@ -108,13 +121,13 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
     public void Refresh()
     {
         FilteredList.Clear();
-        if (SourceList.Count > 0)
+        if (SourceList?.Count > 0)
             FilteredList.AddRange(SourceList.Where(i => Filter(i)));
     }
 
     #region IList
     /// <inheritdoc/>
-    public TItem this[int index]
+    public virtual TItem this[int index]
     {
         get => SourceList[index];
         set
@@ -155,7 +168,7 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
     public object SyncRoot => ((ICollection)SourceList).SyncRoot;
 
     /// <inheritdoc/>
-    public void Add(TItem item)
+    public virtual void Add(TItem item)
     {
         SourceList.Add(item);
         if (AutoFilter is false)
@@ -165,7 +178,7 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
     }
 
     /// <inheritdoc/>
-    public void Insert(int index, TItem item)
+    public virtual void Insert(int index, TItem item)
     {
         SourceList.Insert(index, item);
         if (AutoFilter is false)
@@ -175,7 +188,7 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
     }
 
     /// <inheritdoc/>
-    public bool Remove(TItem item)
+    public virtual bool Remove(TItem item)
     {
         var result = SourceList.Remove(item);
         if (result)
@@ -186,7 +199,7 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
     }
 
     /// <inheritdoc/>
-    public void RemoveAt(int index)
+    public virtual void RemoveAt(int index)
     {
         var value = SourceList[index];
         SourceList.RemoveAt(index);
@@ -196,7 +209,7 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
     }
 
     /// <inheritdoc/>
-    public void Clear()
+    public virtual void Clear()
     {
         SourceList.Clear();
         FilteredList.Clear();

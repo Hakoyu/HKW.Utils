@@ -11,6 +11,7 @@ namespace HKW.HKWUtils;
 /// </summary>
 public static class PropertyChangedArgsCache
 {
+    public static PropertyChangedEventArgs Key { get; } = new("Key");
     public static PropertyChangedEventArgs Info { get; } = new("Info");
     public static PropertyChangedEventArgs Count { get; } = new("Count");
     public static PropertyChangedEventArgs Value { get; } = new("Value");
@@ -34,5 +35,10 @@ public static class PropertyChangedArgsCache
     public static PropertyChangedEventArgs Indexer1 { get; } = new("Item");
     public static PropertyChangedEventArgs Indexer2 { get; } = new("Item[]");
     public static PropertyChangedEventArgs CurrentCulture { get; } = new("CurrentCulture");
+    public static PropertyChangedEventArgs SelectedIndex { get; } = new("SelectedIndex");
+    public static PropertyChangedEventArgs SelectedItem { get; } = new("SelectedItem");
+    public static PropertyChangedEventArgs SelectedKey { get; } = new("SelectedKey");
+    public static PropertyChangedEventArgs SelectedValue { get; } = new("SelectedValue");
+    public static PropertyChangedEventArgs HasSelection { get; } = new("HasSelection");
 }
 #pragma warning restore CS1591

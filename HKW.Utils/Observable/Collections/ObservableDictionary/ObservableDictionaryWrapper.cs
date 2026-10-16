@@ -15,6 +15,37 @@ namespace HKW.HKWUtils.Observable;
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
+[DebuggerDisplay("Count = {Count}")]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
+public class ObservableDictionary<TKey, TValue>
+    : ObservableDictionaryWrapper<TKey, TValue, OrderedDictionary<TKey, TValue>>
+    where TKey : notnull
+{
+    /// <inheritdoc/>
+    /// <param name="comparer">比较器</param>
+    public ObservableDictionary(IEqualityComparer<TKey>? comparer = null)
+        : base(new(comparer), comparer) { }
+
+    /// <inheritdoc/>
+    /// <param name="collection">键值对集合</param>
+    public ObservableDictionary(IEnumerable<KeyValuePair<TKey, TValue>> collection)
+        : base(new(collection), null!) { }
+
+    /// <inheritdoc/>
+    /// <param name="collection">键值对集合</param>
+    /// <param name="comparer">比较器</param>
+    public ObservableDictionary(
+        IEnumerable<KeyValuePair<TKey, TValue>> collection,
+        IEqualityComparer<TKey>? comparer
+    )
+        : base(new(collection, comparer), comparer) { }
+}
+
+/// <summary>
+/// 可观测字典
+/// </summary>
+/// <typeparam name="TKey">键类型</typeparam>
+/// <typeparam name="TValue">值类型</typeparam>
 /// <typeparam name="TDictionary">字典类型</typeparam>
 /// <remarks>
 /// 推荐使用顺序字典 <see cref="OrderedDictionary{TKey, TValue}"/>
@@ -303,7 +334,7 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
             OnDictionaryChanged(args ?? new(DictionaryChangeAction.Add, pair));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, pair));
-        OnCountChanged();
+        OnPropertyChanged(PropertyChangedArgsCache.Count);
         _observableKeys?.InvokeEvent(new(NotifyCollectionChangedAction.Add, pair.Key));
         _observableValues?.InvokeEvent(new(NotifyCollectionChangedAction.Add, pair.Value));
     }
@@ -324,7 +355,7 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
             OnDictionaryChanged(args ?? new(DictionaryChangeAction.Remove, pair));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, pair, removeIndex));
-        OnCountChanged();
+        OnPropertyChanged(PropertyChangedArgsCache.Count);
         _observableKeys?.InvokeEvent(
             new(NotifyCollectionChangedAction.Remove, pair.Key, removeIndex)
         );
@@ -372,13 +403,13 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
             OnDictionaryChanged(NotifyDictionaryChangeEventArgs<TKey, TValue>.Cache_Clear);
         if (CollectionChanged is not null)
             OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
-        OnCountChanged();
+        OnPropertyChanged(PropertyChangedArgsCache.Count);
         _observableKeys?.InvokeEvent(NotifyCollectionChangedEventArgs.Cache_Reset);
         _observableValues?.InvokeEvent(NotifyCollectionChangedEventArgs.Cache_Reset);
     }
 
     /// <summary>
-    /// 字典改变后
+    /// 当字典改变后
     /// </summary>
     /// <param name="args">参数</param>
     protected virtual void OnDictionaryChanged(NotifyDictionaryChangeEventArgs<TKey, TValue> args)
@@ -392,7 +423,7 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     #endregion DictionaryChanged
 
     /// <summary>
-    /// 集合改变后
+    /// 当集合改变后
     /// </summary>
     /// <param name="args">参数</param>
     protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
@@ -404,20 +435,12 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
     /// <summary>
-    /// 数量改变后
+    /// 当属性改变后
     /// </summary>
-    private void OnCountChanged()
+    /// <param name="args">参数</param>
+    protected virtual void OnPropertyChanged(PropertyChangedEventArgs args)
     {
-        PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Count);
-    }
-
-    /// <summary>
-    /// 属性改变后
-    /// </summary>
-    /// <param name="name">参数</param>
-    protected virtual void OnPropertyChanged(string name)
-    {
-        PropertyChanged?.Invoke(this, new(name));
+        PropertyChanged?.Invoke(this, args);
     }
 
     /// <inheritdoc/>

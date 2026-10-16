@@ -104,10 +104,10 @@ public class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictionary>
         _hasSelection = EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(item, default)
             ? false
             : Contains(item);
-        OnPropertyChanged(nameof(SelectedItem));
-        OnPropertyChanged(nameof(SelectedKey));
-        OnPropertyChanged(nameof(SelectedValue));
-        OnPropertyChanged(nameof(HasSelection));
+        OnPropertyChanged(PropertyChangedArgsCache.SelectedItem);
+        OnPropertyChanged(PropertyChangedArgsCache.SelectedKey);
+        OnPropertyChanged(PropertyChangedArgsCache.SelectedValue);
+        OnPropertyChanged(PropertyChangedArgsCache.HasSelection);
         OnSelectionChanged();
     }
 
@@ -121,10 +121,10 @@ public class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictionary>
 
         _selectedItem = default!;
         _hasSelection = false;
-        OnPropertyChanged(nameof(SelectedItem));
-        OnPropertyChanged(nameof(SelectedKey));
-        OnPropertyChanged(nameof(SelectedValue));
-        OnPropertyChanged(nameof(HasSelection));
+        OnPropertyChanged(PropertyChangedArgsCache.SelectedItem);
+        OnPropertyChanged(PropertyChangedArgsCache.SelectedKey);
+        OnPropertyChanged(PropertyChangedArgsCache.SelectedValue);
+        OnPropertyChanged(PropertyChangedArgsCache.HasSelection);
         OnSelectionChanged();
     }
 

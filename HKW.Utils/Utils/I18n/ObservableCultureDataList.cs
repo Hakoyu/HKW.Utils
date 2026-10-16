@@ -11,16 +11,25 @@ namespace HKW.HKWUtils;
 /// <typeparam name="TValue">值类型</typeparam>
 [DebuggerDisplay("Key = {Key}, Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
-public class ObservableCultureDataList<TKey, TValue> : ObservableList<TValue>
+public class ObservableCultureDataList<TKey, TValue> : ObservableListWrapper<TValue, List<TValue>>
     where TKey : notnull
 {
     /// <summary>
     /// 键
     /// </summary>
-    public TKey Key { get; internal set; }
+    public TKey Key
+    {
+        get => field;
+        internal set
+        {
+            field = value;
+            OnPropertyChanged(PropertyChangedArgsCache.Key);
+        }
+    }
 
     /// <inheritdoc/>
     public ObservableCultureDataList(TKey key)
+        : base(new())
     {
         Key = key;
     }

@@ -124,15 +124,15 @@ public class ObservableSelectableListWrapper<TItem, TList> : ObservableListWrapp
 
         _selectedIndex = index;
         _selectedItem = SourceList[index];
-        OnPropertyChanged(nameof(SelectedItem));
-        OnPropertyChanged(nameof(SelectedIndex));
-        OnPropertyChanged(nameof(HasSelection));
+        OnPropertyChanged(PropertyChangedArgsCache.SelectedItem);
+        OnPropertyChanged(PropertyChangedArgsCache.SelectedIndex);
+        OnPropertyChanged(PropertyChangedArgsCache.HasSelection);
     }
 
     private void UpdateSelectedItem()
     {
         _selectedItem = SourceList[_selectedIndex];
-        OnPropertyChanged(nameof(SelectedItem));
+        OnPropertyChanged(PropertyChangedArgsCache.SelectedItem);
     }
 
     private void ClearSelection()
@@ -142,8 +142,8 @@ public class ObservableSelectableListWrapper<TItem, TList> : ObservableListWrapp
 
         _selectedIndex = -1;
         _selectedItem = default!;
-        OnPropertyChanged(nameof(SelectedItem));
-        OnPropertyChanged(nameof(SelectedIndex));
-        OnPropertyChanged(nameof(HasSelection));
+        OnPropertyChanged(PropertyChangedArgsCache.SelectedItem);
+        OnPropertyChanged(PropertyChangedArgsCache.SelectedIndex);
+        OnPropertyChanged(PropertyChangedArgsCache.HasSelection);
     }
 }

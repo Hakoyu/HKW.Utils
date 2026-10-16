@@ -10,6 +10,29 @@ using HKW.HKWUtils.Extensions;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
+/// 可观测列表
+/// </summary>
+/// <typeparam name="T">项类型</typeparam>
+[DebuggerDisplay("Count = {Count}")]
+[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
+public sealed class ObservableList<T> : ObservableListWrapper<T, List<T>>
+{
+    /// <inheritdoc/>
+    public ObservableList()
+        : base(new()) { }
+
+    /// <inheritdoc/>
+    /// <param name="capacity">容量</param>
+    public ObservableList(int capacity)
+        : base(new(capacity)) { }
+
+    /// <inheritdoc/>
+    /// <param name="collection">集合</param>
+    public ObservableList(IEnumerable<T> collection)
+        : base(new(collection)) { }
+}
+
+/// <summary>
 /// 可观测列表包装器
 /// </summary>
 /// <typeparam name="TItem">项类型</typeparam>
@@ -276,7 +299,7 @@ public class ObservableListWrapper<TItem, TList>
             OnListChanged(args ?? new(ListChangeAction.Add, item, index));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Add, item, index));
-        OnCountChanged();
+        OnPropertyChanged(PropertyChangedArgsCache.Count);
     }
 
     /// <summary>
@@ -295,7 +318,7 @@ public class ObservableListWrapper<TItem, TList>
             OnListChanged(args ?? new(ListChangeAction.Remove, item, index));
         if (CollectionChanged is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, item, index));
-        OnCountChanged();
+        OnPropertyChanged(PropertyChangedArgsCache.Count);
     }
 
     /// <summary>
@@ -330,11 +353,11 @@ public class ObservableListWrapper<TItem, TList>
             OnListChanged(NotifyListChangeEventArgs<TItem>.Cache_Clear);
         if (CollectionChanged is not null)
             OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
-        OnCountChanged();
+        OnPropertyChanged(PropertyChangedArgsCache.Count);
     }
 
     /// <summary>
-    /// 列表改变后
+    /// 当列表改变后
     /// </summary>
     /// <param name="args">参数</param>
     protected virtual void OnListChanged(NotifyListChangeEventArgs<TItem> args)
@@ -348,7 +371,7 @@ public class ObservableListWrapper<TItem, TList>
     #endregion ListChanged
 
     /// <summary>
-    /// 集合改变后
+    /// 当集合改变后
     /// </summary>
     /// <param name="args">参数</param>
     protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
@@ -360,20 +383,12 @@ public class ObservableListWrapper<TItem, TList>
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
     /// <summary>
-    /// 数量改变后
+    /// 当属性改变后
     /// </summary>
-    protected virtual void OnCountChanged()
+    /// <param name="args">参数</param>
+    protected virtual void OnPropertyChanged(PropertyChangedEventArgs args)
     {
-        PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Count);
-    }
-
-    /// <summary>
-    /// 属性改变后
-    /// </summary>
-    /// <param name="propertyName">属性名</param>
-    protected virtual void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new(propertyName));
+        PropertyChanged?.Invoke(this, args);
     }
 
     /// <inheritdoc/>
