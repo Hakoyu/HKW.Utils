@@ -65,38 +65,6 @@ public static partial class EnumerableExtensions
         }
 
         /// <summary>
-        /// 包含
-        /// </summary>
-        /// <typeparam name="TArg">参数类型</typeparam>
-        /// <param name="arg">参数</param>
-        /// <param name="match">匹配</param>
-        /// <returns>是否包含</returns>
-        public bool Contains<TArg>(TArg arg, Func<T, TArg, bool> match)
-        {
-            ArgumentNullException.ThrowIfNull(match);
-
-            if (source is IList<T> list)
-            {
-                for (int i = 0; i < list.Count; i++)
-                {
-                    if (match(list[i], arg))
-                        return true;
-                }
-            }
-            else
-            {
-#pragma warning disable S3267
-                foreach (var item in source)
-                {
-                    if (match(item, arg))
-                        return true;
-                }
-#pragma warning restore S3267
-            }
-            return false;
-        }
-
-        /// <summary>
         /// 获取索引
         /// </summary>
         /// <param name="item">项目</param>
@@ -122,23 +90,22 @@ public static partial class EnumerableExtensions
         /// <summary>
         /// 获取索引
         /// </summary>
-        /// <param name="args">参数</param>
         /// <param name="match">匹配</param>
         /// <returns>项目的索引, 若项目不存在则为 <see langword="-1"/> </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf<TArg>(TArg args, Func<T, TArg, bool> match)
+        public int IndexOf(Func<T, bool> match)
         {
             if (source is IList<T> list)
             {
                 for (var i = 0; i < list.Count; i++)
-                    if (match(list[i], args) is true)
+                    if (match(list[i]) is true)
                         return i;
             }
             else
             {
                 foreach (var (e, i) in source.WithIndex())
                 {
-                    if (match(e, args) is true)
+                    if (match(e) is true)
                         return i;
                 }
             }
@@ -272,36 +239,6 @@ public static partial class EnumerableExtensions
             }
 
             return e2.MoveNext() is false;
-        }
-
-        /// <summary>
-        /// 基于依据筛选项目
-        /// </summary>
-        /// <typeparam name="TArg">参数类型</typeparam>
-        /// <param name="arg">参数</param>
-        /// <param name="predicate">依据</param>
-        /// <returns>项目枚举</returns>
-        public IEnumerable<T> Where<TArg>(TArg arg, Func<T, TArg, bool> predicate)
-        {
-            if (source is IList<T> list)
-            {
-                for (var i = 0; i < list.Count; i++)
-                {
-                    var item = list[i];
-                    if (predicate(item, arg))
-                        yield return item;
-                }
-            }
-            else
-            {
-#pragma warning disable S3267
-                foreach (var item in source)
-                {
-                    if (predicate(item, arg))
-                        yield return item;
-                }
-#pragma warning restore S3267
-            }
         }
     }
 

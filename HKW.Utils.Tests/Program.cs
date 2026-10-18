@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using HKW.HKWUtils;
+using HKW.HKWUtils.Drawing;
 using HKW.HKWUtils.Extensions;
 using HKW.HKWUtilsTests.Collections;
 using HKW.HKWUtilsTests.Extensions;

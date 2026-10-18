@@ -237,6 +237,17 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         (_, _) => default!;
 
     /// <summary>
+    /// 记录观察者, 启用后以此为资源的 <see cref="II18nObserver{TKey,TValue}"/> 会被记录至 <see cref="Observers"/>
+    /// </summary>
+    [DefaultValue(false)]
+    public bool RecordObserver { get; set; }
+
+    /// <summary>
+    /// 观察者
+    /// </summary>
+    public List<II18nObserver<TKey, TValue>> Observers { get; } = [];
+
+    /// <summary>
     /// 获取当前文化数据, 提供 this[]
     /// </summary>
     public GetDataCore GetCurrentCultureData => field ??= new(this);
@@ -245,6 +256,16 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     /// 获取当前文化数据或默认, 提供 this[]
     /// </summary>
     public GetDataOrDefaultCore GetCurrentCultureDataOrDefault => field ??= new(this);
+
+    /// <summary>
+    /// 包含数据
+    /// </summary>
+    /// <param name="key">键</param>
+    /// <returns>是否包含</returns>
+    public bool ContainsData(TKey key)
+    {
+        return DatasByKey.ContainsKey(key);
+    }
 
     /// <summary>
     /// 获取数据
@@ -268,11 +289,11 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     public TValue GetDataOrDefault(TKey key, CultureInfo? culture = null)
     {
         culture ??= CurrentCulture;
-        if (DatasByKey.TryGetValue(key, out var datas) is false)
+        if (DatasByKey.TryGetValue(key, out var data) is false)
             return GetDefaultValue(key, culture);
         if (_indexByCulture.TryGetValue(culture, out var index) is false)
             return GetDefaultValue(key, culture);
-        return datas[index];
+        return data[index];
     }
 
     /// <summary>
@@ -285,11 +306,11 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     public TValue GetDataOrDefault(TKey key, TValue defaultValue, CultureInfo? culture = null)
     {
         culture ??= CurrentCulture;
-        if (DatasByKey.TryGetValue(key, out var datas) is false)
+        if (DatasByKey.TryGetValue(key, out var data) is false)
             return defaultValue;
         if (_indexByCulture.TryGetValue(culture, out var index) is false)
             return defaultValue;
-        return datas[index];
+        return data[index];
     }
 
     /// <summary>
@@ -306,9 +327,9 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         culture ??= CurrentCulture;
         if (_indexByCulture.TryGetValue(culture, out var index) is false)
             return false;
-        if (DatasByKey.TryGetValue(key, out var list) is false)
-            list = DatasByKey[key] = new(key);
-        list[index] = value;
+        if (DatasByKey.TryGetValue(key, out var data) is false)
+            data = DatasByKey[key] = new(key);
+        data[index] = value;
         return true;
     }
 
@@ -326,9 +347,9 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             return;
         foreach (var pair in pairs)
         {
-            if (DatasByKey.TryGetValue(pair.Key, out var dic) is false)
-                dic = DatasByKey[pair.Key] = new(pair.Key);
-            dic[index] = pair.Value;
+            if (DatasByKey.TryGetValue(pair.Key, out var data) is false)
+                data = DatasByKey[pair.Key] = new(pair.Key);
+            data[index] = pair.Value;
         }
     }
 
@@ -346,11 +367,11 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
         culture ??= CurrentCulture;
         if (_indexByCulture.TryGetValue(culture, out var index) is false)
             return false;
-        if (DatasByKey.TryGetValue(key, out var dic) is false)
-            dic = DatasByKey[key] = new(key);
-        if (ValueComparer.Equals(dic[index], DefaultValue))
+        if (DatasByKey.TryGetValue(key, out var data) is false)
+            data = DatasByKey[key] = new(key);
+        if (ValueComparer.Equals(data[index], DefaultValue))
         {
-            dic[index] = value;
+            data[index] = value;
             return true;
         }
         return false;
@@ -373,10 +394,10 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
             return;
         foreach (var pair in pairs)
         {
-            if (DatasByKey.TryGetValue(pair.Key, out var dic) is false)
-                dic = DatasByKey[pair.Key] = new(pair.Key);
-            if (ValueComparer.Equals(dic[index], DefaultValue))
-                dic[index] = pair.Value;
+            if (DatasByKey.TryGetValue(pair.Key, out var data) is false)
+                data = DatasByKey[pair.Key] = new(pair.Key);
+            if (ValueComparer.Equals(data[index], DefaultValue))
+                data[index] = pair.Value;
         }
     }
 
@@ -389,13 +410,7 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     public bool RemoveData(TKey key)
     {
         ArgumentNullException.ThrowIfNull(key);
-        var result = DatasByKey.TryGetValue(key, out var datas);
-        if (result)
-        {
-            DatasByKey.Remove(key);
-            datas!.Clear();
-        }
-        return result;
+        return DatasByKey.Remove(key);
     }
 
     /// <summary>
@@ -404,6 +419,26 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     public void ClearData()
     {
         DatasByKey.Clear();
+    }
+
+    /// <summary>
+    /// 当 <see cref="RecordObserver"/> 启用时, 删除所有未被观察的数据
+    /// </summary>
+    public void ClearUnobservedData()
+    {
+        if (RecordObserver is false)
+            return;
+        if (Observers.Count == 0)
+            return;
+        var observedKeys = Observers
+            .SelectMany(static x => x.Registrations)
+            .Select(static x => x.OldKey)
+            .ToHashSet(KeyComparer);
+
+        foreach (
+            var key in DatasByKey.Keys.Where(key => observedKeys.Contains(key) is false).ToArray()
+        )
+            DatasByKey.Remove(key);
     }
 
     /// <summary>
@@ -455,7 +490,7 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     /// </summary>
     /// <param name="culture">文化</param>
     /// <returns>文化索引</returns>
-    public int GetIndexByCulture(CultureInfo culture)
+    public int GetCultureIndex(CultureInfo culture)
     {
         ArgumentNullException.ThrowIfNull(culture);
         if (_indexByCulture.TryGetValue(culture, out var index))
@@ -464,12 +499,36 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     }
 
     /// <summary>
+    /// 从文化获取索引
+    /// </summary>
+    /// <param name="cultureName">文化</param>
+    /// <returns>文化索引</returns>
+    public int GetCultureIndex(string cultureName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(cultureName);
+        var pair = _indexByCulture.FirstOrDefault(x => x.Key.Name == cultureName);
+        return pair.IsEmpty ? -1 : pair.Value;
+    }
+
+    /// <summary>
+    /// 从名称获取文化
+    /// </summary>
+    /// <param name="cultureName">名称</param>
+    /// <returns>文化</returns>
+    /// <exception cref="ArgumentException"><paramref name="cultureName"/> 数据错误</exception>
+    public CultureInfo GetCulture(string cultureName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(cultureName);
+        return _indexByCulture.Keys.FirstOrDefault(x => x.Name == cultureName)!;
+    }
+
+    /// <summary>
     /// 从索引获取文化
     /// </summary>
     /// <param name="index">索引</param>
     /// <returns>文化</returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> 范围错误</exception>
-    public CultureInfo GetCultureByIndex(int index)
+    public CultureInfo GetCulture(int index)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(index, _indexByCulture.Count);
@@ -585,22 +644,22 @@ public sealed class ObservableI18nResource<TKey, TValue> : II18nResource, INotif
     {
         ArgumentNullException.ThrowIfNull(oldKey);
         ArgumentNullException.ThrowIfNull(newKey);
-        if (DatasByKey.TryGetValue(oldKey, out var dic) is false)
+        if (DatasByKey.TryGetValue(oldKey, out var data) is false)
             return false;
         if (overwrite)
         {
             DatasByKey.Remove(oldKey);
-            dic.Key = newKey;
-            DatasByKey[newKey] = dic;
+            data.Key = newKey;
+            DatasByKey[newKey] = data;
             KeyRenamed?.Invoke(this, (oldKey, newKey));
             return true;
         }
         else
         {
-            var result = DatasByKey.TryAdd(newKey, dic);
+            var result = DatasByKey.TryAdd(newKey, data);
             if (result)
             {
-                dic.Key = newKey;
+                data.Key = newKey;
                 DatasByKey.Remove(oldKey);
                 KeyRenamed?.Invoke(this, (oldKey, newKey));
             }

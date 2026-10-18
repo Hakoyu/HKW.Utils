@@ -378,10 +378,7 @@ public class ObservableDictionaryWrapper<TKey, TValue, TDictionary>
     {
         if (DictionaryChanged is not null)
             OnDictionaryChanged(args ?? new(DictionaryChangeAction.Replace, newPair, oldPair));
-        var index = SourceDictionary.Keys.IndexOf(
-            (Comparer, oldPair),
-            static (k, a) => a.Comparer.Equals(k, a.oldPair.Key)
-        );
+        var index = SourceDictionary.Keys.IndexOf(x => Comparer.Equals(x, oldPair.Key));
         if (CollectionChanged is not null)
             OnCollectionChanged(
                 new(NotifyCollectionChangedAction.Replace, newPair, oldPair, index)

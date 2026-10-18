@@ -1,12 +1,38 @@
 ﻿using System.Collections;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using HKW.HKWUtils.DebugViews;
+using HKW.HKWUtils.Natives;
 
 namespace HKW.HKWUtils;
+
+/// <summary>
+/// I18n观察者接口
+/// </summary>
+/// <typeparam name="TKey">键类型</typeparam>
+/// <typeparam name="TValue">值类型</typeparam>
+public interface II18nObserver<TKey, TValue>
+    where TKey : notnull
+{
+    /// <summary>
+    /// 源
+    /// </summary>
+    public INotifyPropertyChanged Source { get; }
+
+    /// <summary>
+    /// 资源
+    /// </summary>
+    public ObservableI18nResource<TKey, TValue> Resource { get; set; }
+
+    /// <summary>
+    /// 注册
+    /// </summary>
+    public ICollection<IObservedPropertyRegistration<TKey>> Registrations { get; }
+}
 
 /// <summary>
 /// I18n观察者
@@ -15,11 +41,12 @@ namespace HKW.HKWUtils;
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
 #pragma warning disable S2436
-[DebuggerDisplay("Name = {Resource.Name}, Count = {_regByName.Count}")]
+[DebuggerDisplay("ResourceName = {Resource.Name}, Count = {_regByName.Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public sealed class I18nObserver<TObservable, TKey, TValue>
 #pragma warning restore S2436
-    : ICollection<I18nObserver<TObservable, TKey, TValue>.ObservedPropertyRegistration>,
+    : ICollection<ObservedPropertyRegistration<TObservable, TKey>>,
+        II18nObserver<TKey, TValue>,
         IDisposable
     where TObservable : class, INotifyPropertyChanged
     where TKey : notnull
@@ -38,9 +65,12 @@ public sealed class I18nObserver<TObservable, TKey, TValue>
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(notifyPropertyChanged);
         Resource = resource;
-        _source = source;
+        Source = source;
         _notifyPropertyChanged = notifyPropertyChanged;
-        _source.PropertyChanged += Source_PropertyChanged;
+        Registrations = new ValueCollection(_regByName);
+        Source.PropertyChanged += Source_PropertyChanged;
+        if (Resource.RecordObserver)
+            Resource.Observers.Add(this);
     }
 
     private void Resource_CultureDataChanged(
@@ -55,7 +85,7 @@ public sealed class I18nObserver<TObservable, TKey, TValue>
             if (Resource.DatasByKey.Comparer.Equals(reg.OldKey, e.Key) is false)
                 continue;
             foreach (var name in reg.TargetPropertyNames)
-                _notifyPropertyChanged(_source, name);
+                _notifyPropertyChanged(Source, name);
         }
     }
 
@@ -71,21 +101,34 @@ public sealed class I18nObserver<TObservable, TKey, TValue>
         {
             if (field?.Equals(value) is true)
                 return;
-            field?.CurrentCultureChanged += Resource_CurrentCultureChanged;
+            field?.CurrentCultureChanged -= Resource_CurrentCultureChanged;
             field?.CultureDataChanged -= Resource_CultureDataChanged;
+            field?.Observers.Remove(this);
             field = value;
+            if (field?.RecordObserver is true)
+                field.Observers.Add(this);
             field?.CurrentCultureChanged += Resource_CurrentCultureChanged;
             field?.CultureDataChanged += Resource_CultureDataChanged;
         }
     }
 
-    readonly TObservable _source;
+    /// <summary>
+    /// 获取用于订阅和转发通知的源可观察对象。
+    /// </summary>
+    /// <remarks>只读属性，返回用于观察序列的可观察对象实例。对返回对象的更改不会更改此属性的引用，调用方不应假定返回值为可变或线程安全。</remarks>
+    public TObservable Source { get; }
+
+    /// <inheritdoc/>
+    INotifyPropertyChanged II18nObserver<TKey, TValue>.Source => Source;
     readonly Action<TObservable, string> _notifyPropertyChanged;
 
     /// <summary>
     /// (PropertyName, Registration)
     /// </summary>
-    readonly Dictionary<string, ObservedPropertyRegistration> _regByName = [];
+    readonly Dictionary<string, ObservedPropertyRegistration<TObservable, TKey>> _regByName = [];
+
+    /// <inheritdoc/>
+    public ICollection<IObservedPropertyRegistration<TKey>> Registrations { get; }
 
     /// <inheritdoc cref="ObservableI18nResource{TKey,TValue}.GetData(TKey, CultureInfo?)"/>
     public TValue GetData(TKey key, CultureInfo? culture = null)
@@ -126,7 +169,7 @@ public sealed class I18nObserver<TObservable, TKey, TValue>
                 return false;
             var data = _regByName[keyPropertyName];
             foreach (var name in data.TargetPropertyNames)
-                _notifyPropertyChanged(_source, name);
+                _notifyPropertyChanged(Source, name);
         }
         finally
         {
@@ -140,7 +183,7 @@ public sealed class I18nObserver<TObservable, TKey, TValue>
         foreach (var data in _regByName.Values)
         {
             foreach (var name in data.TargetPropertyNames)
-                _notifyPropertyChanged(_source, name);
+                _notifyPropertyChanged(Source, name);
         }
     }
 
@@ -160,7 +203,10 @@ public sealed class I18nObserver<TObservable, TKey, TValue>
             TryUpdateAndNotify(source, data);
         }
 
-        void TryUpdateAndNotify(TObservable source, ObservedPropertyRegistration data)
+        void TryUpdateAndNotify(
+            TObservable source,
+            ObservedPropertyRegistration<TObservable, TKey> data
+        )
         {
             var newKey = data.GetKey(source);
             if (Resource.KeyComparer.Equals(data.OldKey, newKey) is false)
@@ -185,21 +231,21 @@ public sealed class I18nObserver<TObservable, TKey, TValue>
     /// </summary>
     /// <param name="item">项目</param>
     /// <returns>是否添加成功</returns>
-    public bool TryAdd(ObservedPropertyRegistration item)
+    public bool TryAdd(ObservedPropertyRegistration<TObservable, TKey> item)
     {
         ArgumentNullException.ThrowIfNull(item);
         var result = _regByName.TryAdd(item.PropertyName, item);
         if (result)
-            item.OldKey = item.GetKey(_source);
+            item.OldKey = item.GetKey(Source);
         return result;
     }
 
     /// <inheritdoc/>
-    public void Add(ObservedPropertyRegistration item)
+    public void Add(ObservedPropertyRegistration<TObservable, TKey> item)
     {
         ArgumentNullException.ThrowIfNull(item);
         _regByName.Add(item.PropertyName, item);
-        item.OldKey = item.GetKey(_source);
+        item.OldKey = item.GetKey(Source);
     }
 
     /// <inheritdoc/>
@@ -209,7 +255,9 @@ public sealed class I18nObserver<TObservable, TKey, TValue>
     }
 
     /// <inheritdoc/>
-    bool ICollection<ObservedPropertyRegistration>.Remove(ObservedPropertyRegistration item)
+    bool ICollection<ObservedPropertyRegistration<TObservable, TKey>>.Remove(
+        ObservedPropertyRegistration<TObservable, TKey> item
+    )
     {
         ArgumentNullException.ThrowIfNull(item);
 
@@ -223,21 +271,21 @@ public sealed class I18nObserver<TObservable, TKey, TValue>
     }
 
     /// <inheritdoc/>
-    public bool Contains(ObservedPropertyRegistration item)
+    public bool Contains(ObservedPropertyRegistration<TObservable, TKey> item)
     {
         ArgumentNullException.ThrowIfNull(item);
         return _regByName.ContainsKey(item.PropertyName);
     }
 
     /// <inheritdoc/>
-    public void CopyTo(ObservedPropertyRegistration[] array, int arrayIndex)
+    public void CopyTo(ObservedPropertyRegistration<TObservable, TKey>[] array, int arrayIndex)
     {
         ArgumentNullException.ThrowIfNull(array);
         _regByName.Values.CopyTo(array, arrayIndex);
     }
 
     /// <inheritdoc/>
-    public IEnumerator<ObservedPropertyRegistration> GetEnumerator()
+    public IEnumerator<ObservedPropertyRegistration<TObservable, TKey>> GetEnumerator()
     {
         return _regByName.Values.GetEnumerator();
     }
@@ -262,16 +310,6 @@ public sealed class I18nObserver<TObservable, TKey, TValue>
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>
-    /// 释放并从资源中删除注册的键
-    /// </summary>
-    public void DisposeAndRemoveData()
-    {
-        Dispose();
-        foreach (var reg in _regByName.Values)
-            Resource.RemoveData(reg.OldKey);
-    }
-
     /// <inheritdoc/>
     private void Dispose(bool disposing)
     {
@@ -281,72 +319,143 @@ public sealed class I18nObserver<TObservable, TKey, TValue>
         {
             Resource?.CurrentCultureChanged -= Resource_CurrentCultureChanged;
             Resource?.CultureDataChanged -= Resource_CultureDataChanged;
-            _source.PropertyChanged -= Source_PropertyChanged;
+            Resource?.Observers.Remove(this);
+            Source.PropertyChanged -= Source_PropertyChanged;
         }
         _disposed = true;
     }
 
     #endregion
-    /// <summary>
-    /// 源属性注册信息
-    /// </summary>
-    public sealed class ObservedPropertyRegistration : IEquatable<ObservedPropertyRegistration>
+
+    private sealed class ValueCollection(
+        Dictionary<string, ObservedPropertyRegistration<TObservable, TKey>> dic
+    ) : ICollection<IObservedPropertyRegistration<TKey>>
     {
-        /// <inheritdoc/>
-        /// <param name="getKeyExpression">获取键的表达式, 可同时获取键属性名和获取键方法</param>
-        /// <param name="targetPropertyName">目标属性名</param>
-        /// <param name="targetPropertyNames">目标属性名</param>
-        public ObservedPropertyRegistration(
-            Expression<Func<TObservable, TKey>> getKeyExpression,
-            string targetPropertyName,
-            params string[] targetPropertyNames
+        public int Count => dic.Count;
+
+        public bool IsReadOnly => true;
+
+        void ICollection<IObservedPropertyRegistration<TKey>>.Add(
+            IObservedPropertyRegistration<TKey> item
         )
         {
-            ArgumentNullException.ThrowIfNull(getKeyExpression);
-            PropertyName = getKeyExpression.GetPropertyName();
-            var getKey = getKeyExpression.Compile();
-            GetKey = getKey;
-            TargetPropertyNames = [targetPropertyName, .. targetPropertyNames];
+            throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
         }
 
-        /// <summary>
-        /// 属性名
-        /// </summary>
-        public string PropertyName { get; }
-
-        /// <summary>
-        /// 旧键
-        /// </summary>
-        public TKey OldKey { get; set; } = default!;
-
-        /// <summary>
-        /// 获取键方法
-        /// </summary>
-        public Func<TObservable, TKey> GetKey { get; }
-
-        /// <summary>
-        /// 通知的目标属性
-        /// </summary>
-        public string[] TargetPropertyNames { get; set; }
-
-        /// <inheritdoc/>
-        public override bool Equals(object? obj)
+        bool ICollection<IObservedPropertyRegistration<TKey>>.Remove(
+            IObservedPropertyRegistration<TKey> item
+        )
         {
-            return Equals(obj as ObservedPropertyRegistration);
+            throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
         }
 
-        /// <inheritdoc/>
-        public bool Equals(ObservedPropertyRegistration? other)
+        void ICollection<IObservedPropertyRegistration<TKey>>.Clear()
         {
-            if (other is null)
-                return false;
-            return PropertyName == other.PropertyName;
+            throw new NotImplementedException(ExceptionMessage.IsReadOnlyCollection);
         }
 
-        /// <inheritdoc/>
-        public override int GetHashCode()
+        public bool Contains(IObservedPropertyRegistration<TKey> item)
         {
-            return HashCode.Combine(PropertyName);
+            ArgumentNullException.ThrowIfNull(item);
+            return dic.ContainsKey(item.PropertyName);
+        }
+
+        public void CopyTo(IObservedPropertyRegistration<TKey>[] array, int arrayIndex)
+        {
+            ArgumentNullException.ThrowIfNull(array);
+            foreach (var registration in dic.Values)
+                array[arrayIndex++] = registration;
+        }
+
+        public IEnumerator<IObservedPropertyRegistration<TKey>> GetEnumerator()
+        {
+            return dic.Values.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
+}
+
+/// <summary>
+/// 源属性注册信息接口
+/// </summary>
+/// <typeparam name="TKey">键类型</typeparam>
+public interface IObservedPropertyRegistration<TKey>
+    where TKey : notnull
+{
+    /// <summary>
+    /// 属性名
+    /// </summary>
+    public string PropertyName { get; }
+
+    /// <summary>
+    /// 旧键
+    /// </summary>
+    public TKey OldKey { get; set; }
+
+    /// <summary>
+    /// 获取键
+    /// </summary>
+    public TKey GetKey(INotifyPropertyChanged source);
+
+    /// <summary>
+    ///
+    /// </summary>
+    public List<string> TargetPropertyNames { get; }
+}
+
+/// <summary>
+/// 源属性注册信息
+/// </summary>
+/// <typeparam name="TObservable">被观察的源对象类型</typeparam>
+/// <typeparam name="TKey">键类型</typeparam>
+public sealed class ObservedPropertyRegistration<TObservable, TKey>
+    : IObservedPropertyRegistration<TKey>
+    where TObservable : class, INotifyPropertyChanged
+    where TKey : notnull
+{
+    /// <inheritdoc/>
+    /// <param name="getKeyExpression">获取键的表达式, 可同时获取键属性名和获取键方法</param>
+    /// <param name="targetPropertyName">目标属性名</param>
+    /// <param name="targetPropertyNames">目标属性名</param>
+    public ObservedPropertyRegistration(
+        Expression<Func<TObservable, TKey>> getKeyExpression,
+        string targetPropertyName,
+        params string[] targetPropertyNames
+    )
+    {
+        ArgumentNullException.ThrowIfNull(getKeyExpression);
+        PropertyName = getKeyExpression.GetPropertyName();
+        var getKey = getKeyExpression.Compile();
+        _getKey = getKey;
+        TargetPropertyNames = [targetPropertyName, .. targetPropertyNames];
+    }
+
+    /// <inheritdoc/>
+    public string PropertyName { get; }
+
+    /// <inheritdoc/>
+    public TKey OldKey { get; set; } = default!;
+
+    private readonly Func<TObservable, TKey> _getKey;
+
+    /// <summary>
+    /// 获取键
+    /// </summary>
+    public TKey GetKey(TObservable source)
+    {
+        return _getKey(source);
+    }
+
+    /// <inheritdoc/>
+    public TKey GetKey(INotifyPropertyChanged source)
+    {
+        return GetKey((TObservable)source);
+    }
+
+    /// <inheritdoc/>
+    public List<string> TargetPropertyNames { get; }
 }
