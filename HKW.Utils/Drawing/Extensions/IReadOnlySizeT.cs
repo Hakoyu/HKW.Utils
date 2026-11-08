@@ -3,10 +3,26 @@
 namespace HKW.HKWUtils.Drawing;
 
 /// <summary>
-///
+/// Size 几何接口扩展.
 /// </summary>
 public static partial class ISizeTExtensions
 {
+    /// <summary>
+    /// 按字段值比较任意实现; 两个 null 相等, NaN 使用数值 Equals 语义.
+    /// </summary>
+    /// <remarks>
+    /// 接口变量的 == 可能绑定预定义引用相等; 需要值语义时显式调用本方法. 外部实现的 Equals 与哈希须遵循相同字段规则.
+    /// </remarks>
+    public static bool ValueEquals<T>(this IReadOnlySize<T>? value, IReadOnlySize<T>? other)
+        where T : struct, INumber<T>
+    {
+        if (value is null)
+            return other is null;
+        return other is not null
+            && EqualityComparer<T>.Default.Equals(value.Width, other.Width)
+            && EqualityComparer<T>.Default.Equals(value.Height, other.Height);
+    }
+
     /// <typeparam name="T">数值类型</typeparam>
     /// <param name="size">大小</param>
     extension<T>(IReadOnlySize<T> size)
@@ -18,9 +34,9 @@ public static partial class ISizeTExtensions
         /// <param name="a">大小A</param>
         /// <param name="b">大小B</param>
         /// <returns>是否相等</returns>
-        public static bool operator ==(IReadOnlySize<T> a, IReadOnlySize<T> b)
+        public static bool operator ==(IReadOnlySize<T>? a, IReadOnlySize<T>? b)
         {
-            return a.Width == b.Width && a.Height == b.Height;
+            return ValueEquals(a, b);
         }
 
         /// <summary>
@@ -29,9 +45,9 @@ public static partial class ISizeTExtensions
         /// <param name="a">大小A</param>
         /// <param name="b">大小B</param>
         /// <returns>是否不相等</returns>
-        public static bool operator !=(IReadOnlySize<T> a, IReadOnlySize<T> b)
+        public static bool operator !=(IReadOnlySize<T>? a, IReadOnlySize<T>? b)
         {
-            return !(a == b);
+            return ValueEquals(a, b) is false;
         }
 
         /// <summary>
@@ -43,12 +59,16 @@ public static partial class ISizeTExtensions
         /// <returns>是否包含</returns>
         public bool Contains(T x, T y, bool includeBoundary = false)
         {
-            if (includeBoundary)
-            {
-                return x >= T.Zero && x <= size.Width && y >= T.Zero && y <= size.Height;
-            }
-
-            return x > T.Zero && x < size.Width && y > T.Zero && y < size.Height;
+            ArgumentNullException.ThrowIfNull(size);
+            return GeometryMath<T>.ContainsPoint(
+                T.Zero,
+                T.Zero,
+                size.Width,
+                size.Height,
+                x,
+                y,
+                includeBoundary
+            );
         }
 
         /// <summary>
@@ -71,6 +91,9 @@ public static partial class ISizeTExtensions
         /// <param name="includeBoundary">允许边界相等</param>
         /// <returns>是否包含</returns>
         /// <exception cref="ArgumentNullException"><paramref name="otherSize"/> 为 null</exception>
+        /// <remarks>
+        /// 按宽高比较尺寸向量, 即检查另一尺寸的右下端点; 不把共同原点作为严格边界排除.
+        /// </remarks>
         public bool Contains(IReadOnlySize<T> otherSize, bool includeBoundary = false)
         {
             ArgumentNullException.ThrowIfNull(otherSize);
@@ -86,20 +109,19 @@ public static partial class ISizeTExtensions
         /// <exception cref="ArgumentNullException"><paramref name="rectangle"/> 为 null</exception>
         public bool Contains(IReadOnlyRectangle<T> rectangle, bool includeBoundary = false)
         {
+            ArgumentNullException.ThrowIfNull(size);
             ArgumentNullException.ThrowIfNull(rectangle);
-
-            if (includeBoundary)
-            {
-                return rectangle.X >= T.Zero
-                    && rectangle.Y >= T.Zero
-                    && rectangle.RightBottom.X <= size.Width
-                    && rectangle.RightBottom.Y <= size.Height;
-            }
-
-            return rectangle.X >= T.Zero
-                && rectangle.Y >= T.Zero
-                && rectangle.RightBottom.X < size.Width
-                && rectangle.RightBottom.Y < size.Height;
+            return GeometryMath<T>.ContainsRectangle(
+                T.Zero,
+                T.Zero,
+                size.Width,
+                size.Height,
+                rectangle.X,
+                rectangle.Y,
+                rectangle.Width,
+                rectangle.Height,
+                includeBoundary
+            );
         }
     }
 }

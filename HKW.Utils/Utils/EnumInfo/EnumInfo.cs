@@ -68,78 +68,47 @@ public static class EnumInfo
     /// </summary>
     [DefaultValue("EnumValue")]
     public static Func<IEnumInfo, string> GlobalDefaultToString { get; } =
-        static v =>
-        {
-            if (v.IsFlaggable is false || v.IsNone)
-                return v.Value.ToString();
-            return string.Join(", ", v.GetFlagInfos().Select(static i => i.Value));
-        };
+        static v => FormatFlags(v, static i => i.Value.ToString());
 
     /// <summary>
     /// 全局默认到字符串方法1
     /// </summary>
     [DefaultValue("EnumType_EnumValue")]
     public static Func<IEnumInfo, string> GlobalDefaultToString1 { get; } =
-        static v =>
-        {
-            if (v.IsFlaggable is false || v.IsNone)
-                return $"{v.EnumType.Name}_{v.Value}";
-            return string.Join(
-                ", ",
-                v.GetFlagInfos().Select(static i => $"{i.EnumType.Name}_{i.Value}")
-            );
-        };
+        static v => FormatFlags(v, static i => $"{i.EnumType.Name}_{i.Value}");
 
     /// <summary>
     /// 全局默认获取名称方法
     /// </summary>
     public static Func<IEnumInfo, string> GlobalDefaultGetDisplayName { get; } =
-        static v =>
-        {
-            if (v.IsFlaggable is false || v.IsNone)
-                return v.Display?.Name ?? v.Value.ToString();
-            return string.Join(
-                ", ",
-                v.GetFlagInfos().Select(static i => i.Display?.Name ?? i.Value.ToString())
-            );
-        };
+        static v => FormatFlags(v, static i => i.Display?.GetName() ?? i.Value.ToString());
 
     /// <summary>
     /// 全局默认获取短名称方法
     /// </summary>
     public static Func<IEnumInfo, string> GlobalDefaultGetDisplayShortName { get; } =
-        static v =>
-        {
-            if (v.IsFlaggable is false || v.IsNone)
-                return v.Display?.ShortName ?? v.Value.ToString();
-            return string.Join(
-                ", ",
-                v.GetFlagInfos().Select(static i => i.Display?.ShortName ?? i.Value.ToString())
-            );
-        };
+        static v => FormatFlags(v, static i => i.Display?.GetShortName() ?? i.Value.ToString());
 
     /// <summary>
     /// 全局默认获取描述方法
     /// </summary>
     public static Func<IEnumInfo, string> GlobalDefaultGetDisplayDescription { get; } =
-        static v =>
-        {
-            if (v.IsFlaggable is false || v.IsNone)
-                return v.Display?.Description ?? v.Value.ToString();
-            return string.Join(
-                ", ",
-                v.GetFlagInfos().Select(static i => i.Display?.Description ?? i.Value.ToString())
-            );
-        };
+        static v => FormatFlags(v, static i => i.Display?.GetDescription() ?? i.Value.ToString());
+
+    private static string FormatFlags(IEnumInfo info, Func<IEnumInfo, string> formatter)
+    {
+        if (info.IsFlaggable is false || info.IsNone)
+            return formatter(info);
+        var native = info.Value.ToString();
+        // 原生枚举无法完整分解为已命名标志时返回数值, 保留该值以免丢失未知位.
+        if (char.IsAsciiDigit(native[0]) || native[0] == '-')
+            return formatter(info);
+        return string.Join(", ", info.GetFlagInfos().Select(formatter));
+    }
 
     #endregion
 
-    /// <summary>
-    /// 构建Lambda表达式, 在无枚举准确类型的情况下创建枚举信息
-    /// </summary>
-    /// <param name="enumType">枚举类型</param>
-    /// <returns>构造方法</returns>
-    internal static Func<Enum, IEnumInfo> CreateEnumInfoExpression(Type enumType)
+    internal static Func<Enum, IEnumInfo> BuildEnumInfoExpression(Type enumType)
     {
         var enumParam = Expression.Parameter(typeof(Enum), "enumValue");
         var createMethod = typeof(EnumInfo<>)

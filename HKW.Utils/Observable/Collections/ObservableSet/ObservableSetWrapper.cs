@@ -10,33 +10,9 @@ using HKW.HKWUtils.Extensions;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 可观测集合
-/// </summary>
-[DebuggerDisplay("Count = {Count}")]
-[DebuggerTypeProxy(typeof(IEnumerableDebugView))]
-public class ObservableSet<T> : ObservableSetWrapper<T, OrderedHashSet<T>>
-    where T : notnull
-{
-    /// <inheritdoc/>
-    public ObservableSet(IEqualityComparer<T>? comparer = null)
-        : base(new(comparer), comparer) { }
-
-    /// <inheritdoc/>
-    ///  <param name="collection">集合</param>
-    /// <param name="comparer">比较器</param>
-    public ObservableSet(IEnumerable<T> collection, IEqualityComparer<T>? comparer = null)
-        : base(new(collection, comparer), comparer) { }
-
-    /// <inheritdoc/>
-    /// <param name="capacity">容量</param>
-    /// <param name="comparer">比较器</param>
-    public ObservableSet(int capacity, IEqualityComparer<T>? comparer = null)
-        : base(new(capacity, comparer), comparer) { }
-}
-
-/// <summary>
 /// 可观测集合包装器
-/// <para>!!!注意!!! 基础集合必须是顺序集合, <see cref="HashSet{T}"/>无法有效使用此包装器, 请使用 <see cref="OrderedHashSet{T}"/></para>
+/// <para>注意: 若要求稳定的逐项批量索引, 基础集合必须是顺序集合, 请使用 <see cref="OrderedHashSet{T}"/>.
+/// <see cref="HashSet{T}"/> 无法保证此顺序, 其批量通知使用 Reset, 而非禁止包装该后端.</para>
 /// </summary>
 /// <typeparam name="TItem">项类型</typeparam>
 /// <typeparam name="TSet">集合类型</typeparam>
@@ -44,20 +20,83 @@ public class ObservableSet<T> : ObservableSetWrapper<T, OrderedHashSet<T>>
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public class ObservableSetWrapper<TItem, TSet>
     : IObservableSet<TItem>,
-        IReadOnlyObservableSet<TItem>
+        IReadOnlyObservableSet<TItem>,
+        ICollectionNotificationState
     where TSet : ISet<TItem>
 {
     /// <inheritdoc/>
     /// <param name="set">集合</param>
-    /// <param name="comparer">比较器, 必须与 <see langword="set"/> 的比较器相同</param>
+    /// <param name="comparer">比较器; 已知后端采用源比较器, 自定义后端须传入与源语义相同的比较器</param>
     public ObservableSetWrapper(TSet set, IEqualityComparer<TItem>? comparer)
     {
+        ArgumentNullException.ThrowIfNull(set);
         SourceSet = set;
-        Comparer = comparer ?? EqualityComparer<TItem>.Default;
+        Comparer = CollectionSourceComparer.Set(set, comparer);
+        _canSkipHooks =
+            (
+                GetType().IsGenericType
+                && GetType().GetGenericTypeDefinition() == typeof(ObservableSet<>)
+            )
+            || GetType() == typeof(ObservableSetWrapper<TItem, TSet>);
     }
 
     /// <inheritdoc/>
     protected TSet SourceSet { get; }
+
+    private readonly CollectionNotificationScope<
+        ObservableSetChangingEventHandler<TItem>,
+        ObservableSetChangedEventHandler<TItem>
+    > _notifications = new();
+
+    bool ICollectionNotificationState.IsNotifying => _notifications.IsActive;
+
+    private protected CollectionNotificationScope<
+        ObservableSetChangingEventHandler<TItem>,
+        ObservableSetChangedEventHandler<TItem>
+    >.Lease BeginOperation()
+    {
+        return _notifications.Enter(SetChanging, SetChanged, CollectionChanged, PropertyChanged);
+    }
+
+    private readonly bool _canSkipHooks;
+    private bool CanSkipNotifications =>
+        _canSkipHooks
+        && _notifications.Changing is null
+        && _notifications.Changed is null
+        && _notifications.Collection is null
+        && _notifications.Property is null;
+
+    // 只检查已存在的有序集实例, 不创建允许空项的有序集.
+#pragma warning disable CS8714
+    private int GetItemIndex(TItem item)
+    {
+        if (SourceSet is OrderedHashSet<TItem> ordered)
+            return ordered.IndexOf(item);
+        var index = 0;
+        foreach (var storedItem in SourceSet)
+        {
+            if (Comparer.Equals(storedItem, item))
+                return index;
+            index++;
+        }
+        return -1;
+    }
+
+    private TItem GetStoredItem(TItem item)
+    {
+        if (SourceSet is OrderedHashSet<TItem> ordered)
+            return ordered.GetAt(ordered.IndexOf(item));
+        if (SourceSet is HashSet<TItem> hashSet && hashSet.TryGetValue(item, out var stored))
+            return stored;
+        foreach (var storedItem in SourceSet)
+            if (Comparer.Equals(storedItem, item))
+                return storedItem;
+        throw new InvalidOperationException(
+            "The source set comparer must match the supplied comparer."
+        );
+    }
+
+#pragma warning restore CS8714
 
     #region ISet
 
@@ -65,7 +104,7 @@ public class ObservableSetWrapper<TItem, TSet>
     public int Count => SourceSet.Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => false;
+    public bool IsReadOnly => SourceSet.IsReadOnly;
 
     /// <inheritdoc cref="HashSet{T}.Comparer"/>
     public IEqualityComparer<TItem> Comparer { get; }
@@ -75,6 +114,9 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public bool Add(TItem item)
     {
+        using var operation = BeginOperation();
+        if (CanSkipNotifications)
+            return SourceSet.Add(item);
         if (SourceSet.Contains(item))
             return false;
         var list = new SingleItemReadOnlyList<TItem>(item);
@@ -87,10 +129,14 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public bool Remove(TItem item)
     {
+        using var operation = BeginOperation();
+        if (CanSkipNotifications)
+            return SourceSet.Remove(item);
         if (SourceSet.Count == 0)
             return false;
         if (SourceSet.Contains(item) is false)
             return false;
+        item = GetStoredItem(item);
         var list = new SingleItemReadOnlyList<TItem>(item);
         var args = OnSetRemoving(list, out var removeIndex);
         SourceSet.Remove(item);
@@ -101,6 +147,7 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public void Clear()
     {
+        using var operation = BeginOperation();
         if (SourceSet.Count == 0)
             return;
         OnSetClearing();
@@ -111,9 +158,16 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public void IntersectWith(IEnumerable<TItem> other)
     {
+        using var operation = BeginOperation();
         ArgumentNullException.ThrowIfNull(other);
 
-        var otherItems = new ReadOnlyList<TItem>(other);
+        var snapshot = other.ToArray();
+        if (CanSkipNotifications)
+        {
+            SourceSet.IntersectWith(snapshot);
+            return;
+        }
+        var otherItems = Array.AsReadOnly(snapshot);
         var oldItems = new ReadOnlyList<TItem>(SourceSet.Except(otherItems, Comparer));
         if (oldItems.Count == 0)
             return;
@@ -132,9 +186,16 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public void ExceptWith(IEnumerable<TItem> other)
     {
+        using var operation = BeginOperation();
         ArgumentNullException.ThrowIfNull(other);
 
-        var otherItems = new ReadOnlyList<TItem>(other);
+        var snapshot = other.ToArray();
+        if (CanSkipNotifications)
+        {
+            SourceSet.ExceptWith(snapshot);
+            return;
+        }
+        var otherItems = Array.AsReadOnly(snapshot);
         var oldItems = new ReadOnlyList<TItem>(SourceSet.Intersect(otherItems, Comparer));
         if (oldItems.Count == 0)
             return;
@@ -153,9 +214,16 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public void SymmetricExceptWith(IEnumerable<TItem> other)
     {
+        using var operation = BeginOperation();
         ArgumentNullException.ThrowIfNull(other);
 
-        var otherItems = new ReadOnlyList<TItem>(other);
+        var snapshot = other.ToArray();
+        if (CanSkipNotifications)
+        {
+            SourceSet.SymmetricExceptWith(snapshot);
+            return;
+        }
+        var otherItems = Array.AsReadOnly(snapshot);
         var oldItems = new ReadOnlyList<TItem>(SourceSet.Intersect(otherItems, Comparer));
         var newItems = new ReadOnlyList<TItem>(otherItems.Except(oldItems, Comparer));
         if (oldItems.Count == 0 && newItems.Count == 0)
@@ -168,10 +236,7 @@ public class ObservableSetWrapper<TItem, TSet>
             oldItems,
             out var removeIndexs
         );
-        if (other is HashSet<TItem> otherSet)
-            SourceSet.SymmetricExceptWith(otherSet);
-        else
-            SourceSet.SymmetricExceptWith(otherItems);
+        SourceSet.SymmetricExceptWith(otherItems);
         OnSetOperated(
             args,
             SetChangeAction.SymmetricExcept,
@@ -185,7 +250,15 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <inheritdoc/>
     public void UnionWith(IEnumerable<TItem> other)
     {
-        var otherItems = new ReadOnlyList<TItem>(other);
+        using var operation = BeginOperation();
+        ArgumentNullException.ThrowIfNull(other);
+        var snapshot = other.ToArray();
+        if (CanSkipNotifications)
+        {
+            SourceSet.UnionWith(snapshot);
+            return;
+        }
+        var otherItems = Array.AsReadOnly(snapshot);
         var newItems = new ReadOnlyList<TItem>(otherItems.Except(SourceSet, Comparer));
         if (newItems.Count == 0)
             return;
@@ -279,7 +352,7 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <returns>事件参数</returns>
     protected virtual NotifySetChangeEventArgs<TItem>? OnSetAdding(IList<TItem> items)
     {
-        if (SetChanging is not null)
+        if (_notifications.Changing is not null)
             return OnSetChanging(new(SetChangeAction.Add, items));
         return null;
     }
@@ -297,10 +370,10 @@ public class ObservableSetWrapper<TItem, TSet>
     {
         removeIndex = -1;
         NotifySetChangeEventArgs<TItem>? args = null;
-        if (SetChanging is not null)
+        if (_notifications.Changing is not null)
             args = OnSetChanging(new(SetChangeAction.Remove, items));
-        if (CollectionChanged is not null)
-            removeIndex = SourceSet.IndexOf(items[0]);
+        if (_notifications.Collection is not null)
+            removeIndex = GetItemIndex(items[0]);
         return args;
     }
 
@@ -309,7 +382,7 @@ public class ObservableSetWrapper<TItem, TSet>
     /// </summary>
     protected virtual void OnSetClearing()
     {
-        if (SetChanging is not null)
+        if (_notifications.Changing is not null)
             OnSetChanging(NotifySetChangeEventArgs<TItem>.Cache_Clear);
     }
 
@@ -332,9 +405,9 @@ public class ObservableSetWrapper<TItem, TSet>
     {
         removeIndexs = null!;
         NotifySetChangeEventArgs<TItem>? args = null;
-        if (SetChanging is not null)
+        if (_notifications.Changing is not null)
             args = OnSetChanging(new(action, otherItems, newItems, oldItems));
-        if (CollectionChanged is not null && oldItems is not null)
+        if (_notifications.Collection is not null && oldItems is not null)
         {
             removeIndexs = new List<int>();
             var removeItems = oldItems.ToHashSet(Comparer);
@@ -359,7 +432,7 @@ public class ObservableSetWrapper<TItem, TSet>
         NotifySetChangeEventArgs<TItem> args
     )
     {
-        SetChanging?.Invoke(this, args);
+        _notifications.Changing?.Invoke(this, args);
         return args;
     }
 
@@ -377,10 +450,12 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <param name="items">键值对</param>
     protected virtual void OnSetAdded(NotifySetChangeEventArgs<TItem>? args, IList<TItem> items)
     {
-        if (SetChanged is not null)
+        if (_notifications.Changed is not null)
             OnSetChanged(args ?? new(SetChangeAction.Add, items));
-        if (CollectionChanged is not null)
-            OnCollectionChanged(new(NotifyCollectionChangedAction.Add, (IList)items));
+        if (_notifications.Collection is not null)
+            OnCollectionChanged(
+                new(NotifyCollectionChangedAction.Add, (IList)items, GetItemIndex(items[0]))
+            );
         OnPropertyChanged(PropertyChangedArgsCache.Count);
     }
 
@@ -396,9 +471,9 @@ public class ObservableSetWrapper<TItem, TSet>
         int removeIndex
     )
     {
-        if (SetChanged is not null)
+        if (_notifications.Changed is not null)
             OnSetChanged(args ?? new(SetChangeAction.Remove, items));
-        if (CollectionChanged is not null)
+        if (_notifications.Collection is not null)
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, items[0], removeIndex));
         OnPropertyChanged(PropertyChangedArgsCache.Count);
     }
@@ -408,9 +483,9 @@ public class ObservableSetWrapper<TItem, TSet>
     /// </summary>
     protected virtual void OnSetCleared()
     {
-        if (SetChanged is not null)
+        if (_notifications.Changed is not null)
             OnSetChanged(NotifySetChangeEventArgs<TItem>.Cache_Clear);
-        if (CollectionChanged is not null)
+        if (_notifications.Collection is not null)
             OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
         OnPropertyChanged(PropertyChangedArgsCache.Count);
     }
@@ -433,10 +508,17 @@ public class ObservableSetWrapper<TItem, TSet>
         IList<int> removeIndexs
     )
     {
-        if (SetChanged is not null)
+        if (_notifications.Changed is not null)
             OnSetChanged(args ?? new(action, otherItems, newItems, oldItems));
-        if (CollectionChanged is not null)
+        if (_notifications.Collection is not null)
         {
+            if (SourceSet is HashSet<TItem> or SortedSet<TItem>)
+            {
+                // 非追加有序后端的批量运算使用重置, 避免伪造逐项插入索引.
+                OnCollectionChanged(NotifyCollectionChangedEventArgs.Cache_Reset);
+                OnPropertyChanged(PropertyChangedArgsCache.Count);
+                return;
+            }
             if (oldItems is not null)
             {
                 foreach (var (e, i) in oldItems.Reverse().Zip(removeIndexs))
@@ -458,7 +540,7 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <param name="args">参数</param>
     protected virtual void OnSetChanged(NotifySetChangeEventArgs<TItem> args)
     {
-        SetChanged?.Invoke(this, args);
+        _notifications.Changed?.Invoke(this, args);
     }
 
     /// <inheritdoc/>
@@ -471,7 +553,7 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <param name="args">参数</param>
     protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
     {
-        CollectionChanged?.Invoke(this, args);
+        _notifications.Collection?.Invoke(this, args);
     }
 
     /// <inheritdoc/>
@@ -483,7 +565,7 @@ public class ObservableSetWrapper<TItem, TSet>
     /// <param name="args">参数</param>
     protected virtual void OnPropertyChanged(PropertyChangedEventArgs args)
     {
-        PropertyChanged?.Invoke(this, args);
+        _notifications.Property?.Invoke(this, args);
     }
 
     /// <inheritdoc/>

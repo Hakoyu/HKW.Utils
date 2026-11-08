@@ -16,12 +16,12 @@ public static partial class ISizeTExtensions
         /// 设置值
         /// </summary>
         /// <param name="otherSize">其他大小</param>
-        /// <exception cref="ArgumentNullException"><paramref name="size"/> 为 null</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="size"/> 或 <paramref name="otherSize"/> 为 null</exception>
         public void SetValue(IReadOnlySize<T> otherSize)
         {
+            ArgumentNullException.ThrowIfNull(size);
             ArgumentNullException.ThrowIfNull(otherSize);
-            size.Width = otherSize.Width;
-            size.Height = otherSize.Height;
+            SetValue(size, otherSize.Width, otherSize.Height);
         }
 
         /// <summary>
@@ -31,6 +31,9 @@ public static partial class ISizeTExtensions
         /// <param name="height">高</param>
         public void SetValue(T width, T height)
         {
+            ArgumentNullException.ThrowIfNull(size);
+            GeometryMath<T>.ValidateSize(width, nameof(width));
+            GeometryMath<T>.ValidateSize(height, nameof(height));
             size.Width = width;
             size.Height = height;
         }

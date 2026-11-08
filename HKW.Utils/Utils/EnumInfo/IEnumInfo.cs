@@ -112,12 +112,12 @@ public interface IEnumInfo : ICloneable
     public bool IsFlaggable { get; }
 
     /// <summary>
-    /// 全部名称
+    /// 全部名称, 包含别名; 不能与按值去重的 Values 或 Infos 按索引配对
     /// </summary>
     public ImmutableArray<string> Names { get; }
 
     /// <summary>
-    /// 有效的全部名称 (为设置 <see cref="FlagsAttribute"/> 的枚举排除None)
+    /// 有效的全部名称 (为设置 <see cref="FlagsAttribute"/> 的枚举排除 None )
     /// </summary>
     public ImmutableArray<string> ValidNames { get; }
 

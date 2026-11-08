@@ -44,8 +44,14 @@ public class ObservableEnum<TEnum>
 
     /// <inheritdoc/>
     /// <param name="value">枚举值</param>
-    /// <param name="addFlag">添加枚举值 <c>(value, flag) => value | flag</c></param>
-    /// <param name="removeFlag">删除枚举值 <c>(value, flag) => value &amp; ~flag</c></param>
+    /// <param name="addFlag">添加枚举值</param>
+    /// <param name="removeFlag">删除枚举值</param>
+    /// <remarks>
+    /// <![CDATA[
+    /// 添加枚举值: (value, flag) => value | flag
+    /// 删除枚举值: (value, flag) => value & ~flag
+    /// ]]>
+    /// </remarks>
     public ObservableEnum(TEnum value, AddFlag<TEnum> addFlag, RemoveFlag<TEnum> removeFlag)
         : this(value)
     {
@@ -53,28 +59,57 @@ public class ObservableEnum<TEnum>
         RemoveFlagFunc = removeFlag;
     }
 
+    private bool _isChanging;
+    private TEnum _value;
+
     /// <summary>
     /// 枚举值
     /// </summary>
     public TEnum Value
     {
-        get => field;
+        get => _value;
         set
         {
-            if (field == value)
-                return;
-            PropertyChanging?.Invoke(this, PropertyChangingArgsCache.Value);
-            PropertyChanging?.Invoke(this, PropertyChangingArgsCache.Info);
-            field = value;
-            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Value);
-            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Info);
+            using var mutation = new ObservablePropertyMutation(
+                ref _isChanging,
+                PropertyChanging,
+                PropertyChanged
+            );
+            SetValueCore(value, mutation);
+        }
+    }
+
+    private void SetValueCore(TEnum value, in ObservablePropertyMutation mutation)
+    {
+        if (EqualityComparer<TEnum>.Default.Equals(_value, value))
+            return;
+        var changing = mutation.Changing;
+        var changed = mutation.Changed;
+        if (changing is not null)
+        {
+            changing.Invoke(this, PropertyChangingArgsCache.Value);
+            changing.Invoke(this, PropertyChangingArgsCache.Info);
+        }
+        _value = value;
+        if (changed is not null)
+        {
+            changed.Invoke(this, PropertyChangedArgsCache.Value);
+            changed.Invoke(this, PropertyChangedArgsCache.Info);
         }
     }
 
     Enum IObservableEnum.Value
     {
         get => Value;
-        set => Value = (TEnum)value;
+        set
+        {
+            using var mutation = new ObservablePropertyMutation(
+                ref _isChanging,
+                PropertyChanging,
+                PropertyChanged
+            );
+            SetValueCore((TEnum)value, mutation);
+        }
     }
 
     /// <summary>
@@ -89,7 +124,12 @@ public class ObservableEnum<TEnum>
     /// <param name="flag">标志</param>
     public void AddFlag(TEnum flag)
     {
-        Value = AddFlagFunc(Value, flag);
+        using var mutation = new ObservablePropertyMutation(
+            ref _isChanging,
+            PropertyChanging,
+            PropertyChanged
+        );
+        SetValueCore(AddFlagFunc(Value, flag), mutation);
     }
 
     /// <summary>
@@ -98,13 +138,27 @@ public class ObservableEnum<TEnum>
     /// <param name="flag">标志</param>
     public void RemoveFlag(TEnum flag)
     {
-        Value = RemoveFlagFunc(Value, flag);
+        using var mutation = new ObservablePropertyMutation(
+            ref _isChanging,
+            PropertyChanging,
+            PropertyChanged
+        );
+        SetValueCore(RemoveFlagFunc(Value, flag), mutation);
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// 浅复制当前值及实例位操作策略, 不复制事件订阅和命令实例.
+    /// </summary>
+    /// <remarks>
+    /// 显式策略委托及其闭包按引用共享. 未指定实例策略时, 克隆仍跟随类型默认策略.
+    /// </remarks>
     public object Clone()
     {
-        return new ObservableEnum<TEnum>(Value);
+        return new ObservableEnum<TEnum>(Value)
+        {
+            _addFlagFunc = _addFlagFunc,
+            _removeFlagFunc = _removeFlagFunc,
+        };
     }
 
     /// <summary>
@@ -117,13 +171,24 @@ public class ObservableEnum<TEnum>
     /// </summary>
     public SimpleCommand<TEnum> RemoveFlagCommand => field ??= new(p => RemoveFlag(p));
 
+    private AddFlag<TEnum>? _addFlagFunc;
+    private RemoveFlag<TEnum>? _removeFlagFunc;
+
     /// <summary>
     /// 添加标志方法
     /// </summary>
     public AddFlag<TEnum> AddFlagFunc
     {
-        get => field ?? DefaultAddFlagFunc;
-        set => field = value;
+        get => _addFlagFunc ?? DefaultAddFlagFunc;
+        set
+        {
+            using var mutation = new ObservablePropertyMutation(
+                ref _isChanging,
+                PropertyChanging,
+                PropertyChanged
+            );
+            _addFlagFunc = value;
+        }
     }
 
     /// <summary>
@@ -131,8 +196,16 @@ public class ObservableEnum<TEnum>
     /// </summary>
     public RemoveFlag<TEnum> RemoveFlagFunc
     {
-        get => field ?? DefaultRemoveFlagFunc;
-        set => field = value;
+        get => _removeFlagFunc ?? DefaultRemoveFlagFunc;
+        set
+        {
+            using var mutation = new ObservablePropertyMutation(
+                ref _isChanging,
+                PropertyChanging,
+                PropertyChanged
+            );
+            _removeFlagFunc = value;
+        }
     }
 
     /// <summary>
@@ -194,9 +267,16 @@ public delegate TEnum RemoveFlag<TEnum>(TEnum value, TEnum flag)
 /// <summary>
 /// 可观测枚举工厂
 /// </summary>
+/// <remarks>
+/// 并发首次访问每个枚举类型只编译一次工厂. 不保证外部枚举元数据缓存和静态策略写入线程安全.
+/// 使用反射及动态代码编译, 不承诺 NativeAOT 或裁剪兼容性.
+/// </remarks>
 public static class ObservableEnum
 {
-    private static readonly Dictionary<Type, Func<Enum, IObservableEnum>> _expressionByType = [];
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<
+        Type,
+        Lazy<Func<Enum, IObservableEnum>>
+    > _expressionByType = new();
 
     /// <summary>
     /// 根据枚举值创建可观测枚举
@@ -205,15 +285,18 @@ public static class ObservableEnum
     /// <returns>可观测枚举</returns>
     public static IObservableEnum Create(Enum value)
     {
-        var type = value.GetType();
-        if (_expressionByType.TryGetValue(type, out var func) is false)
-            func = _expressionByType[type] = CreateObservableEnumExpression(type);
-
-        return func.Invoke(value);
+        ArgumentNullException.ThrowIfNull(value);
+        var factory = _expressionByType.GetOrAdd(
+            value.GetType(),
+            static type => new Lazy<Func<Enum, IObservableEnum>>(() =>
+                CreateObservableEnumExpression(type)
+            )
+        );
+        return factory.Value(value);
     }
 
     /// <summary>
-    /// 构建 Lambda 表达式，在无枚举准确类型的情况下创建可观测枚举
+    /// 构建 Lambda 表达式, 在无枚举准确类型的情况下创建可观测枚举
     /// </summary>
     /// <param name="enumType">枚举类型</param>
     /// <returns>构造方法</returns>

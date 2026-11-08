@@ -24,35 +24,23 @@ public static class CollectionExtensions
         }
 
         /// <summary>
-        /// 有值
-        /// <para>等价于 <c>Count > 0</c></para>
-        /// </summary>
-        /// <returns>是否有值</returns>
-        public bool HasValue
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => collection.Count > 0;
-        }
-
-        /// <summary>
         /// 范围添加
         /// </summary>
+        /// <remarks>
+        /// 写入前将输入保存为快照, 支持自身, 共享底层存储的包装及延迟枚举.
+        /// </remarks>
         /// <param name="items">项目</param>
         public void AddRange(IEnumerable<T> items)
         {
             ArgumentNullException.ThrowIfNull(items);
+            var snapshot = items.ToArray();
             if (collection is List<T> list)
             {
-                list.AddRange(items);
-            }
-            else if (items is IList<T> iList)
-            {
-                for (var i = 0; i < iList.Count; i++)
-                    collection.Add(iList[i]);
+                list.AddRange(snapshot);
             }
             else
             {
-                foreach (var item in items)
+                foreach (var item in snapshot)
                     collection.Add(item);
             }
         }
@@ -109,35 +97,16 @@ public static class CollectionExtensions
         /// <summary>
         /// 删除所有对象
         /// </summary>
+        /// <remarks>
+        /// 先保存输入快照, 再从后向前逐项删除; 每个输入项仅删除目标中的一个匹配项.
+        /// </remarks>
         /// <param name="items">对象</param>
         public void RemoveAll(IEnumerable<T> items)
         {
             ArgumentNullException.ThrowIfNull(items);
-            if (items is IList<T> list)
-            {
-                for (int i = list.Count - 1; i >= 0; i--)
-                    collection.Remove(list[i]);
-            }
-            else
-            {
-                foreach (var item in collection.Reverse())
-                    collection.Remove(item);
-            }
+            var snapshot = items.ToArray();
+            for (var i = snapshot.Length - 1; i >= 0; i--)
+                collection.Remove(snapshot[i]);
         }
     }
-
-    ///// <param name="collection">集合</param>
-    //extension(ICollection collection)
-    //{
-    //    /// <summary>
-    //    /// 倒序枚举出带有索引值的枚举值
-    //    /// </summary>
-    //    /// <returns>带有索引的枚举值(枚举值, 索引)</returns>
-    //    public IEnumerable<(object Item, int Index)> ReverseWithIndex()
-    //    {
-    //        var index = collection.Count - 1;
-    //        foreach (var item in collection.Cast<object>().Reverse())
-    //            yield return (item, index--);
-    //    }
-    //}
 }

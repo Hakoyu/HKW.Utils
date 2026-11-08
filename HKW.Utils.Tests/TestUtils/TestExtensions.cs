@@ -15,16 +15,17 @@ public static class TestExtensions
     /// <param name="second">第二个集合</param>
     /// <param name="comparer">比较器</param>
     /// <returns>相等为 <see langword="true"/> 不相等为 <see langword="false"/></returns>
-    public static bool SequenceEqual<T>(
+    public static bool SequenceEqualUsingComparer<T>(
         this IEnumerable<T> source,
         IEnumerable<T> second,
         Func<T, T, bool> comparer
     )
     {
+        ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(second);
         ArgumentNullException.ThrowIfNull(comparer);
         var c = EqualityComparer<T>.Create(comparer!);
-        return source.SequenceEqual(second, c);
+        return Enumerable.SequenceEqual(source, second, c);
     }
 
     extension(Assert assert)
@@ -37,7 +38,10 @@ public static class TestExtensions
             [CallerArgumentExpression("actuals")] string actualsExpression = ""
         )
         {
-            foreach (var actual in actuals)
+            ArgumentNullException.ThrowIfNull(actuals);
+            var values = actuals.ToArray();
+            Assert.IsTrue(values.Length > 0, "Batch assertions require at least one value.");
+            foreach (var actual in values)
             {
                 Assert.AreEqual(
                     expected,
@@ -56,7 +60,10 @@ public static class TestExtensions
             [CallerArgumentExpression(nameof(conditions))] string conditionExpression = ""
         )
         {
-            foreach (var condition in conditions)
+            ArgumentNullException.ThrowIfNull(conditions);
+            var values = conditions.ToArray();
+            Assert.IsTrue(values.Length > 0, "Batch assertions require at least one condition.");
+            foreach (var condition in values)
             {
                 Assert.IsTrue(condition, message, conditionExpression);
             }
@@ -68,7 +75,10 @@ public static class TestExtensions
             [CallerArgumentExpression(nameof(conditions))] string conditionExpression = ""
         )
         {
-            foreach (var condition in conditions)
+            ArgumentNullException.ThrowIfNull(conditions);
+            var values = conditions.ToArray();
+            Assert.IsTrue(values.Length > 0, "Batch assertions require at least one condition.");
+            foreach (var condition in values)
             {
                 Assert.IsFalse(condition, message, conditionExpression);
             }

@@ -17,10 +17,11 @@ public class CultureUtilsTests
     [TestMethod]
     public void TryGetCultureInfo()
     {
-        if (CultureInfo.TryGetCultureInfo("en", out var cultureInfo1))
-            Assert.IsNotNull(cultureInfo1);
+        Assert.IsTrue(CultureInfo.TryGetCultureInfo("en", out var cultureInfo1));
+        Assert.IsNotNull(cultureInfo1);
+        Assert.AreEqual("en", cultureInfo1.Name);
 
-        if (CultureInfo.TryGetCultureInfo("aaaa", out var cultureInfo2) is false)
-            Assert.IsNull(cultureInfo2);
+        Assert.IsFalse(CultureInfo.TryGetCultureInfo("aaaa", out var cultureInfo2));
+        Assert.IsNull(cultureInfo2);
     }
 }

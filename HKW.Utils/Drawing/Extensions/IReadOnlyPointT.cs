@@ -3,10 +3,29 @@
 namespace HKW.HKWUtils.Drawing;
 
 /// <summary>
-///
+/// Point 几何接口扩展.
 /// </summary>
+/// <remarks>
+/// 加减及偏移保留数值类型的默认算术: 整数回绕, decimal 溢出抛错, 浮点遵循自身规则.
+/// </remarks>
 public static partial class IPointExtensions
 {
+    /// <summary>
+    /// 按字段值比较任意实现; 两个 null 相等, NaN 使用数值 Equals 语义.
+    /// </summary>
+    /// <remarks>
+    /// 接口变量的 == 可能绑定预定义引用相等; 需要值语义时显式调用本方法. 外部实现的 Equals 与哈希须遵循相同字段规则.
+    /// </remarks>
+    public static bool ValueEquals<T>(this IReadOnlyPoint<T>? value, IReadOnlyPoint<T>? other)
+        where T : struct, INumber<T>
+    {
+        if (value is null)
+            return other is null;
+        return other is not null
+            && EqualityComparer<T>.Default.Equals(value.X, other.X)
+            && EqualityComparer<T>.Default.Equals(value.Y, other.Y);
+    }
+
     /// <typeparam name="T">数值类型</typeparam>
     /// <param name="point">源点</param>
     extension<T>(IReadOnlyPoint<T> point)
@@ -18,9 +37,9 @@ public static partial class IPointExtensions
         /// <param name="a">点A</param>
         /// <param name="b">点B</param>
         /// <returns>是否相等</returns>
-        public static bool operator ==(IReadOnlyPoint<T> a, IReadOnlyPoint<T> b)
+        public static bool operator ==(IReadOnlyPoint<T>? a, IReadOnlyPoint<T>? b)
         {
-            return a.X == b.X && a.Y == b.Y;
+            return ValueEquals(a, b);
         }
 
         /// <summary>
@@ -29,9 +48,9 @@ public static partial class IPointExtensions
         /// <param name="a">点A</param>
         /// <param name="b">点B</param>
         /// <returns>是否不相等</returns>
-        public static bool operator !=(IReadOnlyPoint<T> a, IReadOnlyPoint<T> b)
+        public static bool operator !=(IReadOnlyPoint<T>? a, IReadOnlyPoint<T>? b)
         {
-            return !(a == b);
+            return ValueEquals(a, b) is false;
         }
 
         /// <summary>
@@ -63,7 +82,9 @@ public static partial class IPointExtensions
         /// <returns>添加后的新点</returns>
         public Point<T> Add(IReadOnlySize<T> size)
         {
-            return new Point<T>(point.X + size.Width, point.Y + size.Height);
+            ArgumentNullException.ThrowIfNull(point);
+            ArgumentNullException.ThrowIfNull(size);
+            return new Point<T>(unchecked(point.X + size.Width), unchecked(point.Y + size.Height));
         }
 
         /// <summary>
@@ -73,7 +94,9 @@ public static partial class IPointExtensions
         /// <returns></returns>
         public Point<T> Subtract(IReadOnlySize<T> size)
         {
-            return new Point<T>(point.X - size.Width, point.Y - size.Height);
+            ArgumentNullException.ThrowIfNull(point);
+            ArgumentNullException.ThrowIfNull(size);
+            return new Point<T>(unchecked(point.X - size.Width), unchecked(point.Y - size.Height));
         }
     }
 

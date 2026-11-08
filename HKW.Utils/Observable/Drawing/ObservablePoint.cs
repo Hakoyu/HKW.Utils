@@ -10,7 +10,7 @@ namespace HKW.HKWUtils.Observable;
 /// 可观测点
 /// </summary>
 /// <typeparam name="T">数值类型</typeparam>
-public sealed class ObservablePoint<T>
+public sealed partial class ObservablePoint<T>
     : INotifyPropertyChanging,
         INotifyPropertyChanged,
         IEquatable<IReadOnlyPoint<T>>,
@@ -38,24 +38,33 @@ public sealed class ObservablePoint<T>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _x;
 
+    private bool _isChanging;
+
     /// <inheritdoc/>
     public T X
     {
         get => _x;
         set
         {
-            if (_x == value)
+            using var mutation = new ObservablePropertyMutation(
+                ref _isChanging,
+                PropertyChanging,
+                PropertyChanged
+            );
+            if (EqualityComparer<T>.Default.Equals(_x, value))
                 return;
-            if (PropertyChanging is not null)
+            var changing = mutation.Changing;
+            var changed = mutation.Changed;
+            if (changing is not null)
             {
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.X);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.IsEmpty);
+                changing.Invoke(this, PropertyChangingArgsCache.X);
+                changing.Invoke(this, PropertyChangingArgsCache.IsEmpty);
             }
             _x = value;
-            if (PropertyChanged is not null)
+            if (changed is not null)
             {
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.X);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.IsEmpty);
+                changed.Invoke(this, PropertyChangedArgsCache.X);
+                changed.Invoke(this, PropertyChangedArgsCache.IsEmpty);
             }
         }
     }
@@ -69,13 +78,26 @@ public sealed class ObservablePoint<T>
         get => _y;
         set
         {
-            if (_y == value)
+            using var mutation = new ObservablePropertyMutation(
+                ref _isChanging,
+                PropertyChanging,
+                PropertyChanged
+            );
+            if (EqualityComparer<T>.Default.Equals(_y, value))
                 return;
-            PropertyChanging?.Invoke(this, PropertyChangingArgsCache.Y);
-            PropertyChanging?.Invoke(this, PropertyChangingArgsCache.IsEmpty);
+            var changing = mutation.Changing;
+            var changed = mutation.Changed;
+            if (changing is not null)
+            {
+                changing.Invoke(this, PropertyChangingArgsCache.Y);
+                changing.Invoke(this, PropertyChangingArgsCache.IsEmpty);
+            }
             _y = value;
-            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Y);
-            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.IsEmpty);
+            if (changed is not null)
+            {
+                changed.Invoke(this, PropertyChangedArgsCache.Y);
+                changed.Invoke(this, PropertyChangedArgsCache.IsEmpty);
+            }
         }
     }
 
@@ -114,7 +136,17 @@ public sealed class ObservablePoint<T>
     {
         if (other is null)
             return false;
-        return this == other;
+        return EqualityComparer<T>.Default.Equals(X, other.X)
+            && EqualityComparer<T>.Default.Equals(Y, other.Y);
+    }
+
+    /// <summary>
+    /// 比较具体点值, 避免将值类型参数装箱为接口.
+    /// </summary>
+    public bool Equals(Point<T> other)
+    {
+        return EqualityComparer<T>.Default.Equals(X, other.X)
+            && EqualityComparer<T>.Default.Equals(Y, other.Y);
     }
     #endregion
     /// <inheritdoc/>

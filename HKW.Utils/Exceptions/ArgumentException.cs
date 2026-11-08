@@ -22,7 +22,7 @@ public static partial class ArgumentExceptions
         /// <param name="argument">需要校验的参数值</param>
         /// <param name="expected">期望匹配的目标值</param>
         /// <param name="paramName">参数名</param>
-        /// <exception cref="System.ArgumentException">当 <paramref name="argument"/> 与 <paramref name="expected"/> 不相等时抛出</exception>
+        /// <exception cref="System.ArgumentException">当 <paramref name="argument"/> 与 <paramref name="expected"/> 相等时抛出</exception>
         public static void ThrowIfEquals<T>(
             T argument,
             T expected,
@@ -66,7 +66,7 @@ public static partial class ArgumentExceptions
         /// <param name="expected1">期望匹配的目标值</param>
         /// <param name="expected2">期望匹配的目标值</param>
         /// <param name="paramName">参数名</param>
-        /// <exception cref="System.ArgumentException">当 <paramref name="argument"/> 与任意 expected 参数不相等时抛出</exception>
+        /// <exception cref="System.ArgumentException">当 <paramref name="argument"/> 与全部 expected 参数均不相等时抛出</exception>
         public static void ThrowIfAllNotEquals<T>(
             T argument,
             T expected1,
@@ -185,15 +185,17 @@ public static partial class ArgumentExceptions
         /// 当 <paramref name="argument"/> 与 <paramref name="expecteds"/> 集合内所有不相等时抛出异常
         /// </summary>
         /// <param name="argument">需要校验的参数值</param>
-        /// <param name="expecteds">期望匹配的目标值</param>
+        /// <param name="expecteds">期望匹配的目标值; 必须为有限序列, 只遍历一次并在首次匹配时结束</param>
         /// <param name="paramName">参数名</param>
-        /// <exception cref="System.ArgumentException">当 <paramref name="argument"/> 与 <paramref name="expecteds"/> 不相等时抛出</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="expecteds"/> 为空引用</exception>
+        /// <exception cref="System.ArgumentException">当 <paramref name="argument"/> 与 <paramref name="expecteds"/> 中所有候选均不相等时抛出</exception>
         public static void ThrowIfAllNotEquals<T>(
             T argument,
             IEnumerable<T> expecteds,
             [CallerArgumentExpression("argument")] string? paramName = null
         )
         {
+            ArgumentNullException.ThrowIfNull(expecteds);
             if (expecteds is IList<T> list)
             {
                 for (var i = 0; i < list.Count; i++)
@@ -214,7 +216,7 @@ public static partial class ArgumentExceptions
             }
 
             throw new ArgumentException(
-                $"Argument value does not match the all expected values. Actual: [{argument?.ToString() ?? "null"}], Expected: {string.Join(", ", expecteds)}, ArgumentType: [{argument?.GetType().ToString() ?? "null"}].",
+                $"Argument value does not match any expected value. Actual: [{argument?.ToString() ?? "null"}], ArgumentType: [{argument?.GetType().ToString() ?? "null"}].",
                 paramName
             );
         }

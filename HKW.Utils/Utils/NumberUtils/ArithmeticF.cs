@@ -116,11 +116,11 @@ public static partial class NumberUtils
                 var right = (sbyte)value2;
                 return operatorType switch
                 {
-                    ArithmeticOperatorType.Addition => left + right,
-                    ArithmeticOperatorType.Subtraction => left - right,
-                    ArithmeticOperatorType.Multiply => left * right,
-                    ArithmeticOperatorType.Division => left / right,
-                    ArithmeticOperatorType.Modulus => left % right,
+                    ArithmeticOperatorType.Addition => unchecked((sbyte)(left + right)),
+                    ArithmeticOperatorType.Subtraction => unchecked((sbyte)(left - right)),
+                    ArithmeticOperatorType.Multiply => unchecked((sbyte)(left * right)),
+                    ArithmeticOperatorType.Division => unchecked((sbyte)(left / right)),
+                    ArithmeticOperatorType.Modulus => unchecked((sbyte)(left % right)),
                     _ => throw CreateUnsupportedOperatorException(operatorType),
                 };
             }
@@ -130,11 +130,11 @@ public static partial class NumberUtils
                 var right = (byte)value2;
                 return operatorType switch
                 {
-                    ArithmeticOperatorType.Addition => left + right,
-                    ArithmeticOperatorType.Subtraction => left - right,
-                    ArithmeticOperatorType.Multiply => left * right,
-                    ArithmeticOperatorType.Division => left / right,
-                    ArithmeticOperatorType.Modulus => left % right,
+                    ArithmeticOperatorType.Addition => unchecked((byte)(left + right)),
+                    ArithmeticOperatorType.Subtraction => unchecked((byte)(left - right)),
+                    ArithmeticOperatorType.Multiply => unchecked((byte)(left * right)),
+                    ArithmeticOperatorType.Division => unchecked((byte)(left / right)),
+                    ArithmeticOperatorType.Modulus => unchecked((byte)(left % right)),
                     _ => throw CreateUnsupportedOperatorException(operatorType),
                 };
             }
@@ -144,11 +144,11 @@ public static partial class NumberUtils
                 var right = (short)value2;
                 return operatorType switch
                 {
-                    ArithmeticOperatorType.Addition => left + right,
-                    ArithmeticOperatorType.Subtraction => left - right,
-                    ArithmeticOperatorType.Multiply => left * right,
-                    ArithmeticOperatorType.Division => left / right,
-                    ArithmeticOperatorType.Modulus => left % right,
+                    ArithmeticOperatorType.Addition => unchecked((short)(left + right)),
+                    ArithmeticOperatorType.Subtraction => unchecked((short)(left - right)),
+                    ArithmeticOperatorType.Multiply => unchecked((short)(left * right)),
+                    ArithmeticOperatorType.Division => unchecked((short)(left / right)),
+                    ArithmeticOperatorType.Modulus => unchecked((short)(left % right)),
                     _ => throw CreateUnsupportedOperatorException(operatorType),
                 };
             }
@@ -158,11 +158,11 @@ public static partial class NumberUtils
                 var right = (ushort)value2;
                 return operatorType switch
                 {
-                    ArithmeticOperatorType.Addition => left + right,
-                    ArithmeticOperatorType.Subtraction => left - right,
-                    ArithmeticOperatorType.Multiply => left * right,
-                    ArithmeticOperatorType.Division => left / right,
-                    ArithmeticOperatorType.Modulus => left % right,
+                    ArithmeticOperatorType.Addition => unchecked((ushort)(left + right)),
+                    ArithmeticOperatorType.Subtraction => unchecked((ushort)(left - right)),
+                    ArithmeticOperatorType.Multiply => unchecked((ushort)(left * right)),
+                    ArithmeticOperatorType.Division => unchecked((ushort)(left / right)),
+                    ArithmeticOperatorType.Modulus => unchecked((ushort)(left % right)),
                     _ => throw CreateUnsupportedOperatorException(operatorType),
                 };
             }
@@ -172,11 +172,11 @@ public static partial class NumberUtils
                 var right = (int)value2;
                 return operatorType switch
                 {
-                    ArithmeticOperatorType.Addition => left + right,
-                    ArithmeticOperatorType.Subtraction => left - right,
-                    ArithmeticOperatorType.Multiply => left * right,
-                    ArithmeticOperatorType.Division => left / right,
-                    ArithmeticOperatorType.Modulus => left % right,
+                    ArithmeticOperatorType.Addition => unchecked(left + right),
+                    ArithmeticOperatorType.Subtraction => unchecked(left - right),
+                    ArithmeticOperatorType.Multiply => unchecked(left * right),
+                    ArithmeticOperatorType.Division => unchecked(left / right),
+                    ArithmeticOperatorType.Modulus => unchecked(left % right),
                     _ => throw CreateUnsupportedOperatorException(operatorType),
                 };
             }
@@ -186,11 +186,11 @@ public static partial class NumberUtils
                 var right = (uint)value2;
                 return operatorType switch
                 {
-                    ArithmeticOperatorType.Addition => left + right,
-                    ArithmeticOperatorType.Subtraction => left - right,
-                    ArithmeticOperatorType.Multiply => left * right,
-                    ArithmeticOperatorType.Division => left / right,
-                    ArithmeticOperatorType.Modulus => left % right,
+                    ArithmeticOperatorType.Addition => unchecked(left + right),
+                    ArithmeticOperatorType.Subtraction => unchecked(left - right),
+                    ArithmeticOperatorType.Multiply => unchecked(left * right),
+                    ArithmeticOperatorType.Division => unchecked(left / right),
+                    ArithmeticOperatorType.Modulus => unchecked(left % right),
                     _ => throw CreateUnsupportedOperatorException(operatorType),
                 };
             }
@@ -200,11 +200,11 @@ public static partial class NumberUtils
                 var right = (long)value2;
                 return operatorType switch
                 {
-                    ArithmeticOperatorType.Addition => left + right,
-                    ArithmeticOperatorType.Subtraction => left - right,
-                    ArithmeticOperatorType.Multiply => left * right,
-                    ArithmeticOperatorType.Division => left / right,
-                    ArithmeticOperatorType.Modulus => left % right,
+                    ArithmeticOperatorType.Addition => unchecked(left + right),
+                    ArithmeticOperatorType.Subtraction => unchecked(left - right),
+                    ArithmeticOperatorType.Multiply => unchecked(left * right),
+                    ArithmeticOperatorType.Division => unchecked(left / right),
+                    ArithmeticOperatorType.Modulus => unchecked(left % right),
                     _ => throw CreateUnsupportedOperatorException(operatorType),
                 };
             }
@@ -214,11 +214,11 @@ public static partial class NumberUtils
                 var right = (ulong)value2;
                 return operatorType switch
                 {
-                    ArithmeticOperatorType.Addition => left + right,
-                    ArithmeticOperatorType.Subtraction => left - right,
-                    ArithmeticOperatorType.Multiply => left * right,
-                    ArithmeticOperatorType.Division => left / right,
-                    ArithmeticOperatorType.Modulus => left % right,
+                    ArithmeticOperatorType.Addition => unchecked(left + right),
+                    ArithmeticOperatorType.Subtraction => unchecked(left - right),
+                    ArithmeticOperatorType.Multiply => unchecked(left * right),
+                    ArithmeticOperatorType.Division => unchecked(left / right),
+                    ArithmeticOperatorType.Modulus => unchecked(left % right),
                     _ => throw CreateUnsupportedOperatorException(operatorType),
                 };
             }

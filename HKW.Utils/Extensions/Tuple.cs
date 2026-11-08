@@ -21,7 +21,7 @@ public static class TupleExtensions
         /// <inheritdoc/>
         public static bool operator !=((T1, T2) a, KeyValuePair<T1, T2> b)
         {
-            return !(a == b);
+            return (a == b) is false;
         }
 
         /// <summary>

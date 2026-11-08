@@ -19,10 +19,10 @@ public static partial class IPointExtensions
         /// <exception cref="ArgumentNullException"><paramref name="other"/> 为 null</exception>
         public void SetValue(IReadOnlyPoint<T> other)
         {
+            ArgumentNullException.ThrowIfNull(point);
             ArgumentNullException.ThrowIfNull(other);
 
-            point.X = other.X;
-            point.Y = other.Y;
+            SetValue(point, other.X, other.Y);
         }
 
         /// <summary>
@@ -32,6 +32,7 @@ public static partial class IPointExtensions
         /// <param name="y">坐标Y</param>
         public void SetValue(T x, T y)
         {
+            ArgumentNullException.ThrowIfNull(point);
             point.X = x;
             point.Y = y;
         }
@@ -43,8 +44,10 @@ public static partial class IPointExtensions
         /// <param name="dy">偏移量Y</param>
         public void Offset(T dx, T dy)
         {
-            point.X += dx;
-            point.Y += dy;
+            ArgumentNullException.ThrowIfNull(point);
+            var x = unchecked(point.X + dx);
+            var y = unchecked(point.Y + dy);
+            SetValue(point, x, y);
         }
 
         /// <summary>
@@ -53,6 +56,8 @@ public static partial class IPointExtensions
         /// <param name="p">偏移量</param>
         public void Offset(IReadOnlyPoint<T> p)
         {
+            ArgumentNullException.ThrowIfNull(point);
+            ArgumentNullException.ThrowIfNull(p);
             Offset(point, p.X, p.Y);
         }
     }

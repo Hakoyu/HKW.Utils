@@ -33,7 +33,11 @@ public class ObservableSelectableListWrapper<TItem, TList> : ObservableListWrapp
     public int SelectedIndex
     {
         get => _selectedIndex;
-        set => SetSelectedIndex(value);
+        set
+        {
+            using var operation = BeginOperation();
+            SetSelectedIndex(value);
+        }
     }
 
     private TItem _selectedItem = default!;
@@ -47,14 +51,8 @@ public class ObservableSelectableListWrapper<TItem, TList> : ObservableListWrapp
         get => _selectedItem;
         set
         {
-            var index = SourceList.IndexOf(value);
-            if (index < 0)
-            {
-                ClearSelection();
-                return;
-            }
-
-            SetSelectedIndex(index);
+            using var operation = BeginOperation();
+            SetSelectedIndex(SourceList.IndexOf(value));
         }
     }
 #pragma warning restore S4275
@@ -67,7 +65,10 @@ public class ObservableSelectableListWrapper<TItem, TList> : ObservableListWrapp
     )
     {
         if (_selectedIndex >= index)
-            SetSelectedIndex(_selectedIndex + 1);
+        {
+            _selectedIndex++;
+            OnPropertyChanged(PropertyChangedArgsCache.SelectedIndex);
+        }
 
         base.OnListAdded(args, item, index);
     }
@@ -80,9 +81,12 @@ public class ObservableSelectableListWrapper<TItem, TList> : ObservableListWrapp
     )
     {
         if (_selectedIndex > index)
-            SetSelectedIndex(_selectedIndex - 1);
+        {
+            _selectedIndex--;
+            OnPropertyChanged(PropertyChangedArgsCache.SelectedIndex);
+        }
         else if (_selectedIndex == index)
-            ClearSelection();
+            ClearSelectionCore();
 
         base.OnListRemoved(args, item, index);
     }
@@ -104,7 +108,7 @@ public class ObservableSelectableListWrapper<TItem, TList> : ObservableListWrapp
     /// <inheritdoc/>
     protected override void OnListCleared()
     {
-        ClearSelection();
+        ClearSelectionCore();
 
         base.OnListCleared();
     }
@@ -113,7 +117,7 @@ public class ObservableSelectableListWrapper<TItem, TList> : ObservableListWrapp
     {
         if (index == -1)
         {
-            ClearSelection();
+            ClearSelectionCore();
             return;
         }
 
@@ -122,11 +126,14 @@ public class ObservableSelectableListWrapper<TItem, TList> : ObservableListWrapp
         if (_selectedIndex == index)
             return;
 
+        var item = SourceList[index];
+        var hadSelection = HasSelection;
         _selectedIndex = index;
-        _selectedItem = SourceList[index];
+        _selectedItem = item;
         OnPropertyChanged(PropertyChangedArgsCache.SelectedItem);
         OnPropertyChanged(PropertyChangedArgsCache.SelectedIndex);
-        OnPropertyChanged(PropertyChangedArgsCache.HasSelection);
+        if (hadSelection is false)
+            OnPropertyChanged(PropertyChangedArgsCache.HasSelection);
     }
 
     private void UpdateSelectedItem()
@@ -135,9 +142,18 @@ public class ObservableSelectableListWrapper<TItem, TList> : ObservableListWrapp
         OnPropertyChanged(PropertyChangedArgsCache.SelectedItem);
     }
 
-    private void ClearSelection()
+    /// <summary>
+    /// 清除选择, 不删除集合中的项目. 默认值仍可通过选择属性选中.
+    /// </summary>
+    public void ClearSelection()
     {
-        if (_selectedIndex == -1 && EqualityComparer<TItem>.Default.Equals(_selectedItem, default!))
+        using var operation = BeginOperation();
+        ClearSelectionCore();
+    }
+
+    private void ClearSelectionCore()
+    {
+        if (_selectedIndex == -1)
             return;
 
         _selectedIndex = -1;

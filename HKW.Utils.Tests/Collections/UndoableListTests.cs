@@ -52,7 +52,7 @@ public class UndoableListTests
     {
         var list = _createList();
         var cList = list.ToList();
-        Assert.IsTrue(list.Undo(5));
+        Assert.IsTrue(list.UndoCount(5));
         Assert.HasCount(5, list.UndoStack);
         Assert.IsTrue(list.UndoStack.SequenceEqual(cList.Skip(5)));
         Assert.AreEqual(5, list.Count);
@@ -63,10 +63,10 @@ public class UndoableListTests
     public void UndoCountFail()
     {
         var list = _createList();
-        Assert.IsFalse(list.Undo(-1));
-        Assert.IsFalse(list.Undo(list.Count + 1));
+        Assert.IsFalse(list.UndoCount(-1));
+        Assert.IsFalse(list.UndoCount(list.Count + 1));
         list.Clear();
-        Assert.IsFalse(list.Undo(1));
+        Assert.IsFalse(list.UndoCount(1));
     }
 
     [TestMethod]
@@ -74,7 +74,7 @@ public class UndoableListTests
     {
         var list = _createList();
         var cList = list.ToList();
-        Assert.IsTrue(list.Undo("5"));
+        Assert.IsTrue(list.UndoThroughItem("5"));
         Assert.HasCount(4, list);
         Assert.HasCount(6, list.UndoStack);
         Assert.IsTrue(list.UndoStack.SequenceEqual(cList.Skip(cList.IndexOf("5"))));
@@ -85,10 +85,10 @@ public class UndoableListTests
     public void UndoItemFail()
     {
         var list = _createList();
-        Assert.IsFalse(list.Undo("-1"));
-        Assert.IsFalse(list.Undo("100"));
+        Assert.IsFalse(list.UndoThroughItem("-1"));
+        Assert.IsFalse(list.UndoThroughItem("100"));
         list.Clear();
-        Assert.IsFalse(list.Undo("1"));
+        Assert.IsFalse(list.UndoThroughItem("1"));
     }
 
     [TestMethod]
@@ -119,9 +119,9 @@ public class UndoableListTests
 
         for (var i = 1; i <= list.Count; i++)
         {
-            Assert.IsTrue(list.Undo(i));
+            Assert.IsTrue(list.UndoCount(i));
             Assert.HasCount(i, list.UndoStack);
-            Assert.IsTrue(list.Redo(i));
+            Assert.IsTrue(list.RedoCount(i));
             Assert.IsEmpty(list.UndoStack);
             Assert.AreEqual(10, list.Count);
             Assert.AreEqual("10", list.Last());
@@ -132,12 +132,12 @@ public class UndoableListTests
     public void RedoCountFail()
     {
         var list = _createList();
-        Assert.IsFalse(list.Redo(-1));
-        Assert.IsFalse(list.Redo(0));
-        Assert.IsFalse(list.Redo(1));
-        Assert.IsTrue(list.Undo(5));
-        Assert.IsFalse(list.Redo(-1));
-        Assert.IsFalse(list.Redo(6));
+        Assert.IsFalse(list.RedoCount(-1));
+        Assert.IsFalse(list.RedoCount(0));
+        Assert.IsFalse(list.RedoCount(1));
+        Assert.IsTrue(list.UndoCount(5));
+        Assert.IsFalse(list.RedoCount(-1));
+        Assert.IsFalse(list.RedoCount(6));
     }
 
     [TestMethod]
@@ -147,8 +147,8 @@ public class UndoableListTests
 
         for (var i = 1; i <= list.Count; i++)
         {
-            Assert.IsTrue(list.Undo(list[i - 1]));
-            Assert.IsTrue(list.Redo(list.UndoStack.Last()));
+            Assert.IsTrue(list.UndoThroughItem(list[i - 1]));
+            Assert.IsTrue(list.RedoThroughItem(list.UndoStack.Last()));
             Assert.IsEmpty(list.UndoStack);
             Assert.AreEqual(10, list.Count);
             Assert.AreEqual("10", list.Last());
@@ -159,10 +159,10 @@ public class UndoableListTests
     public void RedoItemFail()
     {
         var list = _createList();
-        Assert.IsFalse(list.Redo("1"));
-        Assert.IsTrue(list.Undo("5"));
-        Assert.IsFalse(list.Redo("4"));
-        Assert.IsFalse(list.Redo("11"));
+        Assert.IsFalse(list.RedoThroughItem("1"));
+        Assert.IsTrue(list.UndoThroughItem("5"));
+        Assert.IsFalse(list.RedoThroughItem("4"));
+        Assert.IsFalse(list.RedoThroughItem("11"));
     }
 }
 #pragma warning restore S6608

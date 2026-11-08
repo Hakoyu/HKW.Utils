@@ -24,12 +24,12 @@ public ref struct SpanSearchCharsSplitEnumerator
     private readonly StringSplitOptions _options;
 
     /// <summary>
-    /// 当前范围在 <see cref="_source"/> 中的起始索引（包含）
+    /// 当前范围在 <see cref="_source"/> 中的起始索引( 包含)
     /// </summary>
     private int _startCurrent = 0;
 
     /// <summary>
-    /// 当前范围在 <see cref="_source"/> 中的结束索引（不包含）
+    /// 当前范围在 <see cref="_source"/> 中的结束索引( 不包含)
     /// </summary>
     private int _endCurrent = 0;
 
@@ -49,12 +49,14 @@ public ref struct SpanSearchCharsSplitEnumerator
     public readonly ReadOnlySpan<char> Source => _source;
 
     /// <summary>
-    /// 获取枚举中的当前分割的元素范围
+    /// 获取枚举中的当前分割的元素范围; 保留源中的原始位置, TrimEntries 不改变此范围.
+    /// 仅在 MoveNext 返回 true 后读取; Reset 后范围为 0..0.
     /// </summary>
     public Range Current => new Range(_startCurrent, _endCurrent);
 
     /// <summary>
-    /// 获取枚举中的当前元素
+    /// 获取枚举中的当前元素; TrimEntries 仅修剪此值, 不修改 Current.
+    /// 仅在 MoveNext 返回 true 后读取; Reset 后为空.
     /// </summary>
     public ReadOnlySpan<char> CurrentValue { get; private set; }
 
@@ -64,12 +66,19 @@ public ref struct SpanSearchCharsSplitEnumerator
     /// <param name="source">源Span</param>
     /// <param name="searchValues">搜索值</param>
     /// <param name="options">字符串分割设置</param>
+    /// <exception cref="ArgumentException">选项包含未定义的标志位. </exception>
     public SpanSearchCharsSplitEnumerator(
         ReadOnlySpan<char> source,
         SearchValues<char> searchValues,
         StringSplitOptions options
     )
     {
+        if (
+            (options & ~(StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            != 0
+        )
+            throw new ArgumentException("Unsupported split options.", nameof(options));
+        ArgumentNullException.ThrowIfNull(searchValues);
         _source = source;
         _searchValues = searchValues;
         _options = options;
@@ -243,21 +252,29 @@ public ref struct SpanSearchCharsSplitEnumerator
         _endCurrent = 0;
         _startNext = 0;
         _isEnd = false;
+        CurrentValue = default;
     }
 
     /// <summary>
-    /// 转换为列表
+    /// 转换为列表; 始终从头枚举, 成功或转换器抛出异常后均重置枚举器.
     /// </summary>
     /// <typeparam name="TItem">列表项类型</typeparam>
     /// <param name="converter">转换器</param>
     /// <returns>列表</returns>
     public List<TItem> ToList<TItem>(Func<SpanSearchCharsSplitEnumerator, TItem> converter)
     {
-        var list = new List<TItem>();
         Reset();
-        while (MoveNext())
-            list.Add(converter(this));
-        Reset();
-        return list;
+        try
+        {
+            ArgumentNullException.ThrowIfNull(converter);
+            var list = new List<TItem>();
+            while (MoveNext())
+                list.Add(converter(this));
+            return list;
+        }
+        finally
+        {
+            Reset();
+        }
     }
 }

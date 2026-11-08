@@ -14,26 +14,34 @@ public static class ExpressionExtensions
     /// <summary>
     /// 获取表达式属性名
     /// </summary>
-    /// <param name="expression">属性访问表达式</param>
+    /// <param name="expression">属性访问表达式, 可包含内置转换, 但不接受字段, 算术运算或用户定义转换</param>
     /// <returns>属性名</returns>
     /// <exception cref="ArgumentException">表达式不是属性访问表达式</exception>
-    /// <remarks><![CDATA[
+    /// <remarks>
+    /// <![CDATA[
     /// GetPropertyName(x => x.ID) // "ID"
-    /// ]]></remarks>
+    /// ]]>
+    /// </remarks>
     public static string GetPropertyName(this LambdaExpression expression)
     {
-        if (expression.Body is MemberExpression member)
-        {
-            return member.Member.Name;
-        }
-        else if (
-            expression.Body is UnaryExpression unary
-            && unary.Operand is MemberExpression unaryMember
+        ArgumentNullException.ThrowIfNull(expression);
+        var body = expression.Body;
+        while (
+            body
+                is UnaryExpression
+                {
+                    NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked,
+                    Method: null
+                } conversion
         )
         {
-            return unaryMember.Member.Name;
+            body = conversion.Operand;
         }
-        else
-            throw new ArgumentException($"Not supported expression \"{expression}\"");
+        if (body is MemberExpression { Member: System.Reflection.PropertyInfo property })
+            return property.Name;
+        throw new ArgumentException(
+            $"The expression must access a property: \"{expression}\".",
+            nameof(expression)
+        );
     }
 }

@@ -19,6 +19,7 @@ public static partial class IReadOnlyRectangleTExtensions
         /// <exception cref="ArgumentNullException"><paramref name="otherRectangle"/> 为 null</exception>
         public void SetValue(IReadOnlyRectangle<T> otherRectangle)
         {
+            ArgumentNullException.ThrowIfNull(rectangle);
             ArgumentNullException.ThrowIfNull(otherRectangle);
 
             SetValue(
@@ -38,6 +39,7 @@ public static partial class IReadOnlyRectangleTExtensions
         /// <exception cref="ArgumentNullException"><paramref name="point"/> 或 <paramref name="size"/> 为 null</exception>
         public void SetValue(IReadOnlyPoint<T> point, IReadOnlySize<T> size)
         {
+            ArgumentNullException.ThrowIfNull(rectangle);
             ArgumentNullException.ThrowIfNull(point);
             ArgumentNullException.ThrowIfNull(size);
 
@@ -53,6 +55,9 @@ public static partial class IReadOnlyRectangleTExtensions
         /// <param name="height">高</param>
         public void SetValue(T x, T y, T width, T height)
         {
+            ArgumentNullException.ThrowIfNull(rectangle);
+            GeometryMath<T>.ValidateSize(width, nameof(width));
+            GeometryMath<T>.ValidateSize(height, nameof(height));
             rectangle.X = x;
             rectangle.Y = y;
             rectangle.Width = width;

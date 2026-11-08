@@ -24,12 +24,12 @@ public ref struct SpanSearchValuesSplitEnumerator<T>
     private readonly SearchValues<T> _searchValues = default!;
 
     /// <summary>
-    /// 当前范围在 <see cref="_source"/> 中的起始索引（包含）
+    /// 当前范围在 <see cref="_source"/> 中的起始索引( 包含)
     /// </summary>
     private int _startCurrent = 0;
 
     /// <summary>
-    /// 当前范围在 <see cref="_source"/> 中的结束索引（不包含）
+    /// 当前范围在 <see cref="_source"/> 中的结束索引( 不包含)
     /// </summary>
     private int _endCurrent = 0;
 
@@ -54,12 +54,13 @@ public ref struct SpanSearchValuesSplitEnumerator<T>
     public readonly ReadOnlySpan<T> Source => _source;
 
     /// <summary>
-    /// 获取枚举中的当前分割的元素范围
+    /// 获取枚举中的当前分割的元素范围.
+    /// 仅在 MoveNext 返回 true 后读取; Reset 后范围为 0..0.
     /// </summary>
     public Range Current => new Range(_startCurrent, _endCurrent);
 
     /// <summary>
-    /// 获取枚举中的当前元素
+    /// 获取枚举中的当前元素; 仅在 MoveNext 返回 true 后读取, Reset 后为空.
     /// </summary>
     public ReadOnlySpan<T> CurrentValue => _source[_startCurrent.._endCurrent];
 
@@ -73,6 +74,7 @@ public ref struct SpanSearchValuesSplitEnumerator<T>
     /// </summary>
     internal SpanSearchValuesSplitEnumerator(ReadOnlySpan<T> source, SearchValues<T> searchValues)
     {
+        ArgumentNullException.ThrowIfNull(searchValues);
         _source = source;
         _searchValues = searchValues;
     }
@@ -119,18 +121,25 @@ public ref struct SpanSearchValuesSplitEnumerator<T>
     }
 
     /// <summary>
-    /// 转换为列表
+    /// 转换为列表; 始终从头枚举, 成功或转换器抛出异常后均重置枚举器.
     /// </summary>
     /// <typeparam name="TItem">列表项类型</typeparam>
     /// <param name="converter">转换器</param>
     /// <returns>列表</returns>
     public List<TItem> ToList<TItem>(Func<SpanSearchValuesSplitEnumerator<T>, TItem> converter)
     {
-        var list = new List<TItem>();
         Reset();
-        while (MoveNext())
-            list.Add(converter(this));
-        Reset();
-        return list;
+        try
+        {
+            ArgumentNullException.ThrowIfNull(converter);
+            var list = new List<TItem>();
+            while (MoveNext())
+                list.Add(converter(this));
+            return list;
+        }
+        finally
+        {
+            Reset();
+        }
     }
 }

@@ -18,16 +18,7 @@ public class IDictionaryTests
     public void GetPai_Error()
     {
         var dic = Enumerable.Range(0, 10).ToDictionary(x => x, x => x);
-        KeyValuePair<int, int>? pair = null;
-        try
-        {
-            pair = dic.GetPair(-1);
-            Assert.IsTrue(pair.Equals(new KeyValuePair<int, int>(0, 0)));
-        }
-        catch
-        {
-            Assert.IsNull(pair);
-        }
+        Assert.ThrowsExactly<KeyNotFoundException>(() => dic.GetPair(-1));
     }
 
     [TestMethod]

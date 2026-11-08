@@ -17,6 +17,7 @@ public class ReadOnlyList<T> : IList<T>, IReadOnlyList<T>, IList
     /// <inheritdoc/>
     public ReadOnlyList(IEnumerable<T> collection)
     {
+        ArgumentNullException.ThrowIfNull(collection);
         if (collection is IList<T> list)
             _list = list;
         else
@@ -97,11 +98,11 @@ public class ReadOnlyList<T> : IList<T>, IReadOnlyList<T>, IList
     #endregion
 
     #region IList
-    object ICollection.SyncRoot => ((ICollection)_list).SyncRoot;
+    object ICollection.SyncRoot => CollectionInterfaceBridge.SyncRoot(_list, this);
 
     bool IList.IsFixedSize => true;
 
-    bool ICollection.IsSynchronized => ((ICollection)_list).IsSynchronized;
+    bool ICollection.IsSynchronized => CollectionInterfaceBridge.IsSynchronized(_list);
 
     object? IList.this[int index]
     {
@@ -116,12 +117,12 @@ public class ReadOnlyList<T> : IList<T>, IReadOnlyList<T>, IList
 
     bool IList.Contains(object? value)
     {
-        return _list.Contains((T)value!);
+        return CollectionInterfaceBridge.IsCompatible<T>(value) && Contains((T)value!);
     }
 
     int IList.IndexOf(object? value)
     {
-        throw new NotSupportedException(ExceptionMessage.IsReadOnlyCollection);
+        return CollectionInterfaceBridge.IsCompatible<T>(value) ? IndexOf((T)value!) : -1;
     }
 
     void IList.Insert(int index, object? value)
@@ -147,7 +148,7 @@ public class ReadOnlyList<T> : IList<T>, IReadOnlyList<T>, IList
 
     void ICollection.CopyTo(Array array, int index)
     {
-        ((IList)_list).CopyTo(array, index);
+        CollectionInterfaceBridge.CopyTo(_list, array, index);
     }
 
     #endregion

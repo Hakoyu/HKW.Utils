@@ -140,7 +140,10 @@ public static class DictionaryExtensions
     /// <param name="dictionary">字典</param>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    /// <returns>是否成功</returns>
+    /// <returns>调用前是否已存在键; false 也可能表示已成功创建新值.</returns>
+    /// <remarks>
+    /// 查找和写入分开执行, 不提供并发原子 GetOrAdd 语义.
+    /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryGetValueOrCreate<TKey, TValue>(
         this IDictionary<TKey, TValue> dictionary,
@@ -165,7 +168,10 @@ public static class DictionaryExtensions
     /// <param name="key">键</param>
     /// <param name="value">值</param>
     /// <param name="newValue">新值</param>
-    /// <returns>是否成功</returns>
+    /// <returns>调用前是否已存在键; false 也可能表示已成功创建新值.</returns>
+    /// <remarks>
+    /// 查找和写入分开执行, 不提供并发原子 GetOrAdd 语义.
+    /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryGetValueOrCreate<TKey, TValue>(
         this IDictionary<TKey, TValue> dictionary,
@@ -190,7 +196,10 @@ public static class DictionaryExtensions
     /// <param name="key">键</param>
     /// <param name="value">值</param>
     /// <param name="getValue">新值</param>
-    /// <returns>是否成功</returns>
+    /// <returns>调用前是否已存在键; false 也可能表示已成功创建新值.</returns>
+    /// <remarks>
+    /// 查找和写入分开执行, 不提供并发原子 GetOrAdd 语义.
+    /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryGetValueOrCreate<TKey, TValue>(
         this IDictionary<TKey, TValue> dictionary,
@@ -205,38 +214,4 @@ public static class DictionaryExtensions
             value = dictionary[key] = getValue();
         return result;
     }
-
-    ///// <summary>
-    ///// 创建一个只读字典,可手动转换字典中的值为只读模式
-    ///// <para>示例:
-    ///// <code>
-    ///// <![CDATA[
-    ///// Dictionary<int, List<int>> dic = new();
-    ///// ReadOnlyDictionary<int, IReadOnlyCollection<int>> readOnlyDic = dic.AsReadOnlyOnWrapper<int, List<int>, IReadOnlyCollection<int>>();
-    /////
-    ///// Dictionary<int, HashSet<int>> dic = new();
-    ///// ReadOnlyDictionary<int, IReadOnlySet<int>> readOnlyDic = dic.AsReadOnlyOnWrapper<int, HashSet<int>, IReadOnlySet<int>>();
-    /////
-    ///// Dictionary<int, Dictionary<int,int>> dic = new();
-    ///// ReadOnlyDictionary<int, IReadOnlyDictionary<int,int>> readOnlyDic = dic.AsReadOnlyOnWrapper<int, Dictionary<int,int>, IReadOnlyDictionary<int,int>>();
-    ///// ]]>
-    ///// </code>
-    ///// </para>
-    ///// </summary>
-    ///// <typeparam name="TKey">键</typeparam>
-    ///// <typeparam name="TValue">值</typeparam>
-    ///// <typeparam name="TReadOnlyValue">只读值</typeparam>
-    ///// <param name="dictionary">此字典</param>
-    ///// <returns>只读字典</returns>
-    //public static ReadOnlyDictionary<TKey, TReadOnlyValue> AsReadOnlyOnWrapper<
-    //    TKey,
-    //    TValue,
-    //    TReadOnlyValue
-    //>(this IDictionary<TKey, TValue> dictionary)
-    //    where TKey : notnull
-    //    where TValue : TReadOnlyValue
-    //    where TReadOnlyValue : notnull
-    //{
-    //    return new(new ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>(dictionary));
-    //}
 }

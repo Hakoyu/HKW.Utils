@@ -42,8 +42,8 @@ public static class IReadOnlyListTTestUtils
             Assert.Throws<NotSupportedException>(() => list[i] = newItems.First());
         }
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => list[-1] = newItems.First());
-        Assert.Throws<ArgumentOutOfRangeException>(() => list[list.Count] = newItems.First());
+        Assert.ThrowsExactly<NotSupportedException>(() => list[-1] = newItems.First());
+        Assert.ThrowsExactly<NotSupportedException>(() => list[list.Count] = newItems.First());
     }
 
     public static void InsertFail<T>(Func<IList<T>> createList, IReadOnlyCollection<T> newItems)
@@ -55,8 +55,11 @@ public static class IReadOnlyListTTestUtils
             Assert.Throws<NotSupportedException>(() => list.Insert(i, newItems.First()));
         }
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => list.Insert(-1, newItems.First()));
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.ThrowsExactly<NotSupportedException>(() =>
+            list.Insert(list.Count, newItems.First())
+        );
+        Assert.ThrowsExactly<NotSupportedException>(() => list.Insert(-1, newItems.First()));
+        Assert.ThrowsExactly<NotSupportedException>(() =>
             list.Insert(list.Count + 1, newItems.First())
         );
     }
@@ -70,10 +73,8 @@ public static class IReadOnlyListTTestUtils
             Assert.Throws<NotSupportedException>(() => list.RemoveAt(i));
         }
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => list.Insert(-1, newItems.First()));
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
-            list.Insert(list.Count + 1, newItems.First())
-        );
+        Assert.ThrowsExactly<NotSupportedException>(() => list.RemoveAt(-1));
+        Assert.ThrowsExactly<NotSupportedException>(() => list.RemoveAt(list.Count));
     }
 
     public static void IndexOf<T>(Func<IList<T>> createList)

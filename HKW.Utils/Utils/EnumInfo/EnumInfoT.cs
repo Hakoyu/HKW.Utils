@@ -31,8 +31,9 @@ public sealed class EnumInfo<TEnum> : IEnumInfo<TEnum>
         EnumInfo.InfosByType.TryAdd(StaticEnumType, StaticInfoDictionary.Untyped);
         if (StaticInfoDictionary.TryGetValue((TEnum)@enum, out var enumInfo))
             return enumInfo;
-        // 找不到意味着枚举由多个 flag 组成, 创建新枚举
-        return new EnumInfo<TEnum>((TEnum)@enum, false);
+        // 找不到可能意味着枚举由多个标志组成, 也可能是未命名零值或未知值, 需要创建新枚举信息.
+        var value = (TEnum)@enum;
+        return new EnumInfo<TEnum>(value, EqualityComparer<TEnum>.Default.Equals(value, default));
     }
 
     /// <inheritdoc/>
@@ -216,6 +217,42 @@ public sealed class EnumInfo<TEnum> : IEnumInfo<TEnum>
     {
         return Value.GetHashCode();
     }
+
+    /// <inheritdoc/>
+    public static bool operator ==(EnumInfo<TEnum> a, TEnum b)
+    {
+        return a.Value.Equals(b);
+    }
+
+    /// <inheritdoc/>
+    public static bool operator !=(EnumInfo<TEnum> a, TEnum b)
+    {
+        return !(a == b);
+    }
+
+    /// <inheritdoc/>
+    public static bool operator ==(TEnum a, EnumInfo<TEnum> b)
+    {
+        return a.Equals(b.Value);
+    }
+
+    /// <inheritdoc/>
+    public static bool operator !=(TEnum a, EnumInfo<TEnum> b)
+    {
+        return !(a == b);
+    }
+
+    /// <inheritdoc/>
+    public static bool operator ==(EnumInfo<TEnum> a, EnumInfo<TEnum> b)
+    {
+        return a.Value.Equals(b.Value);
+    }
+
+    /// <inheritdoc/>
+    public static bool operator !=(EnumInfo<TEnum> a, EnumInfo<TEnum> b)
+    {
+        return !(a == b);
+    }
     #endregion
 
     #region Operator
@@ -260,15 +297,7 @@ public sealed class EnumInfo<TEnum> : IEnumInfo<TEnum>
             Enum.GetValues<TEnum>()
                 .Select(v => new KeyValuePair<TEnum, EnumInfo<TEnum>>(
                     v,
-                    new EnumInfo<TEnum>(
-                        v,
-                        NumberUtils.CompareByF(
-                            v,
-                            0,
-                            StaticUnderlyingType,
-                            ComparisonOperatorType.Equality
-                        )
-                    )
+                    new EnumInfo<TEnum>(v, EqualityComparer<TEnum>.Default.Equals(v, default))
                 ))
         )
     );
@@ -311,7 +340,7 @@ public sealed class EnumInfo<TEnum> : IEnumInfo<TEnum>
     #endregion
 
     /// <summary>
-    /// 获取默认(首个)枚举信息
+    /// 获取默认(零值)枚举信息, 不保证为首个声明成员
     /// </summary>
     /// <returns>信息</returns>
     public static EnumInfo<TEnum> GetInfo()

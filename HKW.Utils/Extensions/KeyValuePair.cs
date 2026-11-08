@@ -14,9 +14,11 @@ public static partial class KeyValuePairExtensions
         where TKey : notnull
     {
         /// <summary>
-        /// 是空的
+        /// 键和值是否均等于各自的默认值, 不表示键值对不存在.
         /// </summary>
-        public bool IsEmpty => EqualityComparer<TKey>.Default.Equals(pair.Key, default);
+        public bool IsDefaultValue =>
+            EqualityComparer<TKey>.Default.Equals(pair.Key, default)
+            && EqualityComparer<TValue>.Default.Equals(pair.Value, default);
 
         /// <inheritdoc/>
         public static bool operator ==(KeyValuePair<TKey, TValue> a, KeyValuePair<TKey, TValue> b)
@@ -28,7 +30,7 @@ public static partial class KeyValuePairExtensions
         /// <inheritdoc/>
         public static bool operator !=(KeyValuePair<TKey, TValue> a, KeyValuePair<TKey, TValue> b)
         {
-            return !(a == b);
+            return (a == b) is false;
         }
 
         /// <inheritdoc/>
@@ -41,7 +43,7 @@ public static partial class KeyValuePairExtensions
         /// <inheritdoc/>
         public static bool operator !=(KeyValuePair<TKey, TValue> a, (TKey, TValue) b)
         {
-            return !(a == b);
+            return (a == b) is false;
         }
 
         /// <summary>

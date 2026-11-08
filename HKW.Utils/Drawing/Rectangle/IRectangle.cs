@@ -6,6 +6,9 @@ namespace HKW.HKWUtils.Drawing;
 /// 矩形接口
 /// </summary>
 /// <typeparam name="T">数据类型</typeparam>
+/// <remarks>
+/// 宽高 setter 应拒绝负值; 坐标允许负值. 只读视图不暴露任何 setter.
+/// </remarks>
 public interface IRectangle<T> : IReadOnlyRectangle<T>
     where T : struct, INumber<T>
 {

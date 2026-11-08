@@ -7,7 +7,7 @@ using HKW.HKWUtils.Natives;
 namespace HKW.HKWUtils.Collections;
 
 /// <summary>
-/// 简易的非通用单个项目的只读列表
+/// 简易的单个项目的只读列表
 /// </summary>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
@@ -93,7 +93,8 @@ public sealed class SingleItemReadOnlyList<T> : IList<T>, IReadOnlyList<T>, ILis
     /// <inheritdoc/>
     public void CopyTo(T[] array, int arrayIndex)
     {
-        array.SetValue(_item, arrayIndex);
+        CollectionInterfaceBridge.ValidateArray(array, arrayIndex, 1);
+        array[arrayIndex] = _item;
     }
 
     /// <inheritdoc/>
@@ -143,17 +144,17 @@ public sealed class SingleItemReadOnlyList<T> : IList<T>, IReadOnlyList<T>, ILis
 
     bool IList.Contains(object? value)
     {
-        return _item?.Equals(value) is true;
+        return CollectionInterfaceBridge.IsCompatible<T>(value) && Contains((T)value!);
     }
 
     int IList.IndexOf(object? value)
     {
-        return _item?.Equals(value) is true ? 0 : -1;
+        return CollectionInterfaceBridge.IsCompatible<T>(value) ? IndexOf((T)value!) : -1;
     }
 
     void ICollection.CopyTo(Array array, int index)
     {
-        array.SetValue(_item, index);
+        CollectionInterfaceBridge.CopyTo(this, array, index);
     }
 
     #endregion

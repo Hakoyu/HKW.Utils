@@ -46,20 +46,18 @@ public partial class ObservableSelectableSet<T>
         }
         set
         {
+            using var operation = BeginOperation();
             if (value == -1)
             {
-                ClearSelection();
+                ClearSelectionCore();
                 return;
             }
 
             ArgumentOutOfRangeException.ThrowIfIndexOutOfRange(SourceSet, value);
-            SelectedItem = SourceSet[value];
+            SetSelectedItemCore(SourceSet[value]);
         }
     }
 
     /// <inheritdoc/>
-    protected override void OnSelectionChanged()
-    {
-        OnPropertyChanged(PropertyChangedArgsCache.SelectedIndex);
-    }
+    protected override int GetSelectionIndex() => SelectedIndex;
 }

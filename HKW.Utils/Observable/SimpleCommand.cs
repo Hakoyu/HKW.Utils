@@ -13,9 +13,7 @@ public sealed class SimpleCommand<T> : ICommand
     private readonly Action<T> _execute;
     private readonly Func<bool>? _canExecute;
 
-    /// <summary>
-    /// 初始化简易命令
-    /// </summary>
+    /// <inheritdoc/>
     /// <param name="execute">执行方法</param>
     /// <param name="canExecute">是否可执行的判断方法</param>
     public SimpleCommand(Action<T> execute, Func<bool>? canExecute = null)
@@ -29,13 +27,17 @@ public sealed class SimpleCommand<T> : ICommand
     /// <inheritdoc/>
     public event EventHandler? CanExecuteChanged;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// 查询是否可执行, 不检查或转换参数.
+    /// </summary>
     public bool CanExecute(object? parameter)
     {
         return _canExecute?.Invoke() ?? true;
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// 直接转换参数并执行, 由调用方决定是否先检查 CanExecute.
+    /// </summary>
     public void Execute(object? parameter)
     {
         _execute((T)parameter!);

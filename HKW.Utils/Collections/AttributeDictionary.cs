@@ -11,6 +11,10 @@ namespace HKW.HKWUtils.Collections;
 /// <summary>
 /// 特性字典
 /// </summary>
+/// <remarks>
+/// 按特性的实际类型精确查询, 不按基类匹配. GetAttribute 缺失时返回空值, GetAttributes 缺失时抛出 KeyNotFoundException, Try 方法返回假.
+/// 字典结构不可变, 但其中的特性对象并非深度不可变.
+/// </remarks>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public class AttributeDictionary
@@ -118,7 +122,7 @@ public class AttributeDictionary
     public ImmutableArray<TAttribute> GetAttributes<TAttribute>()
         where TAttribute : Attribute
     {
-        return _dictionary[typeof(TAttribute)].CastArray<TAttribute>();
+        return ConvertAttributes<TAttribute>(_dictionary[typeof(TAttribute)]);
     }
 
     /// <summary>
@@ -178,15 +182,27 @@ public class AttributeDictionary
     /// <typeparam name="TAttribute">特性类型</typeparam>
     /// <param name="attributes">指定类型的所有特性</param>
     /// <returns>是否获取成功</returns>
-    public bool TryGetAttributes<TAttribute>(
-        [MaybeNullWhen(false)] out ImmutableArray<Attribute> attributes
+    public bool TryGetAttributes<TAttribute>(out ImmutableArray<TAttribute> attributes)
+        where TAttribute : Attribute
+    {
+        if (_dictionary.TryGetValue(typeof(TAttribute), out var source))
+        {
+            attributes = ConvertAttributes<TAttribute>(source);
+            return true;
+        }
+        attributes = default;
+        return false;
+    }
+
+    private static ImmutableArray<TAttribute> ConvertAttributes<TAttribute>(
+        ImmutableArray<Attribute> source
     )
         where TAttribute : Attribute
     {
-        if (_dictionary.TryGetValue(typeof(TAttribute), out attributes))
-            return true;
-        else
-            return false;
+        var builder = ImmutableArray.CreateBuilder<TAttribute>(source.Length);
+        foreach (var attribute in source)
+            builder.Add((TAttribute)attribute);
+        return builder.MoveToImmutable();
     }
 
     /// <summary>

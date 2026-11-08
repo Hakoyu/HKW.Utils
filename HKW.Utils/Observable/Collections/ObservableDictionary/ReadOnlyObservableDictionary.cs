@@ -21,7 +21,9 @@ namespace HKW.HKWUtils.Observable;
 public sealed class ReadOnlyObservableDictionary<TKey, TValue>
     : IObservableDictionary<TKey, TValue>,
         IReadOnlyObservableDictionary<TKey, TValue>,
-        IDisposable
+        IDisposable,
+        ICollectionNotificationSnapshot,
+        ICollectionNotificationState
     where TKey : notnull
 {
     /// <summary>
@@ -29,11 +31,48 @@ public sealed class ReadOnlyObservableDictionary<TKey, TValue>
     /// </summary>
     private readonly IObservableDictionary<TKey, TValue> _dictionary;
 
+    private readonly CollectionNotificationScope<
+        ObservableDictionaryChangingEventHandler<TKey, TValue>,
+        ObservableDictionaryChangedEventHandler<TKey, TValue>
+    > _notifications = new();
+
+    bool ICollectionNotificationState.IsNotifying =>
+        _notifications.IsActive
+        || _dictionary is ICollectionNotificationState { IsNotifying: true };
+
+    bool ICollectionNotificationSnapshot.CaptureNotifications()
+    {
+        if (_notifications.IsActive)
+            return false;
+        _notifications.Enter(
+            DictionaryChanging,
+            DictionaryChanged,
+            CollectionChanged,
+            PropertyChanged
+        );
+        _operationKeys = _observableKeys;
+        _operationValues = _observableValues;
+        _notifications.Include(_operationKeys);
+        _notifications.Include(_operationValues);
+        return true;
+    }
+
+    void ICollectionNotificationSnapshot.ReleaseNotifications()
+    {
+        _notifications.Exit();
+        _operationKeys = null;
+        _operationValues = null;
+    }
+
+    private ReadOnlyObservableKeyCollection<TKey, TValue>? _operationKeys;
+    private ReadOnlyObservableValueCollection<TKey, TValue>? _operationValues;
+
     #region Ctor
     /// <inheritdoc/>
     /// <param name="dictionary">可观测字典</param>
     public ReadOnlyObservableDictionary(IObservableDictionary<TKey, TValue> dictionary)
     {
+        ArgumentNullException.ThrowIfNull(dictionary);
         _dictionary = dictionary;
 
         _dictionary.DictionaryChanging += Dictionary_DictionaryChanging;
@@ -49,7 +88,7 @@ public sealed class ReadOnlyObservableDictionary<TKey, TValue>
         NotifyDictionaryChangeEventArgs<TKey, TValue> e
     )
     {
-        DictionaryChanging?.Invoke(this, e);
+        (_notifications.IsActive ? _notifications.Changing : DictionaryChanging)?.Invoke(this, e);
     }
 
     private void Dictionary_DictionaryChanged(
@@ -57,17 +96,17 @@ public sealed class ReadOnlyObservableDictionary<TKey, TValue>
         NotifyDictionaryChangeEventArgs<TKey, TValue> e
     )
     {
-        DictionaryChanged?.Invoke(this, e);
+        (_notifications.IsActive ? _notifications.Changed : DictionaryChanged)?.Invoke(this, e);
     }
 
     private void Dictionary_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        CollectionChanged?.Invoke(this, e);
+        (_notifications.IsActive ? _notifications.Collection : CollectionChanged)?.Invoke(this, e);
     }
 
     private void Dictionary_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        PropertyChanged?.Invoke(this, e);
+        (_notifications.IsActive ? _notifications.Property : PropertyChanged)?.Invoke(this, e);
     }
 
     private void ObservableKeys_CollectionChanged(
@@ -75,7 +114,7 @@ public sealed class ReadOnlyObservableDictionary<TKey, TValue>
         NotifyCollectionChangedEventArgs e
     )
     {
-        _observableKeys?.InvokeEvent(e);
+        (_notifications.IsActive ? _operationKeys : _observableKeys)?.InvokeEvent(e);
     }
 
     private void ObservableValues_CollectionChanged(
@@ -83,7 +122,7 @@ public sealed class ReadOnlyObservableDictionary<TKey, TValue>
         NotifyCollectionChangedEventArgs e
     )
     {
-        _observableValues?.InvokeEvent(e);
+        (_notifications.IsActive ? _operationValues : _observableValues)?.InvokeEvent(e);
     }
     #endregion
 
@@ -91,13 +130,9 @@ public sealed class ReadOnlyObservableDictionary<TKey, TValue>
     #region IDisposable
     private bool _disposed;
 
-    /// <inheritdoc/>
-    ~ReadOnlyObservableDictionary()
-    {
-        Dispose(false);
-    }
-
-    /// <inheritdoc/>
+    /// <summary>
+    /// 解除源事件订阅; 释放后仍可读取源内容, 当前操作已捕获的通知仍会完成.
+    /// </summary>
     public void Dispose()
     {
         Dispose(true);
@@ -199,7 +234,8 @@ public sealed class ReadOnlyObservableDictionary<TKey, TValue>
 
     bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
     {
-        return _dictionary.ContainsKey(item.Key);
+        return _dictionary.TryGetValue(item.Key, out var value)
+            && EqualityComparer<TValue>.Default.Equals(value, item.Value);
     }
 
     void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(

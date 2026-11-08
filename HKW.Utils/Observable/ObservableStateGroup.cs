@@ -33,6 +33,34 @@ public abstract class ObservableStateGroup<TState, TMember>
     /// 正在改变
     /// </summary>
     private bool _changing = false;
+    private TState _state = default!;
+
+    private Operation BeginOperation()
+    {
+        if (_changing)
+            throw new InvalidOperationException("Reentrant state group writes are not supported.");
+        _changing = true;
+        return new(this, PropertyChanging, PropertyChanged);
+    }
+
+    private readonly struct Operation(
+        ObservableStateGroup<TState, TMember> owner,
+        PropertyChangingEventHandler? changing,
+        PropertyChangedEventHandler? changed
+    ) : IDisposable
+    {
+        public void Changing() => changing?.Invoke(owner, PropertyChangingArgsCache.State);
+
+        public void Commit(TState state)
+        {
+            var different = EqualityComparer<TState>.Default.Equals(owner._state, state) is false;
+            owner._state = state;
+            if (different)
+                changed?.Invoke(owner, PropertyChangedArgsCache.State);
+        }
+
+        public void Dispose() => owner._changing = false;
+    }
 
     /// <inheritdoc/>
     /// <param name="members">成员</param>
@@ -40,14 +68,22 @@ public abstract class ObservableStateGroup<TState, TMember>
     protected ObservableStateGroup(IEnumerable<TMember> members, bool initialize)
     {
         ArgumentNullException.ThrowIfNull(members);
-        State = default!;
         _members = members.ToHashSet();
+        foreach (var item in _members)
+            ArgumentNullException.ThrowIfNull(item);
         Members = new(_members);
         foreach (var item in _members)
             item.PropertyChanged += Item_PropertyChanged;
-        if (initialize)
+        try
         {
-            Initialize();
+            if (initialize)
+                Initialize();
+        }
+        catch
+        {
+            foreach (var item in _members)
+                item.PropertyChanged -= Item_PropertyChanged;
+            throw;
         }
     }
 
@@ -56,22 +92,18 @@ public abstract class ObservableStateGroup<TState, TMember>
     /// </summary>
     protected void Initialize()
     {
-        _changing = true;
-        try
-        {
-            State = InitializeState(Members);
-        }
-        finally
-        {
-            _changing = false;
-        }
+        using var operation = BeginOperation();
+        operation.Changing();
+        operation.Commit(InitializeState(Members));
     }
 
     private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (_changing)
             return;
-        State = MemberPropertyChanged((TMember)sender!, e);
+        using var operation = BeginOperation();
+        operation.Changing();
+        operation.Commit(MemberPropertyChanged((TMember)sender!, e));
     }
 
     /// <summary>
@@ -115,7 +147,9 @@ public abstract class ObservableStateGroup<TState, TMember>
     /// </summary>
     /// <param name="state">状态</param>
     /// <param name="members">成员</param>
-    /// <remarks>新状态</remarks>
+    /// <remarks>
+    /// 新状态
+    /// </remarks>
     protected abstract TState StateChanged(TState state, ICollection<TMember> members);
 
     /// <summary>
@@ -123,26 +157,14 @@ public abstract class ObservableStateGroup<TState, TMember>
     /// </summary>
     public TState State
     {
-        get => field;
+        get => _state;
         set
         {
-            if (EqualityComparer<TState>.Default.Equals(field, value))
+            using var operation = BeginOperation();
+            if (EqualityComparer<TState>.Default.Equals(_state, value))
                 return;
-            PropertyChanging?.Invoke(this, PropertyChangingArgsCache.State);
-            field = value;
-            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.State);
-
-            if (_changing)
-                return;
-            _changing = true;
-            try
-            {
-                field = StateChanged(value, Members);
-            }
-            finally
-            {
-                _changing = false;
-            }
+            operation.Changing();
+            operation.Commit(StateChanged(value, Members));
         }
     }
 
@@ -155,56 +177,61 @@ public abstract class ObservableStateGroup<TState, TMember>
     /// <inheritdoc/>
     public void Add(TMember item)
     {
-        if (_members.Add(item))
+        using var operation = BeginOperation();
+        ArgumentNullException.ThrowIfNull(item);
+        if (_members.Contains(item))
+            return;
+        operation.Changing();
+        _members.Add(item);
+        TState state;
+        try
         {
-            item.PropertyChanged += Item_PropertyChanged;
-            _changing = true;
-            try
-            {
-                State = MemberAdded(item);
-            }
-            finally
-            {
-                _changing = false;
-            }
+            state = MemberAdded(item);
         }
+        catch
+        {
+            _members.Remove(item);
+            throw;
+        }
+        item.PropertyChanged += Item_PropertyChanged;
+        operation.Commit(state);
     }
 
     /// <inheritdoc/>
     public bool Remove(TMember item)
     {
-        var result = _members.Remove(item);
-        if (result)
+        using var operation = BeginOperation();
+        if (_members.TryGetValue(item, out var stored) is false)
+            return false;
+        operation.Changing();
+        _members.Remove(stored);
+        TState state;
+        try
         {
-            item.PropertyChanged -= Item_PropertyChanged;
-            _changing = true;
-            try
-            {
-                State = MemberRemoved(item);
-            }
-            finally
-            {
-                _changing = false;
-            }
+            state = MemberRemoved(stored);
         }
-        return result;
+        catch
+        {
+            _members.Add(stored);
+            throw;
+        }
+        stored.PropertyChanged -= Item_PropertyChanged;
+        operation.Commit(state);
+        return true;
     }
 
     /// <inheritdoc/>
     public void Clear()
     {
+        using var operation = BeginOperation();
+        if (_members.Count == 0)
+            return;
+        operation.Changing();
+        var state = MemberClearing(Members);
         foreach (var item in _members)
             item.PropertyChanged -= Item_PropertyChanged;
-        _changing = true;
-        try
-        {
-            State = MemberClearing(Members);
-        }
-        finally
-        {
-            _changing = false;
-        }
         _members.Clear();
+        operation.Commit(state);
     }
 
     /// <inheritdoc/>

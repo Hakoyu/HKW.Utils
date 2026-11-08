@@ -43,7 +43,14 @@ public class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictionary>
     public TKey SelectedKey
     {
         get => SelectedItem.Key;
-        set => SelectedItem = SourceDictionary.GetPair(value);
+        set
+        {
+            using var operation = BeginOperation();
+            if (SourceDictionary.TryGetValue(value, out var storedValue))
+                SetSelectedItemCore(new(value, storedValue));
+            else
+                ClearSelectionCore();
+        }
     }
 
     /// <summary>
@@ -59,7 +66,11 @@ public class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictionary>
     public KeyValuePair<TKey, TValue> SelectedItem
     {
         get => _selectedItem;
-        set => SetSelectedItem(value);
+        set
+        {
+            using var operation = BeginOperation();
+            SetSelectedItemCore(value);
+        }
     }
 
     /// <inheritdoc/>
@@ -69,8 +80,10 @@ public class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictionary>
         int removeIndex
     )
     {
-        if (EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(_selectedItem, pair))
-            ClearSelection();
+        if (_hasSelection && Comparer.Equals(_selectedItem.Key, pair.Key))
+            ClearSelectionCore();
+        else if (CommitSelectionIndex())
+            OnPropertyChanged(PropertyChangedArgsCache.SelectedIndex);
 
         base.OnDictionaryRemoved(args, pair, removeIndex);
     }
@@ -82,8 +95,8 @@ public class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictionary>
         KeyValuePair<TKey, TValue> oldPair
     )
     {
-        if (EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(_selectedItem, oldPair))
-            SetSelectedItem(newPair);
+        if (_hasSelection && Comparer.Equals(_selectedItem.Key, oldPair.Key))
+            CommitSelection(newPair, true);
 
         base.OnDictionaryReplaced(args, newPair, oldPair);
     }
@@ -91,41 +104,93 @@ public class ObservableSelectableDictionaryWrapper<TKey, TValue, TDictionary>
     /// <inheritdoc/>
     protected override void OnDictionaryCleared()
     {
-        ClearSelection();
+        ClearSelectionCore();
         base.OnDictionaryCleared();
     }
 
-    private void SetSelectedItem(KeyValuePair<TKey, TValue> item)
+    /// <summary>
+    /// 在当前操作作用域内选择键值对, 缺失或值不匹配时清除选择.
+    /// </summary>
+    private protected void SetSelectedItemCore(KeyValuePair<TKey, TValue> item)
     {
-        if (EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(_selectedItem, item))
+        if (
+            SourceDictionary.TryGetValue(item.Key, out var value) is false
+            || EqualityComparer<TValue>.Default.Equals(value, item.Value) is false
+        )
+        {
+            ClearSelectionCore();
+            return;
+        }
+
+        if (SourceDictionary is OrderedDictionary<TKey, TValue> ordered)
+            item = ordered.GetAt(ordered.IndexOf(item.Key));
+        else
+            item = GetStoredSelection(item.Key);
+        CommitSelection(item, true);
+    }
+
+    /// <summary>
+    /// 清除选择, 不删除键值对. 默认键值对仍可通过选择属性选中.
+    /// </summary>
+    public void ClearSelection()
+    {
+        using var operation = BeginOperation();
+        ClearSelectionCore();
+    }
+
+    /// <summary>
+    /// 在当前操作作用域内清除选择.
+    /// </summary>
+    private protected void ClearSelectionCore() => CommitSelection(default, false);
+
+    private void CommitSelection(KeyValuePair<TKey, TValue> item, bool hasSelection)
+    {
+        var selectionChanged = _hasSelection != hasSelection;
+        var keyChanged =
+            EqualityComparer<TKey>.Default.Equals(_selectedItem.Key, item.Key) is false;
+        var valueChanged =
+            EqualityComparer<TValue>.Default.Equals(_selectedItem.Value, item.Value) is false;
+        if (selectionChanged is false && keyChanged is false && valueChanged is false)
             return;
 
         _selectedItem = item;
-        _hasSelection = EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(item, default)
-            ? false
-            : Contains(item);
+        _hasSelection = hasSelection;
+        var indexChanged = CommitSelectionIndex();
         OnPropertyChanged(PropertyChangedArgsCache.SelectedItem);
-        OnPropertyChanged(PropertyChangedArgsCache.SelectedKey);
-        OnPropertyChanged(PropertyChangedArgsCache.SelectedValue);
-        OnPropertyChanged(PropertyChangedArgsCache.HasSelection);
+        if (selectionChanged || keyChanged)
+            OnPropertyChanged(PropertyChangedArgsCache.SelectedKey);
+        if (selectionChanged || valueChanged)
+            OnPropertyChanged(PropertyChangedArgsCache.SelectedValue);
+        if (selectionChanged)
+            OnPropertyChanged(PropertyChangedArgsCache.HasSelection);
+        if (indexChanged)
+            OnPropertyChanged(PropertyChangedArgsCache.SelectedIndex);
         OnSelectionChanged();
     }
 
-    private void ClearSelection()
+    private KeyValuePair<TKey, TValue> GetStoredSelection(TKey key)
     {
-        if (
-            _hasSelection is false
-            && EqualityComparer<KeyValuePair<TKey, TValue>>.Default.Equals(_selectedItem, default!)
-        )
-            return;
+        foreach (var pair in SourceDictionary)
+            if (Comparer.Equals(pair.Key, key))
+                return pair;
+        throw new InvalidOperationException(
+            "The source dictionary comparer must match the supplied comparer."
+        );
+    }
 
-        _selectedItem = default!;
-        _hasSelection = false;
-        OnPropertyChanged(PropertyChangedArgsCache.SelectedItem);
-        OnPropertyChanged(PropertyChangedArgsCache.SelectedKey);
-        OnPropertyChanged(PropertyChangedArgsCache.SelectedValue);
-        OnPropertyChanged(PropertyChangedArgsCache.HasSelection);
-        OnSelectionChanged();
+    private int _selectionIndex = -1;
+
+    /// <summary>
+    /// 获取有序后端的选择索引, 无索引后端返回 -1.
+    /// </summary>
+    protected virtual int GetSelectionIndex() => -1;
+
+    private bool CommitSelectionIndex()
+    {
+        var index = GetSelectionIndex();
+        var changed = index != _selectionIndex;
+        _selectionIndex = index;
+        return changed;
     }
 
     /// <summary>

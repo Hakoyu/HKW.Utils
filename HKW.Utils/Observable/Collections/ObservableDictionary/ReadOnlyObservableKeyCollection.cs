@@ -17,7 +17,9 @@ namespace HKW.HKWUtils.Observable;
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public sealed class ReadOnlyObservableKeyCollection<TKey, TValue>
     : IObservableCollection<TKey>,
-        IReadOnlyObservableCollection<TKey>
+        IReadOnlyObservableCollection<TKey>,
+        ICollectionNotificationSnapshot,
+        ICollectionNotificationState
     where TKey : notnull
 {
     /// <inheritdoc/>
@@ -26,6 +28,26 @@ public sealed class ReadOnlyObservableKeyCollection<TKey, TValue>
     {
         _dictionary = dictionary;
     }
+
+    private readonly CollectionNotificationScope<Delegate, Delegate> _notifications = new();
+
+    bool ICollectionNotificationState.IsNotifying =>
+        _notifications.IsActive
+        || _dictionary is ICollectionNotificationState { IsNotifying: true };
+    internal bool HasCollectionObservers =>
+        _notifications.IsActive
+            ? _notifications.Collection is not null
+            : CollectionChanged is not null;
+
+    bool ICollectionNotificationSnapshot.CaptureNotifications()
+    {
+        if (_notifications.IsActive)
+            return false;
+        _notifications.Enter(null, null, CollectionChanged, PropertyChanged);
+        return true;
+    }
+
+    void ICollectionNotificationSnapshot.ReleaseNotifications() => _notifications.Exit();
 
     private readonly IDictionary<TKey, TValue> _dictionary;
 
@@ -73,15 +95,58 @@ public sealed class ReadOnlyObservableKeyCollection<TKey, TValue>
         return GetEnumerator();
     }
 
+    internal void Notify(
+        NotifyCollectionChangedAction action,
+        TKey? newItem = default,
+        TKey? oldItem = default,
+        int index = -1
+    )
+    {
+        var collection = _notifications.IsActive ? _notifications.Collection : CollectionChanged;
+        var property = _notifications.IsActive ? _notifications.Property : PropertyChanged;
+        if (collection is not null)
+        {
+            var args = action switch
+            {
+                NotifyCollectionChangedAction.Add => new NotifyCollectionChangedEventArgs(
+                    action,
+                    newItem,
+                    index
+                ),
+                NotifyCollectionChangedAction.Remove => new NotifyCollectionChangedEventArgs(
+                    action,
+                    oldItem,
+                    index
+                ),
+                NotifyCollectionChangedAction.Replace => new NotifyCollectionChangedEventArgs(
+                    action,
+                    newItem,
+                    oldItem,
+                    index
+                ),
+                _ => NotifyCollectionChangedEventArgs.Cache_Reset,
+            };
+            collection(this, args);
+        }
+        if (action is not NotifyCollectionChangedAction.Replace)
+            property?.Invoke(this, PropertyChangedArgsCache.Count);
+    }
+
     /// <summary>
     /// 触发事件
     /// </summary>
     /// <param name="args">事件参数</param>
     public void InvokeEvent(NotifyCollectionChangedEventArgs args)
     {
-        CollectionChanged?.Invoke(this, args);
+        (_notifications.IsActive ? _notifications.Collection : CollectionChanged)?.Invoke(
+            this,
+            args
+        );
         if (args.Action is not NotifyCollectionChangedAction.Replace)
-            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Count);
+            (_notifications.IsActive ? _notifications.Property : PropertyChanged)?.Invoke(
+                this,
+                PropertyChangedArgsCache.Count
+            );
     }
 
     /// <inheritdoc/>

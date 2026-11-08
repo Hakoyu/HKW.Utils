@@ -10,7 +10,7 @@ namespace HKW.HKWUtilsTests.Observable;
 public sealed class ObservableSetTests : ObservableSetTestsBase
 {
     protected override IObservableSet<string> CreateSet() =>
-        new ObservableSet<string>(Enumerable.StringRange(1, 10));
+        new ObservableSet<string>(Enumerable.Range(1, 3).Select(i => i.ToString()));
 }
 
 [TestClass]
@@ -18,7 +18,7 @@ public sealed class ObservableSetWrapperTests : ObservableSetTestsBase
 {
     protected override IObservableSet<string> CreateSet() =>
         new ObservableSetWrapper<string, OrderedHashSet<string>>(
-            new OrderedHashSet<string>(Enumerable.StringRange(1, 10)),
+            new OrderedHashSet<string>(Enumerable.Range(1, 3).Select(i => i.ToString())),
             null
         );
 }
@@ -28,7 +28,7 @@ public abstract class ObservableSetTestsBase
     protected abstract IObservableSet<string> CreateSet();
 
     static IReadOnlyCollection<string> _newItems = new ReadOnlyCollection<string>(
-        Enumerable.Range(100, 10).Select(i => i.ToString()).ToList()
+        Enumerable.Range(100, 5).Select(i => i.ToString()).ToList()
     );
 
     [TestMethod]
@@ -43,12 +43,85 @@ public abstract class ObservableSetTestsBase
         ObservableCollectionUtils.Test(CreateSet, _newItems);
     }
 
+    [TestMethod]
+    public void Add_WithDuplicateAndOverlappingItems()
+    {
+        var set = CreateSet();
+        var expected = set.ToHashSet();
+        var changing = 0;
+        var changed = 0;
+        set.SetChanging += (sender, e) =>
+        {
+            Assert.AreSame(set, sender);
+            Assert.AreEqual(SetChangeAction.Add, e.Action);
+            changing++;
+        };
+        set.SetChanged += (sender, e) =>
+        {
+            Assert.AreSame(set, sender);
+            Assert.AreEqual(SetChangeAction.Add, e.Action);
+            changed++;
+        };
+        var successfulAdds = 0;
+        foreach (var item in new[] { "1", "100", "100", "101", "102" })
+        {
+            var added = expected.Add(item);
+            Assert.AreEqual(added, set.Add(item));
+            successfulAdds += added ? 1 : 0;
+            Assert.AreEqual(successfulAdds, changing);
+            Assert.AreEqual(successfulAdds, changed);
+            Assert.IsTrue(expected.SetEquals(set));
+        }
+        Assert.AreEqual(3, successfulAdds);
+    }
+
+    [TestMethod]
+    public void ExceptWith_PartialOverlapAndNoOp()
+    {
+        var set = CreateSet();
+        var before = set.ToHashSet();
+        string[] other = ["2", "2", "100"];
+        var expected = before.Except(other).ToHashSet();
+        var removed = before.Intersect(other).ToArray();
+        var changing = new List<NotifySetChangeEventArgs<string>>();
+        var changed = new List<NotifySetChangeEventArgs<string>>();
+        set.SetChanging += (sender, e) =>
+        {
+            Assert.AreSame(set, sender);
+            Assert.IsTrue(before.SetEquals(sender));
+            changing.Add(e);
+        };
+        set.SetChanged += (sender, e) =>
+        {
+            Assert.AreSame(set, sender);
+            Assert.IsTrue(expected.SetEquals(sender));
+            changed.Add(e);
+        };
+        set.ExceptWith(other);
+        Assert.AreEqual(1, changing.Count);
+        Assert.AreEqual(1, changed.Count);
+        foreach (var e in changing.Concat(changed))
+        {
+            Assert.AreEqual(SetChangeAction.Except, e.Action);
+            Assert.IsNull(e.NewItems);
+            Assert.IsNotNull(e.OldItems);
+            Assert.IsNotNull(e.OtherItems);
+            CollectionAssert.AreEquivalent(removed, e.OldItems.ToArray());
+            CollectionAssert.AreEqual(other, e.OtherItems.ToArray());
+        }
+        Assert.IsTrue(expected.SetEquals(set));
+        set.ExceptWith(other);
+        Assert.AreEqual(1, changing.Count);
+        Assert.AreEqual(1, changed.Count);
+        Assert.IsTrue(expected.SetEquals(set));
+    }
+
     #region Changing
     [TestMethod]
     public void ChangingOnAdd()
     {
         var set = CreateSet();
-        var oldCount = set.Count;
+        var expectedCount = _newItems.Distinct().Except(set).Count();
 
         var triggerCount = 0;
         var newItem = default(string);
@@ -66,7 +139,7 @@ public abstract class ObservableSetTestsBase
         }
         set.SetChanging -= Set_SetChanging;
 
-        Assert.AreEqual(oldCount, triggerCount);
+        Assert.AreEqual(expectedCount, triggerCount);
 
         void Set_SetChanging(IObservableSet<string> sender, NotifySetChangeEventArgs<string> e)
         {
@@ -174,7 +247,7 @@ public abstract class ObservableSetTestsBase
             triggerCount++;
             Assert.AreEqual(SetChangeAction.Intersect, e.Action);
             Assert.IsNull(e.NewItems);
-            Assert.IsTrue(e.OldItems!.UnorderedEqual(copySet.Except(currentOtherSet)));
+            Assert.IsTrue(copySet.Except(currentOtherSet).ToHashSet().SetEquals(e.OldItems!));
             Assert.IsTrue(e.OtherItems!.SequenceEqual(currentOtherSet));
         }
     }
@@ -216,7 +289,7 @@ public abstract class ObservableSetTestsBase
             triggerCount++;
             Assert.AreEqual(SetChangeAction.Except, e.Action);
             Assert.IsNull(e.NewItems);
-            Assert.IsTrue(e.OldItems!.UnorderedEqual(copySet.Intersect(currentOtherSet)));
+            Assert.IsTrue(copySet.Intersect(currentOtherSet).ToHashSet().SetEquals(e.OldItems!));
             Assert.IsTrue(e.OtherItems!.SequenceEqual(currentOtherSet));
         }
     }
@@ -257,11 +330,7 @@ public abstract class ObservableSetTestsBase
         {
             triggerCount++;
             Assert.AreEqual(SetChangeAction.SymmetricExcept, e.Action);
-            Assert.IsTrue(
-                e.NewItems!.UnorderedEqual(
-                    currentOtherSet.Except(currentOtherSet.Intersect(copySet))
-                )
-            );
+            Assert.IsTrue(currentOtherSet.Except(copySet).ToHashSet().SetEquals(e.NewItems!));
             Assert.IsTrue(e.OldItems!.SequenceEqual(currentOtherSet.Intersect(copySet)));
             Assert.IsTrue(e.OtherItems!.SequenceEqual(currentOtherSet));
         }
@@ -317,7 +386,7 @@ public abstract class ObservableSetTestsBase
     public void ChangedOnAdd()
     {
         var set = CreateSet();
-        var oldCount = set.Count;
+        var expectedCount = _newItems.Distinct().Except(set).Count();
 
         var triggerCount = 0;
         var newItem = default(string);
@@ -335,7 +404,7 @@ public abstract class ObservableSetTestsBase
         }
         set.SetChanged -= Set_SetChanged;
 
-        Assert.AreEqual(oldCount, triggerCount);
+        Assert.AreEqual(expectedCount, triggerCount);
 
         void Set_SetChanged(IObservableSet<string> sender, NotifySetChangeEventArgs<string> e)
         {
@@ -442,7 +511,7 @@ public abstract class ObservableSetTestsBase
             triggerCount++;
             Assert.AreEqual(SetChangeAction.Intersect, e.Action);
             Assert.IsNull(e.NewItems);
-            Assert.IsTrue(e.OldItems!.UnorderedEqual(copySet.Except(currentOtherSet)));
+            Assert.IsTrue(copySet.Except(currentOtherSet).ToHashSet().SetEquals(e.OldItems!));
             Assert.IsTrue(e.OtherItems!.SequenceEqual(currentOtherSet));
         }
     }
@@ -459,32 +528,32 @@ public abstract class ObservableSetTestsBase
         triggerCount = 0;
         currentOtherSet = copySet;
         set.SetChanged += Set_SetChanged;
-        set.IntersectWith(currentOtherSet);
-        set.SetChanged -= Set_SetChanged;
-        Assert.AreEqual(0, triggerCount);
-
-        set = CreateSet();
-        triggerCount = 0;
-        currentOtherSet = _newItems;
-        set.SetChanged += Set_SetChanged;
-        set.IntersectWith(currentOtherSet);
+        set.ExceptWith(currentOtherSet);
         set.SetChanged -= Set_SetChanged;
         Assert.AreEqual(1, triggerCount);
 
         set = CreateSet();
         triggerCount = 0;
-        currentOtherSet = concatSet;
+        currentOtherSet = _newItems;
         set.SetChanged += Set_SetChanged;
-        set.IntersectWith(currentOtherSet);
+        set.ExceptWith(currentOtherSet);
         set.SetChanged -= Set_SetChanged;
         Assert.AreEqual(0, triggerCount);
+
+        set = CreateSet();
+        triggerCount = 0;
+        currentOtherSet = concatSet;
+        set.SetChanged += Set_SetChanged;
+        set.ExceptWith(currentOtherSet);
+        set.SetChanged -= Set_SetChanged;
+        Assert.AreEqual(1, triggerCount);
 
         void Set_SetChanged(IObservableSet<string> sender, NotifySetChangeEventArgs<string> e)
         {
             triggerCount++;
-            Assert.AreEqual(SetChangeAction.Intersect, e.Action);
+            Assert.AreEqual(SetChangeAction.Except, e.Action);
             Assert.IsNull(e.NewItems);
-            Assert.IsTrue(e.OldItems!.UnorderedEqual(copySet.Except(currentOtherSet)));
+            Assert.IsTrue(copySet.Intersect(currentOtherSet).ToHashSet().SetEquals(e.OldItems!));
             Assert.IsTrue(e.OtherItems!.SequenceEqual(currentOtherSet));
         }
     }
@@ -525,11 +594,7 @@ public abstract class ObservableSetTestsBase
         {
             triggerCount++;
             Assert.AreEqual(SetChangeAction.SymmetricExcept, e.Action);
-            Assert.IsTrue(
-                e.NewItems!.UnorderedEqual(
-                    currentOtherSet.Except(currentOtherSet.Intersect(copySet))
-                )
-            );
+            Assert.IsTrue(currentOtherSet.Except(copySet).ToHashSet().SetEquals(e.NewItems!));
             Assert.IsTrue(e.OldItems!.SequenceEqual(currentOtherSet.Intersect(copySet)));
             Assert.IsTrue(e.OtherItems!.SequenceEqual(currentOtherSet));
         }

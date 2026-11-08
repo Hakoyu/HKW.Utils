@@ -6,6 +6,204 @@ namespace HKW.HKWUtilsTests.Observable;
 [TestClass]
 public class ReadOnlyObservableDictionaryTests
 {
+    [TestMethod]
+    public void ReadOnlyInterfaces()
+    {
+        var source = new ObservableDictionary<int, int>(
+            new Dictionary<int, int> { [1] = 10, [2] = 20 }
+        );
+        using var view = new ReadOnlyObservableDictionary<int, int>(source);
+        var notifications = 0;
+        view.DictionaryChanging += (_, _) => notifications++;
+        view.DictionaryChanged += (_, _) => notifications++;
+        view.CollectionChanged += (_, _) => notifications++;
+        view.PropertyChanged += (_, _) => notifications++;
+        IReadOnlyDictionaryTTestUtils.Test<int, int>(
+            () => view,
+            new[] { KeyValuePair.Create(3, 30), KeyValuePair.Create(4, 40) }
+        );
+        Assert.AreEqual(0, notifications);
+        CollectionAssert.AreEquivalent(
+            new[] { KeyValuePair.Create(1, 10), KeyValuePair.Create(2, 20) },
+            source.ToArray()
+        );
+    }
+
+    [TestMethod]
+    public void ContainsPair_RequiresMatchingValue()
+    {
+        var source = new ObservableDictionary<int, int>(new Dictionary<int, int> { [1] = 10 });
+        using var view = new ReadOnlyObservableDictionary<int, int>(source);
+        ICollection<KeyValuePair<int, int>> collection = view;
+        Assert.IsTrue(collection.Contains(KeyValuePair.Create(1, 10)));
+        Assert.IsFalse(collection.Contains(KeyValuePair.Create(1, 99)));
+    }
+
+    [TestMethod]
+    [DataRow(DictionaryChangeAction.Add)]
+    [DataRow(DictionaryChangeAction.Replace)]
+    [DataRow(DictionaryChangeAction.Remove)]
+    [DataRow(DictionaryChangeAction.Clear)]
+    public void ForwardsChanges(DictionaryChangeAction action)
+    {
+        var initial = new Dictionary<int, int> { [1] = 10, [2] = 20 };
+        var expected = new Dictionary<int, int>(initial);
+        var source = new ObservableDictionary<int, int>(initial);
+        using var view = new ReadOnlyObservableDictionary<int, int>(source);
+        var changing = new List<NotifyDictionaryChangeEventArgs<int, int>>();
+        var changed = new List<NotifyDictionaryChangeEventArgs<int, int>>();
+        var sourceCollection =
+            new List<System.Collections.Specialized.NotifyCollectionChangedEventArgs>();
+        var viewCollection =
+            new List<System.Collections.Specialized.NotifyCollectionChangedEventArgs>();
+        var sourceProperties = new List<string?>();
+        var viewProperties = new List<string?>();
+        var order = new List<string>();
+        source.CollectionChanged += (_, e) => sourceCollection.Add(e);
+        source.PropertyChanged += (_, e) => sourceProperties.Add(e.PropertyName);
+        view.DictionaryChanging += (sender, e) =>
+        {
+            Assert.AreSame(view, sender);
+            CollectionAssert.AreEquivalent(initial.ToArray(), view.ToArray());
+            changing.Add(e);
+            order.Add("Changing");
+        };
+        view.DictionaryChanged += (sender, e) =>
+        {
+            Assert.AreSame(view, sender);
+            CollectionAssert.AreEquivalent(expected.ToArray(), view.ToArray());
+            changed.Add(e);
+            order.Add("Changed");
+        };
+        view.CollectionChanged += (sender, e) =>
+        {
+            Assert.AreSame(view, sender);
+            viewCollection.Add(e);
+        };
+        view.PropertyChanged += (sender, e) =>
+        {
+            Assert.AreSame(view, sender);
+            viewProperties.Add(e.PropertyName);
+        };
+        KeyValuePair<int, int>? oldPair = null;
+        KeyValuePair<int, int>? newPair = null;
+        switch (action)
+        {
+            case DictionaryChangeAction.Add:
+                newPair = KeyValuePair.Create(3, 30);
+                expected.Add(3, 30);
+                source.Add(3, 30);
+                break;
+            case DictionaryChangeAction.Replace:
+                oldPair = KeyValuePair.Create(1, 10);
+                newPair = KeyValuePair.Create(1, 99);
+                expected[1] = 99;
+                source[1] = 99;
+                break;
+            case DictionaryChangeAction.Remove:
+                oldPair = KeyValuePair.Create(1, 10);
+                expected.Remove(1);
+                Assert.IsTrue(source.Remove(1));
+                break;
+            case DictionaryChangeAction.Clear:
+                expected.Clear();
+                source.Clear();
+                break;
+            default:
+                Assert.Fail("Unsupported test action.");
+                break;
+        }
+        Assert.AreEqual(1, changing.Count);
+        Assert.AreEqual(1, changed.Count);
+        CollectionAssert.AreEqual(new[] { "Changing", "Changed" }, order);
+        foreach (var e in changing.Concat(changed))
+        {
+            Assert.AreEqual(action, e.Action);
+            Assert.AreEqual(oldPair, e.OldPair);
+            Assert.AreEqual(newPair, e.NewPair);
+        }
+        Assert.AreEqual(1, sourceCollection.Count);
+        Assert.AreEqual(1, viewCollection.Count);
+        Assert.AreSame(sourceCollection[0], viewCollection[0]);
+        var expectedProperties =
+            action == DictionaryChangeAction.Replace
+                ? new[] { "Item", "Item[]" }
+                : new[] { "Count", "Item", "Item[]" };
+        CollectionAssert.AreEqual(
+            expectedProperties,
+            sourceProperties,
+            $"Source notifications: {string.Join(", ", sourceProperties)}"
+        );
+        CollectionAssert.AreEqual(
+            expectedProperties,
+            viewProperties,
+            $"View notifications: {string.Join(", ", viewProperties)}"
+        );
+        CollectionAssert.AreEquivalent(expected.ToArray(), view.ToArray());
+        Assert.IsFalse(source.Remove(-1));
+        Assert.AreEqual(1, changing.Count);
+        Assert.AreEqual(1, changed.Count);
+        Assert.AreEqual(1, viewCollection.Count);
+        CollectionAssert.AreEqual(expectedProperties, sourceProperties);
+        CollectionAssert.AreEqual(expectedProperties, viewProperties);
+    }
+
+    [TestMethod]
+    public void ObservableKeysAndValues_ForwardAdd()
+    {
+        var source = new ObservableDictionary<int, int>();
+        using var view = new ReadOnlyObservableDictionary<int, int>(source);
+        var keys = view.ObservableKeys;
+        var values = view.ObservableValues;
+        var keyCount = 0;
+        var valueCount = 0;
+        keys.CollectionChanged += (sender, e) =>
+        {
+            Assert.AreSame(keys, sender);
+            Assert.AreEqual(
+                System.Collections.Specialized.NotifyCollectionChangedAction.Add,
+                e.Action
+            );
+            CollectionAssert.AreEqual(new[] { 1 }, e.NewItems!.Cast<int>().ToArray());
+            keyCount++;
+        };
+        values.CollectionChanged += (sender, e) =>
+        {
+            Assert.AreSame(values, sender);
+            Assert.AreEqual(
+                System.Collections.Specialized.NotifyCollectionChangedAction.Add,
+                e.Action
+            );
+            CollectionAssert.AreEqual(new[] { 10 }, e.NewItems!.Cast<int>().ToArray());
+            valueCount++;
+        };
+        source.Add(1, 10);
+        Assert.AreEqual(1, keyCount);
+        Assert.AreEqual(1, valueCount);
+        CollectionAssert.AreEqual(new[] { 1 }, keys.ToArray());
+        CollectionAssert.AreEqual(new[] { 10 }, values.ToArray());
+    }
+
+    [TestMethod]
+    public void Dispose_StopsAllForwardingWithoutDisposingSource()
+    {
+        var source = new ObservableDictionary<int, int>();
+        using var view = new ReadOnlyObservableDictionary<int, int>(source);
+        var count = 0;
+        view.DictionaryChanging += (_, _) => count++;
+        view.DictionaryChanged += (_, _) => count++;
+        view.CollectionChanged += (_, _) => count++;
+        view.PropertyChanged += (_, _) => count++;
+        view.ObservableKeys.CollectionChanged += (_, _) => count++;
+        view.ObservableValues.CollectionChanged += (_, _) => count++;
+        view.Dispose();
+        view.Dispose();
+        source.Add(1, 10);
+        Assert.AreEqual(0, count);
+        Assert.AreEqual(10, source[1]);
+    }
+
+    // 以下保留历史草稿；当前可执行契约测试位于上方。
     //[TestMethod]
     //public void Adding()
     //{

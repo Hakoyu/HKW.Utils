@@ -5,14 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HKW.HKWUtils.Collections;
-using HKW.HKWUtils.Extensions;
 using HKW.HKWUtilsTests.Collections;
 
 namespace HKW.HKWUtilsTests;
 
 public static class IListTestUtils
 {
-    static Func<object?, object?, bool> _itemComparer = (a, b) => a?.Equals(b) is true;
+    static readonly Func<object?, object?, bool> _itemComparer = object.Equals;
 
     /// <summary>
     /// 测试
@@ -38,19 +37,19 @@ public static class IListTestUtils
     public static void Item(Func<IList> createList, ICollection newItems)
     {
         var list = createList();
-        var cList = list.Cast<object>().ToList();
+        var cList = list.Cast<object?>().ToList();
 
         for (var i = 0; i < list.Count; i++)
         {
             Assert.AreEqual(list[i], cList[i]);
         }
-        Assert.IsTrue(list.SequenceEqual(cList, _itemComparer));
+        Assert.IsTrue(list.Cast<object?>().SequenceEqualUsingComparer(cList, _itemComparer));
 
-        foreach (var (e, i) in newItems.WithIndex())
+        foreach (var (e, i) in newItems.Cast<object?>().Select((value, index) => (value, index)))
         {
             list[i] = cList[i] = e;
             Assert.AreEqual(e, [list[i], cList[i]]);
-            Assert.IsTrue(list.SequenceEqual(cList, _itemComparer));
+            Assert.IsTrue(list.Cast<object?>().SequenceEqualUsingComparer(cList, _itemComparer));
         }
     }
 
@@ -58,20 +57,21 @@ public static class IListTestUtils
     {
         var list = createList();
 
+        var item = list[0];
         Assert.Throws<ArgumentOutOfRangeException>(() =>
         {
-            list[-1] = default!;
+            list[-1] = item;
         });
         Assert.Throws<ArgumentOutOfRangeException>(() =>
         {
-            list[list.Count] = default!;
+            list[list.Count] = item;
         });
     }
 
     public static void Insert(Func<IList> createList)
     {
         var list = createList();
-        var cList = list.Cast<object>().ToList();
+        var cList = list.Cast<object?>().ToList();
         var count = list.Count + 100;
 
         var newItem = list[0]!;
@@ -80,49 +80,50 @@ public static class IListTestUtils
             list.Insert(i, newItem);
             cList.Insert(i, newItem);
             Assert.AreEqual(list[i], cList[i]);
-            Assert.IsTrue(list.SequenceEqual(cList, _itemComparer));
+            Assert.IsTrue(list.Cast<object?>().SequenceEqualUsingComparer(cList, _itemComparer));
         }
-        Assert.IsTrue(list.SequenceEqual(cList, _itemComparer));
+        Assert.IsTrue(list.Cast<object?>().SequenceEqualUsingComparer(cList, _itemComparer));
     }
 
     public static void InsertFail(Func<IList> createList)
     {
         var list = createList();
 
+        var item = list[0];
         Assert.Throws<ArgumentOutOfRangeException>(() =>
         {
-            list.Insert(-1, default!);
+            list.Insert(-1, item);
         });
         Assert.Throws<ArgumentOutOfRangeException>(() =>
         {
-            list.Insert(list.Count + 100, default!);
+            list.Insert(list.Count + 100, item);
         });
     }
 
     public static void RemoveAt(Func<IList> createList)
     {
         var list = createList();
-        var cList = list.Cast<object>().ToList();
+        var cList = list.Cast<object?>().ToList();
         var count = list.Count;
 
         for (var i = 0; i < count; i++)
         {
             list.RemoveAt(0);
             cList.RemoveAt(0);
-            Assert.IsTrue(list.SequenceEqual(cList, _itemComparer));
+            Assert.IsTrue(list.Cast<object?>().SequenceEqualUsingComparer(cList, _itemComparer));
         }
 
         list = createList();
-        cList = list.Cast<object>().ToList();
+        cList = list.Cast<object?>().ToList();
 
         for (var i = list.Count - 1; i >= 0; i--)
         {
             list.RemoveAt(i);
             cList.RemoveAt(i);
-            Assert.IsTrue(list.SequenceEqual(cList, _itemComparer));
+            Assert.IsTrue(list.Cast<object?>().SequenceEqualUsingComparer(cList, _itemComparer));
         }
 
-        Assert.IsTrue(list.SequenceEqual(cList, _itemComparer));
+        Assert.IsTrue(list.Cast<object?>().SequenceEqualUsingComparer(cList, _itemComparer));
     }
 
     public static void RemoveAtFail(Func<IList> createList)
@@ -143,7 +144,7 @@ public static class IListTestUtils
     public static void IndexOf(Func<IList> createList)
     {
         var list = createList();
-        var cList = list.Cast<object>().ToList();
+        var cList = list.Cast<object?>().ToList();
 
         for (var i = 0; i < list.Count; i++)
         {

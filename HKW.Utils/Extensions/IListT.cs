@@ -504,6 +504,9 @@ public static partial class ListExtensions
         /// <summary>
         /// 范围插入
         /// </summary>
+        /// <remarks>
+        /// 校验索引后, 写入前保存输入快照, 支持自身, 共享底层存储的包装及延迟枚举.
+        /// </remarks>
         /// <param name="index">索引</param>
         /// <param name="items">项目们</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -512,18 +515,14 @@ public static partial class ListExtensions
             ArgumentNullException.ThrowIfNull(items);
             ArgumentOutOfRangeException.ThrowIfLessThan(index, 0);
             ArgumentOutOfRangeException.ThrowIfGreaterThan(index, list.Count);
+            var snapshot = items.ToArray();
             if (list is List<T> baseList)
             {
-                baseList.InsertRange(index, items);
-            }
-            else if (items is IList<T> itemList)
-            {
-                for (var i = 0; i < itemList.Count; i++)
-                    list.Insert(index++, itemList[i]);
+                baseList.InsertRange(index, snapshot);
             }
             else
             {
-                foreach (var item in items)
+                foreach (var item in snapshot)
                     list.Insert(index++, item);
             }
         }
@@ -547,14 +546,17 @@ public static partial class ListExtensions
         /// <summary>
         /// 删除范围
         /// </summary>
+        /// <remarks>
+        /// 区间向后延伸, 允许列表尾部的空区间; 即使数量为零也验证全部范围参数.
+        /// </remarks>
         /// <param name="startIndex">起始索引</param>
         /// <param name="count">数量</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveRange(int startIndex, int count)
         {
+            ListRangeCheck(startIndex, count, list.Count);
             if (count == 0)
                 return;
-            ListFindIndexCheck(startIndex, count, list.Count);
             if (list is List<T> baseList)
             {
                 baseList.RemoveRange(startIndex, count);
@@ -612,21 +614,24 @@ public static partial class ListExtensions
         /// <summary>
         /// 反转列表
         /// </summary>
+        /// <remarks>
+        /// 区间向后延伸, 允许列表尾部的空区间; 即使数量为零或一也验证全部范围参数.
+        /// </remarks>
         /// <param name="startIndex">起始索引</param>
         /// <param name="count">数量</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reverse(int startIndex, int count)
         {
-            if (count == 1)
+            ListRangeCheck(startIndex, count, list.Count);
+            if (count <= 1)
                 return;
-            ListFindLastIndexCheck(startIndex, count, list.Count);
             if (list is List<T> baseList)
             {
                 baseList.Reverse(startIndex, count);
             }
             else
             {
-                var newCount = (startIndex + count) / 2;
+                var newCount = startIndex + count / 2;
                 for (int i = startIndex, j = startIndex + count - 1; i < newCount; i++, j--)
                 {
                     (list[i], list[j]) = (list[j], list[i]);
@@ -667,65 +672,36 @@ public static partial class ListExtensions
     internal static int ListFindIndexCheck(int startIndex, int count, int listCount)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(startIndex);
-        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(startIndex, listCount);
-        int endIndex = startIndex + count;
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(endIndex, listCount);
-        return endIndex;
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(startIndex, listCount);
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(count, listCount - startIndex);
+        return startIndex + count;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static int ListFindLastIndexCheck(int startIndex, int count, int listCount)
     {
+        if (listCount == 0)
+        {
+            if (startIndex != -1)
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
+        }
+        else
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(startIndex);
+            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(startIndex, listCount);
+        }
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(count, startIndex + 1);
+        return startIndex - count;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void ListRangeCheck(int startIndex, int count, int listCount)
+    {
         ArgumentOutOfRangeException.ThrowIfNegative(startIndex);
-        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(startIndex, listCount);
-        int endIndex = startIndex - count;
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(endIndex, listCount);
-        return endIndex;
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
+        if (startIndex > listCount || count > listCount - startIndex)
+            throw new ArgumentException("The range exceeds the list bounds.");
     }
 }
-//public List<string> Strs { get; set; } =
-//    Enumerable.Range(0, 1_000_000).Select(x => x.ToString()).ToList();
-
-//public string data1 = "999999";
-//public string data2 = "888888";
-//public string data3 = "777777";
-
-//[Benchmark]
-//public object? Test1()
-//{
-//    return ListExtensions.FindIndex(
-//        Strs,
-//        0,
-//        Strs.Count,
-//        x => x == data1 || x == data2 || x == data3
-//    );
-//}
-
-//[Benchmark]
-//public object? Test2()
-//{
-//    return ListExtensions.FindIndex(
-//        Strs,
-//        0,
-//        Strs.Count,
-//        (data1, data2, data3),
-//        static (x, d) => x == d.data1 || x == d.data2 || x == d.data3
-//    );
-//}
-
-//[Benchmark]
-//public object? Test3()
-//{
-//    for (int i = 0; i < Strs.Count; i++)
-//    {
-//        var str = Strs[i];
-//        if (str == data1 || str == data2 || str == data3)
-//            return i;
-//    }
-//    return -1;
-//}
-//| Method | Mean     | Error     | StdDev    | Allocated |
-//|------- |---------:|----------:|----------:|----------:|
-//| Test1  | 5.023 ms | 0.0998 ms | 0.1694 ms |      24 B |
-//| Test2  | 4.319 ms | 0.0863 ms | 0.1152 ms |      24 B |
-//| Test3  | 4.428 ms | 0.0876 ms | 0.1729 ms |      24 B |

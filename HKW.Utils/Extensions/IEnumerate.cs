@@ -34,12 +34,17 @@ public static partial class EnumerableExtensions
         /// <summary>
         /// 判断两个集合的值是否全部相等 (无视顺序)
         /// </summary>
+        /// <remarks>
+        /// 按默认对象相等比较器比较多重集, 包含重复次数和 null.
+        /// </remarks>
         /// <param name="target">集合2</param>
         /// <returns>是否相等</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool ItemsEqual(IEnumerable target)
         {
-            return source.Cast<object>().Except(target.Cast<object>()).Any() is false;
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(target);
+            return source.Cast<object?>().UnorderedEqual(target.Cast<object?>());
         }
 
         /// <summary>
@@ -74,7 +79,9 @@ public static partial class EnumerableExtensions
             }
 
             var e1 = source.GetEnumerator();
+            using var disposable1 = e1 as IDisposable;
             var e2 = second.GetEnumerator();
+            using var disposable2 = e2 as IDisposable;
             while (e1.MoveNext())
             {
                 if ((e2.MoveNext() && comparer(e1.Current, e2.Current)) is false)
@@ -92,20 +99,24 @@ public static partial class EnumerableExtensions
         /// <param name="start">开始</param>
         /// <param name="count">数量</param>
         /// <returns>范围的字符串枚举</returns>
-        /// <remarks><![CDATA[
+        /// <remarks>
+        /// 参数在开始枚举时验证, 允许包含 Int32.MaxValue 的闭区间端点.
+        /// </remarks>
+        /// <remarks>
+        /// <![CDATA[
         /// Enumerable.StringRange(1,3);
-        /// return:
+        /// 返回:
         /// ["1", "2", "3"]
-        /// ]]></remarks>
+        /// ]]>
+        /// </remarks>
         public static IEnumerable<string> StringRange(int start, int count)
         {
             long max = (long)start + (long)count - 1;
             ArgumentOutOfRangeException.ThrowIfLessThan(count, 0);
             ArgumentOutOfRangeException.ThrowIfGreaterThan(max, int.MaxValue);
 
-            var end = start + count;
-            for (var i = start; i < end; i++)
-                yield return i.ToString();
+            for (var offset = 0; offset < count; offset++)
+                yield return (start + offset).ToString();
         }
     }
 }

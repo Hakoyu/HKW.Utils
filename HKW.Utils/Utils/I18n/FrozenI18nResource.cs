@@ -1,4 +1,6 @@
-﻿//using System;
+﻿// 此文件仅保留历史冻结资源草稿, 当前不提供可实例化的冻结资源.
+// 若以后恢复实现, 必须遵循 II18nResource 的可空当前文化契约和资源独占行结构规则.
+//using System;
 //using System.Collections.Generic;
 //using System.ComponentModel;
 //using System.Drawing;

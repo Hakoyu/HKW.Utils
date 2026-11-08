@@ -33,11 +33,18 @@ public sealed class FrozenBidirectionalDictionary<T1, T2>
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        _dictionary1 = FrozenDictionary.ToFrozenDictionary(source, comparer1);
-        _dictionary2 = FrozenDictionary.ToFrozenDictionary(
-            source.Select(p => new KeyValuePair<T2, T1>(p.Value, p.Key)),
-            comparer2
-        );
+        var capacity = source.TryGetNonEnumeratedCount(out var count) ? count : 0;
+        var forward = new Dictionary<T1, T2>(capacity, comparer1);
+        var reverse = new Dictionary<T2, T1>(capacity, comparer2);
+        foreach (var pair in source)
+        {
+            ArgumentNullException.ThrowIfNull(pair.Key);
+            ArgumentNullException.ThrowIfNull(pair.Value);
+            forward.Add(pair.Key, pair.Value);
+            reverse.Add(pair.Value, pair.Key);
+        }
+        _dictionary1 = forward.ToFrozenDictionary(comparer1);
+        _dictionary2 = reverse.ToFrozenDictionary(comparer2);
     }
 
     private readonly FrozenDictionary<T1, T2> _dictionary1;
@@ -59,13 +66,13 @@ public sealed class FrozenBidirectionalDictionary<T1, T2>
     /// <summary>
     /// 字典1
     /// </summary>
-    public IDictionary<T1, T2> Dictionary1 =>
+    public IReadOnlyDictionary<T1, T2> Dictionary1 =>
         field ??= new ReadOnlyDictionary<T1, T2>(_dictionary1);
 
     /// <summary>
     /// 字典2
     /// </summary>
-    public IDictionary<T2, T1> Dictionary2 =>
+    public IReadOnlyDictionary<T2, T1> Dictionary2 =>
         field ??= new ReadOnlyDictionary<T2, T1>(_dictionary2);
 
     IEnumerable<T1> IReadOnlyDictionary<T1, T2>.Keys => Keys;
@@ -227,4 +234,65 @@ public sealed class FrozenBidirectionalDictionary<T1, T2>
     }
 
     #endregion
+    /// <inheritdoc/>
+    public T2 GetForward(T1 key) => this[key];
+
+    /// <inheritdoc/>
+    public T1 GetReverse(T2 key) => this[key];
+
+    /// <inheritdoc/>
+    public bool ContainsKeyForward(T1 key) => ContainsKey(key);
+
+    /// <inheritdoc/>
+    public bool ContainsKeyReverse(T2 key) => ContainsKey(key);
+
+    /// <inheritdoc/>
+    public bool ContainsForward(KeyValuePair<T1, T2> item) => Contains(item);
+
+    /// <inheritdoc/>
+    public bool ContainsReverse(KeyValuePair<T2, T1> item) => Contains(item);
+
+    /// <inheritdoc/>
+    public bool TryGetForward(T1 key, [MaybeNullWhen(false)] out T2 value) =>
+        TryGetValue(key, out value);
+
+    /// <inheritdoc/>
+    public bool TryGetReverse(T2 key, [MaybeNullWhen(false)] out T1 value) =>
+        TryGetValue(key, out value);
+
+    /// <inheritdoc/>
+    public bool TryAddForward(T1 key, T2 value) =>
+        ((IBidirectionalDictionary<T1, T2>)this).TryAdd(key, value);
+
+    /// <inheritdoc/>
+    public bool TryAddReverse(T2 key, T1 value) =>
+        ((IBidirectionalDictionary<T1, T2>)this).TryAdd(key, value);
+
+    /// <inheritdoc/>
+    public bool TrySetForward(T1 key, T2 value) =>
+        ((IBidirectionalDictionary<T1, T2>)this).TrySetValue(key, value);
+
+    /// <inheritdoc/>
+    public bool TrySetReverse(T2 key, T1 value) =>
+        ((IBidirectionalDictionary<T1, T2>)this).TrySetValue(key, value);
+
+    /// <inheritdoc/>
+    public bool RemoveForward(T1 key) => ((IBidirectionalDictionary<T1, T2>)this).Remove(key);
+
+    /// <inheritdoc/>
+    public bool RemoveReverse(T2 key) => ((IBidirectionalDictionary<T1, T2>)this).Remove(key);
+
+    /// <inheritdoc/>
+    public bool RemoveForward(KeyValuePair<T1, T2> item) =>
+        ((IBidirectionalDictionary<T1, T2>)this).Remove(item);
+
+    /// <inheritdoc/>
+    public bool RemoveReverse(KeyValuePair<T2, T1> item) =>
+        ((IBidirectionalDictionary<T1, T2>)this).Remove(item);
+
+    /// <inheritdoc/>
+    public void CopyToForward(KeyValuePair<T1, T2>[] array, int index) => CopyTo(array, index);
+
+    /// <inheritdoc/>
+    public void CopyToReverse(KeyValuePair<T2, T1>[] array, int index) => CopyTo(array, index);
 }

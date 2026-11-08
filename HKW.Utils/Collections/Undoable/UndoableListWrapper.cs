@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Diagnostics;
 using HKW.HKWUtils.DebugViews;
-using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Extensions;
 
 namespace HKW.HKWUtils.Collections;
@@ -13,12 +12,16 @@ namespace HKW.HKWUtils.Collections;
 /// <typeparam name="TList">列表类型</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
-public class UndoableListWrapper<TItem, TList> : IList<TItem>
+public class UndoableListWrapper<TItem, TList>
+    : IList<TItem>,
+        IUndoableCollection<TItem>,
+        IRedoableCollection<TItem>
     where TList : IList<TItem>
 {
     /// <inheritdoc/>
     public UndoableListWrapper(TList list)
     {
+        ArgumentNullException.ThrowIfNull(list);
         SourceList = list;
     }
 
@@ -30,7 +33,7 @@ public class UndoableListWrapper<TItem, TList> : IList<TItem>
     private readonly Stack<TItem> _undoStack = new();
 
     /// <summary>
-    /// 撤销栈
+    /// 撤销栈, 保存可供重做的尾项, 枚举顺序为恢复顺序
     /// </summary>
     public ReadOnlyStack<TItem> UndoStack => field ??= new(_undoStack);
 
@@ -137,24 +140,18 @@ public class UndoableListWrapper<TItem, TList> : IList<TItem>
     #endregion
     #region Undo
     /// <inheritdoc/>
-    public bool Undo()
-    {
-        if (SourceList.Count == 0)
-            return false;
-        var index = SourceList.Count - 1;
-        var item = SourceList[index];
-        SourceList.RemoveAt(index);
-        _undoStack.Push(item);
-        return true;
-    }
+    public bool Undo() => UndoCount(1);
 
     /// <inheritdoc/>
-    public bool Undo(int count)
+    public bool UndoCount(int count)
     {
-        if (count <= 0 || count > SourceList.Count || SourceList.Count == 0)
+        var sourceCount = SourceList.Count;
+        if (count <= 0 || count > sourceCount)
             return false;
-        var endIndex = SourceList.Count - count;
-        for (var i = SourceList.Count - 1; i >= endIndex; i--)
+        // 移除源项前预留容量, 避免恢复栈扩容失败后丢失该项.
+        _undoStack.EnsureCapacity(checked(_undoStack.Count + count));
+        var endIndex = sourceCount - count;
+        for (var i = sourceCount - 1; i >= endIndex; i--)
         {
             var item = SourceList[i];
             SourceList.RemoveAt(i);
@@ -164,18 +161,10 @@ public class UndoableListWrapper<TItem, TList> : IList<TItem>
     }
 
     /// <inheritdoc/>
-    public bool Undo(TItem item)
+    public bool UndoThroughItem(TItem item)
     {
         var index = SourceList.LastIndexOf(item);
-        if (index < 0)
-            return false;
-        for (var i = SourceList.Count - 1; i >= index; i--)
-        {
-            var tempItem = SourceList[i];
-            SourceList.RemoveAt(i);
-            _undoStack.Push(tempItem);
-        }
-        return true;
+        return index >= 0 && UndoCount(SourceList.Count - index);
     }
     #endregion
     #region Redo
@@ -184,33 +173,32 @@ public class UndoableListWrapper<TItem, TList> : IList<TItem>
     {
         if (_undoStack.Count == 0)
             return false;
-        var item = _undoStack.Pop();
+        RedoCore();
+        return true;
+    }
+
+    /// <inheritdoc/>
+    public bool RedoCount(int count)
+    {
+        if (count <= 0 || count > _undoStack.Count)
+            return false;
+        for (var i = 0; i < count; i++)
+            RedoCore();
+        return true;
+    }
+
+    /// <inheritdoc/>
+    public bool RedoThroughItem(TItem item)
+    {
+        var index = _undoStack.IndexOf(item);
+        return index >= 0 && RedoCount(index + 1);
+    }
+
+    private void RedoCore()
+    {
+        var item = _undoStack.Peek();
         SourceList.Add(item);
-        return true;
-    }
-
-    /// <inheritdoc/>
-    public bool Redo(int count)
-    {
-        if (count <= 0 || count > _undoStack.Count || _undoStack.Count == 0)
-            return false;
-        for (var i = 0; i < count; i++)
-            SourceList.Add(_undoStack.Pop());
-        return true;
-    }
-
-    /// <inheritdoc/>
-    public bool Redo(TItem item)
-    {
-        var count = _undoStack.IndexOf(item);
-        if (count < 0)
-            return false;
-        count++;
-        for (var i = 0; i < count; i++)
-        {
-            SourceList.Add(_undoStack.Pop());
-        }
-        return true;
+        _undoStack.Pop();
     }
     #endregion
 }

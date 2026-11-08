@@ -50,6 +50,35 @@ public static partial class StringExtensions
         }
 
         /// <summary>
+        /// 添加至开头, 如果有相同字符串则不添加
+        /// </summary>
+        /// <param name="add">添加的字符串</param>
+        /// <param name="ignoreCase">忽略大小写</param>
+        /// <param name="culture">文化</param>
+        /// <returns>处理后的字符串</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string EnsureStartsWith(string add, bool ignoreCase, CultureInfo? culture = null)
+        {
+            if (str.StartsWith(add, ignoreCase, culture ?? CultureInfo.CurrentCulture))
+                return str;
+            return add + str;
+        }
+
+        /// <summary>
+        /// 添加至开头, 如果有相同字符串则不添加
+        /// </summary>
+        /// <param name="add">添加的字符串</param>
+        /// <param name="comparisonType">比较类型</param>
+        /// <returns>处理后的字符串</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string EnsureStartsWith(string add, StringComparison comparisonType)
+        {
+            if (str.StartsWith(add, comparisonType))
+                return str;
+            return add + str;
+        }
+
+        /// <summary>
         /// 添加至末尾, 如果有相同字符串则不添加
         /// </summary>
         /// <param name="add">添加的字符串</param>
@@ -63,9 +92,42 @@ public static partial class StringExtensions
         }
 
         /// <summary>
-        /// 首字母小写
-        /// <para><c>"Red" => "red"</c></para>
+        /// 添加至末尾, 如果有相同字符串则不添加
         /// </summary>
+        /// <param name="add">添加的字符串</param>
+        /// <param name="ignoreCase">忽略大小写</param>
+        /// <param name="culture">文化</param>
+        /// <returns>处理后的字符串</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string EnsureEndsWith(string add, bool ignoreCase, CultureInfo? culture = null)
+        {
+            if (str.EndsWith(add, ignoreCase, culture ?? CultureInfo.CurrentCulture))
+                return str;
+            return str + add;
+        }
+
+        /// <summary>
+        /// 添加至末尾, 如果有相同字符串则不添加
+        /// </summary>
+        /// <param name="add">添加的字符串</param>
+        /// <param name="comparisonType">比较类型</param>
+        /// <returns>处理后的字符串</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string EnsureEndsWith(string add, StringComparison comparisonType)
+        {
+            if (str.EndsWith(add, comparisonType))
+                return str;
+            return str + add;
+        }
+
+        /// <summary>
+        /// 首字母小写
+        /// </summary>
+        /// <remarks>
+        /// <![CDATA[
+        /// "Red" => "red"
+        /// ]]>
+        /// </remarks>
         /// <param name="culture">文化</param>
         /// <returns>首字母小写的字符串</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -99,8 +161,12 @@ public static partial class StringExtensions
 
         /// <summary>
         /// 首字母大写
-        /// <para><c>"red" => "Red"</c></para>
         /// </summary>
+        /// <remarks>
+        /// <![CDATA[
+        /// "red" => "Red"
+        /// ]]>
+        /// </remarks>
         /// <param name="culture">文化</param>
         /// <param name="otherToLower">将其余字符变为小写</param>
         /// <returns>首字母大写的字符串</returns>

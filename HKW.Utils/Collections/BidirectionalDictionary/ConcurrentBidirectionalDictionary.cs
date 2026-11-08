@@ -2,8 +2,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Exceptions;
@@ -78,6 +76,8 @@ public sealed class ConcurrentBidirectionalDictionary<T1, T2>
         }
         foreach (var pair in pairs)
         {
+            ArgumentNullException.ThrowIfNull(pair.Key);
+            ArgumentNullException.ThrowIfNull(pair.Value);
             _dictionary1.Add(pair.Key, pair.Value);
             _dictionary2.Add(pair.Value, pair.Key);
         }
@@ -110,7 +110,7 @@ public sealed class ConcurrentBidirectionalDictionary<T1, T2>
     public bool IsReadOnly => false;
 
     /// <inheritdoc/>
-    public IDictionary<T1, T2> Dictionary1
+    public IReadOnlyDictionary<T1, T2> Dictionary1
     {
         get
         {
@@ -129,7 +129,7 @@ public sealed class ConcurrentBidirectionalDictionary<T1, T2>
     }
 
     /// <inheritdoc/>
-    public IDictionary<T2, T1> Dictionary2
+    public IReadOnlyDictionary<T2, T1> Dictionary2
     {
         get
         {
@@ -191,17 +191,12 @@ public sealed class ConcurrentBidirectionalDictionary<T1, T2>
         _lock.EnterWriteLock();
         try
         {
-            var result = _dictionary1.TryAdd(key1, value2);
-            if (result is false)
-                return false;
-
-            if (_dictionary2.TryAdd(value2, key1) is false)
-            {
-                _dictionary1.Remove(key1);
-                return false;
-            }
-
-            return true;
+            return BidirectionalDictionaryOperations.TryAdd(
+                _dictionary1,
+                _dictionary2,
+                key1,
+                value2
+            );
         }
         finally
         {
@@ -215,32 +210,13 @@ public sealed class ConcurrentBidirectionalDictionary<T1, T2>
         _lock.EnterWriteLock();
         try
         {
-            ref var d1ValueRef = ref CollectionsMarshal.GetValueRefOrNullRef(_dictionary1, key1);
-            if (Unsafe.IsNullRef(ref d1ValueRef))
-            {
-                // 3
-                if (_dictionary2.ContainsKey(value2))
-                    return false;
-                // 1
-                _dictionary1.Add(key1, value2);
-                _dictionary2.Add(value2, key1);
-                return true;
-            }
-            else
-            {
-                var d1Value = d1ValueRef;
-                // 4, 如果 d1Value 和 value 相等, 证明 dic2 存在 (value, key)
-                if (_dictionary2.Comparer.Equals(d1Value, value2))
-                    return true;
-                // 3
-                if (_dictionary2.ContainsKey(value2))
-                    return false;
-                // 2
-                d1ValueRef = value2;
-                _dictionary2.Remove(d1Value);
-                _dictionary2.Add(value2, key1);
-                return true;
-            }
+            return BidirectionalDictionaryOperations.TrySet(
+                _dictionary1,
+                _dictionary2,
+                _dictionary2.Comparer,
+                key1,
+                value2
+            );
         }
         finally
         {
@@ -254,11 +230,7 @@ public sealed class ConcurrentBidirectionalDictionary<T1, T2>
         _lock.EnterWriteLock();
         try
         {
-            if (_dictionary1.Remove(key1, out var value) is false)
-                return false;
-
-            _dictionary2.Remove(value);
-            return true;
+            return BidirectionalDictionaryOperations.Remove(_dictionary1, _dictionary2, key1);
         }
         finally
         {
@@ -272,15 +244,12 @@ public sealed class ConcurrentBidirectionalDictionary<T1, T2>
         _lock.EnterWriteLock();
         try
         {
-            if (
-                _dictionary1.TryGetValue(item1.Key, out var value) is false
-                || _dictionary2.Comparer.Equals(item1.Value, value) is false
-            )
-                return false;
-
-            _dictionary1.Remove(item1.Key);
-            _dictionary2.Remove(value);
-            return true;
+            return BidirectionalDictionaryOperations.Remove(
+                _dictionary1,
+                _dictionary2,
+                _dictionary2.Comparer,
+                item1
+            );
         }
         finally
         {
@@ -400,32 +369,13 @@ public sealed class ConcurrentBidirectionalDictionary<T1, T2>
         _lock.EnterWriteLock();
         try
         {
-            ref var d2ValueRef = ref CollectionsMarshal.GetValueRefOrNullRef(_dictionary2, key2);
-            if (Unsafe.IsNullRef(ref d2ValueRef))
-            {
-                // 3
-                if (_dictionary1.ContainsKey(value1))
-                    return false;
-                // 1
-                _dictionary2.Add(key2, value1);
-                _dictionary1.Add(value1, key2);
-                return true;
-            }
-            else
-            {
-                var d2Value = d2ValueRef;
-                // 4, 如果 d2Value 和 value 相等, 证明 dic1 存在 (value, key)
-                if (_dictionary1.Comparer.Equals(d2Value, value1))
-                    return true;
-                // 3
-                if (_dictionary1.ContainsKey(value1))
-                    return false;
-                // 2
-                d2ValueRef = value1;
-                _dictionary1.Remove(d2Value);
-                _dictionary1.Add(value1, key2);
-                return true;
-            }
+            return BidirectionalDictionaryOperations.TrySet(
+                _dictionary2,
+                _dictionary1,
+                _dictionary1.Comparer,
+                key2,
+                value1
+            );
         }
         finally
         {
@@ -439,17 +389,12 @@ public sealed class ConcurrentBidirectionalDictionary<T1, T2>
         _lock.EnterWriteLock();
         try
         {
-            var result = _dictionary2.TryAdd(key2, value1);
-            if (result is false)
-                return false;
-
-            if (_dictionary1.TryAdd(value1, key2) is false)
-            {
-                _dictionary2.Remove(key2);
-                return false;
-            }
-
-            return true;
+            return BidirectionalDictionaryOperations.TryAdd(
+                _dictionary2,
+                _dictionary1,
+                key2,
+                value1
+            );
         }
         finally
         {
@@ -463,11 +408,7 @@ public sealed class ConcurrentBidirectionalDictionary<T1, T2>
         _lock.EnterWriteLock();
         try
         {
-            if (_dictionary2.Remove(key2, out var value) is false)
-                return false;
-
-            _dictionary1.Remove(value);
-            return true;
+            return BidirectionalDictionaryOperations.Remove(_dictionary2, _dictionary1, key2);
         }
         finally
         {
@@ -481,15 +422,12 @@ public sealed class ConcurrentBidirectionalDictionary<T1, T2>
         _lock.EnterWriteLock();
         try
         {
-            if (
-                _dictionary2.TryGetValue(item2.Key, out var value) is false
-                || _dictionary1.Comparer.Equals(item2.Value, value) is false
-            )
-                return false;
-
-            _dictionary1.Remove(value);
-            _dictionary2.Remove(item2.Key);
-            return true;
+            return BidirectionalDictionaryOperations.Remove(
+                _dictionary2,
+                _dictionary1,
+                _dictionary1.Comparer,
+                item2
+            );
         }
         finally
         {
@@ -632,9 +570,70 @@ public sealed class ConcurrentBidirectionalDictionary<T1, T2>
 
     #endregion
 
+    private bool _disposed;
+
     /// <inheritdoc/>
     public void Dispose()
     {
+        if (_disposed)
+            return;
         _lock.Dispose();
+        _disposed = true;
     }
+
+    /// <inheritdoc/>
+    public T2 GetForward(T1 key) => this[key];
+
+    /// <inheritdoc/>
+    public T1 GetReverse(T2 key) => this[key];
+
+    /// <inheritdoc/>
+    public bool ContainsKeyForward(T1 key) => ContainsKey(key);
+
+    /// <inheritdoc/>
+    public bool ContainsKeyReverse(T2 key) => ContainsKey(key);
+
+    /// <inheritdoc/>
+    public bool ContainsForward(KeyValuePair<T1, T2> item) => Contains(item);
+
+    /// <inheritdoc/>
+    public bool ContainsReverse(KeyValuePair<T2, T1> item) => Contains(item);
+
+    /// <inheritdoc/>
+    public bool TryGetForward(T1 key, [MaybeNullWhen(false)] out T2 value) =>
+        TryGetValue(key, out value);
+
+    /// <inheritdoc/>
+    public bool TryGetReverse(T2 key, [MaybeNullWhen(false)] out T1 value) =>
+        TryGetValue(key, out value);
+
+    /// <inheritdoc/>
+    public bool TryAddForward(T1 key, T2 value) => TryAdd(key, value);
+
+    /// <inheritdoc/>
+    public bool TryAddReverse(T2 key, T1 value) => TryAdd(key, value);
+
+    /// <inheritdoc/>
+    public bool TrySetForward(T1 key, T2 value) => TrySetValue(key, value);
+
+    /// <inheritdoc/>
+    public bool TrySetReverse(T2 key, T1 value) => TrySetValue(key, value);
+
+    /// <inheritdoc/>
+    public bool RemoveForward(T1 key) => Remove(key);
+
+    /// <inheritdoc/>
+    public bool RemoveReverse(T2 key) => Remove(key);
+
+    /// <inheritdoc/>
+    public bool RemoveForward(KeyValuePair<T1, T2> item) => Remove(item);
+
+    /// <inheritdoc/>
+    public bool RemoveReverse(KeyValuePair<T2, T1> item) => Remove(item);
+
+    /// <inheritdoc/>
+    public void CopyToForward(KeyValuePair<T1, T2>[] array, int index) => CopyTo(array, index);
+
+    /// <inheritdoc/>
+    public void CopyToReverse(KeyValuePair<T2, T1>[] array, int index) => CopyTo(array, index);
 }

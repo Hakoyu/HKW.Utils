@@ -19,10 +19,11 @@ public static partial class SpanSplitEnumeratorExtensions
         public ReadOnlySpan<T> CurrentValue => enumerator.Source[enumerator.Current];
 
         /// <summary>
-        /// 获取枚举中的当前分隔符。当枚举到最后一个元素时, 分隔符为 <see langword="default"/>(T)。
+        /// 获取枚举中的当前分隔符. 当枚举到最后一个元素时, 分隔符为 <see langword="default"/>(T).
+        /// 多元素分隔符仅返回首元素; 仅在 MoveNext 返回 true 后读取.
         /// </summary>
         public T CurrentSeparator =>
-            enumerator.Current.End.Value > enumerator.Source.Length
+            enumerator.Current.End.GetOffset(enumerator.Source.Length) < enumerator.Source.Length
                 ? enumerator.Source[enumerator.Current.End]
                 : default!;
     }

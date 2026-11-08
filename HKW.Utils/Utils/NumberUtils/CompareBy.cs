@@ -39,21 +39,30 @@ public static partial class NumberUtils
     /// 获取比较运算符类型
     /// </summary>
     /// <param name="str">字符串</param>
-    /// <param name="operatorLength">比较符号长度</param>
-    /// <returns>比较运算符类型</returns>
+    /// <param name="operatorLength">比较符号长度; 未匹配时为零</param>
+    /// <returns>比较运算符类型; 未匹配时为默认值</returns>
+    /// <remarks>
+    /// 按字符精确匹配字符串开头的最长比较符号, 不验证后续表达式, 也不忽略前导空白.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">字符串为空引用</exception>
     public static ComparisonOperatorType GetComparisonOperatorType(
         string str,
         out int operatorLength
     )
     {
-        var pair = ComparisonOperatorTypeByString.FirstOrDefault(p => str.StartsWith(p.Key));
-        if (pair.IsEmpty)
+        ArgumentNullException.ThrowIfNull(str);
+        var (operatorType, length) = str.AsSpan() switch
         {
-            operatorLength = 0;
-            return default;
-        }
-        operatorLength = pair.Key.Length;
-        return pair.Value;
+            ['=', '=', ..] => (ComparisonOperatorType.Equality, 2),
+            ['!', '=', ..] => (ComparisonOperatorType.Inequality, 2),
+            ['<', '=', ..] => (ComparisonOperatorType.LessThanOrEqual, 2),
+            ['>', '=', ..] => (ComparisonOperatorType.GreaterThanOrEqual, 2),
+            ['<', ..] => (ComparisonOperatorType.LessThan, 1),
+            ['>', ..] => (ComparisonOperatorType.GreaterThan, 1),
+            _ => (default(ComparisonOperatorType), 0),
+        };
+        operatorLength = length;
+        return operatorType;
     }
 
     /// <summary>

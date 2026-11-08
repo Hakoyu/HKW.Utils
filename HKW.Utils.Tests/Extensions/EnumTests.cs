@@ -33,6 +33,8 @@ public class EnumTests
     [TestMethod]
     public void RemoveFlag()
     {
-        Assert.AreEqual(TestEnum.A & ~TestEnum.B, TestEnum.A.RemoveFlag(TestEnum.B));
+        Assert.AreEqual(TestEnum.A, (TestEnum.A | TestEnum.B).RemoveFlag(TestEnum.B));
+        Assert.AreEqual((TestEnum)0, TestEnum.A.RemoveFlag(TestEnum.A));
+        Assert.AreEqual(TestEnum.A, TestEnum.A.RemoveFlag(TestEnum.B));
     }
 }

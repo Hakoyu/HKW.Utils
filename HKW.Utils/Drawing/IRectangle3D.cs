@@ -6,38 +6,41 @@ namespace HKW.HKWUtils.Drawing;
 /// 三维矩形(立方体)接口
 /// </summary>
 /// <typeparam name="T">数据类型</typeparam>
+/// <remarks>
+/// 直接坐标与 Location, 直接尺寸与 Size 必须保持同步; 实现者应拒绝负尺寸, 但允许负坐标.
+/// </remarks>
 public interface IRectangle3D<T>
     where T : INumber<T>
 {
     /// <summary>
     /// 坐标X
     /// </summary>
-    public double X { get; set; }
+    public T X { get; set; }
 
     /// <summary>
     /// 坐标Y
     /// </summary>
-    public double Y { get; set; }
+    public T Y { get; set; }
 
     /// <summary>
     /// 坐标Z
     /// </summary>
-    public double Z { get; set; }
+    public T Z { get; set; }
 
     /// <summary>
     /// X轴大小
     /// </summary>
-    public double SizeX { get; set; }
+    public T SizeX { get; set; }
 
     /// <summary>
     /// Y轴大小
     /// </summary>
-    public double SizeY { get; set; }
+    public T SizeY { get; set; }
 
     /// <summary>
     /// Z轴大小
     /// </summary>
-    public double SizeZ { get; set; }
+    public T SizeZ { get; set; }
 
     /// <summary>
     /// 大小

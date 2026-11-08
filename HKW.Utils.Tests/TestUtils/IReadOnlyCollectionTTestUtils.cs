@@ -46,7 +46,9 @@ public static class IReadOnlyCollectionTTestUtils
     )
     {
         var collection = createCollection();
-        Assert.Throws<NotSupportedException>(() => collection.Remove(newItems.First()));
+        Assert.IsTrue(collection.Count > 0);
+        Assert.ThrowsExactly<NotSupportedException>(() => collection.Remove(collection.First()));
+        Assert.ThrowsExactly<NotSupportedException>(() => collection.Remove(newItems.First()));
     }
 
     public static void ClearFail<T>(Func<ICollection<T>> createCollection)

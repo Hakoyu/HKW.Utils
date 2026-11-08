@@ -17,6 +17,8 @@ public sealed class ObservableValue<T>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _value = default!;
 
+    private bool _isChanging;
+
     /// <summary>
     /// 值
     /// </summary>
@@ -25,11 +27,18 @@ public sealed class ObservableValue<T>
         get => _value;
         set
         {
+            using var mutation = new ObservablePropertyMutation(
+                ref _isChanging,
+                PropertyChanging,
+                PropertyChanged
+            );
             if (EqualityComparer<T>.Default.Equals(_value, value))
                 return;
-            PropertyChanging?.Invoke(this, PropertyChangingArgsCache.Value);
+            var changing = mutation.Changing;
+            var changed = mutation.Changed;
+            changing?.Invoke(this, PropertyChangingArgsCache.Value);
             _value = value;
-            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Value);
+            changed?.Invoke(this, PropertyChangedArgsCache.Value);
         }
     }
 
@@ -75,15 +84,15 @@ public sealed class ObservableValue<T>
     }
 
     /// <inheritdoc/>
-    public static bool operator ==(ObservableValue<T> a, ObservableValue<T> b)
+    public static bool operator ==(ObservableValue<T>? a, ObservableValue<T>? b)
     {
-        return EqualityComparer<T>.Default.Equals(a.Value, b.Value);
+        return ReferenceEquals(a, b) || (a is not null && a.Equals(b));
     }
 
     /// <inheritdoc/>
-    public static bool operator !=(ObservableValue<T> a, ObservableValue<T> b)
+    public static bool operator !=(ObservableValue<T>? a, ObservableValue<T>? b)
     {
-        return (a == b) is not true;
+        return (a == b) is false;
     }
     #endregion
 

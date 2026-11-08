@@ -12,20 +12,45 @@ namespace HKW.HKWUtils.Observable;
 /// 只读可观测合集
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
+/// <remarks>
+/// 源通过事件持有本视图; 不用时必须显式释放, 不能依靠终结器解除订阅.
+/// 本库可写包装器在操作开始时一并冻结转发订阅; 操作内退订或释放从下一次操作起生效.
+/// 释放不影响源的所有权, 仍可读取源内容.
+/// </remarks>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(IEnumerableDebugView))]
 public sealed class ReadOnlyObservableSet<T>
     : IObservableSet<T>,
         IReadOnlyObservableSet<T>,
-        IDisposable
+        IDisposable,
+        ICollectionNotificationSnapshot,
+        ICollectionNotificationState
 {
     private readonly IObservableSet<T> _set;
+
+    private readonly CollectionNotificationScope<ObservableSetChangingEventHandler<T>, ObservableSetChangedEventHandler<T>> _notifications = new();
+
+    bool ICollectionNotificationState.IsNotifying => _notifications.IsActive
+        || _set is ICollectionNotificationState { IsNotifying: true };
+
+    bool ICollectionNotificationSnapshot.CaptureNotifications()
+    {
+        if (_notifications.IsActive) return false;
+        _notifications.Enter(SetChanging, SetChanged, CollectionChanged, PropertyChanged);
+        return true;
+    }
+
+    void ICollectionNotificationSnapshot.ReleaseNotifications()
+    {
+        _notifications.Exit();
+    }
 
     #region Ctor
     /// <inheritdoc/>
     /// <param name="set">集合</param>
     public ReadOnlyObservableSet(IObservableSet<T> set)
     {
+        ArgumentNullException.ThrowIfNull(set);
         _set = set;
         _set.SetChanging += Set_SetChanging;
         _set.SetChanged += Set_SetChanged;
@@ -35,32 +60,31 @@ public sealed class ReadOnlyObservableSet<T>
 
     private void Set_SetChanging(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
     {
-        SetChanging?.Invoke(this, e);
+        (_notifications.IsActive ? _notifications.Changing : SetChanging)?.Invoke(this, e);
     }
 
     private void Set_SetChanged(IObservableSet<T> sender, NotifySetChangeEventArgs<T> e)
     {
-        SetChanged?.Invoke(this, e);
+        (_notifications.IsActive ? _notifications.Changed : SetChanged)?.Invoke(this, e);
     }
 
     private void Set_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        CollectionChanged?.Invoke(this, e);
+        (_notifications.IsActive ? _notifications.Collection : CollectionChanged)?.Invoke(this, e);
     }
 
     private void Set_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        PropertyChanged?.Invoke(this, e);
+        (_notifications.IsActive ? _notifications.Property : PropertyChanged)?.Invoke(this, e);
     }
     #endregion
 
     #region Dispose
     private bool _disposed;
 
-    /// <inheritdoc/>
-    ~ReadOnlyObservableSet() => Dispose(false);
-
-    /// <inheritdoc/>
+    /// <summary>
+    /// 解除源事件订阅; 释放后仍可读取源内容, 当前操作已捕获的通知仍会完成.
+    /// </summary>
     public void Dispose()
     {
         Dispose(true);

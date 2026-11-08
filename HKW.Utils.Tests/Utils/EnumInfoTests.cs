@@ -99,24 +99,48 @@ public class EnumInfoTests
         static string getDisplayDescription(EnumInfo<TestEnum> _) => "Custom_Description";
         static string toStringFunc(EnumInfo<TestEnum> _) => "Custom_ToString";
 
-        EnumInfo<TestEnum>.DefaultGetDisplayName = getDisplayName;
-        EnumInfo<TestEnum>.DefaultGetDisplayShortName = getDisplayShortName;
-        EnumInfo<TestEnum>.DefaultGetDisplayDescription = getDisplayDescription;
-        EnumInfo<TestEnum>.DefaultToString = toStringFunc;
+        var type = typeof(EnumInfo<TestEnum>);
+        var originalName = GetPrivateStaticField(type, "<DefaultGetDisplayName>k__BackingField");
+        var originalShortName = GetPrivateStaticField(
+            type,
+            "<DefaultGetDisplayShortName>k__BackingField"
+        );
+        var originalDescription = GetPrivateStaticField(
+            type,
+            "<DefaultGetDisplayDescription>k__BackingField"
+        );
+        var originalToString = GetPrivateStaticField(type, "<DefaultToString>k__BackingField");
+        try
+        {
+            EnumInfo<TestEnum>.DefaultGetDisplayName = getDisplayName;
+            EnumInfo<TestEnum>.DefaultGetDisplayShortName = getDisplayShortName;
+            EnumInfo<TestEnum>.DefaultGetDisplayDescription = getDisplayDescription;
+            EnumInfo<TestEnum>.DefaultToString = toStringFunc;
 
-        Assert.AreEqual("Custom_Name", info.DisplayName);
-        Assert.AreEqual("Custom_ShortName", info.DisplayShortName);
-        Assert.AreEqual("Custom_Description", info.DisplayDescription);
-        Assert.AreEqual("Custom_ToString", info.ToString());
-        Assert.AreSame(getDisplayName, EnumInfo<TestEnum>.DefaultGetDisplayName);
-        Assert.AreSame(getDisplayShortName, EnumInfo<TestEnum>.DefaultGetDisplayShortName);
-        Assert.AreSame(getDisplayDescription, EnumInfo<TestEnum>.DefaultGetDisplayDescription);
-        Assert.AreSame(toStringFunc, EnumInfo<TestEnum>.DefaultToString);
-
-        EnumInfo<TestEnum>.DefaultGetDisplayName = null!;
-        EnumInfo<TestEnum>.DefaultGetDisplayShortName = null!;
-        EnumInfo<TestEnum>.DefaultGetDisplayDescription = null!;
-        EnumInfo<TestEnum>.DefaultToString = null!;
+            Assert.AreEqual("Custom_Name", info.DisplayName);
+            Assert.AreEqual("Custom_ShortName", info.DisplayShortName);
+            Assert.AreEqual("Custom_Description", info.DisplayDescription);
+            Assert.AreEqual("Custom_ToString", info.ToString());
+            Assert.AreSame(getDisplayName, EnumInfo<TestEnum>.DefaultGetDisplayName);
+            Assert.AreSame(getDisplayShortName, EnumInfo<TestEnum>.DefaultGetDisplayShortName);
+            Assert.AreSame(getDisplayDescription, EnumInfo<TestEnum>.DefaultGetDisplayDescription);
+            Assert.AreSame(toStringFunc, EnumInfo<TestEnum>.DefaultToString);
+        }
+        finally
+        {
+            SetPrivateStaticField(type, "<DefaultGetDisplayName>k__BackingField", originalName);
+            SetPrivateStaticField(
+                type,
+                "<DefaultGetDisplayShortName>k__BackingField",
+                originalShortName
+            );
+            SetPrivateStaticField(
+                type,
+                "<DefaultGetDisplayDescription>k__BackingField",
+                originalDescription
+            );
+            SetPrivateStaticField(type, "<DefaultToString>k__BackingField", originalToString);
+        }
     }
 
     [TestMethod]
@@ -369,32 +393,38 @@ public class EnumInfoTests
         var enumInfoType = typeof(EnumInfo<TestEnum>);
         var info = EnumInfo<TestEnum>.GetInfo(TestEnum.A);
 
-        var originalGlobalDefaultToString = GetPrivateStaticField(globalType, "_defaultToString");
+        var originalGlobalDefaultToString = GetPrivateStaticField(
+            globalType,
+            "<DefaultToString>k__BackingField"
+        );
         var originalGlobalDefaultGetDisplayName = GetPrivateStaticField(
             globalType,
-            "_defaultGetDisplayName"
+            "<DefaultGetDisplayName>k__BackingField"
         );
         var originalGlobalDefaultGetDisplayShortName = GetPrivateStaticField(
             globalType,
-            "_defaultGetDisplayShortName"
+            "<DefaultGetDisplayShortName>k__BackingField"
         );
         var originalGlobalDefaultGetDisplayDescription = GetPrivateStaticField(
             globalType,
-            "_defaultGetDisplayDescription"
+            "<DefaultGetDisplayDescription>k__BackingField"
         );
 
-        var originalTypeDefaultToString = GetPrivateStaticField(enumInfoType, "_defaultToString");
+        var originalTypeDefaultToString = GetPrivateStaticField(
+            enumInfoType,
+            "<DefaultToString>k__BackingField"
+        );
         var originalTypeDefaultGetDisplayName = GetPrivateStaticField(
             enumInfoType,
-            "_defaultGetDisplayName"
+            "<DefaultGetDisplayName>k__BackingField"
         );
         var originalTypeDefaultGetDisplayShortName = GetPrivateStaticField(
             enumInfoType,
-            "_defaultGetDisplayShortName"
+            "<DefaultGetDisplayShortName>k__BackingField"
         );
         var originalTypeDefaultGetDisplayDescription = GetPrivateStaticField(
             enumInfoType,
-            "_defaultGetDisplayDescription"
+            "<DefaultGetDisplayDescription>k__BackingField"
         );
 
         try
@@ -435,37 +465,45 @@ public class EnumInfoTests
         }
         finally
         {
-            SetPrivateStaticField(globalType, "_defaultToString", originalGlobalDefaultToString);
             SetPrivateStaticField(
                 globalType,
-                "_defaultGetDisplayName",
+                "<DefaultToString>k__BackingField",
+                originalGlobalDefaultToString
+            );
+            SetPrivateStaticField(
+                globalType,
+                "<DefaultGetDisplayName>k__BackingField",
                 originalGlobalDefaultGetDisplayName
             );
             SetPrivateStaticField(
                 globalType,
-                "_defaultGetDisplayShortName",
+                "<DefaultGetDisplayShortName>k__BackingField",
                 originalGlobalDefaultGetDisplayShortName
             );
             SetPrivateStaticField(
                 globalType,
-                "_defaultGetDisplayDescription",
+                "<DefaultGetDisplayDescription>k__BackingField",
                 originalGlobalDefaultGetDisplayDescription
             );
 
-            SetPrivateStaticField(enumInfoType, "_defaultToString", originalTypeDefaultToString);
             SetPrivateStaticField(
                 enumInfoType,
-                "_defaultGetDisplayName",
+                "<DefaultToString>k__BackingField",
+                originalTypeDefaultToString
+            );
+            SetPrivateStaticField(
+                enumInfoType,
+                "<DefaultGetDisplayName>k__BackingField",
                 originalTypeDefaultGetDisplayName
             );
             SetPrivateStaticField(
                 enumInfoType,
-                "_defaultGetDisplayShortName",
+                "<DefaultGetDisplayShortName>k__BackingField",
                 originalTypeDefaultGetDisplayShortName
             );
             SetPrivateStaticField(
                 enumInfoType,
-                "_defaultGetDisplayDescription",
+                "<DefaultGetDisplayDescription>k__BackingField",
                 originalTypeDefaultGetDisplayDescription
             );
         }
@@ -544,7 +582,7 @@ public class EnumInfoTests
             );
 
             var method = typeof(EnumInfo).GetMethod(
-                "CreateEnumInfoExpression",
+                "BuildEnumInfoExpression",
                 BindingFlags.NonPublic | BindingFlags.Static
             );
             Assert.IsNotNull(method);
@@ -575,14 +613,16 @@ public class EnumInfoTests
 
     private static object? GetPrivateStaticField(Type type, string fieldName)
     {
-        return type.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static)
-            ?.GetValue(null);
+        var field = type.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.IsNotNull(field, $"Static field not found: {type.FullName}.{fieldName}");
+        return field.GetValue(null);
     }
 
     private static void SetPrivateStaticField(Type type, string fieldName, object? value)
     {
-        type.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static)
-            ?.SetValue(null, value);
+        var field = type.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.IsNotNull(field, $"Static field not found: {type.FullName}.{fieldName}");
+        field.SetValue(null, value);
     }
 
     private static void RestoreInfosByType(Type enumType, IDictionary<Enum, IEnumInfo>? dictionary)

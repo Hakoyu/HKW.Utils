@@ -22,7 +22,7 @@ public static class EnumExtensions
         /// <inheritdoc/>
         public static bool operator !=(TEnum a, TEnum b)
         {
-            return !(a == b);
+            return (a == b) is false;
         }
 
         /// <summary>
@@ -99,10 +99,14 @@ public static class EnumExtensions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IEnumInfo GetInfo()
         {
+            ArgumentNullException.ThrowIfNull(value);
             var type = value.GetType();
-            if (EnumInfo.InfosByType.TryGetValue(type, out var infos))
-                return infos.Values.First().Create(value);
-            return EnumInfo.CreateEnumInfoExpression(type).Invoke(value);
+            if (
+                EnumInfo.InfosByType.TryGetValue(type, out var infos)
+                && infos.Values.FirstOrDefault() is { } prototype
+            )
+                return prototype.Create(value);
+            return EnumInfo.BuildEnumInfoExpression(type).Invoke(value);
         }
 
         /// <summary>

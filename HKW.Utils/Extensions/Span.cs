@@ -121,23 +121,6 @@ public static partial class SpanExtensions
         return new SpanSearchCharsSplitEnumerator(span, separators, options);
     }
 
-    ///// <summary>
-    ///// 多分割符分割器
-    ///// </summary>
-    ///// <typeparam name="T">类型</typeparam>
-    ///// <param name="span">源</param>
-    ///// <param name="separators">分割符集合</param>
-    ///// <returns>枚举器</returns>
-    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-    //public static SpanSearchStringsSplitEnumerator Split<T>(
-    //    this Span<char> span,
-    //    SearchValues<string> separators
-    //)
-    //    where T : IEquatable<T>
-    //{
-    //    return new SpanSearchStringsSplitEnumerator(span, separators);
-    //}
-
     /// <summary>
     /// 行分割
     /// </summary>
@@ -154,10 +137,14 @@ public static partial class SpanExtensions
 
     /// <summary>
     /// 将需要分割的字符串转换为帕斯卡风格字符串
-    /// <para><c>red red red => RedRedRed</c></para>
     /// </summary>
+    /// <remarks>
+    /// <![CDATA[
+    /// red red red => RedRedRed
+    /// ]]>
+    /// </remarks>
     /// <param name="span">字符串</param>
-    /// <param name="separator">分隔符</param>
+    /// <param name="separator">分隔符; 首尾及连续分隔符产生的空片段会被跳过</param>
     /// <param name="sourceToLower">将原始字符串转换为小写,若确定来源是小写时可关闭以提高性能</param>
     /// <param name="cultureInfo">文化信息</param>
     /// <returns>帕斯卡命名格式的字符串</returns>
@@ -178,10 +165,14 @@ public static partial class SpanExtensions
 
     /// <summary>
     /// 将需要分割的字符串转换为帕斯卡风格字符串
-    /// <para><c>red red red => RedRedRed</c></para>
     /// </summary>
+    /// <remarks>
+    /// <![CDATA[
+    /// red red red => RedRedRed
+    /// ]]>
+    /// </remarks>
     /// <param name="span">字符串</param>
-    /// <param name="separators">分隔符</param>
+    /// <param name="separators">分隔符; 首尾及连续分隔符产生的空片段会被跳过</param>
     /// <param name="sourceToLower">将原始字符串转换为小写,若确定来源是小写时可关闭以提高性能</param>
     /// <param name="cultureInfo">文化信息</param>
     /// <returns>帕斯卡命名格式的字符串</returns>
@@ -199,23 +190,4 @@ public static partial class SpanExtensions
             cultureInfo
         );
     }
-
-    ///// <summary>
-    ///// 将需要分割的字符串转换为帕斯卡风格字符串
-    ///// <para><c>red red red => RedRedRed</c></para>
-    ///// </summary>
-    ///// <param name="span">字符串</param>
-    ///// <param name="separators">分隔符</param>
-    ///// <param name="sourceToLower">将原始字符串转换为小写,若确定来源是小写时可关闭以提高性能</param>
-    ///// <param name="cultureInfo">文化信息</param>
-    ///// <returns>帕斯卡命名格式的字符串</returns>
-    //public static string ToPascal(
-    //    this Span<char> span,
-    //    SearchValues<string> separators,
-    //    bool sourceToLower = false,
-    //    CultureInfo? cultureInfo = null
-    //)
-    //{
-    //    return ToPascal((ReadOnlySpan<char>)span, separators, sourceToLower, cultureInfo);
-    //}
 }

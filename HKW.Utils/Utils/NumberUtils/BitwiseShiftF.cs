@@ -113,10 +113,10 @@ public partial class NumberUtils
             case BitwiseShiftType.Left:
                 return numberType switch
                 {
-                    NumberType.SByte => (int)(sbyte)value1 << shift,
-                    NumberType.Byte => (int)(byte)value1 << shift,
-                    NumberType.Int16 => (int)(short)value1 << shift,
-                    NumberType.UInt16 => (uint)(ushort)value1 << shift,
+                    NumberType.SByte => unchecked((sbyte)((int)(sbyte)value1 << shift)),
+                    NumberType.Byte => unchecked((byte)((int)(byte)value1 << shift)),
+                    NumberType.Int16 => unchecked((short)((int)(short)value1 << shift)),
+                    NumberType.UInt16 => unchecked((ushort)((uint)(ushort)value1 << shift)),
                     NumberType.Int32 => (int)value1 << shift,
                     NumberType.UInt32 => (uint)value1 << shift,
                     NumberType.Int64 => (long)value1 << shift,
@@ -126,10 +126,10 @@ public partial class NumberUtils
             case BitwiseShiftType.Right:
                 return numberType switch
                 {
-                    NumberType.SByte => (int)(sbyte)value1 >> shift,
-                    NumberType.Byte => (int)(byte)value1 >> shift,
-                    NumberType.Int16 => (int)(short)value1 >> shift,
-                    NumberType.UInt16 => (uint)(ushort)value1 >> shift,
+                    NumberType.SByte => unchecked((sbyte)((int)(sbyte)value1 >> shift)),
+                    NumberType.Byte => unchecked((byte)((int)(byte)value1 >> shift)),
+                    NumberType.Int16 => unchecked((short)((int)(short)value1 >> shift)),
+                    NumberType.UInt16 => unchecked((ushort)((uint)(ushort)value1 >> shift)),
                     NumberType.Int32 => (int)value1 >> shift,
                     NumberType.UInt32 => (uint)value1 >> shift,
                     NumberType.Int64 => (long)value1 >> shift,
@@ -139,10 +139,10 @@ public partial class NumberUtils
             case BitwiseShiftType.UnsignedRight:
                 return numberType switch
                 {
-                    NumberType.SByte => (int)(sbyte)value1 >>> shift,
-                    NumberType.Byte => (int)(byte)value1 >>> shift,
-                    NumberType.Int16 => (int)(short)value1 >>> shift,
-                    NumberType.UInt16 => (uint)(ushort)value1 >>> shift,
+                    NumberType.SByte => unchecked((sbyte)((int)(sbyte)value1 >>> shift)),
+                    NumberType.Byte => unchecked((byte)((int)(byte)value1 >>> shift)),
+                    NumberType.Int16 => unchecked((short)((int)(short)value1 >>> shift)),
+                    NumberType.UInt16 => unchecked((ushort)((uint)(ushort)value1 >>> shift)),
                     NumberType.Int32 => (int)value1 >>> shift,
                     NumberType.UInt32 => (uint)value1 >>> shift,
                     NumberType.Int64 => (long)value1 >>> shift,

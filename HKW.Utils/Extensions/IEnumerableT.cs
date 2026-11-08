@@ -40,15 +40,21 @@ public static partial class EnumerableExtensions
         /// </summary>
         /// <param name="index">索引值</param>
         /// <param name="item">项目</param>
-        /// <returns>是否获取成功</returns>
+        /// <returns>是否获取成功; 索引越过末尾时返回 false 和默认值</returns>
+        /// <exception cref="ArgumentOutOfRangeException">索引为负数</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryElementAt(int index, [MaybeNullWhen(false)] out T item)
         {
             ArgumentOutOfRangeException.ThrowIfLessThan(index, 0);
             if (source is IList<T> list)
             {
-                item = list[index];
-                return true;
+                if (index < list.Count)
+                {
+                    item = list[index];
+                    return true;
+                }
+                item = default;
+                return false;
             }
             var tempIndex = 0;
             using var e = source.GetEnumerator();
@@ -115,6 +121,9 @@ public static partial class EnumerableExtensions
         /// <summary>
         /// 判断两个集合的值是否全部相等 (无视顺序)
         /// </summary>
+        /// <remarks>
+        /// 按默认相等比较器比较多重集, 包含重复次数和 null; 不使用输入集合自身的比较器.
+        /// </remarks>
         /// <param name="target">目标</param>
         /// <returns>是否相等</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -122,6 +131,7 @@ public static partial class EnumerableExtensions
         public bool UnorderedEqual(IEnumerable<T> target)
 #pragma warning restore S3776
         {
+            ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(target);
 
             if (ReferenceEquals(source, target))
@@ -136,17 +146,20 @@ public static partial class EnumerableExtensions
                 if (sourceCol.Count == 0)
                     return true;
 
-                if (sourceCol is ISet<T> sourceSet && targetCol is ISet<T> targetSet)
-                    return sourceSet.SetEquals(targetSet);
-
-                count = int.Max(sourceCol.Count, targetCol.Count);
+                count = sourceCol.Count;
             }
 
 #pragma warning disable CS8714 // 类型不能用作泛型类型或方法中的类型参数。类型参数的为 Null 性与 "notnull" 约束不匹配。
             var counts = count > 0 ? new Dictionary<T, int>(count) : new Dictionary<T, int>();
 
+            var nullCount = 0;
             foreach (var item in source)
             {
+                if (item is null)
+                {
+                    nullCount++;
+                    continue;
+                }
                 ref var countRef = ref CollectionsMarshal.GetValueRefOrAddDefault(
                     counts,
                     item,
@@ -160,6 +173,13 @@ public static partial class EnumerableExtensions
 
             foreach (var item in target)
             {
+                if (item is null)
+                {
+                    if (nullCount == 0)
+                        return false;
+                    nullCount--;
+                    continue;
+                }
                 ref var countRef = ref CollectionsMarshal.GetValueRefOrNullRef(counts, item);
                 if (Unsafe.IsNullRef(ref countRef))
                     return false;
@@ -170,31 +190,64 @@ public static partial class EnumerableExtensions
             }
 #pragma warning restore CS8714 // 类型不能用作泛型类型或方法中的类型参数。类型参数的为 Null 性与 "notnull" 约束不匹配。
 
-            return counts.Count == 0;
+            return counts.Count == 0 && nullCount == 0;
         }
 
         /// <summary>
         /// 获取枚举中一个随机的值
         /// </summary>
+        /// <remarks>
+        /// 列表直接随机索引; 其他输入仅枚举一次, 以蓄水池采样等概率选择项目.
+        /// </remarks>
+        /// <exception cref="InvalidOperationException">序列为空</exception>
         /// <param name="random">随机类, 若为 <see langword="null"/> 则使用 <see cref="System.Random.Shared"/></param>
         /// <returns>随机的一个值</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Random(Random? random = null)
         {
+            ArgumentNullException.ThrowIfNull(source);
             random ??= System.Random.Shared;
-            return source.ElementAt(random.Next(source.Count()));
+            if (source is IList<T> list)
+            {
+                var count = list.Count;
+                if (count == 0)
+                    throw new InvalidOperationException("The sequence contains no elements.");
+                return list[random.Next(count)];
+            }
+
+            var seen = 0;
+            T result = default!;
+            foreach (var item in source)
+            {
+                if (random.Next(checked(++seen)) == 0)
+                    result = item;
+            }
+            if (seen == 0)
+                throw new InvalidOperationException("The sequence contains no elements.");
+            return result;
         }
 
         /// <summary>
         /// 获取枚举的随机排序
         /// </summary>
+        /// <remarks>
+        /// 调用时一次物化输入并以 Fisher–Yates 等概率洗牌; 不修改输入, 重复枚举保留同一排列.
+        /// 返回普通序列而非有序序列, 不支持通过 ThenBy 追加排序键.
+        /// </remarks>
         /// <param name="random">随机类, 若为 <see langword="null"/> 则使用 <see cref="System.Random.Shared"/></param>
         /// <returns>枚举的随机排序</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IOrderedEnumerable<T> RandomOrder(Random? random = null)
+        public IEnumerable<T> RandomOrder(Random? random = null)
         {
+            ArgumentNullException.ThrowIfNull(source);
             random ??= System.Random.Shared;
-            return source.OrderBy(x => random.Next(source.Count()));
+            var snapshot = source.ToArray();
+            for (var i = snapshot.Length - 1; i > 0; i--)
+            {
+                var index = random.Next(i + 1);
+                (snapshot[i], snapshot[index]) = (snapshot[index], snapshot[i]);
+            }
+            return snapshot;
         }
 
         /// <summary>
@@ -257,6 +310,12 @@ public static partial class EnumerableExtensions
     /// <summary>
     /// 尝试获取区块
     /// </summary>
+    /// <remarks>
+    /// 返回数组或 List 的底层存储视图, 不创建快照, 也不进行枚举器版本校验.
+    /// 使用 List 的区块期间不得添加, 删除, 清空元素, 调整容量或并发写入;
+    /// 结构修改可能使区块继续引用旧缓冲区或读取被清空, 覆盖的数据, 区块长度不会随列表变化.
+    /// 只读区块不阻止其他引用修改底层元素; 需要稳定快照时请先调用 ToArray.
+    /// </remarks>
     /// <typeparam name="T">源类型</typeparam>
     /// <param name="source">源</param>
     /// <param name="span">区块</param>

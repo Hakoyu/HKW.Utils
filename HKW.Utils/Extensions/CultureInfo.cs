@@ -41,6 +41,10 @@ public static class CultureInfoExtensions
         /// <summary>
         /// 尝试获取文化信息
         /// </summary>
+        /// <remarks>
+        /// 空名称和空白名称返回 false, 因此不通过空名称获取 invariant 文化.
+        /// 获取文化时的异常被捕获并返回 false, 失败时输出为 null.
+        /// </remarks>
         /// <param name="name">文化名称</param>
         /// <param name="cultureInfo">文化信息</param>
         /// <returns>是否获取成功</returns>

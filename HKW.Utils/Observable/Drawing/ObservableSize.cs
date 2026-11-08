@@ -14,6 +14,7 @@ public sealed partial class ObservableSize<T>
     : INotifyPropertyChanging,
         INotifyPropertyChanged,
         IEquatable<ObservableSize<T>>,
+        IEquatable<IReadOnlySize<T>>,
         ICloneable<ObservableSize<T>>,
         ISize<T>
     where T : struct, INumber<T>
@@ -38,24 +39,34 @@ public sealed partial class ObservableSize<T>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _width;
 
+    private bool _isChanging;
+
     /// <inheritdoc/>
     public T Width
     {
         get => _width;
         set
         {
-            if (_width == value)
+            using var mutation = new ObservablePropertyMutation(
+                ref _isChanging,
+                PropertyChanging,
+                PropertyChanged
+            );
+            GeometryMath<T>.ValidateSize(value, nameof(Width));
+            if (EqualityComparer<T>.Default.Equals(_width, value))
                 return;
-            if (PropertyChanging is not null)
+            var changing = mutation.Changing;
+            var changed = mutation.Changed;
+            if (changing is not null)
             {
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Width);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.IsEmpty);
+                changing.Invoke(this, PropertyChangingArgsCache.Width);
+                changing.Invoke(this, PropertyChangingArgsCache.IsEmpty);
             }
             _width = value;
-            if (PropertyChanged is not null)
+            if (changed is not null)
             {
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Width);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.IsEmpty);
+                changed.Invoke(this, PropertyChangedArgsCache.Width);
+                changed.Invoke(this, PropertyChangedArgsCache.IsEmpty);
             }
         }
     }
@@ -69,18 +80,26 @@ public sealed partial class ObservableSize<T>
         get => _height;
         set
         {
-            if (_height == value)
+            using var mutation = new ObservablePropertyMutation(
+                ref _isChanging,
+                PropertyChanging,
+                PropertyChanged
+            );
+            GeometryMath<T>.ValidateSize(value, nameof(Height));
+            if (EqualityComparer<T>.Default.Equals(_height, value))
                 return;
-            if (PropertyChanging is not null)
+            var changing = mutation.Changing;
+            var changed = mutation.Changed;
+            if (changing is not null)
             {
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Height);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.IsEmpty);
+                changing.Invoke(this, PropertyChangingArgsCache.Height);
+                changing.Invoke(this, PropertyChangingArgsCache.IsEmpty);
             }
             _height = value;
-            if (PropertyChanged is not null)
+            if (changed is not null)
             {
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Height);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.IsEmpty);
+                changed.Invoke(this, PropertyChangedArgsCache.Height);
+                changed.Invoke(this, PropertyChangedArgsCache.IsEmpty);
             }
         }
     }
@@ -112,15 +131,29 @@ public sealed partial class ObservableSize<T>
     /// <inheritdoc/>
     public override bool Equals(object? obj)
     {
-        return Equals(obj as ObservableSize<T>);
+        return Equals(obj as IReadOnlySize<T>);
     }
 
     /// <inheritdoc/>
-    public bool Equals(ObservableSize<T>? other)
+    public bool Equals(ObservableSize<T>? other) => Equals((IReadOnlySize<T>?)other);
+
+    /// <summary>
+    /// 按数值字段比较不同尺寸实现, NaN 使用数值相等语义.
+    /// </summary>
+    public bool Equals(IReadOnlySize<T>? other)
     {
-        if (other is null)
-            return false;
-        return this == other;
+        return other is not null
+            && EqualityComparer<T>.Default.Equals(Width, other.Width)
+            && EqualityComparer<T>.Default.Equals(Height, other.Height);
+    }
+
+    /// <summary>
+    /// 比较具体尺寸值, 避免将值类型参数装箱为接口.
+    /// </summary>
+    public bool Equals(Size<T> other)
+    {
+        return EqualityComparer<T>.Default.Equals(Width, other.Width)
+            && EqualityComparer<T>.Default.Equals(Height, other.Height);
     }
     #endregion
 

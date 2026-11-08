@@ -19,9 +19,10 @@ public class IListTests
     {
         var list = _createList();
 
-        while (list.Count > 0)
+        var random = new Random(1701);
+        for (var remaining = list.Count; remaining > 0; remaining--)
         {
-            var randomItem = list.RandomItem();
+            var randomItem = list.RandomItem(random);
             Assert.Contains(randomItem, list);
             list.Remove(randomItem);
             Assert.DoesNotContain(randomItem, list);
@@ -33,9 +34,10 @@ public class IListTests
     {
         var list = _createList();
 
-        while (list.Count > 0)
+        var random = new Random(1702);
+        for (var remaining = list.Count; remaining > 0; remaining--)
         {
-            var randomIndex = list.RandomIndex();
+            var randomIndex = list.RandomIndex(random);
             var randomItem = list[randomIndex];
             Assert.Contains(randomItem, list);
             list.RemoveAt(randomIndex);
@@ -69,40 +71,66 @@ public class IListTests
     [TestMethod]
     public void FindIndex()
     {
-        var list = _createList();
-        var cList = list.ToList();
-        var count = list.Count;
-
-        for (var i = 0; i < count; i++)
+        IList<string> list = new ObservableCollection<string>(["a", "b", "a", "c"]);
+        var expected = list.ToList();
+        foreach (var item in new[] { "a", "b", "c", "missing" })
         {
-            var item = list[i];
-            Assert.AreEqual(i, [cList.FindIndex(x => x == item), cList.FindIndex(x => x == item)]);
-            Assert.AreEqual(
-                i,
-                [cList.FindIndex(i, x => x == item), cList.FindIndex(i, x => x == item)]
-            );
-            Assert.AreEqual(
-                i,
-                [cList.FindIndex(i, 1, x => x == item), cList.FindIndex(i, 1, x => x == item)]
-            );
-            Assert.AreEqual(
-                i,
-                [
-                    cList.FindIndex(i, count - i, x => x == item),
-                    cList.FindIndex(i, count - i, x => x == item),
-                ]
-            );
+            Assert.AreEqual(expected.FindIndex(x => x == item),
+                ListExtensions.FindIndex(list, item, static (x, value) => x == value));
+            for (var start = 0; start < list.Count; start++)
+            {
+                Assert.AreEqual(expected.FindIndex(start, x => x == item),
+                    ListExtensions.FindIndex(list, start, item, static (x, value) => x == value));
+                for (var count = 0; count <= list.Count - start; count++)
+                {
+                    Assert.AreEqual(expected.FindIndex(start, count, x => x == item),
+                        ListExtensions.FindIndex(list, start, count, item, static (x, value) => x == value));
+                }
+            }
         }
+    }
 
-        Assert.AreEqual(-1, [cList.FindIndex(x => x == null), cList.FindIndex(x => x == null)]);
-        Assert.AreEqual(
-            -1,
-            [cList.FindIndex(1, x => x == null), cList.FindIndex(1, x => x == null)]
-        );
-        Assert.AreEqual(
-            -1,
-            [cList.FindIndex(1, 1, x => x == null), cList.FindIndex(1, 1, x => x == null)]
-        );
+    [TestMethod]
+    [DataRow(1)]
+    [DataRow(2)]
+    [DataRow(3)]
+    public void FindIndex_Empty(int overload)
+    {
+        IList<string> list = new ObservableCollection<string>();
+        var actual = overload switch
+        {
+            1 => ListExtensions.FindIndex(list, "a", static (x, value) => x == value),
+            2 => ListExtensions.FindIndex(list, 0, "a", static (x, value) => x == value),
+            _ => ListExtensions.FindIndex(list, 0, 0, "a", static (x, value) => x == value),
+        };
+        Assert.AreEqual(new List<string>().FindIndex(x => x == "a"), actual);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void FindIndex_EndBoundary(bool withCount)
+    {
+        IList<string> list = new ObservableCollection<string>(["a", "b", "a"]);
+        var expected = list.ToList().FindIndex(list.Count, 0, x => x == "a");
+        var actual = withCount
+            ? ListExtensions.FindIndex(list, list.Count, 0, "a", static (x, value) => x == value)
+            : ListExtensions.FindIndex(list, list.Count, "a", static (x, value) => x == value);
+        Assert.AreEqual(expected, actual);
+    }
+
+    [TestMethod]
+    [DataRow(-1, 1)]
+    [DataRow(4, 0)]
+    [DataRow(0, -1)]
+    [DataRow(2, 2)]
+    public void FindIndex_InvalidRange(int start, int count)
+    {
+        IList<string> list = new ObservableCollection<string>(["a", "b", "a"]);
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+            list.ToList().FindIndex(start, count, x => x == "a"));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+            ListExtensions.FindIndex(list, start, count, "a", static (x, value) => x == value));
     }
 
     [TestMethod]

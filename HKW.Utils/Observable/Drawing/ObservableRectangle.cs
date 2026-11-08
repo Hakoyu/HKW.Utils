@@ -10,7 +10,7 @@ namespace HKW.HKWUtils.Observable;
 /// 可观测矩形位置
 /// </summary>
 /// <typeparam name="T">数值类型</typeparam>
-public sealed class ObservableRectangle<T>
+public sealed partial class ObservableRectangle<T>
     : INotifyPropertyChanging,
         INotifyPropertyChanged,
         IEquatable<IReadOnlyRectangle<T>>,
@@ -50,36 +50,45 @@ public sealed class ObservableRectangle<T>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _x;
 
+    private bool _isChanging;
+
     /// <inheritdoc/>
     public T X
     {
         get => _x;
         set
         {
-            if (_x == value)
+            using var mutation = new ObservablePropertyMutation(
+                ref _isChanging,
+                PropertyChanging,
+                PropertyChanged
+            );
+            if (EqualityComparer<T>.Default.Equals(_x, value))
                 return;
-            if (PropertyChanging is not null)
+            var changing = mutation.Changing;
+            var changed = mutation.Changed;
+            if (changing is not null)
             {
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.X);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.IsEmpty);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Left);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Right);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.LeftTop);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.RightTop);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.LeftBottom);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.RightBottom);
+                changing.Invoke(this, PropertyChangingArgsCache.X);
+                changing.Invoke(this, PropertyChangingArgsCache.IsEmpty);
+                changing.Invoke(this, PropertyChangingArgsCache.Left);
+                changing.Invoke(this, PropertyChangingArgsCache.Right);
+                changing.Invoke(this, PropertyChangingArgsCache.LeftTop);
+                changing.Invoke(this, PropertyChangingArgsCache.RightTop);
+                changing.Invoke(this, PropertyChangingArgsCache.LeftBottom);
+                changing.Invoke(this, PropertyChangingArgsCache.RightBottom);
             }
             _x = value;
-            if (PropertyChanged is not null)
+            if (changed is not null)
             {
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.X);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.IsEmpty);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Left);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Right);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.LeftTop);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.RightTop);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.LeftBottom);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.RightBottom);
+                changed.Invoke(this, PropertyChangedArgsCache.X);
+                changed.Invoke(this, PropertyChangedArgsCache.IsEmpty);
+                changed.Invoke(this, PropertyChangedArgsCache.Left);
+                changed.Invoke(this, PropertyChangedArgsCache.Right);
+                changed.Invoke(this, PropertyChangedArgsCache.LeftTop);
+                changed.Invoke(this, PropertyChangedArgsCache.RightTop);
+                changed.Invoke(this, PropertyChangedArgsCache.LeftBottom);
+                changed.Invoke(this, PropertyChangedArgsCache.RightBottom);
             }
         }
     }
@@ -93,30 +102,37 @@ public sealed class ObservableRectangle<T>
         get => _y;
         set
         {
-            if (_y == value)
+            using var mutation = new ObservablePropertyMutation(
+                ref _isChanging,
+                PropertyChanging,
+                PropertyChanged
+            );
+            if (EqualityComparer<T>.Default.Equals(_y, value))
                 return;
-            if (PropertyChanging is not null)
+            var changing = mutation.Changing;
+            var changed = mutation.Changed;
+            if (changing is not null)
             {
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Y);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.IsEmpty);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Top);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Bottom);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.LeftTop);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.RightTop);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.LeftBottom);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.RightBottom);
+                changing.Invoke(this, PropertyChangingArgsCache.Y);
+                changing.Invoke(this, PropertyChangingArgsCache.IsEmpty);
+                changing.Invoke(this, PropertyChangingArgsCache.Top);
+                changing.Invoke(this, PropertyChangingArgsCache.Bottom);
+                changing.Invoke(this, PropertyChangingArgsCache.LeftTop);
+                changing.Invoke(this, PropertyChangingArgsCache.RightTop);
+                changing.Invoke(this, PropertyChangingArgsCache.LeftBottom);
+                changing.Invoke(this, PropertyChangingArgsCache.RightBottom);
             }
             _y = value;
-            if (PropertyChanged is not null)
+            if (changed is not null)
             {
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Y);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.IsEmpty);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Top);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Bottom);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.LeftTop);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.RightTop);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.LeftBottom);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.RightBottom);
+                changed.Invoke(this, PropertyChangedArgsCache.Y);
+                changed.Invoke(this, PropertyChangedArgsCache.IsEmpty);
+                changed.Invoke(this, PropertyChangedArgsCache.Top);
+                changed.Invoke(this, PropertyChangedArgsCache.Bottom);
+                changed.Invoke(this, PropertyChangedArgsCache.LeftTop);
+                changed.Invoke(this, PropertyChangedArgsCache.RightTop);
+                changed.Invoke(this, PropertyChangedArgsCache.LeftBottom);
+                changed.Invoke(this, PropertyChangedArgsCache.RightBottom);
             }
         }
     }
@@ -132,24 +148,32 @@ public sealed class ObservableRectangle<T>
         get => _width;
         set
         {
-            if (_width == value)
+            using var mutation = new ObservablePropertyMutation(
+                ref _isChanging,
+                PropertyChanging,
+                PropertyChanged
+            );
+            GeometryMath<T>.ValidateSize(value, nameof(Width));
+            if (EqualityComparer<T>.Default.Equals(_width, value))
                 return;
-            if (PropertyChanging is not null)
+            var changing = mutation.Changing;
+            var changed = mutation.Changed;
+            if (changing is not null)
             {
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Width);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.IsEmpty);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Right);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.RightTop);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.RightBottom);
+                changing.Invoke(this, PropertyChangingArgsCache.Width);
+                changing.Invoke(this, PropertyChangingArgsCache.IsEmpty);
+                changing.Invoke(this, PropertyChangingArgsCache.Right);
+                changing.Invoke(this, PropertyChangingArgsCache.RightTop);
+                changing.Invoke(this, PropertyChangingArgsCache.RightBottom);
             }
             _width = value;
-            if (PropertyChanged is not null)
+            if (changed is not null)
             {
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Width);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.IsEmpty);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Right);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.RightTop);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.RightBottom);
+                changed.Invoke(this, PropertyChangedArgsCache.Width);
+                changed.Invoke(this, PropertyChangedArgsCache.IsEmpty);
+                changed.Invoke(this, PropertyChangedArgsCache.Right);
+                changed.Invoke(this, PropertyChangedArgsCache.RightTop);
+                changed.Invoke(this, PropertyChangedArgsCache.RightBottom);
             }
         }
     }
@@ -163,24 +187,32 @@ public sealed class ObservableRectangle<T>
         get => _height;
         set
         {
-            if (_height == value)
+            using var mutation = new ObservablePropertyMutation(
+                ref _isChanging,
+                PropertyChanging,
+                PropertyChanged
+            );
+            GeometryMath<T>.ValidateSize(value, nameof(Height));
+            if (EqualityComparer<T>.Default.Equals(_height, value))
                 return;
-            if (PropertyChanging is not null)
+            var changing = mutation.Changing;
+            var changed = mutation.Changed;
+            if (changing is not null)
             {
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Height);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.IsEmpty);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Bottom);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.LeftBottom);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.RightBottom);
+                changing.Invoke(this, PropertyChangingArgsCache.Height);
+                changing.Invoke(this, PropertyChangingArgsCache.IsEmpty);
+                changing.Invoke(this, PropertyChangingArgsCache.Bottom);
+                changing.Invoke(this, PropertyChangingArgsCache.LeftBottom);
+                changing.Invoke(this, PropertyChangingArgsCache.RightBottom);
             }
             _height = value;
-            if (PropertyChanged is not null)
+            if (changed is not null)
             {
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Height);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.IsEmpty);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Bottom);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.LeftBottom);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.RightBottom);
+                changed.Invoke(this, PropertyChangedArgsCache.Height);
+                changed.Invoke(this, PropertyChangedArgsCache.IsEmpty);
+                changed.Invoke(this, PropertyChangedArgsCache.Bottom);
+                changed.Invoke(this, PropertyChangedArgsCache.LeftBottom);
+                changed.Invoke(this, PropertyChangedArgsCache.RightBottom);
             }
         }
     }
@@ -199,10 +231,10 @@ public sealed class ObservableRectangle<T>
     public T Top => Y;
 
     /// <inheritdoc/>
-    public T Right => unchecked(X + Width);
+    public T Right => GeometryMath<T>.End(X, Width);
 
     /// <inheritdoc/>
-    public T Bottom => unchecked(Y + Height);
+    public T Bottom => GeometryMath<T>.End(Y, Height);
 
     /// <inheritdoc/>
     public Point<T> LeftTop => new(Left, Top);
@@ -245,7 +277,21 @@ public sealed class ObservableRectangle<T>
     {
         if (other is null)
             return false;
-        return this == other;
+        return EqualityComparer<T>.Default.Equals(X, other.X)
+            && EqualityComparer<T>.Default.Equals(Y, other.Y)
+            && EqualityComparer<T>.Default.Equals(Width, other.Width)
+            && EqualityComparer<T>.Default.Equals(Height, other.Height);
+    }
+
+    /// <summary>
+    /// 比较具体矩形值, 避免将值类型参数装箱为接口.
+    /// </summary>
+    public bool Equals(Rectangle<T> other)
+    {
+        return EqualityComparer<T>.Default.Equals(X, other.X)
+            && EqualityComparer<T>.Default.Equals(Y, other.Y)
+            && EqualityComparer<T>.Default.Equals(Width, other.Width)
+            && EqualityComparer<T>.Default.Equals(Height, other.Height);
     }
     #endregion
 

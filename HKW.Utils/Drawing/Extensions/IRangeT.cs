@@ -19,6 +19,7 @@ public static partial class IReadOnlyRangeTExtensions
         /// <exception cref="ArgumentNullException"><paramref name="otherRange"/> 为 null</exception>
         public void SetValue(IReadOnlyRange<T> otherRange)
         {
+            ArgumentNullException.ThrowIfNull(range);
             ArgumentNullException.ThrowIfNull(otherRange);
             SetValue(range, otherRange.Min, otherRange.Max);
         }
@@ -30,6 +31,7 @@ public static partial class IReadOnlyRangeTExtensions
         /// <param name="max">最大值</param>
         public void SetValue(T min, T max)
         {
+            ArgumentNullException.ThrowIfNull(range);
             range.Min = min;
             range.Max = max;
         }

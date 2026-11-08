@@ -50,24 +50,22 @@ public class ObservableSelectableDictionary<TKey, TValue>
             if (HasSelection is false)
                 return -1;
 
-            return SourceDictionary.Keys.IndexOf(SelectedKey);
+            return SourceDictionary.IndexOf(SelectedKey);
         }
         set
         {
+            using var operation = BeginOperation();
             if (value == -1)
             {
-                SelectedItem = default!;
+                ClearSelectionCore();
                 return;
             }
 
             ArgumentOutOfRangeException.ThrowIfIndexOutOfRange(SourceDictionary, value);
-            SelectedItem = ((IReadOnlyList<KeyValuePair<TKey, TValue>>)SourceDictionary)[value];
+            SetSelectedItemCore(SourceDictionary.GetAt(value));
         }
     }
 
     /// <inheritdoc/>
-    protected override void OnSelectionChanged()
-    {
-        OnPropertyChanged(PropertyChangedArgsCache.SelectedIndex);
-    }
+    protected override int GetSelectionIndex() => SelectedIndex;
 }

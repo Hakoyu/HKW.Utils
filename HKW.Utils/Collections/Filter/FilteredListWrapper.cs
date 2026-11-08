@@ -23,7 +23,8 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
         IReadOnlyList<TItem>,
         IFilteredCollectionWrapper<TItem, TList, TFilteredList>,
         IList,
-        IListWrapper<TItem, TList>
+        IListWrapper<TItem, TList>,
+        IFilterStorage
     where TList : IList<TItem>
     where TFilteredList : IList<TItem>
 {
@@ -46,16 +47,32 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
         ArgumentException.ThrowIfReadOnlyCollection(list);
         ArgumentException.ThrowIfReadOnlyCollection(filteredList);
 
-        FilteredList = filteredList;
+        FilterLifecycle.Validate(list, filteredList);
+        _filteredList = filteredList;
         _sourceList = list;
         _filter = filter;
-        AutoFilter = autoFilter;
+        _autoFilter = autoFilter;
         Refresh();
     }
     #endregion
 
+    private readonly FilterLifecycle _lifecycle = new();
+    private readonly TFilteredList _filteredList;
+    private bool _autoFilter;
+
     /// <inheritdoc/>
-    public bool AutoFilter { get; set; }
+    public bool IsFilterValid => _lifecycle.IsValid;
+
+    /// <inheritdoc/>
+    public bool AutoFilter
+    {
+        get => _autoFilter;
+        set
+        {
+            using var operation = _lifecycle.Enter();
+            _autoFilter = value;
+        }
+    }
 
     private Predicate<TItem> _filter;
 
@@ -67,13 +84,16 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
         get => _filter;
         set
         {
+            using var operation = _lifecycle.Enter();
             ArgumentNullException.ThrowIfNull(value);
+            var result = Compute(_sourceList, value);
             _filter = value;
-            Refresh();
+            Publish(result);
         }
     }
 
     private TList _sourceList;
+    object IFilterStorage.SourceStorage => _sourceList;
 
     /// <inheritdoc/>
     public TList SourceList
@@ -81,8 +101,13 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
         get => _sourceList;
         set
         {
+            using var operation = _lifecycle.Enter();
+            FilterLifecycle.Validate(value, _filteredList, this);
+            var result = Compute(value, _filter);
+            var previous = _sourceList;
             _sourceList = value;
-            Refresh();
+            OnSourceChanged(previous);
+            Publish(result);
         }
     }
 
@@ -92,7 +117,14 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
     /// <summary>
     /// 过滤完成的列表
     /// </summary>
-    public TFilteredList FilteredList { get; }
+    public TFilteredList FilteredList
+    {
+        get
+        {
+            _lifecycle.EnsureReadable();
+            return _filteredList;
+        }
+    }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     TFilteredList IFilteredCollectionWrapper<TItem, TList, TFilteredList>.FilteredCollection =>
@@ -101,55 +133,137 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
     /// <inheritdoc/>
     public virtual void BatchUpdate(Action<TList> updateAction)
     {
+        using var operation = _lifecycle.Enter();
         ArgumentNullException.ThrowIfNull(updateAction);
-
-        var autoFilter = AutoFilter;
-        AutoFilter = false;
+        var autoFilter = _autoFilter;
+        _autoFilter = false;
         try
         {
-            updateAction(SourceList);
+            _lifecycle.Update(() => updateAction(_sourceList), RefreshCore);
         }
         finally
         {
-            AutoFilter = autoFilter;
+            _autoFilter = autoFilter;
         }
-
-        Refresh();
     }
 
     /// <inheritdoc/>
     public void Refresh()
     {
-        FilteredList.Clear();
-        if (SourceList?.Count > 0)
-            FilteredList.AddRange(SourceList.Where(i => Filter(i)));
+        using var operation = _lifecycle.Enter(recovery: true);
+        RefreshCore();
     }
+
+    private static List<TItem> Compute(TList source, Predicate<TItem> filter)
+    {
+        var result = new List<TItem>(source.Count);
+        foreach (var item in source)
+        {
+            if (filter(item))
+                result.Add(item);
+        }
+        return result;
+    }
+
+    private void RefreshCore()
+    {
+        List<TItem> result;
+        try
+        {
+            result = Compute(_sourceList, _filter);
+        }
+        catch
+        {
+            _lifecycle.IsValid = false;
+            throw;
+        }
+        Publish(result);
+    }
+
+    private void Publish(List<TItem> result)
+    {
+        _lifecycle.IsValid = false;
+        try
+        {
+            _lifecycle.EnsureSourceUnchanged();
+            // 按位置更新, 保留重复值的对应关系并避免无变化时清空重建.
+            var sharedCount = Math.Min(_filteredList.Count, result.Count);
+            for (var index = 0; index < sharedCount; index++)
+            {
+                if (FilterLifecycle.SameItem(_filteredList[index], result[index]) is false)
+                    _filteredList[index] = result[index];
+            }
+            for (var index = _filteredList.Count - 1; index >= result.Count; index--)
+                _filteredList.RemoveAt(index);
+            for (var index = sharedCount; index < result.Count; index++)
+                _filteredList.Add(result[index]);
+            _lifecycle.EnsureSourceUnchanged();
+            if (FilterLifecycle.Matches(_filteredList, result) is false)
+                throw new InvalidOperationException(
+                    "The filtered backend did not accept the complete result."
+                );
+            _lifecycle.IsValid = true;
+        }
+        catch
+        {
+            // 后端可能在最后一项提交后的通知中抛错, 仍保留已完成的新态.
+            try
+            {
+                _lifecycle.IsValid =
+                    _lifecycle.SourceInvalidated is false
+                    && FilterLifecycle.Matches(_filteredList, result);
+            }
+            catch
+            {
+                _lifecycle.IsValid = false;
+            }
+            throw;
+        }
+    }
+
+    private void Update(Action update, bool forceRefresh = false)
+    {
+        using var operation = _lifecycle.Enter();
+        _lifecycle.Update(update, _autoFilter || forceRefresh ? RefreshCore : null);
+    }
+
+    /// <summary>
+    /// 源切换完成后更新订阅.
+    /// </summary>
+    /// <param name="previous">先前的源</param>
+    protected virtual void OnSourceChanged(TList previous) { }
+
+    /// <summary>
+    /// 处理外部源通知. 包装器自身写入在操作结束时统一刷新.
+    /// </summary>
+    /// <param name="cleared">是否清空源</param>
+    protected void SourceChanged(bool cleared)
+    {
+        if (_lifecycle.IsUpdatingSource)
+            return;
+        if (_lifecycle.IsActive)
+        {
+            _lifecycle.InvalidateSource();
+            throw new InvalidOperationException(
+                "The source changed during filtered view publication."
+            );
+        }
+        if (_autoFilter || cleared)
+            Refresh();
+    }
+
+    /// <summary>
+    /// 释放订阅并拒绝后续写入及过滤视图读取.
+    /// </summary>
+    /// <param name="unsubscribe">取消订阅操作</param>
+    protected void DisposeFilter(Action unsubscribe) => _lifecycle.Dispose(unsubscribe);
 
     #region IList
     /// <inheritdoc/>
     public virtual TItem this[int index]
     {
         get => SourceList[index];
-        set
-        {
-            var oldValue = SourceList[index];
-            SourceList[index] = value;
-            if (AutoFilter is false)
-                return;
-
-            var oldIndex = FilteredList.IndexOf(oldValue);
-            if (Filter(value))
-            {
-                if (oldIndex >= 0)
-                    FilteredList[oldIndex] = value;
-                else
-                    Refresh();
-            }
-            else if (oldIndex >= 0)
-            {
-                FilteredList.RemoveAt(oldIndex);
-            }
-        }
+        set => Update(() => _sourceList[index] = value);
     }
 
     /// <inheritdoc/>
@@ -159,61 +273,34 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
     public bool IsReadOnly => SourceList.IsReadOnly;
 
     /// <inheritdoc/>
-    public bool IsFixedSize => ((IList)SourceList).IsFixedSize;
+    public bool IsFixedSize => CollectionInterfaceBridge.IsFixedSize(SourceList);
 
     /// <inheritdoc/>
-    public bool IsSynchronized => ((ICollection)SourceList).IsSynchronized;
+    public bool IsSynchronized => CollectionInterfaceBridge.IsSynchronized(SourceList);
 
     /// <inheritdoc/>
-    public object SyncRoot => ((ICollection)SourceList).SyncRoot;
+    public object SyncRoot => CollectionInterfaceBridge.SyncRoot(SourceList, this);
 
     /// <inheritdoc/>
-    public virtual void Add(TItem item)
-    {
-        SourceList.Add(item);
-        if (AutoFilter is false)
-            return;
-        if (Filter(item))
-            FilteredList.Add(item);
-    }
+    public virtual void Add(TItem item) => Update(() => _sourceList.Add(item));
 
     /// <inheritdoc/>
-    public virtual void Insert(int index, TItem item)
-    {
-        SourceList.Insert(index, item);
-        if (AutoFilter is false)
-            return;
-        if (Filter(item))
-            Refresh();
-    }
+    public virtual void Insert(int index, TItem item) =>
+        Update(() => _sourceList.Insert(index, item));
 
     /// <inheritdoc/>
     public virtual bool Remove(TItem item)
     {
-        var result = SourceList.Remove(item);
-        if (result)
-            FilteredList.Remove(item);
-        if (AutoFilter is false)
-            return result;
+        var result = false;
+        Update(() => result = _sourceList.Remove(item));
         return result;
     }
 
     /// <inheritdoc/>
-    public virtual void RemoveAt(int index)
-    {
-        var value = SourceList[index];
-        SourceList.RemoveAt(index);
-        if (AutoFilter is false)
-            return;
-        FilteredList.Remove(value);
-    }
+    public virtual void RemoveAt(int index) => Update(() => _sourceList.RemoveAt(index));
 
     /// <inheritdoc/>
-    public virtual void Clear()
-    {
-        SourceList.Clear();
-        FilteredList.Clear();
-    }
+    public virtual void Clear() => Update(_sourceList.Clear, forceRefresh: true);
 
     /// <inheritdoc/>
     public bool Contains(TItem item)
@@ -246,47 +333,62 @@ public class FilteredListWrapper<TItem, TList, TFilteredList>
     #endregion
 
     #region IList
+    private TItem GetInterfaceValue(object? value)
+    {
+        if (_lifecycle.IsActive)
+            throw new InvalidOperationException(
+                "Reentrant writes to the same filtered collection are not allowed."
+            );
+        _lifecycle.EnsureReadable();
+        return CollectionInterfaceBridge.GetValue<TItem>(value, nameof(value));
+    }
+
     object? IList.this[int index]
     {
         get => this[index];
-        set => this[index] = (TItem)value!;
+        set => this[index] = GetInterfaceValue(value);
     }
 
     /// <inheritdoc/>
     int IList.Add(object? value)
     {
-        Add((TItem)value!);
+        Add(GetInterfaceValue(value));
         return Count - 1;
     }
 
     /// <inheritdoc/>
     bool IList.Contains(object? value)
     {
-        return Contains((TItem)value!);
+        return CollectionInterfaceBridge.IsCompatible<TItem>(value) && Contains((TItem)value!);
     }
 
     /// <inheritdoc/>
     int IList.IndexOf(object? value)
     {
-        return ((IList)SourceList).IndexOf(value);
+        return CollectionInterfaceBridge.IsCompatible<TItem>(value) ? IndexOf((TItem)value!) : -1;
     }
 
     /// <inheritdoc/>
     void IList.Insert(int index, object? value)
     {
-        Insert(index, (TItem)value!);
+        Insert(index, GetInterfaceValue(value));
     }
 
     /// <inheritdoc/>
     void IList.Remove(object? value)
     {
-        Remove((TItem)value!);
+        if (CollectionInterfaceBridge.IsCompatible<TItem>(value))
+            Remove((TItem)value!);
+        else
+        {
+            using var operation = _lifecycle.Enter();
+        }
     }
 
     /// <inheritdoc/>
     void ICollection.CopyTo(Array array, int index)
     {
-        ((ICollection)SourceList).CopyTo(array, index);
+        CollectionInterfaceBridge.CopyTo(SourceList, array, index);
     }
     #endregion
 }

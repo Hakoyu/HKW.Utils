@@ -3,25 +3,44 @@
 namespace HKW.HKWUtils.Drawing;
 
 /// <summary>
-///
+/// Range 几何接口扩展.
 /// </summary>
+/// <remarks>
+/// Contains 对负尺寸, 反向范围, 非有限数值及不可表示端点返回 false
+/// </remarks>
 public static partial class IReadOnlyRangeTExtensions
 {
+    /// <summary>
+    /// 按字段值比较任意实现; 两个 null 相等, NaN 使用数值 Equals 语义.
+    /// </summary>
+    /// <remarks>
+    /// 接口变量的 == 可能绑定预定义引用相等; 需要值语义时显式调用本方法. 外部实现的 Equals 与哈希须遵循相同字段规则.
+    /// </remarks>
+    public static bool ValueEquals<T>(this IReadOnlyRange<T>? value, IReadOnlyRange<T>? other)
+        where T : struct, INumber<T>
+    {
+        if (value is null)
+            return other is null;
+        return other is not null
+            && EqualityComparer<T>.Default.Equals(value.Min, other.Min)
+            && EqualityComparer<T>.Default.Equals(value.Max, other.Max);
+    }
+
     /// <typeparam name="T">数值类型</typeparam>
     /// <param name="range">范围</param>
     extension<T>(IReadOnlyRange<T> range)
         where T : struct, INumber<T>
     {
         /// <inheritdoc/>
-        public static bool operator ==(IReadOnlyRange<T> a, IReadOnlyRange<T> b)
+        public static bool operator ==(IReadOnlyRange<T>? a, IReadOnlyRange<T>? b)
         {
-            return a.Min == b.Min && a.Max == b.Max;
+            return ValueEquals(a, b);
         }
 
         /// <inheritdoc/>
-        public static bool operator !=(IReadOnlyRange<T> a, IReadOnlyRange<T> b)
+        public static bool operator !=(IReadOnlyRange<T>? a, IReadOnlyRange<T>? b)
         {
-            return !(a == b);
+            return ValueEquals(a, b) is false;
         }
 
         /// <summary>
@@ -53,7 +72,12 @@ public static partial class IReadOnlyRangeTExtensions
         /// <returns>添加后的新点</returns>
         public Range<T> Add(IReadOnlySize<T> size)
         {
-            return new Range<T>(range.Min + size.Width, range.Max + size.Height);
+            ArgumentNullException.ThrowIfNull(range);
+            ArgumentNullException.ThrowIfNull(size);
+            return new Range<T>(
+                unchecked(range.Min + size.Width),
+                unchecked(range.Max + size.Height)
+            );
         }
 
         /// <summary>
@@ -63,7 +87,12 @@ public static partial class IReadOnlyRangeTExtensions
         /// <returns></returns>
         public Range<T> Subtract(IReadOnlySize<T> size)
         {
-            return new Range<T>(range.Min - size.Width, range.Max - size.Height);
+            ArgumentNullException.ThrowIfNull(range);
+            ArgumentNullException.ThrowIfNull(size);
+            return new Range<T>(
+                unchecked(range.Min - size.Width),
+                unchecked(range.Max - size.Height)
+            );
         }
 
         /// <summary>
@@ -77,7 +106,7 @@ public static partial class IReadOnlyRangeTExtensions
         {
             ArgumentNullException.ThrowIfNull(otherRange);
 
-            return Contains(range, otherRange.Min, otherRange.Max);
+            return Contains(range, otherRange.Min, otherRange.Max, includeBoundary);
         }
 
         /// <summary>
@@ -89,13 +118,8 @@ public static partial class IReadOnlyRangeTExtensions
         /// <returns>是否包含</returns>
         public bool Contains(T min, T max, bool includeBoundary = false)
         {
-            if (min > max)
-                return false;
-
-            if (includeBoundary)
-                return range.Min <= min && range.Max >= max;
-
-            return range.Min < min && range.Max > max;
+            ArgumentNullException.ThrowIfNull(range);
+            return GeometryMath<T>.ContainsRange(range.Min, range.Max, min, max, includeBoundary);
         }
 
         /// <summary>
@@ -105,7 +129,8 @@ public static partial class IReadOnlyRangeTExtensions
         /// <returns>是否包含</returns>
         public bool Contains(T value)
         {
-            return range.Max > value && range.Min < value;
+            ArgumentNullException.ThrowIfNull(range);
+            return GeometryMath<T>.ContainsRange(range.Min, range.Max, value, value, false);
         }
     }
 }

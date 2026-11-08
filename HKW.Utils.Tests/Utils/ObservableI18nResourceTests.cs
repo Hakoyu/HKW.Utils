@@ -176,7 +176,7 @@ public class ObservableI18nResourceTests
         var c2 = cultures[1];
         var c3 = cultures[2];
         var resource = new ObservableI18nResource<string, string>("Main", c1, [c1, c2]);
-        resource.GetDefaultValue = (key, culture) => $"fallback_{key}_{culture.Name}";
+        resource.GetDefaultValue = (key, culture) => $"fallback_{key}_{culture?.Name}";
         resource.SetData("k1", "v1", c1);
 
         Assert.AreEqual("v1", resource.GetDataOrDefault("k1", c1));
@@ -294,7 +294,7 @@ public class ObservableI18nResourceTests
 
         resource.CurrentCultureChanged += (_, culture) =>
         {
-            if (culture.Equals(c2))
+            if (culture?.Equals(c2) is true)
                 currentCultureChangedCount++;
         };
         resource.PropertyChanged += (_, e) =>
@@ -426,7 +426,7 @@ public class ObservableI18nResourceTests
         CultureDataChangedEventArgs<string, string>? changed = null;
         resource.CultureDataChanged += (_, e) => changed = e;
 
-        resource.DatasByKey.Add("key", data);
+        resource.AddData("key", data);
 
         Assert.HasCount(2, data);
         Assert.AreEqual("__default__", data[1]);
@@ -443,7 +443,7 @@ public class ObservableI18nResourceTests
         var resource = new ObservableI18nResource<string, string>("Main", cultures[0], cultures);
         var data = new ObservableCultureDataList<string, string>("key") { "1", "2", "3" };
 
-        Assert.Throws<ArgumentException>(() => resource.DatasByKey.Add("key", data));
+        Assert.Throws<ArgumentException>(() => resource.AddData("key", data));
         Assert.IsFalse(resource.DatasByKey.ContainsKey("key"));
     }
 }

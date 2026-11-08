@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HKW.HKWUtils.Collections;
-using HKW.HKWUtils.Extensions;
 using HKW.HKWUtilsTests.Collections;
 
 namespace HKW.HKWUtilsTests;
@@ -45,7 +44,7 @@ public static class IListTTestUtils
         }
         Assert.IsTrue(list.SequenceEqual(cList));
 
-        foreach (var (e, i) in newItems.WithIndex())
+        foreach (var (e, i) in newItems.Select((value, index) => (value, index)))
         {
             list[i] = cList[i] = e;
             Assert.AreEqual(e, [list[i], cList[i]]);

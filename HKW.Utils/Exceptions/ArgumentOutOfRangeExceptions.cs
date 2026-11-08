@@ -24,10 +24,13 @@ public static class ArgumentOutOfRangeExceptions
             [CallerArgumentExpression("index")] string? paramNameIndex = null
         )
         {
+            ArgumentNullException.ThrowIfNull(list, paramNameList);
             if (index < 0 || index >= list.Count)
             {
                 throw new ArgumentOutOfRangeException(
-                    $"The index \"{paramNameIndex}\" must be -1 or a valid index in the list \"{paramNameList}\"."
+                    paramNameIndex,
+                    index,
+                    $"The index must be a valid index in the list \"{paramNameList}\"."
                 );
             }
         }

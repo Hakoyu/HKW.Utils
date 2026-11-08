@@ -189,9 +189,11 @@ public static class ObservableCollectionUtils
 
         void Collection_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            triggerCount++;
-            Assert.AreEqual(sender, collection);
-            Assert.AreEqual(nameof(collection.Count), e.PropertyName);
+            Assert.AreSame(collection, sender);
+            if (e.PropertyName == nameof(collection.Count))
+                triggerCount++;
+            else
+                Assert.IsTrue(e.IsIndexer());
             Assert.HasCount(collection.Count, cCollection);
             Assert.IsTrue(collection.SequenceEqual(cCollection));
         }
@@ -219,9 +221,11 @@ public static class ObservableCollectionUtils
 
         void Collection_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            triggerCount++;
-            Assert.AreEqual(sender, collection);
-            Assert.AreEqual(nameof(collection.Count), e.PropertyName);
+            Assert.AreSame(collection, sender);
+            if (e.PropertyName == nameof(collection.Count))
+                triggerCount++;
+            else
+                Assert.IsTrue(e.IsIndexer());
             Assert.HasCount(collection.Count, cCollection);
             Assert.IsTrue(collection.SequenceEqual(cCollection));
         }
@@ -269,9 +273,11 @@ public static class ObservableCollectionUtils
 
         void Collection_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            triggerCount++;
-            Assert.AreEqual(sender, collection);
-            Assert.AreEqual(nameof(collection.Count), e.PropertyName);
+            Assert.AreSame(collection, sender);
+            if (e.PropertyName == nameof(collection.Count))
+                triggerCount++;
+            else
+                Assert.IsTrue(e.IsIndexer());
             Assert.HasCount(collection.Count, cCollection);
             Assert.IsTrue(collection.SequenceEqual(cCollection));
         }

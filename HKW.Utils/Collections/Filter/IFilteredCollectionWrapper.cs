@@ -20,6 +20,11 @@ public interface IFilteredCollectionWrapper<T, TCollection, TFilteredCollection>
     public bool AutoFilter { get; set; }
 
     /// <summary>
+    /// 过滤视图是否有效. 失效后必须成功调用 Refresh 才能继续使用过滤视图.
+    /// </summary>
+    public bool IsFilterValid { get; }
+
+    /// <summary>
     /// 过滤器
     /// </summary>
     public Predicate<T> Filter { get; set; }

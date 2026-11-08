@@ -37,7 +37,11 @@ public class ObservableSelectableSetWrapper<TItem, TSet> : ObservableSetWrapper<
     public TItem SelectedItem
     {
         get => _selectedItem;
-        set => SetSelectedItem(value);
+        set
+        {
+            using var operation = BeginOperation();
+            SetSelectedItemCore(value);
+        }
     }
 
     /// <inheritdoc/>
@@ -47,8 +51,10 @@ public class ObservableSelectableSetWrapper<TItem, TSet> : ObservableSetWrapper<
         int removeIndex
     )
     {
-        if (_hasSelection is true && Comparer.Equals(_selectedItem, items[0]))
-            ClearSelection();
+        if (_hasSelection && Comparer.Equals(_selectedItem, items[0]))
+            ClearSelectionCore();
+        else
+            RefreshSelectionIndex();
 
         base.OnSetRemoved(args, items, removeIndex);
     }
@@ -56,7 +62,7 @@ public class ObservableSelectableSetWrapper<TItem, TSet> : ObservableSetWrapper<
     /// <inheritdoc/>
     protected override void OnSetCleared()
     {
-        ClearSelection();
+        ClearSelectionCore();
         base.OnSetCleared();
     }
 
@@ -70,42 +76,108 @@ public class ObservableSelectableSetWrapper<TItem, TSet> : ObservableSetWrapper<
         IList<int> removeIndexs
     )
     {
-        if (_hasSelection is true && oldItems?.Contains(_selectedItem, Comparer) is true)
-        {
-            ClearSelection();
-        }
+        if (_hasSelection && SourceSet.Contains(_selectedItem) is false)
+            ClearSelectionCore();
+        else
+            RefreshSelectionIndex();
 
         base.OnSetOperated(args, action, otherItems, newItems, oldItems, removeIndexs);
     }
 
-    private void SetSelectedItem(TItem item)
+    /// <summary>
+    /// 在当前操作作用域内选择项目, 缺失项目清除选择.
+    /// </summary>
+    private protected void SetSelectedItemCore(TItem item)
     {
-        if (Comparer.Equals(_selectedItem, item))
+        if (SourceSet.Contains(item) is false)
+        {
+            ClearSelectionCore();
+            return;
+        }
+
+        if (SourceSet is OrderedHashSet<TItem> ordered)
+            item = ordered.GetAt(ordered.IndexOf(item));
+        else if (SourceSet is HashSet<TItem> hashSet)
+            hashSet.TryGetValue(item, out item!);
+        else if (SourceSet is SortedSet<TItem> sortedSet)
+            sortedSet.TryGetValue(item, out item!);
+        else
+            item = GetStoredSelection(item);
+
+        if (_hasSelection && Comparer.Equals(_selectedItem, item))
             return;
 
+        var hadSelection = _hasSelection;
         _selectedItem = item;
-        _hasSelection = Contains(item);
+        _hasSelection = true;
+        var indexChanged = CommitSelectionIndex();
         OnPropertyChanged(PropertyChangedArgsCache.SelectedItem);
-        OnPropertyChanged(PropertyChangedArgsCache.HasSelection);
+        if (hadSelection is false)
+            OnPropertyChanged(PropertyChangedArgsCache.HasSelection);
+        if (indexChanged)
+            OnPropertyChanged(PropertyChangedArgsCache.SelectedIndex);
         OnSelectionChanged();
     }
 
     /// <summary>
     /// 清除选择
     /// </summary>
-    protected void ClearSelection()
+    /// <remarks>
+    /// 不删除项目. 默认值仍可通过选择属性选中.
+    /// </remarks>
+    public void ClearSelection()
     {
-        if (
-            _hasSelection is false
-            && EqualityComparer<TItem>.Default.Equals(_selectedItem, default!)
-        )
+        using var operation = BeginOperation();
+        ClearSelectionCore();
+    }
+
+    /// <summary>
+    /// 在当前操作作用域内清除选择.
+    /// </summary>
+    private protected void ClearSelectionCore()
+    {
+        if (_hasSelection is false)
             return;
 
         _selectedItem = default!;
         _hasSelection = false;
+        var indexChanged = CommitSelectionIndex();
         OnPropertyChanged(PropertyChangedArgsCache.SelectedItem);
         OnPropertyChanged(PropertyChangedArgsCache.HasSelection);
+        if (indexChanged)
+            OnPropertyChanged(PropertyChangedArgsCache.SelectedIndex);
         OnSelectionChanged();
+    }
+
+    private TItem GetStoredSelection(TItem item)
+    {
+        foreach (var stored in SourceSet)
+            if (Comparer.Equals(stored, item))
+                return stored;
+        throw new InvalidOperationException(
+            "The source set comparer must match the supplied comparer."
+        );
+    }
+
+    private int _selectionIndex = -1;
+
+    /// <summary>
+    /// 获取有序后端的选择索引, 无索引后端返回 -1.
+    /// </summary>
+    protected virtual int GetSelectionIndex() => -1;
+
+    private bool CommitSelectionIndex()
+    {
+        var index = GetSelectionIndex();
+        var changed = index != _selectionIndex;
+        _selectionIndex = index;
+        return changed;
+    }
+
+    private void RefreshSelectionIndex()
+    {
+        if (CommitSelectionIndex())
+            OnPropertyChanged(PropertyChangedArgsCache.SelectedIndex);
     }
 
     /// <summary>

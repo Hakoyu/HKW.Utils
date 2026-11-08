@@ -2,8 +2,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Extensions;
@@ -63,10 +61,25 @@ public class BidirectionalDictionaryWrapper<T1, T2, TDictionary1, TDictionary2>
     {
         ArgumentNullException.ThrowIfNull(dictionary1);
         ArgumentNullException.ThrowIfNull(dictionary2);
+        if (ReferenceEquals(dictionary1, dictionary2))
+            throw new ArgumentException("The backing dictionaries must not alias each other.");
+        BidirectionalDictionaryOperations.ValidateWritable(dictionary1, dictionary2);
+        _comparer1 = BidirectionalDictionaryOperations.GetComparer(
+            dictionary1,
+            dictionary1Comparer
+        );
+        _comparer2 = BidirectionalDictionaryOperations.GetComparer(
+            dictionary2,
+            dictionary2Comparer
+        );
+        BidirectionalDictionaryOperations.ValidateInverse(
+            dictionary1,
+            dictionary2,
+            _comparer1,
+            _comparer2
+        );
         _dictionary1 = dictionary1;
         _dictionary2 = dictionary2;
-        _comparer1 = dictionary1Comparer ?? EqualityComparer<T1>.Default;
-        _comparer2 = dictionary2Comparer ?? EqualityComparer<T2>.Default;
     }
 
     /// <inheritdoc/>
@@ -79,14 +92,14 @@ public class BidirectionalDictionaryWrapper<T1, T2, TDictionary1, TDictionary2>
     public int Count => _dictionary1.Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => _dictionary1.IsReadOnly;
+    public bool IsReadOnly => _dictionary1.IsReadOnly || _dictionary2.IsReadOnly;
 
     /// <inheritdoc/>
-    public IDictionary<T1, T2> Dictionary1 =>
+    public IReadOnlyDictionary<T1, T2> Dictionary1 =>
         field ??= new ReadOnlyDictionary<T1, T2>(_dictionary1);
 
     /// <inheritdoc/>
-    public IDictionary<T2, T1> Dictionary2 =>
+    public IReadOnlyDictionary<T2, T1> Dictionary2 =>
         field ??= new ReadOnlyDictionary<T2, T1>(_dictionary2);
 
     IEnumerable<T1> IReadOnlyDictionary<T1, T2>.Keys => Keys;
@@ -116,73 +129,48 @@ public class BidirectionalDictionaryWrapper<T1, T2, TDictionary1, TDictionary2>
     /// <inheritdoc/>
     public bool TryAdd(T1 key1, T2 value2)
     {
-        var result = _dictionary1.TryAdd(key1, value2);
-        if (result && _dictionary2.TryAdd(value2, key1) is false)
-        {
-            _dictionary1.Remove(key1);
-            return false;
-        }
-        return result;
+        return BidirectionalDictionaryOperations.TryAdd(_dictionary1, _dictionary2, key1, value2);
     }
 
     /// <inheritdoc/>
     public bool TrySetValue(T1 key1, T2 value2)
     {
-        if (_dictionary1.TryGetValue(key1, out var d1Value))
-        {
-            // 4, 如果 d1Value 和 value 相等, 证明 dic2 存在 (value, key)
-            if (_comparer2.Equals(d1Value, value2))
-                return true;
-            // 3
-            if (_dictionary2.ContainsKey(value2))
-                return false;
-            // 2
-            _dictionary1[key1] = value2;
-            _dictionary2.Remove(d1Value);
-            _dictionary2.Add(value2, key1);
-            return true;
-        }
-        else
-        {
-            // 3
-            if (_dictionary2.ContainsKey(value2))
-                return false;
-            // 1
-            _dictionary1.Add(key1, value2);
-            _dictionary2.Add(value2, key1);
-            return true;
-        }
+        // 保留原分支编号与语义, 具体判定和补偿操作由共享实现执行.
+        // 4, 如果 d1Value 和 value 相等, 证明 dic2 存在 (value, key)
+        // 3
+        // 2
+        // 3
+        // 1
+        return BidirectionalDictionaryOperations.TrySet(
+            _dictionary1,
+            _dictionary2,
+            _comparer2,
+            key1,
+            value2
+        );
     }
 
     /// <inheritdoc/>
     public bool Remove(T1 key1)
     {
-        if (_dictionary1.Remove(key1, out var value) is false)
-            return false;
-
-        _dictionary2.Remove(value);
-        return true;
+        return BidirectionalDictionaryOperations.Remove(_dictionary1, _dictionary2, key1);
     }
 
     /// <inheritdoc/>
     public bool Remove(KeyValuePair<T1, T2> item1)
     {
-        if (
-            _dictionary1.TryGetValue(item1.Key, out var value) is false
-            || _comparer2.Equals(item1.Value, value) is false
-        )
-            return false;
-
-        _dictionary1.Remove(item1.Key);
-        _dictionary2.Remove(value);
-        return true;
+        return BidirectionalDictionaryOperations.Remove(
+            _dictionary1,
+            _dictionary2,
+            _comparer2,
+            item1
+        );
     }
 
     /// <inheritdoc/>
     public void Clear()
     {
-        _dictionary1.Clear();
-        _dictionary2.Clear();
+        BidirectionalDictionaryOperations.Clear(_dictionary1, _dictionary2);
     }
 
     /// <inheritdoc/>
@@ -233,66 +221,42 @@ public class BidirectionalDictionaryWrapper<T1, T2, TDictionary1, TDictionary2>
     /// <inheritdoc/>
     public bool TryAdd(T2 key2, T1 value1)
     {
-        var result = _dictionary2.TryAdd(key2, value1);
-        if (result && _dictionary1.TryAdd(value1, key2) is false)
-        {
-            _dictionary2.Remove(key2);
-            return false;
-        }
-        return result;
+        return BidirectionalDictionaryOperations.TryAdd(_dictionary2, _dictionary1, key2, value1);
     }
 
     /// <inheritdoc/>
     public bool TrySetValue(T2 key2, T1 value1)
     {
-        if (_dictionary2.TryGetValue(key2, out var d2Value))
-        {
-            // 4, 如果 d2Value 和 value 相等, 证明 dic1 存在 (value, key)
-            if (_comparer1.Equals(d2Value, value1))
-                return true;
-            // 3
-            if (_dictionary1.ContainsKey(value1))
-                return false;
-            // 2
-            _dictionary2[key2] = value1;
-            _dictionary1.Remove(d2Value);
-            _dictionary1.Add(value1, key2);
-            return true;
-        }
-        else
-        {
-            // 3
-            if (_dictionary1.ContainsKey(value1))
-                return false;
-            // 1
-            _dictionary2.Add(key2, value1);
-            _dictionary1.Add(value1, key2);
-            return true;
-        }
+        // 保留原分支编号与语义, 具体判定和补偿操作由共享实现执行.
+        // 4, 如果 d2Value 和 value 相等, 证明 dic1 存在 (value, key)
+        // 3
+        // 2
+        // 3
+        // 1
+        return BidirectionalDictionaryOperations.TrySet(
+            _dictionary2,
+            _dictionary1,
+            _comparer1,
+            key2,
+            value1
+        );
     }
 
     /// <inheritdoc/>
     public bool Remove(T2 key2)
     {
-        if (_dictionary2.Remove(key2, out var value) is false)
-            return false;
-
-        _dictionary1.Remove(value);
-        return true;
+        return BidirectionalDictionaryOperations.Remove(_dictionary2, _dictionary1, key2);
     }
 
     /// <inheritdoc/>
     public bool Remove(KeyValuePair<T2, T1> item2)
     {
-        if (
-            _dictionary2.TryGetValue(item2.Key, out var value) is false
-            || _comparer1.Equals(item2.Value, value) is false
-        )
-            return false;
-
-        _dictionary1.Remove(value);
-        _dictionary2.Remove(item2.Key);
-        return true;
+        return BidirectionalDictionaryOperations.Remove(
+            _dictionary2,
+            _dictionary1,
+            _comparer1,
+            item2
+        );
     }
 
     /// <inheritdoc/>
@@ -320,4 +284,95 @@ public class BidirectionalDictionaryWrapper<T1, T2, TDictionary1, TDictionary2>
         return _dictionary2.TryGetValue(key2, out value);
     }
     #endregion
+    /// <summary>
+    /// 获取正向映射值; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public T2 GetForward(T1 key) => this[key];
+
+    /// <summary>
+    /// 获取反向映射值; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public T1 GetReverse(T2 key) => this[key];
+
+    /// <summary>
+    /// 检查正向键; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public bool ContainsKeyForward(T1 key) => ContainsKey(key);
+
+    /// <summary>
+    /// 检查反向键; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public bool ContainsKeyReverse(T2 key) => ContainsKey(key);
+
+    /// <summary>
+    /// 检查正向键值对; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public bool ContainsForward(KeyValuePair<T1, T2> item) => Contains(item);
+
+    /// <summary>
+    /// 检查反向键值对; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public bool ContainsReverse(KeyValuePair<T2, T1> item) => Contains(item);
+
+    /// <summary>
+    /// 尝试获取正向映射值; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public bool TryGetForward(T1 key, [MaybeNullWhen(false)] out T2 value) =>
+        TryGetValue(key, out value);
+
+    /// <summary>
+    /// 尝试获取反向映射值; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public bool TryGetReverse(T2 key, [MaybeNullWhen(false)] out T1 value) =>
+        TryGetValue(key, out value);
+
+    /// <summary>
+    /// 尝试添加正向映射; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public bool TryAddForward(T1 key, T2 value) => TryAdd(key, value);
+
+    /// <summary>
+    /// 尝试添加反向映射; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public bool TryAddReverse(T2 key, T1 value) => TryAdd(key, value);
+
+    /// <summary>
+    /// 尝试设置正向映射; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public bool TrySetForward(T1 key, T2 value) => TrySetValue(key, value);
+
+    /// <summary>
+    /// 尝试设置反向映射; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public bool TrySetReverse(T2 key, T1 value) => TrySetValue(key, value);
+
+    /// <summary>
+    /// 删除正向键; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public bool RemoveForward(T1 key) => Remove(key);
+
+    /// <summary>
+    /// 删除反向键; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public bool RemoveReverse(T2 key) => Remove(key);
+
+    /// <summary>
+    /// 删除正向键值对; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public bool RemoveForward(KeyValuePair<T1, T2> item) => Remove(item);
+
+    /// <summary>
+    /// 删除反向键值对; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public bool RemoveReverse(KeyValuePair<T2, T1> item) => Remove(item);
+
+    /// <summary>
+    /// 复制正向映射; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public void CopyToForward(KeyValuePair<T1, T2>[] array, int index) => CopyTo(array, index);
+
+    /// <summary>
+    /// 复制反向映射; 类型相同时使用此明确方向入口.
+    /// </summary>
+    public void CopyToReverse(KeyValuePair<T2, T1>[] array, int index) => CopyTo(array, index);
 }

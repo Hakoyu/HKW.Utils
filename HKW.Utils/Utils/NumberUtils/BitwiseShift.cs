@@ -153,9 +153,9 @@ public partial class NumberUtils
                 var left = Convert.ToInt32(Convert.ToSByte(value1));
                 return operatorType switch
                 {
-                    BitwiseShiftType.Left => left << shift,
-                    BitwiseShiftType.Right => left >> shift,
-                    BitwiseShiftType.UnsignedRight => left >>> shift,
+                    BitwiseShiftType.Left => unchecked((sbyte)(left << shift)),
+                    BitwiseShiftType.Right => unchecked((sbyte)(left >> shift)),
+                    BitwiseShiftType.UnsignedRight => unchecked((sbyte)(left >>> shift)),
                     _ => throw CreateUnsupportedOperatorException(operatorType),
                 };
             }
@@ -164,9 +164,9 @@ public partial class NumberUtils
                 var left = Convert.ToInt32(Convert.ToByte(value1));
                 return operatorType switch
                 {
-                    BitwiseShiftType.Left => left << shift,
-                    BitwiseShiftType.Right => left >> shift,
-                    BitwiseShiftType.UnsignedRight => left >>> shift,
+                    BitwiseShiftType.Left => unchecked((byte)(left << shift)),
+                    BitwiseShiftType.Right => unchecked((byte)(left >> shift)),
+                    BitwiseShiftType.UnsignedRight => unchecked((byte)(left >>> shift)),
                     _ => throw CreateUnsupportedOperatorException(operatorType),
                 };
             }
@@ -175,20 +175,20 @@ public partial class NumberUtils
                 var left = Convert.ToInt32(Convert.ToInt16(value1));
                 return operatorType switch
                 {
-                    BitwiseShiftType.Left => left << shift,
-                    BitwiseShiftType.Right => left >> shift,
-                    BitwiseShiftType.UnsignedRight => left >>> shift,
+                    BitwiseShiftType.Left => unchecked((short)(left << shift)),
+                    BitwiseShiftType.Right => unchecked((short)(left >> shift)),
+                    BitwiseShiftType.UnsignedRight => unchecked((short)(left >>> shift)),
                     _ => throw CreateUnsupportedOperatorException(operatorType),
                 };
             }
             case NumberType.UInt16:
             {
-                var left = Convert.ToUInt32(value1);
+                var left = Convert.ToUInt16(value1);
                 return operatorType switch
                 {
-                    BitwiseShiftType.Left => left << shift,
-                    BitwiseShiftType.Right => left >> shift,
-                    BitwiseShiftType.UnsignedRight => left >>> shift,
+                    BitwiseShiftType.Left => unchecked((ushort)(left << shift)),
+                    BitwiseShiftType.Right => unchecked((ushort)(left >> shift)),
+                    BitwiseShiftType.UnsignedRight => unchecked((ushort)(left >>> shift)),
                     _ => throw CreateUnsupportedOperatorException(operatorType),
                 };
             }

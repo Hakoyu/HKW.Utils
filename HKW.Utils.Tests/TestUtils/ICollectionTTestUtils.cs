@@ -1,6 +1,4 @@
-﻿using HKW.HKWUtils.Extensions;
-
-namespace HKW.HKWUtilsTests;
+﻿namespace HKW.HKWUtilsTests;
 
 public static class ICollectionTTestUtils
 {
@@ -37,14 +35,16 @@ public static class ICollectionTTestUtils
         var cCollection = collection.ToList();
         var oldCount = cCollection.Count;
 
-        foreach (var item in newItems.RandomOrder())
+        var shuffled = newItems.ToArray();
+        new Random(1703).Shuffle(shuffled);
+        foreach (var item in shuffled)
         {
             collection.Add(item);
             cCollection.Add(item);
-            Assert.IsTrue(collection.SequenceEqual(cCollection));
+            CollectionAssert.AreEquivalent(cCollection.ToArray(), collection.ToArray());
         }
         Assert.HasCount(oldCount + newItems.Count, collection);
-        Assert.IsTrue(collection.SequenceEqual(cCollection));
+        CollectionAssert.AreEquivalent(cCollection.ToArray(), collection.ToArray());
     }
 
     public static void Remove<T>(
@@ -59,17 +59,19 @@ public static class ICollectionTTestUtils
         foreach (var item in newItems)
         {
             Assert.AreEqual(false, [collection.Remove(item), cCollection.Remove(item)]);
-            Assert.IsTrue(collection.SequenceEqual(cCollection));
+            CollectionAssert.AreEquivalent(cCollection.ToArray(), collection.ToArray());
         }
 
-        foreach (var item in copyCollection.RandomOrder())
+        var shuffled = copyCollection.ToArray();
+        new Random(1704).Shuffle(shuffled);
+        foreach (var item in shuffled)
         {
             Assert.AreEqual(true, [collection.Remove(item), cCollection.Remove(item)]);
-            Assert.IsTrue(collection.SequenceEqual(cCollection));
+            CollectionAssert.AreEquivalent(cCollection.ToArray(), collection.ToArray());
         }
 
         Assert.HasCount(0, collection);
-        Assert.IsTrue(collection.SequenceEqual(cCollection));
+        CollectionAssert.AreEquivalent(cCollection.ToArray(), collection.ToArray());
     }
 
     public static void Clear<T>(Func<ICollection<T>> createCollection)
@@ -80,6 +82,6 @@ public static class ICollectionTTestUtils
         cCollection.Clear();
         collection.Clear();
         Assert.HasCount(0, collection);
-        Assert.IsTrue(collection.SequenceEqual(cCollection));
+        CollectionAssert.AreEquivalent(cCollection.ToArray(), collection.ToArray());
     }
 }

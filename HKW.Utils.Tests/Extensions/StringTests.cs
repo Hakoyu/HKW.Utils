@@ -20,6 +20,16 @@ public class StringTests
     }
 
     [TestMethod]
+    public void EmptyStringConversionsRemainEmpty()
+    {
+        Assert.AreEqual(string.Empty, string.Empty.FirstToLower());
+        Assert.AreEqual(string.Empty, string.Empty.FirstToUpper());
+        Assert.AreEqual(string.Empty, string.Empty.FirstToUpper(otherToLower: true));
+        Assert.AreEqual(string.Empty, string.Empty.ToPascal('_'));
+        Assert.AreEqual(string.Empty, string.Empty.ToPascal(SearchValues.Create("_")));
+    }
+
+    [TestMethod]
     public void ToPascal()
     {
         Assert.AreEqual("RedRedRed", "red red red".ToPascal(' '));

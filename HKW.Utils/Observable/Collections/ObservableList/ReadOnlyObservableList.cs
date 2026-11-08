@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
+using HKW.HKWUtils.Collections;
 using HKW.HKWUtils.DebugViews;
 using HKW.HKWUtils.Exceptions;
 using HKW.HKWUtils.Natives;
@@ -19,9 +20,32 @@ public sealed class ReadOnlyObservableList<T>
     : IObservableList<T>,
         IReadOnlyObservableList<T>,
         IList,
-        IDisposable
+        IDisposable,
+        ICollectionNotificationSnapshot,
+        ICollectionNotificationState
 {
     private readonly IObservableList<T> _list;
+
+    private readonly CollectionNotificationScope<
+        ObservableListChangingEventHandler<T>,
+        ObservableListChangedEventHandler<T>
+    > _notifications = new();
+
+    bool ICollectionNotificationState.IsNotifying =>
+        _notifications.IsActive || _list is ICollectionNotificationState { IsNotifying: true };
+
+    bool ICollectionNotificationSnapshot.CaptureNotifications()
+    {
+        if (_notifications.IsActive)
+            return false;
+        _notifications.Enter(ListChanging, ListChanged, CollectionChanged, PropertyChanged);
+        return true;
+    }
+
+    void ICollectionNotificationSnapshot.ReleaseNotifications()
+    {
+        _notifications.Exit();
+    }
 
     #region Ctor
 
@@ -29,6 +53,7 @@ public sealed class ReadOnlyObservableList<T>
     /// <param name="list">引用列表</param>
     public ReadOnlyObservableList(IObservableList<T> list)
     {
+        ArgumentNullException.ThrowIfNull(list);
         _list = list;
 
         _list.ListChanging += List_ListChanging;
@@ -39,32 +64,31 @@ public sealed class ReadOnlyObservableList<T>
 
     private void List_ListChanging(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
     {
-        ListChanging?.Invoke(this, e);
+        (_notifications.IsActive ? _notifications.Changing : ListChanging)?.Invoke(this, e);
     }
 
     private void List_ListChanged(IObservableList<T> sender, NotifyListChangeEventArgs<T> e)
     {
-        ListChanged?.Invoke(this, e);
+        (_notifications.IsActive ? _notifications.Changed : ListChanged)?.Invoke(this, e);
     }
 
     private void List_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        CollectionChanged?.Invoke(this, e);
+        (_notifications.IsActive ? _notifications.Collection : CollectionChanged)?.Invoke(this, e);
     }
 
     private void List_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        PropertyChanged?.Invoke(this, e);
+        (_notifications.IsActive ? _notifications.Property : PropertyChanged)?.Invoke(this, e);
     }
     #endregion
 
     #region Dispose
     private bool _disposed;
 
-    /// <inheritdoc/>
-    ~ReadOnlyObservableList() => Dispose(false);
-
-    /// <inheritdoc/>
+    /// <summary>
+    /// 解除源事件订阅; 释放后仍可读取源内容, 当前操作已捕获的通知仍会完成.
+    /// </summary>
     public void Dispose()
     {
         Dispose(true);
@@ -160,11 +184,11 @@ public sealed class ReadOnlyObservableList<T>
     #endregion
     #region IList
 
-    bool IList.IsFixedSize => ((IList)_list).IsFixedSize;
+    bool IList.IsFixedSize => true;
 
-    bool ICollection.IsSynchronized => ((IList)_list).IsSynchronized;
+    bool ICollection.IsSynchronized => CollectionInterfaceBridge.IsSynchronized(_list);
 
-    object ICollection.SyncRoot => ((IList)_list).SyncRoot;
+    object ICollection.SyncRoot => CollectionInterfaceBridge.SyncRoot(_list, this);
 
     object? IList.this[int index]
     {
@@ -184,12 +208,12 @@ public sealed class ReadOnlyObservableList<T>
 
     bool IList.Contains(object? value)
     {
-        return _list.Contains((T)value!);
+        return CollectionInterfaceBridge.IsCompatible<T>(value) && Contains((T)value!);
     }
 
     int IList.IndexOf(object? value)
     {
-        return _list.IndexOf((T)value!);
+        return CollectionInterfaceBridge.IsCompatible<T>(value) ? IndexOf((T)value!) : -1;
     }
 
     void IList.Insert(int index, object? value)
@@ -209,7 +233,7 @@ public sealed class ReadOnlyObservableList<T>
 
     void ICollection.CopyTo(Array array, int index)
     {
-        _list.CopyTo((T[])array, index);
+        CollectionInterfaceBridge.CopyTo(_list, array, index);
     }
 
     #endregion IObservableListT

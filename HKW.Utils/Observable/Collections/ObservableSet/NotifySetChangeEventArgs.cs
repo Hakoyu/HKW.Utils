@@ -6,7 +6,7 @@ using HKW.HKWUtils.Natives;
 namespace HKW.HKWUtils.Observable;
 
 /// <summary>
-/// 通知集合已改变事件参数
+/// 通知集合已改变事件参数; 集合载荷为独立浅快照, 不复制项目对象.
 /// </summary>
 /// <typeparam name="T">类型</typeparam>
 [DebuggerDisplay("SetChanged, Action = {Action}")]
@@ -46,7 +46,9 @@ public class NotifySetChangeEventArgs<T> : EventArgs
 
     #region Ctor
     /// <inheritdoc/>
-    /// <summary>仅用于: <see cref="SetChangeAction.Clear"/></summary>
+    /// <summary>
+    /// 仅用于: <see cref="SetChangeAction.Clear"/>
+    /// </summary>
     /// <param name="action">改变行动</param>
     public NotifySetChangeEventArgs(SetChangeAction action)
     {
@@ -55,7 +57,8 @@ public class NotifySetChangeEventArgs<T> : EventArgs
     }
 
     /// <inheritdoc/>
-    /// <summary>仅用于:
+    /// <summary>
+    /// 仅用于:
     /// <see cref="SetChangeAction.Add"/>
     /// <see cref="SetChangeAction.Remove"/>
     /// </summary>
@@ -65,7 +68,8 @@ public class NotifySetChangeEventArgs<T> : EventArgs
     {
         ArgumentException.ThrowIfAllNotEquals(action, SetChangeAction.Add, SetChangeAction.Remove);
         Action = action;
-        var list = items.IsReadOnly ? items : new ReadOnlyList<T>(items);
+        ArgumentNullException.ThrowIfNull(items);
+        var list = Array.AsReadOnly(items.ToArray());
         if (action is SetChangeAction.Add)
             NewItems = list;
         else
@@ -73,7 +77,8 @@ public class NotifySetChangeEventArgs<T> : EventArgs
     }
 
     /// <inheritdoc/>
-    /// <summary>仅用于:
+    /// <summary>
+    /// 仅用于:
     /// <see cref="SetChangeAction.Intersect"/>
     /// <see cref="SetChangeAction.Except"/>
     /// <see cref="SetChangeAction.SymmetricExcept"/>
@@ -98,9 +103,10 @@ public class NotifySetChangeEventArgs<T> : EventArgs
             SetChangeAction.Union
         );
         Action = action;
-        OtherItems = otherItems.IsReadOnly ? otherItems : new ReadOnlyList<T>(otherItems);
-        NewItems = newItems?.IsReadOnly is not false ? newItems : new ReadOnlyList<T>(newItems);
-        OldItems = oldItems?.IsReadOnly is not false ? oldItems : new ReadOnlyList<T>(oldItems);
+        ArgumentNullException.ThrowIfNull(otherItems);
+        OtherItems = Array.AsReadOnly(otherItems.ToArray());
+        NewItems = newItems is null ? null : Array.AsReadOnly(newItems.ToArray());
+        OldItems = oldItems is null ? null : Array.AsReadOnly(oldItems.ToArray());
     }
     #endregion
 }

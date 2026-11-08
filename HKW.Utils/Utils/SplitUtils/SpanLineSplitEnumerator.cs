@@ -11,18 +11,18 @@ namespace HKW.HKWUtils;
 /// <![CDATA[
 /// string str = "a\n b\r c\r\n d\n\r e\r\r f\n\n \n";
 ///
-/// split = string.AsSpan().SplitLine(StringSplitOptions);
+/// split = str.AsSpan().SplitLine(options);
 ///
-/// Options: StringSplitOptions.None
-/// split := [ "a", " b", " c", " d", "", " e", "", " f", "", " "]
+/// 选项: StringSplitOptions.None
+/// split := [ "a", " b", " c", " d", "", " e", "", " f", "", " ", ""]
 ///
-/// Options: StringSplitOptions.RemoveEmptyEntries
+/// 选项: StringSplitOptions.RemoveEmptyEntries
 /// split := [ "a", " b", " c", " d", " e", " f", " "]
 ///
-/// Options: StringSplitOptions.TrimEntries
-/// split := [ "a", "b", "c", "d", "", "e", "", "f", ""]
+/// 选项: StringSplitOptions.TrimEntries
+/// split := [ "a", "b", "c", "d", "", "e", "", "f", "", "", ""]
 ///
-/// Options: StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries
+/// 选项: StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries
 /// split := [ "a", "b", "c", "d", "e", "f"]
 /// ]]>
 /// </remarks>
@@ -33,12 +33,12 @@ public ref struct SpanLineSplitEnumerator
     private readonly StringSplitOptions _options;
 
     /// <summary>
-    /// 当前范围在 <see cref="_source"/> 中的起始索引（包含）
+    /// 当前范围在 <see cref="_source"/> 中的起始索引( 包含)
     /// </summary>
     private int _startCurrent = 0;
 
     /// <summary>
-    /// 当前范围在 <see cref="_source"/> 中的结束索引（不包含）
+    /// 当前范围在 <see cref="_source"/> 中的结束索引( 不包含)
     /// </summary>
     private int _endCurrent = 0;
 
@@ -53,12 +53,14 @@ public ref struct SpanLineSplitEnumerator
     private bool _isEnd = false;
 
     /// <summary>
-    /// 当前范围
+    /// 当前范围; 保留源中的原始位置, TrimEntries 不改变此范围.
+    /// 仅在 MoveNext 返回 true 后读取; Reset 后范围为 0..0.
     /// </summary>
     public Range Current => new(_startCurrent, _endCurrent);
 
     /// <summary>
-    /// 获取枚举中的当前拆分的片段
+    /// 获取枚举中的当前拆分的片段; TrimEntries 仅修剪此值, 不修改 Current.
+    /// 仅在 MoveNext 返回 true 后读取; Reset 后为空.
     /// </summary>
     public ReadOnlySpan<char> CurrentValue { get; private set; }
 
@@ -80,6 +82,11 @@ public ref struct SpanLineSplitEnumerator
     /// <param name="options">字符串分割设置</param>
     internal SpanLineSplitEnumerator(ReadOnlySpan<char> span, StringSplitOptions options)
     {
+        if (
+            (options & ~(StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            != 0
+        )
+            throw new ArgumentException("Unsupported split options.", nameof(options));
         _source = span;
         _options = options;
     }
@@ -255,7 +262,9 @@ public ref struct SpanLineSplitEnumerator
     /// <returns>枚举器</returns>
     public readonly SpanLineSplitEnumerator GetEnumerator() => this;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// 重置枚举, 同时清空当前范围, 值及换行分隔符.
+    /// </summary>
     public void Reset()
     {
         _startCurrent = 0;
@@ -266,18 +275,25 @@ public ref struct SpanLineSplitEnumerator
     }
 
     /// <summary>
-    /// 转换为列表
+    /// 转换为列表; 始终从头枚举, 成功或转换器抛出异常后均重置枚举器.
     /// </summary>
     /// <typeparam name="TItem">列表项类型</typeparam>
     /// <param name="converter">转换器</param>
     /// <returns>列表</returns>
     public List<TItem> ToList<TItem>(Func<SpanLineSplitEnumerator, TItem> converter)
     {
-        var list = new List<TItem>();
         Reset();
-        while (MoveNext())
-            list.Add(converter(this));
-        Reset();
-        return list;
+        try
+        {
+            ArgumentNullException.ThrowIfNull(converter);
+            var list = new List<TItem>();
+            while (MoveNext())
+                list.Add(converter(this));
+            return list;
+        }
+        finally
+        {
+            Reset();
+        }
     }
 }

@@ -1,6 +1,4 @@
-﻿using HKW.HKWUtils.Extensions;
-
-namespace HKW.HKWUtilsTests;
+﻿namespace HKW.HKWUtilsTests;
 
 public static class ISetTTestUtils
 {
@@ -29,19 +27,19 @@ public static class ISetTTestUtils
 
         set.UnionWith(copySet);
         cSet.UnionWith(copySet);
-        Assert.IsTrue(set.UnorderedEqual(cSet));
+        Assert.IsTrue(cSet.SetEquals(set));
 
         set = createSet();
         cSet = set.ToHashSet();
         set.UnionWith(newItems);
         cSet.UnionWith(newItems);
-        Assert.IsTrue(set.UnorderedEqual(cSet));
+        Assert.IsTrue(cSet.SetEquals(set));
 
         set = createSet();
         cSet = set.ToHashSet();
         set.UnionWith(concatSet);
         cSet.UnionWith(concatSet);
-        Assert.IsTrue(set.UnorderedEqual(cSet));
+        Assert.IsTrue(cSet.SetEquals(set));
     }
 
     public static void IntersectWith<T>(Func<ISet<T>> createSet, IReadOnlyCollection<T> newItems)
@@ -53,19 +51,19 @@ public static class ISetTTestUtils
 
         set.IntersectWith(copySet);
         cSet.IntersectWith(copySet);
-        Assert.IsTrue(set.UnorderedEqual(cSet));
+        Assert.IsTrue(cSet.SetEquals(set));
 
         set = createSet();
         cSet = set.ToHashSet();
         set.IntersectWith(newItems);
         cSet.IntersectWith(newItems);
-        Assert.IsTrue(set.UnorderedEqual(cSet));
+        Assert.IsTrue(cSet.SetEquals(set));
 
         set = createSet();
         cSet = set.ToHashSet();
         set.IntersectWith(concatSet);
         cSet.IntersectWith(concatSet);
-        Assert.IsTrue(set.UnorderedEqual(cSet));
+        Assert.IsTrue(cSet.SetEquals(set));
     }
 
     public static void ExceptWith<T>(Func<ISet<T>> createSet, IReadOnlyCollection<T> newItems)
@@ -77,19 +75,19 @@ public static class ISetTTestUtils
 
         set.ExceptWith(copySet);
         cSet.ExceptWith(copySet);
-        Assert.IsTrue(set.UnorderedEqual(cSet));
+        Assert.IsTrue(cSet.SetEquals(set));
 
         set = createSet();
         cSet = set.ToHashSet();
         set.ExceptWith(newItems);
         cSet.ExceptWith(newItems);
-        Assert.IsTrue(set.UnorderedEqual(cSet));
+        Assert.IsTrue(cSet.SetEquals(set));
 
         set = createSet();
         cSet = set.ToHashSet();
         set.ExceptWith(concatSet);
         cSet.ExceptWith(concatSet);
-        Assert.IsTrue(set.UnorderedEqual(cSet));
+        Assert.IsTrue(cSet.SetEquals(set));
     }
 
     public static void SymmetricExceptWith<T>(
@@ -104,18 +102,18 @@ public static class ISetTTestUtils
 
         set.SymmetricExceptWith(copySet);
         cSet.SymmetricExceptWith(copySet);
-        Assert.IsTrue(set.UnorderedEqual(cSet));
+        Assert.IsTrue(cSet.SetEquals(set));
 
         set = createSet();
         cSet = set.ToHashSet();
         set.SymmetricExceptWith(newItems);
         cSet.SymmetricExceptWith(newItems);
-        Assert.IsTrue(set.UnorderedEqual(cSet));
+        Assert.IsTrue(cSet.SetEquals(set));
 
         set = createSet();
         cSet = set.ToHashSet();
         set.SymmetricExceptWith(concatSet);
         cSet.SymmetricExceptWith(concatSet);
-        Assert.IsTrue(set.UnorderedEqual(cSet));
+        Assert.IsTrue(cSet.SetEquals(set));
     }
 }

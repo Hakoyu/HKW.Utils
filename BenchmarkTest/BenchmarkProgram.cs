@@ -1,71 +1,25 @@
-﻿using System.ComponentModel;
-using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Jobs;
-using BenchmarkDotNet.Order;
-using BenchmarkDotNet.Running;
-using HKW.HKWUtils.Collections;
-using HKW.HKWUtils.Extensions;
-using HKW.HKWUtils.Observable;
+﻿using BenchmarkDotNet.Running;
 
 namespace BenchmarkTest;
 
 internal class BenchmarkProgram
 {
-    static void Main(string[] args)
+    static int Main(string[] args)
     {
-        _ = BenchmarkRunner.Run<Test>();
-    }
-}
+        if (args is ["--validate"])
+        {
+            BenchmarkValidation.Run();
+            return 0;
+        }
 
-[MemoryDiagnoser]
-[SimpleJob(RuntimeMoniker.HostProcess, warmupCount: 3, iterationCount: 50)]
-public class Test
-{
-    private const int Count = 1_000_000;
-
-    private KeyValuePair<int, string>[] _items;
-
-    private ObservableDictionary<int, string> _dictionary1;
-    private ObservableDictionaryWrapper<int, string, Dictionary<int, string>> _dictionary2;
-    private ObservableDictionaryWrapper<int, string, OrderedDictionary<int, string>> _dictionary3;
-
-    private static readonly PropertyChangedEventArgs _countChangedArgs = new(nameof(Count));
-    public static PropertyChangedEventArgs CountChangedArgs = new(nameof(Count));
-
-    [GlobalSetup]
-    public void GlobalSetup()
-    {
-        PropertyChanged += Test_PropertyChanged;
+        // 无参数时只列出场景, 不启动交互选择或全场景长跑.
+        var summaries = BenchmarkSwitcher.FromAssembly(typeof(BenchmarkProgram).Assembly)
+            .Run(args.Length == 0 ? ["--list", "flat"] : args);
+        return summaries.Any(summary => summary.HasCriticalValidationErrors
+            || summary.Reports.Any(report => report.Success is false)) ? 1 : 0;
     }
 
-    private void Test_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        return;
-    }
-
-    [Benchmark]
-    public void Test1()
-    {
-        for (var i = 0; i < Count; i++)
-            PropertyChanged?.Invoke(this, new(nameof(Count)));
-    }
-
-    [Benchmark]
-    public void Test2()
-    {
-        for (var i = 0; i < Count; i++)
-            PropertyChanged?.Invoke(this, _countChangedArgs);
-    }
-
-    [Benchmark]
-    public void Test3()
-    {
-        for (var i = 0; i < Count; i++)
-            PropertyChanged?.Invoke(this, PropertyChangedEventArgs.Cache_Count);
-    }
-
-    /// <inheritdoc/>
-    public event PropertyChangedEventHandler? PropertyChanged;
+    #region 历史字典基准草稿, 仅保留原始注释, 不参与测量
     //[GlobalSetup]
     //public void GlobalSetup()
     //{
@@ -156,4 +110,5 @@ public class Test
     //    }
     //    return _dictionary3;
     //}
+    #endregion
 }

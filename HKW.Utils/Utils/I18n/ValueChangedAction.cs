@@ -23,11 +23,16 @@ public sealed class ValueChangedAction<TKey> : IDisposable
         Dictionary<TKey, List<ValueChangedAction<TKey>>> actionsByKey
     )
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(getKeyExpression);
+        ArgumentNullException.ThrowIfNull(action);
+        ArgumentNullException.ThrowIfNull(actionsByKey);
         PropertyName = getKeyExpression.GetPropertyName();
         GetKey = getKeyExpression.Compile();
         Source = source;
         Action = action;
         Key = GetKey(source);
+        ArgumentNullException.ThrowIfNull(Key);
         _actionsByKey = actionsByKey;
         if (_actionsByKey.TryGetValue(Key, out var actions) is false)
             actions = _actionsByKey[Key] = new();
@@ -38,21 +43,28 @@ public sealed class ValueChangedAction<TKey> : IDisposable
 
     private void Source_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName != PropertyName)
+        if (_disposed || ReferenceEquals(sender, Source) is false)
             return;
-        var newKey = GetKey(Source);
-        ArgumentNullException.ThrowIfNull(newKey);
-        if (_actionsByKey.TryGetValue(Key, out var oldActions))
+        if (string.IsNullOrEmpty(e.PropertyName) is false && e.PropertyName != PropertyName)
+            return;
+        CheckWrite();
+        _writing = true;
+        try
         {
-            oldActions.Remove(this);
-            if (oldActions.Count == 0)
-                _actionsByKey.Remove(Key);
+            var newKey = GetKey(Source);
+            ArgumentNullException.ThrowIfNull(newKey);
+            if (_actionsByKey.Comparer.Equals(Key, newKey))
+                return;
+            if (_actionsByKey.TryGetValue(newKey, out var newActions) is false)
+                newActions = _actionsByKey[newKey] = new();
+            newActions.Add(this);
+            RemoveCore();
+            Key = newKey;
         }
-
-        Key = newKey;
-        if (_actionsByKey.TryGetValue(newKey, out var newActions) is false)
-            newActions = _actionsByKey[newKey] = new();
-        newActions.Add(this);
+        finally
+        {
+            _writing = false;
+        }
     }
 
     /// <summary>
@@ -80,7 +92,26 @@ public sealed class ValueChangedAction<TKey> : IDisposable
     /// </summary>
     public ValueChangedActionHandler<TKey> Action { get; private set; }
 
-    private Dictionary<TKey, List<ValueChangedAction<TKey>>> _actionsByKey;
+    private readonly Dictionary<TKey, List<ValueChangedAction<TKey>>> _actionsByKey;
+    private bool _writing;
+
+    private void CheckWrite()
+    {
+        if (_writing)
+            throw new InvalidOperationException(
+                "Reentrant writes to the same action registration are not allowed."
+            );
+    }
+
+    private void RemoveCore()
+    {
+        if (_actionsByKey.TryGetValue(Key, out var actions))
+        {
+            actions.Remove(this);
+            if (actions.Count == 0)
+                _actionsByKey.Remove(Key);
+        }
+    }
 
     #region IDisposable
     private bool _disposed;
@@ -101,17 +132,17 @@ public sealed class ValueChangedAction<TKey> : IDisposable
             return;
         if (disposing)
         {
-            Source.PropertyChanged -= Source_PropertyChanged;
-            if (_actionsByKey.TryGetValue(Key, out var actions))
+            CheckWrite();
+            _writing = true;
+            try
             {
-                actions.Remove(this);
-                if (actions.Count == 0)
-                    _actionsByKey.Remove(Key);
+                Source.PropertyChanged -= Source_PropertyChanged;
+                RemoveCore();
             }
-            _actionsByKey = null!;
-            Source = null!;
-            GetKey = null!;
-            Action = null!;
+            finally
+            {
+                _writing = false;
+            }
         }
         _disposed = true;
     }

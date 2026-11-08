@@ -47,10 +47,12 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
         _dictionary = new(capacity, comparer);
     }
 
-    /// <summary>获取指定索引处的值。</summary>
+    /// <summary>
+    /// 获取指定索引处的值.
+    /// </summary>
     /// <param name="index">索引</param>
     /// <returns>指定索引处的值</returns>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> 小于 0 或大于或等于 <see cref="Count"/>。</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> 小于 0 或大于或等于 <see cref="Count"/>. </exception>
     public T GetAt(int index)
     {
         return _dictionary.GetAt(index).Key;
@@ -96,12 +98,14 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
         if (other is ICollection<T> { Count: 0 })
             return;
 
-        foreach (var item in other)
+        foreach (var item in CreateOrderedSnapshot(other))
             _dictionary.Remove(item);
     }
 
     /// <inheritdoc/>
-    /// <summary><paramref name="other"/> 为 <see cref="HashSet{T}"/> 时性能最佳</summary>
+    /// <summary>
+    /// <paramref name="other"/> 为 <see cref="HashSet{T}"/> 时性能最佳
+    /// </summary>
     public void IntersectWith(IEnumerable<T> other)
     {
         ArgumentNullException.ThrowIfNull(other);
@@ -140,8 +144,8 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
             UnionWith(other);
             return;
         }
-        var lookup = CreateLookupSet(other);
-        foreach (var item in lookup.Where(item => Remove(item) is false))
+        var snapshot = CreateOrderedSnapshot(other);
+        foreach (var item in snapshot.Where(item => Remove(item) is false))
         {
             _dictionary.TryAdd(item, 0);
         }
@@ -152,15 +156,17 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
     {
         ArgumentNullException.ThrowIfNull(other);
 
-        if (other is ICollection<T> { Count: 0 })
+        if (ReferenceEquals(other, this) || other is ICollection<T> { Count: 0 })
             return;
 
-        foreach (var item in other)
+        foreach (var item in CreateOrderedSnapshot(other))
             _dictionary.TryAdd(item, 0);
     }
 
     /// <inheritdoc/>
-    /// <summary><paramref name="other"/> 为 <see cref="HashSet{T}"/> 时性能最佳</summary>
+    /// <summary>
+    /// <paramref name="other"/> 为 <see cref="HashSet{T}"/> 时性能最佳
+    /// </summary>
     public bool IsProperSubsetOf(IEnumerable<T> other)
     {
         ArgumentNullException.ThrowIfNull(other);
@@ -197,7 +203,9 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
     }
 
     /// <inheritdoc/>
-    /// <summary><paramref name="other"/> 为 <see cref="HashSet{T}"/> 时性能最佳</summary>
+    /// <summary>
+    /// <paramref name="other"/> 为 <see cref="HashSet{T}"/> 时性能最佳
+    /// </summary>
     public bool IsSubsetOf(IEnumerable<T> other)
     {
         ArgumentNullException.ThrowIfNull(other);
@@ -248,7 +256,9 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
     public bool Contains(T item) => _dictionary.ContainsKey(item);
 
     /// <inheritdoc/>
-    /// <summary><paramref name="other"/> 为 <see cref="HashSet{T}"/> 时性能最佳</summary>
+    /// <summary>
+    /// <paramref name="other"/> 为 <see cref="HashSet{T}"/> 时性能最佳
+    /// </summary>
     public bool SetEquals(IEnumerable<T> other)
     {
         ArgumentNullException.ThrowIfNull(other);
@@ -283,6 +293,12 @@ public class OrderedHashSet<T> : ISet<T>, IReadOnlySet<T>, IList<T>, IList
         return GetEnumerator();
     }
     #endregion
+    private T[] CreateOrderedSnapshot(IEnumerable<T> other)
+    {
+        var seen = new HashSet<T>(Comparer);
+        return other.Where(seen.Add).ToArray();
+    }
+
     private HashSet<T> CreateLookupSet(IEnumerable<T> other)
     {
         if (

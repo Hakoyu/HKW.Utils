@@ -37,10 +37,10 @@ public static partial class NumberUtils
     {
         return numberType switch
         {
-            NumberType.SByte => ~(sbyte)value,
-            NumberType.Byte => ~(byte)value,
-            NumberType.Int16 => ~(short)value,
-            NumberType.UInt16 => ~(ushort)value,
+            NumberType.SByte => unchecked((sbyte)(~(sbyte)value)),
+            NumberType.Byte => unchecked((byte)(~(byte)value)),
+            NumberType.Int16 => unchecked((short)(~(short)value)),
+            NumberType.UInt16 => unchecked((ushort)(~(ushort)value)),
             NumberType.Int32 => ~(int)value,
             NumberType.UInt32 => ~(uint)value,
             NumberType.Int64 => ~(long)value,

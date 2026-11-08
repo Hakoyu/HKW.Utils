@@ -78,12 +78,12 @@ public static class IReadOnlyDictionaryTTestUtils
         var dictionary = createDictionary();
         foreach (var pair in dictionary)
         {
-            Assert.IsFalse(dictionary.Remove(pair.Key));
+            Assert.ThrowsExactly<NotSupportedException>(() => dictionary.Remove(pair.Key));
         }
 
         foreach (var item in newItems)
         {
-            Assert.IsFalse(dictionary.Remove(item.Key));
+            Assert.ThrowsExactly<NotSupportedException>(() => dictionary.Remove(item.Key));
         }
     }
 
@@ -96,7 +96,7 @@ public static class IReadOnlyDictionaryTTestUtils
         var dictionary = createDictionary();
         var cDictionary = dictionary.ToDictionary();
 
-        Assert.IsTrue(dictionary.Keys.SequenceEqual(cDictionary.Keys));
+        CollectionAssert.AreEquivalent(cDictionary.Keys.ToArray(), dictionary.Keys.ToArray());
     }
 
     public static void Values<TKey, TValue>(
@@ -108,7 +108,7 @@ public static class IReadOnlyDictionaryTTestUtils
         var dictionary = createDictionary();
         var cDictionary = dictionary.ToDictionary();
 
-        Assert.IsTrue(dictionary.Values.SequenceEqual(cDictionary.Values));
+        CollectionAssert.AreEquivalent(cDictionary.Values.ToArray(), dictionary.Values.ToArray());
     }
 
     public static void ContainsKey<TKey, TValue>(
@@ -202,7 +202,7 @@ public static class IReadOnlyDictionaryTTestUtils
         var dictionary = createDictionary();
         var cDictionary = dictionary.ToDictionary();
 
-        Assert.IsTrue(dictionary.Keys.SequenceEqual(cDictionary.Keys));
+        CollectionAssert.AreEquivalent(cDictionary.Keys.ToArray(), dictionary.Keys.ToArray());
     }
 
     public static void ReadOnly_Values<TKey, TValue>(
@@ -214,7 +214,7 @@ public static class IReadOnlyDictionaryTTestUtils
         var dictionary = createDictionary();
         var cDictionary = dictionary.ToDictionary();
 
-        Assert.IsTrue(dictionary.Values.SequenceEqual(cDictionary.Values));
+        CollectionAssert.AreEquivalent(cDictionary.Values.ToArray(), dictionary.Values.ToArray());
     }
 
     public static void ReadOnly_ContainsKey<TKey, TValue>(

@@ -119,21 +119,6 @@ public static partial class ReadOnlySpanExtensions
         return new SpanSearchCharsSplitEnumerator(span, separators, options);
     }
 
-    ///// <summary>
-    ///// 多分割符分割器
-    ///// </summary>
-    ///// <param name="span">源</param>
-    ///// <param name="separators">分割符集合</param>
-    ///// <returns>枚举器</returns>
-    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-    //public static SpanSearchStringsSplitEnumerator Split(
-    //    this ReadOnlySpan<char> span,
-    //    SearchValues<string> separators
-    //)
-    //{
-    //    return new SpanSearchStringsSplitEnumerator(span, separators);
-    //}
-
     /// <summary>
     /// 行分割
     /// </summary>
@@ -152,10 +137,14 @@ public static partial class ReadOnlySpanExtensions
 
     /// <summary>
     /// 将需要分割的字符串转换为帕斯卡风格字符串
-    /// <para><c>red red red => RedRedRed</c></para>
     /// </summary>
+    /// <remarks>
+    /// <![CDATA[
+    /// red red red => RedRedRed
+    /// ]]>
+    /// </remarks>
     /// <param name="span">字符串</param>
-    /// <param name="separator">分隔符</param>
+    /// <param name="separator">分隔符; 首尾及连续分隔符产生的空片段会被跳过</param>
     /// <param name="sourceToLower">将原始字符串转换为小写</param>
     /// <param name="cultureInfo">文化信息</param>
     /// <returns>帕斯卡命名格式的字符串</returns>
@@ -166,40 +155,67 @@ public static partial class ReadOnlySpanExtensions
         CultureInfo? cultureInfo = null
     )
     {
+        return ToPascalCore(span, separator, sourceToLower, cultureInfo, ArrayPool<char>.Shared);
+    }
+
+    private static string ToPascalCore(
+        ReadOnlySpan<char> span,
+        char separator,
+        bool sourceToLower,
+        CultureInfo? cultureInfo,
+        ArrayPool<char> pool
+    )
+    {
+        if (span.IsEmpty)
+            return string.Empty;
         bool usePool = span.Length > StringLengthLimit;
-        char[] resultArray = usePool ? ArrayPool<char>.Shared.Rent(span.Length) : default!;
-        char[] sourceArray = usePool ? ArrayPool<char>.Shared.Rent(span.Length) : default!;
-        Span<char> result = usePool ? resultArray : stackalloc char[span.Length];
-        Span<char> source = usePool ? sourceArray : stackalloc char[span.Length];
-        cultureInfo ??= CultureInfo.CurrentCulture;
-        if (sourceToLower)
-            span.ToLower(source, cultureInfo);
-        else
-            span.CopyTo(source);
-        var index = 0;
-        foreach (var range in source.Split(separator))
+        char[]? resultArray = null;
+        char[]? sourceArray = null;
+        try
         {
-            var splitValue = source[range];
-            splitValue.CopyTo(result.Slice(index, splitValue.Length));
-            result[index] = cultureInfo.TextInfo.ToUpper(source[range.Start]);
-            index += splitValue.Length;
+            Span<char> result = usePool
+                ? (resultArray = pool.Rent(span.Length)).AsSpan(0, span.Length)
+                : stackalloc char[span.Length];
+            Span<char> source = usePool
+                ? (sourceArray = pool.Rent(span.Length)).AsSpan(0, span.Length)
+                : stackalloc char[span.Length];
+            cultureInfo ??= CultureInfo.CurrentCulture;
+            if (sourceToLower)
+                span.ToLower(source, cultureInfo);
+            else
+                span.CopyTo(source);
+            var textInfo = cultureInfo.TextInfo;
+            var index = 0;
+            foreach (var range in source.Split(separator))
+            {
+                var splitValue = source[range];
+                if (splitValue.IsEmpty)
+                    continue;
+                splitValue.CopyTo(result.Slice(index, splitValue.Length));
+                result[index] = textInfo.ToUpper(splitValue[0]);
+                index += splitValue.Length;
+            }
+            return new string(result[..index]);
         }
-        result = result[..index];
-        var resultStr = new string(result);
-        if (usePool)
+        finally
         {
-            ArrayPool<char>.Shared.Return(resultArray);
-            ArrayPool<char>.Shared.Return(sourceArray);
+            if (sourceArray is not null)
+                pool.Return(sourceArray);
+            if (resultArray is not null)
+                pool.Return(resultArray);
         }
-        return resultStr;
     }
 
     /// <summary>
     /// 将需要分割的字符串转换为帕斯卡风格字符串
-    /// <para><c>red red red => RedRedRed</c></para>
     /// </summary>
+    /// <remarks>
+    /// <![CDATA[
+    /// red red red => RedRedRed
+    /// ]]>
+    /// </remarks>
     /// <param name="span">字符串</param>
-    /// <param name="separators">分隔符</param>
+    /// <param name="separators">分隔符; 首尾及连续分隔符产生的空片段会被跳过</param>
     /// <param name="sourceToLower">将原始字符串转换为小写</param>
     /// <param name="cultureInfo">文化信息</param>
     /// <returns>帕斯卡命名格式的字符串</returns>
@@ -210,75 +226,55 @@ public static partial class ReadOnlySpanExtensions
         CultureInfo? cultureInfo = null
     )
     {
-        bool usePool = span.Length > StringLengthLimit;
-        char[] resultArray = usePool ? ArrayPool<char>.Shared.Rent(span.Length) : default!;
-        char[] sourceArray = usePool ? ArrayPool<char>.Shared.Rent(span.Length) : default!;
-        Span<char> result = usePool ? resultArray : stackalloc char[span.Length];
-        Span<char> source = usePool ? sourceArray : stackalloc char[span.Length];
-        cultureInfo ??= CultureInfo.CurrentCulture;
-        if (sourceToLower)
-            span.ToLower(source, cultureInfo);
-        else
-            span.CopyTo(source);
-        var index = 0;
-        foreach (var range in source.Split(separators))
-        {
-            var splitValue = source[range];
-            splitValue.CopyTo(result.Slice(index, splitValue.Length));
-            result[index] = cultureInfo.TextInfo.ToUpper(source[range.Start]);
-            index += splitValue.Length;
-        }
-        result = result[..index];
-        var resultStr = new string(result);
-        if (usePool)
-        {
-            ArrayPool<char>.Shared.Return(resultArray);
-            ArrayPool<char>.Shared.Return(sourceArray);
-        }
-        return resultStr;
+        return ToPascalCore(span, separators, sourceToLower, cultureInfo, ArrayPool<char>.Shared);
     }
 
-    ///// <summary>
-    ///// 将需要分割的字符串转换为帕斯卡风格字符串
-    ///// <para><c>red red red => RedRedRed</c></para>
-    ///// </summary>
-    ///// <param name="span">字符串</param>
-    ///// <param name="separators">分隔符</param>
-    ///// <param name="sourceToLower">将原始字符串转换为小写</param>
-    ///// <param name="cultureInfo">文化信息</param>
-    ///// <returns>帕斯卡命名格式的字符串</returns>
-    //public static string ToPascal(
-    //    this ReadOnlySpan<char> span,
-    //    SearchValues<string> separators,
-    //    bool sourceToLower = true,
-    //    CultureInfo? cultureInfo = null
-    //)
-    //{
-    //    bool usePool = span.Length > StringLengthLimit;
-    //    char[] resultArray = usePool ? ArrayPool<char>.Shared.Rent(span.Length) : default!;
-    //    char[] sourceArray = usePool ? ArrayPool<char>.Shared.Rent(span.Length) : default!;
-    //    Span<char> result = usePool ? resultArray : stackalloc char[span.Length];
-    //    Span<char> source = usePool ? sourceArray : stackalloc char[span.Length];
-    //    cultureInfo ??= CultureInfo.CurrentCulture;
-    //    if (sourceToLower)
-    //        span.ToLower(source, cultureInfo);
-    //    else
-    //        span.CopyTo(source);
-    //    var index = 0;
-    //    foreach (var range in source.Split(separators))
-    //    {
-    //        var splitValue = source[range];
-    //        splitValue.CopyTo(result.Slice(index, splitValue.Length));
-    //        result[index] = cultureInfo.TextInfo.ToUpper(source[range.Start]);
-    //        index += splitValue.Length;
-    //    }
-    //    result = result[..index];
-    //    var resultStr = new string(result);
-    //    if (usePool)
-    //    {
-    //        ArrayPool<char>.Shared.Return(resultArray);
-    //        ArrayPool<char>.Shared.Return(sourceArray);
-    //    }
-    //    return resultStr;
-    //}
+    private static string ToPascalCore(
+        ReadOnlySpan<char> span,
+        SearchValues<char> separators,
+        bool sourceToLower,
+        CultureInfo? cultureInfo,
+        ArrayPool<char> pool
+    )
+    {
+        ArgumentNullException.ThrowIfNull(separators);
+        if (span.IsEmpty)
+            return string.Empty;
+        bool usePool = span.Length > StringLengthLimit;
+        char[]? resultArray = null;
+        char[]? sourceArray = null;
+        try
+        {
+            Span<char> result = usePool
+                ? (resultArray = pool.Rent(span.Length)).AsSpan(0, span.Length)
+                : stackalloc char[span.Length];
+            Span<char> source = usePool
+                ? (sourceArray = pool.Rent(span.Length)).AsSpan(0, span.Length)
+                : stackalloc char[span.Length];
+            cultureInfo ??= CultureInfo.CurrentCulture;
+            if (sourceToLower)
+                span.ToLower(source, cultureInfo);
+            else
+                span.CopyTo(source);
+            var textInfo = cultureInfo.TextInfo;
+            var index = 0;
+            foreach (var range in source.Split(separators))
+            {
+                var splitValue = source[range];
+                if (splitValue.IsEmpty)
+                    continue;
+                splitValue.CopyTo(result.Slice(index, splitValue.Length));
+                result[index] = textInfo.ToUpper(splitValue[0]);
+                index += splitValue.Length;
+            }
+            return new string(result[..index]);
+        }
+        finally
+        {
+            if (sourceArray is not null)
+                pool.Return(sourceArray);
+            if (resultArray is not null)
+                pool.Return(resultArray);
+        }
+    }
 }

@@ -4,6 +4,17 @@ using System.Text;
 
 namespace HKW.HKWUtils;
 
+/// <summary>
+/// 数值转换, 比较及运算工具, 仅支持既有的十一种数值类型; 位运算仅支持八种整数类型.
+/// </summary>
+/// <remarks>
+/// 普通算术, 比较和位运算方法先使用 <see cref="Convert"/> 转换输入, 转换溢出仍会抛出异常.
+/// 名称以 F 结尾的方法要求输入的装箱类型与目标类型完全一致, 不进行数值转换.
+/// 比较结果统一返回 <see cref="int"/>, 仅保证其正负号, 不保证幅值为一.
+/// 算术及位运算结果保持目标运行时类型, 小整数提升运算后以 unchecked 方式截断到目标位宽.
+/// 整数运算采用 unchecked 规则, 但除零及有符号大整数最小值除以负一仍遵循类型本身的异常规则.
+/// 浮点及 decimal 运算保留各自的溢出, 非数值及除零规则.
+/// </remarks>
 public static partial class NumberUtils
 {
     /// <summary>

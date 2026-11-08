@@ -12,10 +12,10 @@ public static partial class NumberUtils
     /// <param name="value2">值2</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的数值类型</exception>
-    public static T CompareF<T>(object value1, object value2)
+    public static int CompareF<T>(object value1, object value2)
         where T : struct, INumber<T>
     {
-        return (T)CompareF(value1, value2, typeof(T));
+        return CompareF(value1, value2, typeof(T));
     }
 
     /// <summary>
@@ -26,7 +26,7 @@ public static partial class NumberUtils
     /// <param name="numberType">类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的数值类型</exception>
-    public static object CompareF(object value1, object value2, Type numberType)
+    public static int CompareF(object value1, object value2, Type numberType)
     {
         return CompareF(value1, value2, GetNumberType(numberType));
     }
@@ -39,7 +39,7 @@ public static partial class NumberUtils
     /// <param name="numberType">类型</param>
     /// <returns>结果</returns>
     /// <exception cref="NotImplementedException">不支持的数值类型</exception>
-    public static object CompareF(object value1, object value2, NumberType numberType)
+    public static int CompareF(object value1, object value2, NumberType numberType)
     {
         switch (numberType)
         {

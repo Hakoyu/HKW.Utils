@@ -160,9 +160,9 @@ public static partial class NumberUtils
                 var right = Convert.ToSByte(value2);
                 return operatorType switch
                 {
-                    BitwiseOperatorType.Or => left | right,
-                    BitwiseOperatorType.And => left & right,
-                    BitwiseOperatorType.LogicalOr => left ^ right,
+                    BitwiseOperatorType.Or => unchecked((sbyte)(left | right)),
+                    BitwiseOperatorType.And => unchecked((sbyte)(left & right)),
+                    BitwiseOperatorType.LogicalOr => unchecked((sbyte)(left ^ right)),
                     _ => throw CreateUnsupportedOperatorException(operatorType),
                 };
             }
@@ -172,9 +172,9 @@ public static partial class NumberUtils
                 var right = Convert.ToByte(value2);
                 return operatorType switch
                 {
-                    BitwiseOperatorType.Or => left | right,
-                    BitwiseOperatorType.And => left & right,
-                    BitwiseOperatorType.LogicalOr => left ^ right,
+                    BitwiseOperatorType.Or => unchecked((byte)(left | right)),
+                    BitwiseOperatorType.And => unchecked((byte)(left & right)),
+                    BitwiseOperatorType.LogicalOr => unchecked((byte)(left ^ right)),
                     _ => throw CreateUnsupportedOperatorException(operatorType),
                 };
             }
@@ -184,9 +184,9 @@ public static partial class NumberUtils
                 var right = Convert.ToInt16(value2);
                 return operatorType switch
                 {
-                    BitwiseOperatorType.Or => left | right,
-                    BitwiseOperatorType.And => left & right,
-                    BitwiseOperatorType.LogicalOr => left ^ right,
+                    BitwiseOperatorType.Or => unchecked((short)(left | right)),
+                    BitwiseOperatorType.And => unchecked((short)(left & right)),
+                    BitwiseOperatorType.LogicalOr => unchecked((short)(left ^ right)),
                     _ => throw CreateUnsupportedOperatorException(operatorType),
                 };
             }
@@ -196,9 +196,9 @@ public static partial class NumberUtils
                 var right = Convert.ToUInt16(value2);
                 return operatorType switch
                 {
-                    BitwiseOperatorType.Or => left | right,
-                    BitwiseOperatorType.And => left & right,
-                    BitwiseOperatorType.LogicalOr => left ^ right,
+                    BitwiseOperatorType.Or => unchecked((ushort)(left | right)),
+                    BitwiseOperatorType.And => unchecked((ushort)(left & right)),
+                    BitwiseOperatorType.LogicalOr => unchecked((ushort)(left ^ right)),
                     _ => throw CreateUnsupportedOperatorException(operatorType),
                 };
             }

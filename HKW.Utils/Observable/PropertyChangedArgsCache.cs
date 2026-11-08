@@ -32,7 +32,15 @@ public static class PropertyChangedArgsCache
     public static PropertyChangedEventArgs RightBottom { get; } = new("RightBottom");
     public static PropertyChangedEventArgs State { get; } = new("State");
     public static PropertyChangedEventArgs Stage { get; } = new("Stage");
+
+    /// <summary>
+    /// 在 avalonia 等编译绑定中, Indexer 属性名为 "Item"
+    /// </summary>
     public static PropertyChangedEventArgs Indexer1 { get; } = new("Item");
+
+    /// <summary>
+    /// 在 WPF 等反射绑定中, Indexer 属性名为 "Item[]"
+    /// </summary>
     public static PropertyChangedEventArgs Indexer2 { get; } = new("Item[]");
     public static PropertyChangedEventArgs CurrentCulture { get; } = new("CurrentCulture");
     public static PropertyChangedEventArgs SelectedIndex { get; } = new("SelectedIndex");

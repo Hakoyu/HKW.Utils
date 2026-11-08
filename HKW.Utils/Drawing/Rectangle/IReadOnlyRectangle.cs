@@ -22,12 +22,12 @@ public interface IReadOnlyRectangle<T>
     /// <summary>
     /// 坐标X
     /// </summary>
-    public T X { get; set; }
+    public T X { get; }
 
     /// <summary>
     /// 坐标Y
     /// </summary>
-    public T Y { get; set; }
+    public T Y { get; }
 
     /// <summary>
     /// 左坐标

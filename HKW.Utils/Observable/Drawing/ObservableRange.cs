@@ -10,7 +10,7 @@ namespace HKW.HKWUtils.Observable;
 /// 可观测范围
 /// </summary>
 /// <typeparam name="T">数值类型</typeparam>
-public sealed class ObservableRange<T>
+public sealed partial class ObservableRange<T>
     : INotifyPropertyChanging,
         INotifyPropertyChanged,
         IEquatable<IReadOnlyRange<T>>,
@@ -38,24 +38,33 @@ public sealed class ObservableRange<T>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private T _min;
 
+    private bool _isChanging;
+
     /// <inheritdoc/>
     public T Min
     {
         get => _min;
         set
         {
-            if (_min == value)
+            using var mutation = new ObservablePropertyMutation(
+                ref _isChanging,
+                PropertyChanging,
+                PropertyChanged
+            );
+            if (EqualityComparer<T>.Default.Equals(_min, value))
                 return;
-            if (PropertyChanging is not null)
+            var changing = mutation.Changing;
+            var changed = mutation.Changed;
+            if (changing is not null)
             {
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.Min);
-                PropertyChanging.Invoke(this, PropertyChangingArgsCache.IsEmpty);
+                changing.Invoke(this, PropertyChangingArgsCache.Min);
+                changing.Invoke(this, PropertyChangingArgsCache.IsEmpty);
             }
             _min = value;
-            if (PropertyChanged is not null)
+            if (changed is not null)
             {
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.Min);
-                PropertyChanged.Invoke(this, PropertyChangedArgsCache.IsEmpty);
+                changed.Invoke(this, PropertyChangedArgsCache.Min);
+                changed.Invoke(this, PropertyChangedArgsCache.IsEmpty);
             }
         }
     }
@@ -69,13 +78,26 @@ public sealed class ObservableRange<T>
         get => _max;
         set
         {
-            if (_max == value)
+            using var mutation = new ObservablePropertyMutation(
+                ref _isChanging,
+                PropertyChanging,
+                PropertyChanged
+            );
+            if (EqualityComparer<T>.Default.Equals(_max, value))
                 return;
-            PropertyChanging?.Invoke(this, PropertyChangingArgsCache.Max);
-            PropertyChanging?.Invoke(this, PropertyChangingArgsCache.IsEmpty);
+            var changing = mutation.Changing;
+            var changed = mutation.Changed;
+            if (changing is not null)
+            {
+                changing.Invoke(this, PropertyChangingArgsCache.Max);
+                changing.Invoke(this, PropertyChangingArgsCache.IsEmpty);
+            }
             _max = value;
-            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.Max);
-            PropertyChanged?.Invoke(this, PropertyChangedArgsCache.IsEmpty);
+            if (changed is not null)
+            {
+                changed.Invoke(this, PropertyChangedArgsCache.Max);
+                changed.Invoke(this, PropertyChangedArgsCache.IsEmpty);
+            }
         }
     }
 
@@ -114,7 +136,17 @@ public sealed class ObservableRange<T>
     {
         if (other is null)
             return false;
-        return this == other;
+        return EqualityComparer<T>.Default.Equals(Min, other.Min)
+            && EqualityComparer<T>.Default.Equals(Max, other.Max);
+    }
+
+    /// <summary>
+    /// 比较具体范围值, 避免将值类型参数装箱为接口.
+    /// </summary>
+    public bool Equals(Range<T> other)
+    {
+        return EqualityComparer<T>.Default.Equals(Min, other.Min)
+            && EqualityComparer<T>.Default.Equals(Max, other.Max);
     }
     #endregion
 

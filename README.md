@@ -1,64 +1,21 @@
 # HKW.Utils
 
-Utils created by HKW
+HKW 的 .NET 10 工具库. 
 
-## Observable
+## 能力入口
 
-Provide a variety of observable tools
+| 领域 | 入口与边界 |
+| --- | --- |
+| 集合 | [Collections](HKW.Utils/Collections): 双向字典, `OrderedHashSet<T>`, 过滤包装器, 尾项撤销/重做, 只读容器 |
+| 可观察对象 | [Observable](HKW.Utils/Observable): 列表/集合/字典及选择状态, 状态组, 值, 枚举, 命令, 几何对象 |
+| 单向绑定 | [ObservableCollectionExtensions](HKW.Utils/Extensions/IObservableCollection.cs): 创建时同步, 持有 `IDisposable` 令牌 |
+| 几何 | [Drawing](HKW.Utils/Drawing): 泛型 `Point<T>`, `Size<T>`, `Range<T>`, `Rectangle<T>` 及接口 |
+| 国际化 | [I18n](HKW.Utils/Utils/I18n): 文化/键矩阵, 观察器, `I18nCore`, 可检查的部分失败状态 |
+| 数值与元数据 | [NumberUtils](HKW.Utils/Utils/NumberUtils), [EnumInfo](HKW.Utils/Utils/EnumInfo), [AttributeDictionary](HKW.Utils/Collections/AttributeDictionary.cs) |
+| 通用工具 | [Extensions](HKW.Utils/Extensions), [Exceptions](HKW.Utils/Exceptions), [SplitUtils](HKW.Utils/Utils/SplitUtils), [FileUtils](HKW.Utils/Utils/FileUtils.cs) |
 
-The base class for all Observable types is [ReactiveObject](https://www.reactiveui.net/).
+可观察集合直接实现 .NET 通知接口及本库的 Changing/Changed 接口. 包装器操作完整源集合, 过滤结果在 `Filtered*` 属性中. 后端必须遵守稳定比较器, 独占写入等各类型契约, 不能将任意外部集合视为事务后端.
 
-### ObservableCollectionWrapper
+## 许可
 
-You can wrap various types of collections into the ObservableCollection type.
-
-**ObservableList**
-
-The wrapper can support any list that implements the `IList<T>` interface.
-
-You can use `IListWrapper.BaseList` to access the original list.
-
-`ObservableListWrapper` in addition to providing the `INotifyCollectionChanged` and `INotifyPropertyChanged `interfaces, it also supports `INotifyListChanging` and `INotifyListChanged`.
-
-```csharp
-var observableList = new ObservableListWrapper<int, List<int>>(new List<int>());
-```
-
-**ObservableSet**
-
-The wrapper can support any set that implements the `ISet<T>` interface.
-
-The recommended set type for `ObservableSetWrapper` is `OrderedSet`, as it ensures the order of items during set operations. Using the native `HashSet` may lead to incorrect item order.
-
-You can use `ISetWrapper.BaseSet` to access the original set.
-
-`ObservableSetWrapper` to providing the `INotifyCollectionChanged` and `INotifyPropertyChanged` interfaces, it also supports `INotifySetChanging` and `INotifySetChanged`.
-
-```csharp
-var observableSet = new ObservableSetWrapper<int, HashSet<int>>(new HashSet<int>());
-```
-
-**ObservableDictionary**
-
-The wrapper can support any dictionary that implements the `IDictionary<TKey, TValue>` interface.
-
-You can use `IDictionaryWrapper.BaseDictionary` to access the original dictionary.
-
-`ObservableDictionaryWrapper` in addition to providing the `INotifyCollectionChanged` and `INotifyPropertyChanged` interfaces, it also supports `INotifyDictionaryChanging` and `INotifyDictionaryChanged`.
-
-```csharp
-var observableDictionary = new ObservableDictionaryWrapper<int, string, Dictionary<int, string>>(new Dictionary<int, string>());
-```
-
-### Drawing
-
-Some `Drawing` types that support `INotifyPropertyChanged` are primarily intended for display purposes, as they may not offer sufficient performance for more intensive applications. These types are useful for scenarios where you need to notify the UI of property changes but do not require high performance, such as in data-binding contexts or simple visualizations.
-
-```csharp
-var point = new ObservablePoint<int>();
-var range = new ObservableRange<int>();
-var rect = new ObservableRectangle<int>();
-var size = new ObservableSize<int>();
-```
-
-## OtherUtils
+包许可声明为 MIT. 按用户明确决定保留 [LICENSE.txt](LICENSE.txt) 和 [测试许可](HKW.Utils.Tests/LICENSE.txt) 的版权人及年份原文, 本次不补写或替换占位内容, 不将该决定称为修复阻塞项.

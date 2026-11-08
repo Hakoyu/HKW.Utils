@@ -5,7 +5,7 @@ namespace HKW.HKWUtils.Collections;
 /// <summary>
 /// 可观察的过滤字典
 /// <para>基于 <see cref="FilteredDictionaryWrapper{TKey, TValue, TDictionary, TFilteredDictionary}"/> 维护一个实时过滤的字典</para>
-/// <para>源字典发生变更时，会自动同步更新 <see cref="FilteredDictionaryWrapper{TKey, TValue, TDictionary, TFilteredDictionary}.FilteredDictionary"/></para>
+/// <para>源字典发生变更时, 会自动同步更新 <see cref="FilteredDictionaryWrapper{TKey, TValue, TDictionary, TFilteredDictionary}.FilteredDictionary"/></para>
 /// </summary>
 /// <typeparam name="TKey">键类型</typeparam>
 /// <typeparam name="TValue">值类型</typeparam>
@@ -24,9 +24,6 @@ public sealed class ObservableFilteredDictionaryWrapper<
     where TDictionary : IDictionary<TKey, TValue>, INotifyCollectionChanged
     where TFilteredDictionary : IDictionary<TKey, TValue>
 {
-    private bool _isUpdating;
-    private bool _disposed;
-
     /// <inheritdoc/>
     /// <param name="dictionary">字典</param>
     /// <param name="filteredDictionary">过滤字典</param>
@@ -40,95 +37,18 @@ public sealed class ObservableFilteredDictionaryWrapper<
     )
         : base(dictionary, filteredDictionary, filter, autoFilter)
     {
-        SourceDictionary.CollectionChanged += OnSourceDictionaryCollectionChanged;
+        _subscribedSource = SourceDictionary;
+        _subscribedSource.CollectionChanged += OnSourceDictionaryCollectionChanged;
     }
 
-    /// <inheritdoc/>
-    public override TValue this[TKey key]
-    {
-        get => base[key];
-        set
-        {
-            _isUpdating = true;
-            try
-            {
-                base[key] = value;
-            }
-            finally
-            {
-                _isUpdating = false;
-            }
-        }
-    }
+    private TDictionary? _subscribedSource;
 
     /// <inheritdoc/>
-    public override void BatchUpdate(Action<TDictionary> updateAction)
+    protected override void OnSourceChanged(TDictionary previous)
     {
-        _isUpdating = true;
-        try
-        {
-            base.BatchUpdate(updateAction);
-        }
-        finally
-        {
-            _isUpdating = false;
-        }
-    }
-
-    /// <inheritdoc/>
-    public override bool TryAdd(TKey key, TValue value)
-    {
-        _isUpdating = true;
-        try
-        {
-            return base.TryAdd(key, value);
-        }
-        finally
-        {
-            _isUpdating = false;
-        }
-    }
-
-    /// <inheritdoc/>
-    protected override void Add(KeyValuePair<TKey, TValue> item)
-    {
-        _isUpdating = true;
-        try
-        {
-            base.Add(item);
-        }
-        finally
-        {
-            _isUpdating = false;
-        }
-    }
-
-    /// <inheritdoc/>
-    protected override bool Remove(KeyValuePair<TKey, TValue> item)
-    {
-        _isUpdating = true;
-        try
-        {
-            return base.Remove(item);
-        }
-        finally
-        {
-            _isUpdating = false;
-        }
-    }
-
-    /// <inheritdoc/>
-    public override void Clear()
-    {
-        _isUpdating = true;
-        try
-        {
-            base.Clear();
-        }
-        finally
-        {
-            _isUpdating = false;
-        }
+        previous.CollectionChanged -= OnSourceDictionaryCollectionChanged;
+        _subscribedSource = SourceDictionary;
+        _subscribedSource.CollectionChanged += OnSourceDictionaryCollectionChanged;
     }
 
     /// <summary>
@@ -136,11 +56,12 @@ public sealed class ObservableFilteredDictionaryWrapper<
     /// </summary>
     public void Dispose()
     {
-        if (_disposed)
-            return;
-
-        SourceDictionary.CollectionChanged -= OnSourceDictionaryCollectionChanged;
-        _disposed = true;
+        DisposeFilter(() =>
+        {
+            if (_subscribedSource is not null)
+                _subscribedSource.CollectionChanged -= OnSourceDictionaryCollectionChanged;
+            _subscribedSource = default;
+        });
         GC.SuppressFinalize(this);
     }
 
@@ -149,18 +70,10 @@ public sealed class ObservableFilteredDictionaryWrapper<
         NotifyCollectionChangedEventArgs e
     )
     {
-        if (_isUpdating)
+        if (ReferenceEquals(sender, _subscribedSource) is false)
             return;
-
-        if (e.Action == NotifyCollectionChangedAction.Reset && SourceDictionary.Count == 0)
-        {
-            FilteredDictionary.Clear();
-            return;
-        }
-
-        if (AutoFilter is false)
-            return;
-
-        Refresh();
+        SourceChanged(
+            e.Action == NotifyCollectionChangedAction.Reset && SourceDictionary.Count == 0
+        );
     }
 }

@@ -11,14 +11,7 @@ public class ArgumentExceptionTests
     [TestMethod]
     public void ThrowIfNotEquals_1()
     {
-        try
-        {
-            ArgumentException.ThrowIfNotEquals(0, 0);
-        }
-        catch
-        {
-            Assert.Fail();
-        }
+        ArgumentException.ThrowIfNotEquals(0, 0);
 
         Assert.Throws<ArgumentException>(() =>
         {
@@ -29,14 +22,7 @@ public class ArgumentExceptionTests
     [TestMethod]
     public void ThrowIfAllNotEquals_2()
     {
-        try
-        {
-            ArgumentException.ThrowIfAllNotEquals(0, 0, 1);
-        }
-        catch
-        {
-            Assert.Fail();
-        }
+        ArgumentException.ThrowIfAllNotEquals(0, 0, 1);
 
         Assert.Throws<ArgumentException>(() =>
         {
@@ -47,14 +33,7 @@ public class ArgumentExceptionTests
     [TestMethod]
     public void ThrowIfAllNotEquals_3()
     {
-        try
-        {
-            ArgumentException.ThrowIfAllNotEquals(0, 0, 1, 2);
-        }
-        catch
-        {
-            Assert.Fail();
-        }
+        ArgumentException.ThrowIfAllNotEquals(0, 0, 1, 2);
 
         Assert.Throws<ArgumentException>(() =>
         {
@@ -65,14 +44,7 @@ public class ArgumentExceptionTests
     [TestMethod]
     public void ThrowIfAllNotEquals_4()
     {
-        try
-        {
-            ArgumentException.ThrowIfAllNotEquals(0, 0, 1, 2, 3);
-        }
-        catch
-        {
-            Assert.Fail();
-        }
+        ArgumentException.ThrowIfAllNotEquals(0, 0, 1, 2, 3);
 
         Assert.Throws<ArgumentException>(() =>
         {
@@ -83,14 +55,7 @@ public class ArgumentExceptionTests
     [TestMethod]
     public void ThrowIfAllNotEquals_5()
     {
-        try
-        {
-            ArgumentException.ThrowIfAllNotEquals(0, 0, 1, 2, 3, 4);
-        }
-        catch
-        {
-            Assert.Fail();
-        }
+        ArgumentException.ThrowIfAllNotEquals(0, 0, 1, 2, 3, 4);
 
         Assert.Throws<ArgumentException>(() =>
         {
@@ -101,14 +66,7 @@ public class ArgumentExceptionTests
     [TestMethod]
     public void ThrowIfAllNotEquals_Array()
     {
-        try
-        {
-            ArgumentException.ThrowIfAllNotEquals(0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-        }
-        catch
-        {
-            Assert.Fail();
-        }
+        ArgumentException.ThrowIfAllNotEquals(0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
         Assert.Throws<ArgumentException>(() =>
         {

@@ -26,7 +26,8 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
         IReadOnlyDictionary<TKey, TValue>,
         IDictionary,
         IFilteredCollectionWrapper<KeyValuePair<TKey, TValue>, TDictionary, TFilteredDictionary>,
-        IDictionaryWrapper<TKey, TValue, TDictionary>
+        IDictionaryWrapper<TKey, TValue, TDictionary>,
+        IFilterStorage
     where TKey : notnull
     where TDictionary : IDictionary<TKey, TValue>
     where TFilteredDictionary : IDictionary<TKey, TValue>
@@ -50,16 +51,32 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
         ArgumentException.ThrowIfReadOnlyCollection(dictionary);
         ArgumentException.ThrowIfReadOnlyCollection(filteredDictionary);
 
-        FilteredDictionary = filteredDictionary;
+        FilterLifecycle.Validate(dictionary, filteredDictionary);
+        _filteredDictionary = filteredDictionary;
         _sourceDictionary = dictionary;
         _filter = filter;
-        AutoFilter = autoFilter;
+        _autoFilter = autoFilter;
         Refresh();
     }
     #endregion
 
+    private readonly FilterLifecycle _lifecycle = new();
+    private readonly TFilteredDictionary _filteredDictionary;
+    private bool _autoFilter;
+
     /// <inheritdoc/>
-    public bool AutoFilter { get; set; }
+    public bool IsFilterValid => _lifecycle.IsValid;
+
+    /// <inheritdoc/>
+    public bool AutoFilter
+    {
+        get => _autoFilter;
+        set
+        {
+            using var operation = _lifecycle.Enter();
+            _autoFilter = value;
+        }
+    }
     private Predicate<KeyValuePair<TKey, TValue>> _filter;
 
     /// <inheritdoc/>
@@ -68,12 +85,15 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
         get => _filter;
         set
         {
+            using var operation = _lifecycle.Enter();
             ArgumentNullException.ThrowIfNull(value);
+            var result = Compute(_sourceDictionary, value);
             _filter = value;
-            Refresh();
+            Publish(result);
         }
     }
     private TDictionary _sourceDictionary;
+    object IFilterStorage.SourceStorage => _sourceDictionary;
 
     /// <inheritdoc/>
     public TDictionary SourceDictionary
@@ -81,8 +101,13 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
         get => _sourceDictionary;
         set
         {
+            using var operation = _lifecycle.Enter();
+            FilterLifecycle.Validate(value, _filteredDictionary, this);
+            var result = Compute(value, _filter);
+            var previous = _sourceDictionary;
             _sourceDictionary = value;
-            Refresh();
+            OnSourceChanged(previous);
+            Publish(result);
         }
     }
 
@@ -93,7 +118,14 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
     /// <summary>
     /// 过滤完成的字典
     /// </summary>
-    public TFilteredDictionary FilteredDictionary { get; }
+    public TFilteredDictionary FilteredDictionary
+    {
+        get
+        {
+            _lifecycle.EnsureReadable();
+            return _filteredDictionary;
+        }
+    }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     TFilteredDictionary IFilteredCollectionWrapper<
@@ -105,29 +137,137 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
     /// <inheritdoc/>
     public virtual void BatchUpdate(Action<TDictionary> updateAction)
     {
+        using var operation = _lifecycle.Enter();
         ArgumentNullException.ThrowIfNull(updateAction);
-
-        var autoFilter = AutoFilter;
-        AutoFilter = false;
+        var autoFilter = _autoFilter;
+        _autoFilter = false;
         try
         {
-            updateAction(SourceDictionary);
+            _lifecycle.Update(() => updateAction(_sourceDictionary), RefreshCore);
         }
         finally
         {
-            AutoFilter = autoFilter;
+            _autoFilter = autoFilter;
         }
-
-        Refresh();
     }
 
     /// <inheritdoc/>
     public void Refresh()
     {
-        FilteredDictionary.Clear();
-        if (SourceDictionary?.Count > 0)
-            FilteredDictionary.AddRange(SourceDictionary.Where(i => Filter(i)));
+        using var operation = _lifecycle.Enter(recovery: true);
+        RefreshCore();
     }
+
+    private static List<KeyValuePair<TKey, TValue>> Compute(
+        TDictionary source,
+        Predicate<KeyValuePair<TKey, TValue>> filter
+    )
+    {
+        var result = new List<KeyValuePair<TKey, TValue>>(source.Count);
+        foreach (var item in source)
+        {
+            if (filter(item))
+                result.Add(item);
+        }
+        return result;
+    }
+
+    private void RefreshCore()
+    {
+        List<KeyValuePair<TKey, TValue>> result;
+        try
+        {
+            result = Compute(_sourceDictionary, _filter);
+        }
+        catch
+        {
+            _lifecycle.IsValid = false;
+            throw;
+        }
+        Publish(result);
+    }
+
+    private void Publish(List<KeyValuePair<TKey, TValue>> result)
+    {
+        _lifecycle.IsValid = false;
+        try
+        {
+            _lifecycle.EnsureSourceUnchanged();
+            if (Matches(result))
+            {
+                _lifecycle.IsValid = true;
+                return;
+            }
+            _filteredDictionary.Clear();
+            foreach (var item in result)
+                _filteredDictionary.Add(item);
+            _lifecycle.EnsureSourceUnchanged();
+            if (Matches(result) is false)
+                throw new InvalidOperationException(
+                    "The filtered backend must preserve every source key and value."
+                );
+            _lifecycle.IsValid = true;
+        }
+        catch
+        {
+            try
+            {
+                _lifecycle.IsValid = _lifecycle.SourceInvalidated is false && Matches(result);
+            }
+            catch
+            {
+                _lifecycle.IsValid = false;
+            }
+            throw;
+        }
+    }
+
+    private bool Matches(List<KeyValuePair<TKey, TValue>> result)
+    {
+        if (_filteredDictionary.Count != result.Count)
+            return false;
+        return new HashSet<KeyValuePair<TKey, TValue>>(
+            _filteredDictionary,
+            FilterLifecycle.PairComparer<TKey, TValue>.Instance
+        ).SetEquals(result);
+    }
+
+    private void Update(Action update, bool forceRefresh = false)
+    {
+        using var operation = _lifecycle.Enter();
+        _lifecycle.Update(update, _autoFilter || forceRefresh ? RefreshCore : null);
+    }
+
+    /// <summary>
+    /// 源切换完成后更新订阅.
+    /// </summary>
+    /// <param name="previous">先前的源</param>
+    protected virtual void OnSourceChanged(TDictionary previous) { }
+
+    /// <summary>
+    /// 处理外部源通知. 包装器自身写入在操作结束时统一刷新.
+    /// </summary>
+    /// <param name="cleared">是否清空源</param>
+    protected void SourceChanged(bool cleared)
+    {
+        if (_lifecycle.IsUpdatingSource)
+            return;
+        if (_lifecycle.IsActive)
+        {
+            _lifecycle.InvalidateSource();
+            throw new InvalidOperationException(
+                "The source changed during filtered view publication."
+            );
+        }
+        if (_autoFilter || cleared)
+            Refresh();
+    }
+
+    /// <summary>
+    /// 释放订阅并拒绝后续写入及过滤视图读取.
+    /// </summary>
+    /// <param name="unsubscribe">取消订阅操作</param>
+    protected void DisposeFilter(Action unsubscribe) => _lifecycle.Dispose(unsubscribe);
 
     #region IDictionaryT
     /// <inheritdoc/>
@@ -147,28 +287,16 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
     IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => SourceDictionary.Values;
 
     /// <inheritdoc/>
-    public bool IsSynchronized => ((ICollection)SourceDictionary).IsSynchronized;
+    public bool IsSynchronized => CollectionInterfaceBridge.IsSynchronized(SourceDictionary);
 
     /// <inheritdoc/>
-    public object SyncRoot => ((ICollection)SourceDictionary).SyncRoot;
+    public object SyncRoot => CollectionInterfaceBridge.SyncRoot(SourceDictionary, this);
 
     /// <inheritdoc/>
     public virtual TValue this[TKey key]
     {
         get => SourceDictionary[key];
-        set
-        {
-            SourceDictionary[key] = value;
-            if (AutoFilter is false)
-                return;
-            if (Filter(new(key, value)) is false)
-            {
-                FilteredDictionary.Remove(key);
-                return;
-            }
-
-            FilteredDictionary[key] = value;
-        }
+        set => Update(() => _sourceDictionary[key] = value);
     }
 
     /// <inheritdoc/>
@@ -180,31 +308,21 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
     /// <inheritdoc/>
     public virtual bool TryAdd(TKey key, TValue value)
     {
-        var result = SourceDictionary.TryAddX(key, value);
-        if (result is false)
-            return result;
-        if (AutoFilter is false)
-            return result;
-        if (Filter(new(key, value)))
-            FilteredDictionary.Add(key, value);
+        var result = false;
+        Update(() => result = _sourceDictionary.TryAddX(key, value));
         return result;
     }
 
     /// <inheritdoc/>
     public bool Remove(TKey key)
     {
-        var result = SourceDictionary.TryGetPair(key, out var pair);
-        if (result)
-            Remove(pair);
+        var result = false;
+        Update(() => result = _sourceDictionary.Remove(key));
         return result;
     }
 
     /// <inheritdoc/>
-    public virtual void Clear()
-    {
-        SourceDictionary.Clear();
-        FilteredDictionary.Clear();
-    }
+    public virtual void Clear() => Update(_sourceDictionary.Clear, forceRefresh: true);
 
     /// <inheritdoc/>
     public bool ContainsKey(TKey key)
@@ -225,23 +343,14 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
     }
 
     /// <inheritdoc/>
-    protected virtual void Add(KeyValuePair<TKey, TValue> item)
-    {
-        SourceDictionary.Add(item);
-        if (AutoFilter is false)
-            return;
-        if (Filter(item))
-            FilteredDictionary.Add(item);
-    }
+    protected virtual void Add(KeyValuePair<TKey, TValue> item) =>
+        Update(() => _sourceDictionary.Add(item));
 
     /// <inheritdoc/>
     protected virtual bool Remove(KeyValuePair<TKey, TValue> item)
     {
-        var result = SourceDictionary.Remove(item);
-        if (AutoFilter is false)
-            return result;
-        if (result)
-            FilteredDictionary.Remove(item);
+        var result = false;
+        Update(() => result = _sourceDictionary.Remove(item));
         return result;
     }
 
@@ -275,48 +384,77 @@ public class FilteredDictionaryWrapper<TKey, TValue, TDictionary, TFilteredDicti
     }
     #endregion
     #region IDictionary
+    private void EnsureInterfaceWriteAllowed()
+    {
+        if (_lifecycle.IsActive)
+            throw new InvalidOperationException(
+                "Reentrant writes to the same filtered collection are not allowed."
+            );
+        _lifecycle.EnsureReadable();
+    }
+
     /// <inheritdoc/>
-    bool IDictionary.IsFixedSize => ((IDictionary)SourceDictionary).IsFixedSize;
+    bool IDictionary.IsFixedSize =>
+        SourceDictionary is IDictionary dictionary ? dictionary.IsFixedSize : IsReadOnly;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    ICollection IDictionary.Keys => ((IDictionary)SourceDictionary).Keys;
+    ICollection IDictionary.Keys => CollectionInterfaceBridge.AsCollection(Keys);
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    ICollection IDictionary.Values => ((IDictionary)SourceDictionary).Values;
+    ICollection IDictionary.Values => CollectionInterfaceBridge.AsCollection(Values);
     object? IDictionary.this[object key]
     {
-        get => this[(TKey)key];
-        set => this[(TKey)key] = (TValue)value!;
+        get =>
+            CollectionInterfaceBridge.IsCompatibleKey<TKey>(key)
+            && TryGetValue((TKey)key, out var value)
+                ? value
+                : null;
+        set
+        {
+            EnsureInterfaceWriteAllowed();
+            this[CollectionInterfaceBridge.GetKey<TKey>(key)] =
+                CollectionInterfaceBridge.GetValue<TValue>(value, nameof(value));
+        }
     }
 
     /// <inheritdoc/>
     void IDictionary.Add(object key, object? value)
     {
-        Add((TKey)key, (TValue)value!);
+        EnsureInterfaceWriteAllowed();
+        Add(
+            CollectionInterfaceBridge.GetKey<TKey>(key),
+            CollectionInterfaceBridge.GetValue<TValue>(value, nameof(value))
+        );
     }
 
     /// <inheritdoc/>
     bool IDictionary.Contains(object key)
     {
-        return ((IDictionary)SourceDictionary).Contains(key);
+        return CollectionInterfaceBridge.IsCompatibleKey<TKey>(key) && ContainsKey((TKey)key);
     }
 
     /// <inheritdoc/>
     IDictionaryEnumerator IDictionary.GetEnumerator()
     {
-        return ((IDictionary)SourceDictionary).GetEnumerator();
+        return new CollectionInterfaceBridge.DictionaryEnumerator<TKey, TValue>(GetEnumerator());
     }
 
     /// <inheritdoc/>
     void IDictionary.Remove(object key)
     {
-        Remove((TKey)key);
+        EnsureInterfaceWriteAllowed();
+        if (CollectionInterfaceBridge.IsCompatibleKey<TKey>(key))
+            Remove((TKey)key);
+        else
+        {
+            using var operation = _lifecycle.Enter();
+        }
     }
 
     /// <inheritdoc/>
     void ICollection.CopyTo(Array array, int index)
     {
-        ((ICollection)SourceDictionary).CopyTo(array, index);
+        CollectionInterfaceBridge.CopyDictionaryTo(SourceDictionary, array, index);
     }
     #endregion
 }
