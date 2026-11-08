@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using HKW.HKWUtils;
 
 namespace HKW.HKWUtilsTests.Utils;
@@ -107,10 +107,10 @@ public class NumberArithmeticTests
             NumberUtils.ArithmeticF(1, 2, (NumberType)999, '+')
         );
         Assert.ThrowsExactly<NotImplementedException>(() =>
-            NumberUtils.Arithmetic<Half>((Half)1, (Half)2, '+')
+            NumberUtils.Arithmetic(1, 2, typeof(bool), '+')
         );
         Assert.ThrowsExactly<NotImplementedException>(() =>
-            NumberUtils.ArithmeticF<Half>((Half)1, (Half)2, '+')
+            NumberUtils.ArithmeticF(1, 2, typeof(bool), '+')
         );
         Assert.ThrowsExactly<OverflowException>(() => NumberUtils.Arithmetic<byte>(256, 1, '+'));
         Assert.ThrowsExactly<OverflowException>(() => NumberUtils.Arithmetic<uint>(-1, 1, '+'));

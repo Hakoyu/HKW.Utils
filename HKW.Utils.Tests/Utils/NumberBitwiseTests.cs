@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using HKW.HKWUtils;
 
 namespace HKW.HKWUtilsTests.Utils;
@@ -82,7 +82,7 @@ public class NumberBitwiseTests
         from type in NumberTestData.Integers
         from symbol in new[] { "<<", ">>", ">>>" }
         from sample in new[] { "basic", "max", "min" }
-        from shift in new[] { -65, -33, -1, 0, 1, 7, 8, 15, 16, 31, 32, 33, 63, 64, 65 }
+        from shift in new[] { -129, -65, -33, -1, 0, 1, 7, 8, 15, 16, 31, 32, 33, 63, 64, 65, 127, 128, 129 }
         select new object[] { type, symbol, sample, shift };
 
     [TestMethod]
@@ -110,8 +110,12 @@ public class NumberBitwiseTests
         var op = NumberUtils.GetBitwiseShiftType(symbol);
         Assert.IsTrue(NumberUtils.TryGetBitwiseShiftType(symbol, out var parsed));
         Assert.AreEqual(op, parsed);
-        // 小整数先提升到 32 位；泛型数学的小整数移位掩码不同，不能用作此契约的预期值。
-        var promotedWidth = typeof(T) == typeof(long) || typeof(T) == typeof(ulong) ? 64 : 32;
+        // 小整数先提升到 32 位, 泛型数学的小整数移位掩码不同.
+        var promotedWidth =
+            typeof(T) == typeof(Int128) || typeof(T) == typeof(UInt128) ? 128
+            : typeof(T) == typeof(nint) || typeof(T) == typeof(nuint) ? IntPtr.Size * 8
+            : typeof(T) == typeof(long) || typeof(T) == typeof(ulong) ? 64
+            : 32;
         var count = shift & (promotedWidth - 1);
         var wide = BigInteger.CreateChecked(value);
         if (symbol == ">>>" && wide.Sign < 0)
@@ -219,6 +223,7 @@ public class NumberBitwiseTests
                 NumberType.Single,
                 NumberType.Double,
                 NumberType.Decimal,
+                NumberType.Half,
                 (NumberType)999,
             }
         )

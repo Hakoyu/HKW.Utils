@@ -673,6 +673,7 @@ public sealed class ObservableI18nResource<TKey, TValue>
     public bool AddCulture(CultureInfo culture)
     {
         ArgumentNullException.ThrowIfNull(culture);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(culture.Name);
         using var operation = BeginMutation();
         var result = operation.AddCulture(culture);
         operation.Execute();

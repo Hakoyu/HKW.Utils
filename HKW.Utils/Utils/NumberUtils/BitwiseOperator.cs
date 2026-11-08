@@ -6,8 +6,7 @@ namespace HKW.HKWUtils;
 public static partial class NumberUtils
 {
     /// <summary>
-    /// 位运算符类型
-    /// <para>(OperatorChar, BitwiseOperatorType)</para>
+    /// 按位运算符字符与类型的不可变双向映射, LogicalOr 对应异或符号 ^.
     /// </summary>
     public static FrozenBidirectionalDictionary<
         char,
@@ -20,21 +19,22 @@ public static partial class NumberUtils
         ]);
 
     /// <summary>
-    /// 获取位运算符类型
+    /// 查找与完整符号对应的按位运算符枚举值.
     /// </summary>
-    /// <param name="operator">运算符字符</param>
-    /// <returns>运算符</returns>
+    /// <param name="operator">要匹配的运算符字符.</param>
+    /// <returns>与符号对应的运算符枚举值.</returns>
+    /// <exception cref="KeyNotFoundException"><paramref name="operator"/> 不是受支持的完整运算符.</exception>
     public static BitwiseOperatorType GetBitwiseOperatorType(char @operator)
     {
         return BitwiseOperatorTypeByChar[@operator];
     }
 
     /// <summary>
-    /// 获取位运算符类型
+    /// 尝试查找与完整符号对应的按位运算符枚举值.
     /// </summary>
-    /// <param name="operator">运算符字符</param>
-    /// <param name="operatorType">运算符类型</param>
-    /// <returns>运算符</returns>
+    /// <param name="operator">要匹配的运算符字符.</param>
+    /// <param name="operatorType">返回时包含匹配的枚举值; 未匹配时为枚举默认值.</param>
+    /// <returns>找到运算符时为 <see langword="true"/>, 否则为 <see langword="false"/>.</returns>
     public static bool TryGetBitwiseOperatorType(
         char @operator,
         out BitwiseOperatorType operatorType
@@ -44,14 +44,18 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 计算
+    /// 转换为指定整数类型后按字符执行按位与, 或或异或运算.
     /// </summary>
-    /// <typeparam name="T">目标类型</typeparam>
-    /// <param name="value1">值1</param>
-    /// <param name="value2">值2</param>
-    /// <param name="operator">运算符</param>
-    /// <returns>结果</returns>
-    /// <exception cref="NotImplementedException">不支持的操作</exception>
+    /// <typeparam name="T">受支持的整数类型, 包括 BigInteger, 不支持浮点类型和 decimal.</typeparam>
+    /// <param name="value1">左操作数, 转换为目标整数类型; null 按零处理.</param>
+    /// <param name="value2">右操作数, 转换为目标整数类型; null 按零处理.</param>
+    /// <param name="operator">按位运算符字符, 支持 &amp;, | 和 ^.</param>
+    /// <exception cref="NotImplementedException">目标类型不是受支持的整数类型.</exception>
+    /// <exception cref="InvalidCastException">操作数不能转换为目标整数类型.</exception>
+    /// <exception cref="FormatException">操作数文本格式无效.</exception>
+    /// <exception cref="OverflowException">数值转换超出目标整数类型的范围.</exception>
+    /// <returns>保持 <typeparamref name="T"/> 类型的运算结果.</returns>
+    /// <exception cref="KeyNotFoundException">运算符符号不是受支持的完整运算符.</exception>
     public static T BitwiseOperator<T>(object value1, object value2, char @operator)
         where T : struct, INumber<T>
     {
@@ -59,14 +63,19 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 计算
+    /// 转换为指定运行时整数类型后按字符执行按位与, 或或异或运算.
     /// </summary>
-    /// <param name="value1">值1</param>
-    /// <param name="value2">值2</param>
-    /// <param name="numberType">数值类型</param>
-    /// <param name="operator">运算符</param>
-    /// <returns>结果</returns>
-    /// <exception cref="NotImplementedException">不支持的操作</exception>
+    /// <param name="value1">左操作数, 转换为目标整数类型; null 按零处理.</param>
+    /// <param name="value2">右操作数, 转换为目标整数类型; null 按零处理.</param>
+    /// <param name="numberType">受支持的整数运行时类型, 包括 BigInteger, 不支持浮点类型和 decimal.</param>
+    /// <param name="operator">按位运算符字符, 支持 &amp;, | 和 ^.</param>
+    /// <exception cref="NotImplementedException">目标类型不是受支持的整数类型.</exception>
+    /// <exception cref="InvalidCastException">操作数不能转换为目标整数类型.</exception>
+    /// <exception cref="FormatException">操作数文本格式无效.</exception>
+    /// <exception cref="OverflowException">数值转换超出目标整数类型的范围.</exception>
+    /// <returns>已装箱且保持目标数值类型的运算结果.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="numberType"/> 为 <see langword="null"/>.</exception>
+    /// <exception cref="KeyNotFoundException">运算符符号不是受支持的完整运算符.</exception>
     public static object BitwiseOperator(
         object value1,
         object value2,
@@ -78,14 +87,18 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 计算
+    /// 转换为枚举指定的整数类型后按字符执行按位与, 或或异或运算.
     /// </summary>
-    /// <param name="value1">值1</param>
-    /// <param name="value2">值2</param>
-    /// <param name="numberType">数值类型</param>
-    /// <param name="operator">运算符</param>
-    /// <returns>结果</returns>
-    /// <exception cref="NotImplementedException">不支持的操作</exception>
+    /// <param name="value1">左操作数, 转换为目标整数类型; null 按零处理.</param>
+    /// <param name="value2">右操作数, 转换为目标整数类型; null 按零处理.</param>
+    /// <param name="numberType">受支持的整数类型枚举值, 包括 BigInteger, 不支持浮点类型和 decimal.</param>
+    /// <param name="operator">按位运算符字符, 支持 &amp;, | 和 ^.</param>
+    /// <exception cref="NotImplementedException">目标类型不是受支持的整数类型.</exception>
+    /// <exception cref="InvalidCastException">操作数不能转换为目标整数类型.</exception>
+    /// <exception cref="FormatException">操作数文本格式无效.</exception>
+    /// <exception cref="OverflowException">数值转换超出目标整数类型的范围.</exception>
+    /// <returns>已装箱且保持目标数值类型的运算结果.</returns>
+    /// <exception cref="KeyNotFoundException">运算符符号不是受支持的完整运算符.</exception>
     public static object BitwiseOperator(
         object value1,
         object value2,
@@ -97,14 +110,17 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 计算
+    /// 转换为指定整数类型后执行按位与, 或或异或运算.
     /// </summary>
-    /// <typeparam name="T">目标类型</typeparam>
-    /// <param name="value1">值1</param>
-    /// <param name="value2">值2</param>
-    /// <param name="operatorType">运算符类型</param>
-    /// <returns>结果</returns>
-    /// <exception cref="NotImplementedException">不支持的操作</exception>
+    /// <typeparam name="T">受支持的整数类型, 包括 BigInteger, 不支持浮点类型和 decimal.</typeparam>
+    /// <param name="value1">左操作数, 转换为目标整数类型; null 按零处理.</param>
+    /// <param name="value2">右操作数, 转换为目标整数类型; null 按零处理.</param>
+    /// <param name="operatorType">按位运算符枚举值; LogicalOr 表示异或.</param>
+    /// <exception cref="NotImplementedException">目标整数类型或运算符枚举值不受支持.</exception>
+    /// <exception cref="InvalidCastException">操作数不能转换为目标整数类型.</exception>
+    /// <exception cref="FormatException">操作数文本格式无效.</exception>
+    /// <exception cref="OverflowException">数值转换超出目标整数类型的范围.</exception>
+    /// <returns>保持 <typeparamref name="T"/> 类型的运算结果.</returns>
     public static T BitwiseOperator<T>(
         object value1,
         object value2,
@@ -116,14 +132,18 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 计算
+    /// 转换为指定运行时整数类型后执行按位与, 或或异或运算.
     /// </summary>
-    /// <param name="value1">值1</param>
-    /// <param name="value2">值2</param>
-    /// <param name="numberType">数值类型</param>
-    /// <param name="operatorType">运算符类型</param>
-    /// <returns>结果</returns>
-    /// <exception cref="NotImplementedException">不支持的操作</exception>
+    /// <param name="value1">左操作数, 转换为目标整数类型; null 按零处理.</param>
+    /// <param name="value2">右操作数, 转换为目标整数类型; null 按零处理.</param>
+    /// <param name="numberType">受支持的整数运行时类型, 包括 BigInteger, 不支持浮点类型和 decimal.</param>
+    /// <param name="operatorType">按位运算符枚举值; LogicalOr 表示异或.</param>
+    /// <exception cref="NotImplementedException">目标整数类型或运算符枚举值不受支持.</exception>
+    /// <exception cref="InvalidCastException">操作数不能转换为目标整数类型.</exception>
+    /// <exception cref="FormatException">操作数文本格式无效.</exception>
+    /// <exception cref="OverflowException">数值转换超出目标整数类型的范围.</exception>
+    /// <returns>已装箱且保持目标数值类型的运算结果.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="numberType"/> 为 <see langword="null"/>.</exception>
     public static object BitwiseOperator(
         object value1,
         object value2,
@@ -135,123 +155,92 @@ public static partial class NumberUtils
     }
 
     /// <summary>
-    /// 计算
+    /// 转换整数操作数后执行按位与, 或或异或运算.
     /// </summary>
-    /// <param name="value1">值1</param>
-    /// <param name="value2">值2</param>
-    /// <param name="numberType">数值类型</param>
-    /// <param name="operatorType">运算符类型</param>
-    /// <returns>结果</returns>
-    /// <exception cref="NotImplementedException">不支持的操作</exception>
-#pragma warning disable S3776
+    /// <param name="value1">左操作数, 数值按 CreateChecked 转换, 其他对象按兼容规则和当前区域性转换; null 按零处理.</param>
+    /// <param name="value2">右操作数, 数值按 CreateChecked 转换, 其他对象按兼容规则和当前区域性转换; null 按零处理.</param>
+    /// <param name="numberType">受支持的整数类型枚举值, 包括 BigInteger, 不支持浮点类型和 decimal.</param>
+    /// <param name="operatorType">按位运算符枚举值; LogicalOr 表示异或.</param>
+    /// <returns>已装箱且保持目标整数类型的运算结果.</returns>
+    /// <exception cref="NotImplementedException">目标数值类型或运算符枚举值不受支持.</exception>
+    /// <exception cref="InvalidCastException">源对象不能转换为所需数值类型.</exception>
+    /// <exception cref="FormatException">源文本不符合所需数值类型的格式.</exception>
+    /// <exception cref="OverflowException">目标类型报告转换或运算结果超出可表示范围.</exception>
     public static object BitwiseOperator(
-#pragma warning restore S3776
         object value1,
         object value2,
         NumberType numberType,
         BitwiseOperatorType operatorType
     )
     {
-        switch (numberType)
+        return numberType switch
         {
-            case NumberType.SByte:
-            {
-                var left = Convert.ToSByte(value1);
-                var right = Convert.ToSByte(value2);
-                return operatorType switch
-                {
-                    BitwiseOperatorType.Or => unchecked((sbyte)(left | right)),
-                    BitwiseOperatorType.And => unchecked((sbyte)(left & right)),
-                    BitwiseOperatorType.LogicalOr => unchecked((sbyte)(left ^ right)),
-                    _ => throw CreateUnsupportedOperatorException(operatorType),
-                };
-            }
-            case NumberType.Byte:
-            {
-                var left = Convert.ToByte(value1);
-                var right = Convert.ToByte(value2);
-                return operatorType switch
-                {
-                    BitwiseOperatorType.Or => unchecked((byte)(left | right)),
-                    BitwiseOperatorType.And => unchecked((byte)(left & right)),
-                    BitwiseOperatorType.LogicalOr => unchecked((byte)(left ^ right)),
-                    _ => throw CreateUnsupportedOperatorException(operatorType),
-                };
-            }
-            case NumberType.Int16:
-            {
-                var left = Convert.ToInt16(value1);
-                var right = Convert.ToInt16(value2);
-                return operatorType switch
-                {
-                    BitwiseOperatorType.Or => unchecked((short)(left | right)),
-                    BitwiseOperatorType.And => unchecked((short)(left & right)),
-                    BitwiseOperatorType.LogicalOr => unchecked((short)(left ^ right)),
-                    _ => throw CreateUnsupportedOperatorException(operatorType),
-                };
-            }
-            case NumberType.UInt16:
-            {
-                var left = Convert.ToUInt16(value1);
-                var right = Convert.ToUInt16(value2);
-                return operatorType switch
-                {
-                    BitwiseOperatorType.Or => unchecked((ushort)(left | right)),
-                    BitwiseOperatorType.And => unchecked((ushort)(left & right)),
-                    BitwiseOperatorType.LogicalOr => unchecked((ushort)(left ^ right)),
-                    _ => throw CreateUnsupportedOperatorException(operatorType),
-                };
-            }
-            case NumberType.Int32:
-            {
-                var left = Convert.ToInt32(value1);
-                var right = Convert.ToInt32(value2);
-                return operatorType switch
-                {
-                    BitwiseOperatorType.Or => left | right,
-                    BitwiseOperatorType.And => left & right,
-                    BitwiseOperatorType.LogicalOr => left ^ right,
-                    _ => throw CreateUnsupportedOperatorException(operatorType),
-                };
-            }
-            case NumberType.UInt32:
-            {
-                var left = Convert.ToUInt32(value1);
-                var right = Convert.ToUInt32(value2);
-                return operatorType switch
-                {
-                    BitwiseOperatorType.Or => left | right,
-                    BitwiseOperatorType.And => left & right,
-                    BitwiseOperatorType.LogicalOr => left ^ right,
-                    _ => throw CreateUnsupportedOperatorException(operatorType),
-                };
-            }
-            case NumberType.Int64:
-            {
-                var left = Convert.ToInt64(value1);
-                var right = Convert.ToInt64(value2);
-                return operatorType switch
-                {
-                    BitwiseOperatorType.Or => left | right,
-                    BitwiseOperatorType.And => left & right,
-                    BitwiseOperatorType.LogicalOr => left ^ right,
-                    _ => throw CreateUnsupportedOperatorException(operatorType),
-                };
-            }
-            case NumberType.UInt64:
-            {
-                var left = Convert.ToUInt64(value1);
-                var right = Convert.ToUInt64(value2);
-                return operatorType switch
-                {
-                    BitwiseOperatorType.Or => left | right,
-                    BitwiseOperatorType.And => left & right,
-                    BitwiseOperatorType.LogicalOr => left ^ right,
-                    _ => throw CreateUnsupportedOperatorException(operatorType),
-                };
-            }
-            default:
-                throw CreateUnsupportedNumberTypeException(numberType);
-        }
+            NumberType.SByte => BitwiseCore(
+                ConvertNumber<sbyte>(value1),
+                ConvertNumber<sbyte>(value2),
+                operatorType
+            ),
+            NumberType.Byte => BitwiseCore(
+                ConvertNumber<byte>(value1),
+                ConvertNumber<byte>(value2),
+                operatorType
+            ),
+            NumberType.Int16 => BitwiseCore(
+                ConvertNumber<short>(value1),
+                ConvertNumber<short>(value2),
+                operatorType
+            ),
+            NumberType.UInt16 => BitwiseCore(
+                ConvertNumber<ushort>(value1),
+                ConvertNumber<ushort>(value2),
+                operatorType
+            ),
+            NumberType.Int32 => BitwiseCore(
+                ConvertNumber<int>(value1),
+                ConvertNumber<int>(value2),
+                operatorType
+            ),
+            NumberType.UInt32 => BitwiseCore(
+                ConvertNumber<uint>(value1),
+                ConvertNumber<uint>(value2),
+                operatorType
+            ),
+            NumberType.Int64 => BitwiseCore(
+                ConvertNumber<long>(value1),
+                ConvertNumber<long>(value2),
+                operatorType
+            ),
+            NumberType.UInt64 => BitwiseCore(
+                ConvertNumber<ulong>(value1),
+                ConvertNumber<ulong>(value2),
+                operatorType
+            ),
+            NumberType.IntPtr => BitwiseCore(
+                ConvertNumber<nint>(value1),
+                ConvertNumber<nint>(value2),
+                operatorType
+            ),
+            NumberType.UIntPtr => BitwiseCore(
+                ConvertNumber<nuint>(value1),
+                ConvertNumber<nuint>(value2),
+                operatorType
+            ),
+            NumberType.Int128 => BitwiseCore(
+                ConvertNumber<Int128>(value1),
+                ConvertNumber<Int128>(value2),
+                operatorType
+            ),
+            NumberType.UInt128 => BitwiseCore(
+                ConvertNumber<UInt128>(value1),
+                ConvertNumber<UInt128>(value2),
+                operatorType
+            ),
+            NumberType.BigInteger => BitwiseCore(
+                ConvertNumber<BigInteger>(value1),
+                ConvertNumber<BigInteger>(value2),
+                operatorType
+            ),
+            _ => throw CreateUnsupportedNumberTypeException(numberType),
+        };
     }
 }

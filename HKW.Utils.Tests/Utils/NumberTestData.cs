@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using HKW.HKWUtils;
@@ -17,6 +17,10 @@ internal static class NumberTestData
         typeof(uint),
         typeof(long),
         typeof(ulong),
+        typeof(nint),
+        typeof(nuint),
+        typeof(Int128),
+        typeof(UInt128),
     ];
 
     internal static readonly Type[] Numbers =
@@ -25,6 +29,7 @@ internal static class NumberTestData
         typeof(float),
         typeof(double),
         typeof(decimal),
+        typeof(Half),
     ];
 
     internal static void Run(Type owner, string method, Type numberType, params object[] arguments)
@@ -81,11 +86,13 @@ internal static class NumberTestData
             && type != typeof(ushort)
             && type != typeof(uint)
             && type != typeof(ulong)
+            && type != typeof(nuint)
+            && type != typeof(UInt128)
         )
             yield return "negative";
         if (Integers.Contains(type) is false)
             yield return "fraction";
-        if (type == typeof(float) || type == typeof(double))
+        if (type == typeof(float) || type == typeof(double) || type == typeof(Half))
         {
             yield return "nan-left";
             yield return "nan-right";

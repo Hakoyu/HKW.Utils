@@ -1,28 +1,21 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace HKW.HKWUtils;
 
 /// <summary>
-/// 数值转换, 比较及运算工具, 仅支持既有的十一种数值类型; 位运算仅支持八种整数类型.
+/// 提供数值转换, 比较及运算工具.
 /// </summary>
-/// <remarks>
-/// 普通算术, 比较和位运算方法先使用 <see cref="Convert"/> 转换输入, 转换溢出仍会抛出异常.
-/// 名称以 F 结尾的方法要求输入的装箱类型与目标类型完全一致, 不进行数值转换.
-/// 比较结果统一返回 <see cref="int"/>, 仅保证其正负号, 不保证幅值为一.
-/// 算术及位运算结果保持目标运行时类型, 小整数提升运算后以 unchecked 方式截断到目标位宽.
-/// 整数运算采用 unchecked 规则, 但除零及有符号大整数最小值除以负一仍遵循类型本身的异常规则.
-/// 浮点及 decimal 运算保留各自的溢出, 非数值及除零规则.
-/// </remarks>
 public static partial class NumberUtils
 {
     /// <summary>
-    /// 获取数值类型
+    /// 获取运行时类型对应的数值类型枚举值.
     /// </summary>
-    /// <param name="numberType">类型</param>
-    /// <returns>数值类型</returns>
-    /// <exception cref="NotImplementedException">不支持的类型</exception>
+    /// <param name="numberType">本工具支持的数值运行时类型.</param>
+    /// <returns>对应的数值类型枚举值.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="numberType"/> 为 <see langword="null"/>.</exception>
+    /// <exception cref="NotImplementedException"><paramref name="numberType"/> 不是受支持的数值类型.</exception>
     public static NumberType GetNumberType(Type numberType)
     {
         ArgumentNullException.ThrowIfNull(numberType);
@@ -49,6 +42,18 @@ public static partial class NumberUtils
             return NumberType.Double;
         else if (numberType == typeof(decimal))
             return NumberType.Decimal;
+        else if (numberType == typeof(nint))
+            return NumberType.IntPtr;
+        else if (numberType == typeof(nuint))
+            return NumberType.UIntPtr;
+        else if (numberType == typeof(Int128))
+            return NumberType.Int128;
+        else if (numberType == typeof(UInt128))
+            return NumberType.UInt128;
+        else if (numberType == typeof(Half))
+            return NumberType.Half;
+        else if (numberType == typeof(System.Numerics.BigInteger))
+            return NumberType.BigInteger;
         else
             throw new NotImplementedException($"Unsupported number type: {numberType.FullName}.");
     }

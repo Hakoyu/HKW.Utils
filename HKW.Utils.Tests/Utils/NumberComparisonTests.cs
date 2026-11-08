@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using HKW.HKWUtils;
 
 namespace HKW.HKWUtilsTests.Utils;
@@ -183,10 +183,10 @@ public class NumberComparisonTests
             NumberUtils.CompareF(1, 2, (NumberType)999)
         );
         Assert.ThrowsExactly<NotImplementedException>(() =>
-            NumberUtils.Compare<Half>((Half)1, (Half)2)
+            NumberUtils.Compare(1, 2, typeof(bool))
         );
         Assert.ThrowsExactly<NotImplementedException>(() =>
-            NumberUtils.CompareF<Half>((Half)1, (Half)2)
+            NumberUtils.CompareF(1, 2, typeof(bool))
         );
         Assert.ThrowsExactly<OverflowException>(() => NumberUtils.Compare<byte>(256, 1));
         Assert.ThrowsExactly<InvalidCastException>(() => NumberUtils.CompareF<byte>(1, 2));

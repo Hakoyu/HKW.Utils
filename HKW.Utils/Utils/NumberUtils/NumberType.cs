@@ -84,4 +84,48 @@ public enum NumberType
     /// <para>精度: 大约 28-29 位数</para>
     /// </summary>
     Decimal,
+
+    /// <summary>
+    /// 原生大小有符号整数 (<see cref="nint"/>), 位宽由当前进程决定.
+    /// <para>范围: 32 位进程为 -2^31 到 2^31 - 1；64 位进程为 -2^63 到 2^63 - 1</para>
+    /// <para>大小: 32 位进程为 4 个字节；64 位进程为 8 个字节</para>
+    /// </summary>
+    IntPtr,
+
+    /// <summary>
+    /// 原生大小无符号整数 (<see cref="nuint"/>), 位宽由当前进程决定.
+    /// <para>范围: 32 位进程为 0 到 2^32 - 1；64 位进程为 0 到 2^64 - 1</para>
+    /// <para>大小: 32 位进程为 4 个字节；64 位进程为 8 个字节</para>
+    /// </summary>
+    UIntPtr,
+
+    /// <summary>
+    /// 128 位有符号整数 (<see cref="System.Int128"/>).
+    /// <para>范围: -2^127 到 2^127 - 1</para>
+    /// <para>大小: 16 个字节</para>
+    /// </summary>
+    Int128,
+
+    /// <summary>
+    /// 128 位无符号整数 (<see cref="System.UInt128"/>).
+    /// <para>范围: 0 到 2^128 - 1</para>
+    /// <para>大小: 16 个字节</para>
+    /// </summary>
+    UInt128,
+
+    /// <summary>
+    /// 半精度二进制浮点数 (<see cref="System.Half"/>).
+    /// <para>范围: 有限值为 -65,504 到 65,504；最小正非零值约为 5.96 × 10^-8</para>
+    /// <para>大小: 2 个字节</para>
+    /// <para>精度: 约 3 位十进制有效数字；最多需要 5 位十进制数字保证往返转换</para>
+    /// </summary>
+    Half,
+
+    /// <summary>
+    /// 任意精度整数 (<see cref="System.Numerics.BigInteger"/>).
+    /// <para>范围: 没有固定上下界，受内存和实现限制</para>
+    /// <para>大小: 可变，取决于数值和内部表示</para>
+    /// <para>精度: 整数精度不受固定位数限制</para>
+    /// </summary>
+    BigInteger,
 }

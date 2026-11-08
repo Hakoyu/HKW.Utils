@@ -240,8 +240,8 @@ public class I18nMatrixTests
             [CultureInfo.InvariantCulture, En]
         );
         Assert.IsNull(r.CurrentCulture);
-        Assert.AreEqual(0, r.GetCultureIndex(""));
-        Assert.AreEqual(CultureInfo.InvariantCulture, r.GetCulture(""));
+        Assert.Throws<ArgumentException>(() => r.GetCultureIndex(""));
+        Assert.Throws<ArgumentException>(() => r.GetCulture(""));
         var changes = 0;
         r.CultureDataChanged += (_, e) =>
         {
@@ -640,13 +640,13 @@ public class I18nMatrixTests
         };
         var order = new List<CultureInfo> { En, Fr, De };
         CultureInfo? current = En;
-        CultureInfo[] pool = [En, Fr, De, Ja, CultureInfo.InvariantCulture];
+        CultureInfo[] pool = [En, Fr, De, Ja];
         var random = new Random(1908);
         for (var step = 0; step < 300; step++)
         {
             var culture = pool[random.Next(pool.Length)];
             var replacement = pool[random.Next(pool.Length)];
-            switch (random.Next(5))
+            switch (random.Next(4))
             {
                 case 0:
                     var added = expected.TryAdd(culture, [null, null]);
