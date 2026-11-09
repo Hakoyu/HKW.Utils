@@ -145,19 +145,19 @@ public partial class NumberUtils
             throw CreateUnsupportedOperatorException(operatorType);
         return numberType switch
         {
-            NumberType.SByte => ShiftCore((sbyte)value1, shift, operatorType),
-            NumberType.Byte => ShiftCore((byte)value1, shift, operatorType),
-            NumberType.Int16 => ShiftCore((short)value1, shift, operatorType),
-            NumberType.UInt16 => ShiftCore((ushort)value1, shift, operatorType),
-            NumberType.Int32 => ShiftCore((int)value1, shift, operatorType),
-            NumberType.UInt32 => ShiftCore((uint)value1, shift, operatorType),
-            NumberType.Int64 => ShiftCore((long)value1, shift, operatorType),
-            NumberType.UInt64 => ShiftCore((ulong)value1, shift, operatorType),
-            NumberType.IntPtr => ShiftCore((nint)value1, shift, operatorType),
-            NumberType.UIntPtr => ShiftCore((nuint)value1, shift, operatorType),
-            NumberType.Int128 => ShiftCore((Int128)value1, shift, operatorType),
-            NumberType.UInt128 => ShiftCore((UInt128)value1, shift, operatorType),
-            NumberType.BigInteger => ShiftCore((BigInteger)value1, shift, operatorType),
+            NumberType.SByte => (object)ShiftCore((sbyte)value1, shift, operatorType),
+            NumberType.Byte => (object)ShiftCore((byte)value1, shift, operatorType),
+            NumberType.Int16 => (object)ShiftCore((short)value1, shift, operatorType),
+            NumberType.UInt16 => (object)ShiftCore((ushort)value1, shift, operatorType),
+            NumberType.Int32 => (object)ShiftCore((int)value1, shift, operatorType),
+            NumberType.UInt32 => (object)ShiftCore((uint)value1, shift, operatorType),
+            NumberType.Int64 => (object)ShiftCore((long)value1, shift, operatorType),
+            NumberType.UInt64 => (object)ShiftCore((ulong)value1, shift, operatorType),
+            NumberType.IntPtr => (object)ShiftCore((nint)value1, shift, operatorType),
+            NumberType.UIntPtr => (object)ShiftCore((nuint)value1, shift, operatorType),
+            NumberType.Int128 => (object)ShiftCore((Int128)value1, shift, operatorType),
+            NumberType.UInt128 => (object)ShiftCore((UInt128)value1, shift, operatorType),
+            NumberType.BigInteger => (object)ShiftCore((BigInteger)value1, shift, operatorType),
             _ => throw CreateUnsupportedNumberTypeException(numberType),
         };
     }

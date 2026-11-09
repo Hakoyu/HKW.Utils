@@ -174,19 +174,55 @@ public partial class NumberUtils
         var shift = ConvertNumber<int>(value2);
         return numberType switch
         {
-            NumberType.SByte => ShiftCore(ConvertNumber<sbyte>(value1), shift, operatorType),
-            NumberType.Byte => ShiftCore(ConvertNumber<byte>(value1), shift, operatorType),
-            NumberType.Int16 => ShiftCore(ConvertNumber<short>(value1), shift, operatorType),
-            NumberType.UInt16 => ShiftCore(ConvertNumber<ushort>(value1), shift, operatorType),
-            NumberType.Int32 => ShiftCore(ConvertNumber<int>(value1), shift, operatorType),
-            NumberType.UInt32 => ShiftCore(ConvertNumber<uint>(value1), shift, operatorType),
-            NumberType.Int64 => ShiftCore(ConvertNumber<long>(value1), shift, operatorType),
-            NumberType.UInt64 => ShiftCore(ConvertNumber<ulong>(value1), shift, operatorType),
-            NumberType.IntPtr => ShiftCore(ConvertNumber<nint>(value1), shift, operatorType),
-            NumberType.UIntPtr => ShiftCore(ConvertNumber<nuint>(value1), shift, operatorType),
-            NumberType.Int128 => ShiftCore(ConvertNumber<Int128>(value1), shift, operatorType),
-            NumberType.UInt128 => ShiftCore(ConvertNumber<UInt128>(value1), shift, operatorType),
-            NumberType.BigInteger => ShiftCore(
+            NumberType.SByte => (object)ShiftCore(
+                ConvertNumber<sbyte>(value1),
+                shift,
+                operatorType
+            ),
+            NumberType.Byte => (object)ShiftCore(ConvertNumber<byte>(value1), shift, operatorType),
+            NumberType.Int16 => (object)ShiftCore(
+                ConvertNumber<short>(value1),
+                shift,
+                operatorType
+            ),
+            NumberType.UInt16 => (object)ShiftCore(
+                ConvertNumber<ushort>(value1),
+                shift,
+                operatorType
+            ),
+            NumberType.Int32 => (object)ShiftCore(ConvertNumber<int>(value1), shift, operatorType),
+            NumberType.UInt32 => (object)ShiftCore(
+                ConvertNumber<uint>(value1),
+                shift,
+                operatorType
+            ),
+            NumberType.Int64 => (object)ShiftCore(ConvertNumber<long>(value1), shift, operatorType),
+            NumberType.UInt64 => (object)ShiftCore(
+                ConvertNumber<ulong>(value1),
+                shift,
+                operatorType
+            ),
+            NumberType.IntPtr => (object)ShiftCore(
+                ConvertNumber<nint>(value1),
+                shift,
+                operatorType
+            ),
+            NumberType.UIntPtr => (object)ShiftCore(
+                ConvertNumber<nuint>(value1),
+                shift,
+                operatorType
+            ),
+            NumberType.Int128 => (object)ShiftCore(
+                ConvertNumber<Int128>(value1),
+                shift,
+                operatorType
+            ),
+            NumberType.UInt128 => (object)ShiftCore(
+                ConvertNumber<UInt128>(value1),
+                shift,
+                operatorType
+            ),
+            NumberType.BigInteger => (object)ShiftCore(
                 ConvertNumber<BigInteger>(value1),
                 shift,
                 operatorType

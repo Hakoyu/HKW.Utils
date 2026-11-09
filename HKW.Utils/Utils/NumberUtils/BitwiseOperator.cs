@@ -175,67 +175,67 @@ public static partial class NumberUtils
     {
         return numberType switch
         {
-            NumberType.SByte => BitwiseCore(
+            NumberType.SByte => (object)BitwiseCore(
                 ConvertNumber<sbyte>(value1),
                 ConvertNumber<sbyte>(value2),
                 operatorType
             ),
-            NumberType.Byte => BitwiseCore(
+            NumberType.Byte => (object)BitwiseCore(
                 ConvertNumber<byte>(value1),
                 ConvertNumber<byte>(value2),
                 operatorType
             ),
-            NumberType.Int16 => BitwiseCore(
+            NumberType.Int16 => (object)BitwiseCore(
                 ConvertNumber<short>(value1),
                 ConvertNumber<short>(value2),
                 operatorType
             ),
-            NumberType.UInt16 => BitwiseCore(
+            NumberType.UInt16 => (object)BitwiseCore(
                 ConvertNumber<ushort>(value1),
                 ConvertNumber<ushort>(value2),
                 operatorType
             ),
-            NumberType.Int32 => BitwiseCore(
+            NumberType.Int32 => (object)BitwiseCore(
                 ConvertNumber<int>(value1),
                 ConvertNumber<int>(value2),
                 operatorType
             ),
-            NumberType.UInt32 => BitwiseCore(
+            NumberType.UInt32 => (object)BitwiseCore(
                 ConvertNumber<uint>(value1),
                 ConvertNumber<uint>(value2),
                 operatorType
             ),
-            NumberType.Int64 => BitwiseCore(
+            NumberType.Int64 => (object)BitwiseCore(
                 ConvertNumber<long>(value1),
                 ConvertNumber<long>(value2),
                 operatorType
             ),
-            NumberType.UInt64 => BitwiseCore(
+            NumberType.UInt64 => (object)BitwiseCore(
                 ConvertNumber<ulong>(value1),
                 ConvertNumber<ulong>(value2),
                 operatorType
             ),
-            NumberType.IntPtr => BitwiseCore(
+            NumberType.IntPtr => (object)BitwiseCore(
                 ConvertNumber<nint>(value1),
                 ConvertNumber<nint>(value2),
                 operatorType
             ),
-            NumberType.UIntPtr => BitwiseCore(
+            NumberType.UIntPtr => (object)BitwiseCore(
                 ConvertNumber<nuint>(value1),
                 ConvertNumber<nuint>(value2),
                 operatorType
             ),
-            NumberType.Int128 => BitwiseCore(
+            NumberType.Int128 => (object)BitwiseCore(
                 ConvertNumber<Int128>(value1),
                 ConvertNumber<Int128>(value2),
                 operatorType
             ),
-            NumberType.UInt128 => BitwiseCore(
+            NumberType.UInt128 => (object)BitwiseCore(
                 ConvertNumber<UInt128>(value1),
                 ConvertNumber<UInt128>(value2),
                 operatorType
             ),
-            NumberType.BigInteger => BitwiseCore(
+            NumberType.BigInteger => (object)BitwiseCore(
                 ConvertNumber<BigInteger>(value1),
                 ConvertNumber<BigInteger>(value2),
                 operatorType

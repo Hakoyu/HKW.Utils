@@ -47,22 +47,25 @@ public static partial class NumberUtils
     /// <exception cref="OverflowException">目标类型报告转换或运算结果超出可表示范围.</exception>
     public static object BitwiseComplement(object value, NumberType numberType)
     {
+#pragma warning disable S1905
         return numberType switch
         {
-            NumberType.SByte => unchecked(~ConvertNumber<sbyte>(value)),
-            NumberType.Byte => unchecked(~ConvertNumber<byte>(value)),
-            NumberType.Int16 => unchecked(~ConvertNumber<short>(value)),
-            NumberType.UInt16 => unchecked(~ConvertNumber<ushort>(value)),
-            NumberType.Int32 => unchecked(~ConvertNumber<int>(value)),
-            NumberType.UInt32 => unchecked(~ConvertNumber<uint>(value)),
-            NumberType.Int64 => unchecked(~ConvertNumber<long>(value)),
-            NumberType.UInt64 => unchecked(~ConvertNumber<ulong>(value)),
-            NumberType.IntPtr => unchecked(~ConvertNumber<nint>(value)),
-            NumberType.UIntPtr => unchecked(~ConvertNumber<nuint>(value)),
-            NumberType.Int128 => unchecked(~ConvertNumber<Int128>(value)),
-            NumberType.UInt128 => unchecked(~ConvertNumber<UInt128>(value)),
-            NumberType.BigInteger => unchecked(~ConvertNumber<BigInteger>(value)),
+            NumberType.SByte => (object)unchecked((sbyte)~ConvertNumber<sbyte>(value)),
+            NumberType.Byte => (object)unchecked((byte)~ConvertNumber<byte>(value)),
+            NumberType.Int16 => (object)unchecked((short)~ConvertNumber<short>(value)),
+            NumberType.UInt16 => (object)unchecked((ushort)~ConvertNumber<ushort>(value)),
+            NumberType.Int32 => (object)unchecked((int)~ConvertNumber<int>(value)),
+            NumberType.UInt32 => (object)unchecked((uint)~ConvertNumber<uint>(value)),
+            NumberType.Int64 => (object)unchecked((long)~ConvertNumber<long>(value)),
+            NumberType.UInt64 => (object)unchecked((ulong)~ConvertNumber<ulong>(value)),
+            NumberType.IntPtr => (object)unchecked((nint)~ConvertNumber<nint>(value)),
+            NumberType.UIntPtr => (object)unchecked((nuint)~ConvertNumber<nuint>(value)),
+            NumberType.Int128 => (object)unchecked((Int128)~ConvertNumber<Int128>(value)),
+            NumberType.UInt128 => (object)unchecked((UInt128)~ConvertNumber<UInt128>(value)),
+            NumberType.BigInteger => (object)
+                unchecked((BigInteger)~ConvertNumber<BigInteger>(value)),
             _ => throw CreateUnsupportedOperatorException(numberType),
         };
+#pragma warning restore S1905
     }
 }

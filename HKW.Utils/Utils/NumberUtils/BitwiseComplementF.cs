@@ -44,22 +44,24 @@ public static partial class NumberUtils
     /// <exception cref="NullReferenceException">需要拆箱的操作数为 <see langword="null"/>.</exception>
     public static object BitwiseComplementF(object value, NumberType numberType)
     {
+#pragma warning disable S1905
         return numberType switch
         {
-            NumberType.SByte => unchecked(~(sbyte)value),
-            NumberType.Byte => unchecked(~(byte)value),
-            NumberType.Int16 => unchecked(~(short)value),
-            NumberType.UInt16 => unchecked(~(ushort)value),
-            NumberType.Int32 => unchecked(~(int)value),
-            NumberType.UInt32 => unchecked(~(uint)value),
-            NumberType.Int64 => unchecked(~(long)value),
-            NumberType.UInt64 => unchecked(~(ulong)value),
-            NumberType.IntPtr => unchecked(~(nint)value),
-            NumberType.UIntPtr => unchecked(~(nuint)value),
-            NumberType.Int128 => unchecked(~(Int128)value),
-            NumberType.UInt128 => unchecked(~(UInt128)value),
-            NumberType.BigInteger => unchecked(~(BigInteger)value),
+            NumberType.SByte => (object)unchecked((sbyte)~(sbyte)value),
+            NumberType.Byte => (object)unchecked((byte)~(byte)value),
+            NumberType.Int16 => (object)unchecked((short)~(short)value),
+            NumberType.UInt16 => (object)unchecked((ushort)~(ushort)value),
+            NumberType.Int32 => (object)unchecked((int)~(int)value),
+            NumberType.UInt32 => (object)unchecked((uint)~(uint)value),
+            NumberType.Int64 => (object)unchecked((long)~(long)value),
+            NumberType.UInt64 => (object)unchecked((ulong)~(ulong)value),
+            NumberType.IntPtr => (object)unchecked((nint)~(nint)value),
+            NumberType.UIntPtr => (object)unchecked((nuint)~(nuint)value),
+            NumberType.Int128 => (object)unchecked((Int128)~(Int128)value),
+            NumberType.UInt128 => (object)unchecked((UInt128)~(UInt128)value),
+            NumberType.BigInteger => (object)unchecked((BigInteger)~(BigInteger)value),
             _ => throw CreateUnsupportedOperatorException(numberType),
         };
+#pragma warning restore S1905
     }
 }

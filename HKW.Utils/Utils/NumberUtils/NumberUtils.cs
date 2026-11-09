@@ -16,7 +16,9 @@ public static partial class NumberUtils
     /// <returns>对应的数值类型枚举值.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="numberType"/> 为 <see langword="null"/>.</exception>
     /// <exception cref="NotImplementedException"><paramref name="numberType"/> 不是受支持的数值类型.</exception>
+#pragma warning disable S3776
     public static NumberType GetNumberType(Type numberType)
+#pragma warning restore S3776
     {
         ArgumentNullException.ThrowIfNull(numberType);
 

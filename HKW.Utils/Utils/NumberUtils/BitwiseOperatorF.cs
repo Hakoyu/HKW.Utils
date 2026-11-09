@@ -130,19 +130,23 @@ public static partial class NumberUtils
     {
         return numberType switch
         {
-            NumberType.SByte => BitwiseCore((sbyte)value1, (sbyte)value2, operatorType),
-            NumberType.Byte => BitwiseCore((byte)value1, (byte)value2, operatorType),
-            NumberType.Int16 => BitwiseCore((short)value1, (short)value2, operatorType),
-            NumberType.UInt16 => BitwiseCore((ushort)value1, (ushort)value2, operatorType),
-            NumberType.Int32 => BitwiseCore((int)value1, (int)value2, operatorType),
-            NumberType.UInt32 => BitwiseCore((uint)value1, (uint)value2, operatorType),
-            NumberType.Int64 => BitwiseCore((long)value1, (long)value2, operatorType),
-            NumberType.UInt64 => BitwiseCore((ulong)value1, (ulong)value2, operatorType),
-            NumberType.IntPtr => BitwiseCore((nint)value1, (nint)value2, operatorType),
-            NumberType.UIntPtr => BitwiseCore((nuint)value1, (nuint)value2, operatorType),
-            NumberType.Int128 => BitwiseCore((Int128)value1, (Int128)value2, operatorType),
-            NumberType.UInt128 => BitwiseCore((UInt128)value1, (UInt128)value2, operatorType),
-            NumberType.BigInteger => BitwiseCore(
+            NumberType.SByte => (object)BitwiseCore((sbyte)value1, (sbyte)value2, operatorType),
+            NumberType.Byte => (object)BitwiseCore((byte)value1, (byte)value2, operatorType),
+            NumberType.Int16 => (object)BitwiseCore((short)value1, (short)value2, operatorType),
+            NumberType.UInt16 => (object)BitwiseCore((ushort)value1, (ushort)value2, operatorType),
+            NumberType.Int32 => (object)BitwiseCore((int)value1, (int)value2, operatorType),
+            NumberType.UInt32 => (object)BitwiseCore((uint)value1, (uint)value2, operatorType),
+            NumberType.Int64 => (object)BitwiseCore((long)value1, (long)value2, operatorType),
+            NumberType.UInt64 => (object)BitwiseCore((ulong)value1, (ulong)value2, operatorType),
+            NumberType.IntPtr => (object)BitwiseCore((nint)value1, (nint)value2, operatorType),
+            NumberType.UIntPtr => (object)BitwiseCore((nuint)value1, (nuint)value2, operatorType),
+            NumberType.Int128 => (object)BitwiseCore((Int128)value1, (Int128)value2, operatorType),
+            NumberType.UInt128 => (object)BitwiseCore(
+                (UInt128)value1,
+                (UInt128)value2,
+                operatorType
+            ),
+            NumberType.BigInteger => (object)BitwiseCore(
                 (BigInteger)value1,
                 (BigInteger)value2,
                 operatorType

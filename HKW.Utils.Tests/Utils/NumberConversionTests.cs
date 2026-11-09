@@ -30,15 +30,61 @@ public class NumberConversionTests
         CheckSource<T, nuint>(0, 1, nuint.MaxValue);
         CheckSource<T, Int128>(Int128.MinValue, 0, 1, Int128.MaxValue);
         CheckSource<T, UInt128>(0, 1, UInt128.MaxValue);
-        CheckSource<T, Half>(Half.MinValue, (Half)(-1.9), Half.NegativeZero, Half.One,
-            (Half)2.5, Half.MaxValue, Half.NaN, Half.PositiveInfinity, Half.NegativeInfinity);
-        CheckSource<T, float>(float.MinValue, -1.9f, -0.0f, 1, 2.5f, 3.5f, float.MaxValue,
-            float.NaN, float.PositiveInfinity, float.NegativeInfinity);
-        CheckSource<T, double>(double.MinValue, -1.9, -0.0, 1, 2.5, 3.5, 255.9, 256,
-            double.MaxValue, double.NaN, double.PositiveInfinity, double.NegativeInfinity);
-        CheckSource<T, decimal>(decimal.MinValue, -1.9m, 0, 1, 2.5m, 3.5m, 255.9m, decimal.MaxValue);
-        CheckSource<T, BigInteger>(-(BigInteger.One << 256), -1, 0, 1,
-            (BigInteger.One << 100) + 1, (BigInteger.One << 256) + 123);
+        CheckSource<T, Half>(
+            Half.MinValue,
+            (Half)(-1.9),
+            Half.NegativeZero,
+            Half.One,
+            (Half)2.5,
+            Half.MaxValue,
+            Half.NaN,
+            Half.PositiveInfinity,
+            Half.NegativeInfinity
+        );
+        CheckSource<T, float>(
+            float.MinValue,
+            -1.9f,
+            -0.0f,
+            1,
+            2.5f,
+            3.5f,
+            float.MaxValue,
+            float.NaN,
+            float.PositiveInfinity,
+            float.NegativeInfinity
+        );
+        CheckSource<T, double>(
+            double.MinValue,
+            -1.9,
+            -0.0,
+            1,
+            2.5,
+            3.5,
+            255.9,
+            256,
+            double.MaxValue,
+            double.NaN,
+            double.PositiveInfinity,
+            double.NegativeInfinity
+        );
+        CheckSource<T, decimal>(
+            decimal.MinValue,
+            -1.9m,
+            0,
+            1,
+            2.5m,
+            3.5m,
+            255.9m,
+            decimal.MaxValue
+        );
+        CheckSource<T, BigInteger>(
+            -(BigInteger.One << 256),
+            -1,
+            0,
+            1,
+            (BigInteger.One << 100) + 1,
+            (BigInteger.One << 256) + 123
+        );
     }
 
     private static void CheckSource<T, TSource>(params TSource[] values)
@@ -96,22 +142,43 @@ public class NumberConversionTests
         where T : struct, INumber<T>, IMinMaxValue<T>
     {
         var numberType = NumberUtils.GetNumberType(typeof(T));
-        NumberTestData.Check(() => T.MinValue,
+        NumberTestData.Check(
+            () => T.MinValue,
             () => NumberUtils.GetMinValue<T>(),
             () => NumberUtils.GetMinValue(typeof(T)),
-            () => NumberUtils.GetMinValue(numberType));
-        NumberTestData.Check(() => T.MaxValue,
+            () => NumberUtils.GetMinValue(numberType)
+        );
+        NumberTestData.Check(
+            () => T.MaxValue,
             () => NumberUtils.GetMaxValue<T>(),
             () => NumberUtils.GetMaxValue(typeof(T)),
-            () => NumberUtils.GetMaxValue(numberType));
+            () => NumberUtils.GetMaxValue(numberType)
+        );
     }
 
     [TestMethod]
     public void TypeIdentityAndUnsupportedBounds_AreStable()
     {
-        Type[] types = [typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int),
-            typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal),
-            typeof(nint), typeof(nuint), typeof(Int128), typeof(UInt128), typeof(Half), typeof(BigInteger)];
+        Type[] types =
+        [
+            typeof(sbyte),
+            typeof(byte),
+            typeof(short),
+            typeof(ushort),
+            typeof(int),
+            typeof(uint),
+            typeof(long),
+            typeof(ulong),
+            typeof(float),
+            typeof(double),
+            typeof(decimal),
+            typeof(nint),
+            typeof(nuint),
+            typeof(Int128),
+            typeof(UInt128),
+            typeof(Half),
+            typeof(BigInteger),
+        ];
         Assert.HasCount(types.Length, Enum.GetValues<NumberType>());
         for (var i = 0; i < types.Length; i++)
             Assert.AreEqual((NumberType)i, NumberUtils.GetNumberType(types[i]));
@@ -119,30 +186,63 @@ public class NumberConversionTests
         Assert.AreEqual(NumberType.UIntPtr, NumberUtils.GetNumberType(typeof(UIntPtr)));
         Assert.ThrowsExactly<NotImplementedException>(() => NumberUtils.GetMinValue<BigInteger>());
         Assert.ThrowsExactly<NotImplementedException>(() => NumberUtils.GetMaxValue<BigInteger>());
-        Assert.ThrowsExactly<NotImplementedException>(() => NumberUtils.GetMinValue(typeof(BigInteger)));
-        Assert.ThrowsExactly<NotImplementedException>(() => NumberUtils.GetMaxValue(typeof(BigInteger)));
-        Assert.ThrowsExactly<NotImplementedException>(() => NumberUtils.GetMinValue(NumberType.BigInteger));
-        Assert.ThrowsExactly<NotImplementedException>(() => NumberUtils.GetMaxValue(NumberType.BigInteger));
-        Assert.ThrowsExactly<NotImplementedException>(() => NumberUtils.GetNumberType(typeof(bool)));
-        Assert.ThrowsExactly<NotImplementedException>(() => NumberUtils.ConvertTo(1, (NumberType)999));
-        Assert.ThrowsExactly<NotImplementedException>(() => NumberUtils.GetDefault((NumberType)999));
-        Assert.ThrowsExactly<NotImplementedException>(() => NumberUtils.GetMinValue((NumberType)999));
-        Assert.ThrowsExactly<NotImplementedException>(() => NumberUtils.GetMaxValue((NumberType)999));
+        Assert.ThrowsExactly<NotImplementedException>(() =>
+            NumberUtils.GetMinValue(typeof(BigInteger))
+        );
+        Assert.ThrowsExactly<NotImplementedException>(() =>
+            NumberUtils.GetMaxValue(typeof(BigInteger))
+        );
+        Assert.ThrowsExactly<NotImplementedException>(() =>
+            NumberUtils.GetMinValue(NumberType.BigInteger)
+        );
+        Assert.ThrowsExactly<NotImplementedException>(() =>
+            NumberUtils.GetMaxValue(NumberType.BigInteger)
+        );
+        Assert.ThrowsExactly<NotImplementedException>(() =>
+            NumberUtils.GetNumberType(typeof(bool))
+        );
+        Assert.ThrowsExactly<NotImplementedException>(() =>
+            NumberUtils.ConvertTo(1, (NumberType)999)
+        );
+        Assert.ThrowsExactly<NotImplementedException>(() =>
+            NumberUtils.GetDefault((NumberType)999)
+        );
+        Assert.ThrowsExactly<NotImplementedException>(() =>
+            NumberUtils.GetMinValue((NumberType)999)
+        );
+        Assert.ThrowsExactly<NotImplementedException>(() =>
+            NumberUtils.GetMaxValue((NumberType)999)
+        );
         Assert.ThrowsExactly<ArgumentNullException>(() => NumberUtils.GetNumberType(null!));
     }
 
     [TestMethod]
     public void LegacyNonNumericInputs_KeepConvertBehavior()
     {
-        Type[] legacy = [typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int),
-            typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal)];
+        Type[] legacy =
+        [
+            typeof(sbyte),
+            typeof(byte),
+            typeof(short),
+            typeof(ushort),
+            typeof(int),
+            typeof(uint),
+            typeof(long),
+            typeof(ulong),
+            typeof(float),
+            typeof(double),
+            typeof(decimal),
+        ];
         foreach (var type in legacy)
         {
-            foreach (var value in new object[] { true, false, 'A', "12", "invalid", DateTime.UnixEpoch })
+            foreach (
+                var value in new object[] { true, false, 'A', "12", "invalid", DateTime.UnixEpoch }
+            )
             {
                 NumberTestData.Check(
                     () => Convert.ChangeType(value, type, CultureInfo.InvariantCulture),
-                    () => NumberUtils.ConvertTo(value, type, CultureInfo.InvariantCulture));
+                    () => NumberUtils.ConvertTo(value, type, CultureInfo.InvariantCulture)
+                );
             }
         }
         var provider = CultureInfo.GetCultureInfo("fr-FR");
@@ -164,10 +264,17 @@ public class NumberConversionTests
         Assert.AreEqual(-2, NumberUtils.BitwiseComplement<int>(1.9));
         Assert.AreEqual(2, NumberUtils.BitwiseShift<int>(1.9, 1.9, "<<"));
         Assert.AreEqual(2, NumberUtils.BitwiseShift<int>(1, (BigInteger)1, "<<"));
-        Assert.ThrowsExactly<OverflowException>(() => NumberUtils.BitwiseShift<int>(1, BigInteger.One << 40, "<<"));
-        Assert.ThrowsExactly<InvalidCastException>(() => NumberUtils.BitwiseShiftF<int>(1, (nint)1, "<<"));
+        Assert.ThrowsExactly<OverflowException>(() =>
+            NumberUtils.BitwiseShift<int>(1, BigInteger.One << 40, "<<")
+        );
+        Assert.ThrowsExactly<InvalidCastException>(() =>
+            NumberUtils.BitwiseShiftF<int>(1, (nint)1, "<<")
+        );
         Assert.ThrowsExactly<InvalidCastException>(() => NumberUtils.ArithmeticF<int>(1.9, 1, '+'));
-        Assert.AreEqual(1.5m, NumberUtils.ConvertTo<decimal>((object)"1,5", CultureInfo.GetCultureInfo("fr-FR")));
+        Assert.AreEqual(
+            1.5m,
+            NumberUtils.ConvertTo<decimal>((object)"1,5", CultureInfo.GetCultureInfo("fr-FR"))
+        );
     }
 
     [TestMethod]
@@ -175,9 +282,18 @@ public class NumberConversionTests
     {
         var zero = Half.NegativeZero;
         var bits = BitConverter.HalfToInt16Bits(zero);
-        Assert.AreEqual(bits, BitConverter.HalfToInt16Bits(NumberUtils.ConvertTo<Half>((double)(-0.0))));
-        Assert.AreEqual(bits, BitConverter.HalfToInt16Bits(NumberUtils.Arithmetic<Half>(zero, Half.One, '*')));
-        Assert.AreEqual(bits, BitConverter.HalfToInt16Bits(NumberUtils.ArithmeticF<Half>(zero, Half.One, '*')));
+        Assert.AreEqual(
+            bits,
+            BitConverter.HalfToInt16Bits(NumberUtils.ConvertTo<Half>((double)(-0.0)))
+        );
+        Assert.AreEqual(
+            bits,
+            BitConverter.HalfToInt16Bits(NumberUtils.Arithmetic<Half>(zero, Half.One, '*'))
+        );
+        Assert.AreEqual(
+            bits,
+            BitConverter.HalfToInt16Bits(NumberUtils.ArithmeticF<Half>(zero, Half.One, '*'))
+        );
         Assert.AreEqual(0, NumberUtils.Compare<Half>(zero, Half.Zero));
         Assert.IsTrue(NumberUtils.CompareBy<Half>(zero, Half.Zero, "=="));
     }
@@ -185,22 +301,46 @@ public class NumberConversionTests
     private sealed class ConversionProbe : IConvertible
     {
         public IFormatProvider? Provider { get; private set; }
-        public int ToInt32(IFormatProvider? provider) { Provider = provider; return 42; }
+
+        public int ToInt32(IFormatProvider? provider)
+        {
+            Provider = provider;
+            return 42;
+        }
+
         public TypeCode GetTypeCode() => TypeCode.Object;
+
         public bool ToBoolean(IFormatProvider? provider) => throw new InvalidOperationException();
+
         public byte ToByte(IFormatProvider? provider) => throw new InvalidOperationException();
+
         public char ToChar(IFormatProvider? provider) => throw new InvalidOperationException();
-        public DateTime ToDateTime(IFormatProvider? provider) => throw new InvalidOperationException();
-        public decimal ToDecimal(IFormatProvider? provider) => throw new InvalidOperationException();
+
+        public DateTime ToDateTime(IFormatProvider? provider) =>
+            throw new InvalidOperationException();
+
+        public decimal ToDecimal(IFormatProvider? provider) =>
+            throw new InvalidOperationException();
+
         public double ToDouble(IFormatProvider? provider) => throw new InvalidOperationException();
+
         public short ToInt16(IFormatProvider? provider) => throw new InvalidOperationException();
+
         public long ToInt64(IFormatProvider? provider) => throw new InvalidOperationException();
+
         public sbyte ToSByte(IFormatProvider? provider) => throw new InvalidOperationException();
+
         public float ToSingle(IFormatProvider? provider) => throw new InvalidOperationException();
+
         public string ToString(IFormatProvider? provider) => throw new InvalidOperationException();
-        public object ToType(Type conversionType, IFormatProvider? provider) => throw new InvalidOperationException();
+
+        public object ToType(Type conversionType, IFormatProvider? provider) =>
+            throw new InvalidOperationException();
+
         public ushort ToUInt16(IFormatProvider? provider) => throw new InvalidOperationException();
+
         public uint ToUInt32(IFormatProvider? provider) => throw new InvalidOperationException();
+
         public ulong ToUInt64(IFormatProvider? provider) => throw new InvalidOperationException();
     }
 }

@@ -174,87 +174,87 @@ public static partial class NumberUtils
     {
         return numberType switch
         {
-            NumberType.SByte => ArithmeticCore(
+            NumberType.SByte => (object)ArithmeticCore(
                 ConvertNumber<sbyte>(value1),
                 ConvertNumber<sbyte>(value2),
                 operatorType
             ),
-            NumberType.Byte => ArithmeticCore(
+            NumberType.Byte => (object)ArithmeticCore(
                 ConvertNumber<byte>(value1),
                 ConvertNumber<byte>(value2),
                 operatorType
             ),
-            NumberType.Int16 => ArithmeticCore(
+            NumberType.Int16 => (object)ArithmeticCore(
                 ConvertNumber<short>(value1),
                 ConvertNumber<short>(value2),
                 operatorType
             ),
-            NumberType.UInt16 => ArithmeticCore(
+            NumberType.UInt16 => (object)ArithmeticCore(
                 ConvertNumber<ushort>(value1),
                 ConvertNumber<ushort>(value2),
                 operatorType
             ),
-            NumberType.Int32 => ArithmeticCore(
+            NumberType.Int32 => (object)ArithmeticCore(
                 ConvertNumber<int>(value1),
                 ConvertNumber<int>(value2),
                 operatorType
             ),
-            NumberType.UInt32 => ArithmeticCore(
+            NumberType.UInt32 => (object)ArithmeticCore(
                 ConvertNumber<uint>(value1),
                 ConvertNumber<uint>(value2),
                 operatorType
             ),
-            NumberType.Int64 => ArithmeticCore(
+            NumberType.Int64 => (object)ArithmeticCore(
                 ConvertNumber<long>(value1),
                 ConvertNumber<long>(value2),
                 operatorType
             ),
-            NumberType.UInt64 => ArithmeticCore(
+            NumberType.UInt64 => (object)ArithmeticCore(
                 ConvertNumber<ulong>(value1),
                 ConvertNumber<ulong>(value2),
                 operatorType
             ),
-            NumberType.Single => ArithmeticCore(
+            NumberType.Single => (object)ArithmeticCore(
                 ConvertNumber<float>(value1),
                 ConvertNumber<float>(value2),
                 operatorType
             ),
-            NumberType.Double => ArithmeticCore(
+            NumberType.Double => (object)ArithmeticCore(
                 ConvertNumber<double>(value1),
                 ConvertNumber<double>(value2),
                 operatorType
             ),
-            NumberType.Decimal => ArithmeticCore(
+            NumberType.Decimal => (object)ArithmeticCore(
                 ConvertNumber<decimal>(value1),
                 ConvertNumber<decimal>(value2),
                 operatorType
             ),
-            NumberType.IntPtr => ArithmeticCore(
+            NumberType.IntPtr => (object)ArithmeticCore(
                 ConvertNumber<nint>(value1),
                 ConvertNumber<nint>(value2),
                 operatorType
             ),
-            NumberType.UIntPtr => ArithmeticCore(
+            NumberType.UIntPtr => (object)ArithmeticCore(
                 ConvertNumber<nuint>(value1),
                 ConvertNumber<nuint>(value2),
                 operatorType
             ),
-            NumberType.Int128 => ArithmeticCore(
+            NumberType.Int128 => (object)ArithmeticCore(
                 ConvertNumber<Int128>(value1),
                 ConvertNumber<Int128>(value2),
                 operatorType
             ),
-            NumberType.UInt128 => ArithmeticCore(
+            NumberType.UInt128 => (object)ArithmeticCore(
                 ConvertNumber<UInt128>(value1),
                 ConvertNumber<UInt128>(value2),
                 operatorType
             ),
-            NumberType.Half => ArithmeticCore(
+            NumberType.Half => (object)ArithmeticCore(
                 ConvertNumber<Half>(value1),
                 ConvertNumber<Half>(value2),
                 operatorType
             ),
-            NumberType.BigInteger => ArithmeticCore(
+            NumberType.BigInteger => (object)ArithmeticCore(
                 ConvertNumber<BigInteger>(value1),
                 ConvertNumber<BigInteger>(value2),
                 operatorType

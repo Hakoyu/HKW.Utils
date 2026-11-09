@@ -18,4 +18,4 @@ HKW 的 .NET 10 工具库.
 
 ## 许可
 
-包许可声明为 MIT. 按用户明确决定保留 [LICENSE.txt](LICENSE.txt) 和 [测试许可](HKW.Utils.Tests/LICENSE.txt) 的版权人及年份原文, 本次不补写或替换占位内容, 不将该决定称为修复阻塞项.
+包许可声明为 MIT.
